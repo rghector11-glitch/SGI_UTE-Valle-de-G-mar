@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistema de Gestión Interna — UTE Valle de Güímar</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#005b99">
 <meta name="mobile-web-app-capable" content="yes">
@@ -320,6 +324,60 @@ body::before {
 }
 .logout-btn:hover { background: rgba(255,255,255,.22); }
 
+
+/* ── DIAGNÓSTICO ── */
+.diag-btn {
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+  border-radius: 8px; color: white; cursor: pointer;
+  padding: 5px 10px; font-size: .78rem; font-family: 'Barlow', sans-serif;
+  display: flex; align-items: center; gap: 4px; font-weight: 600;
+  transition: background .15s; flex-shrink: 0;
+}
+.diag-btn:hover { background: rgba(255,255,255,.22); }
+.diag-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; transition: background .3s; }
+.diag-dot.ok    { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
+.diag-dot.warn  { background: #f59e0b; box-shadow: 0 0 6px #f59e0b88; }
+.diag-dot.error { background: #ef4444; box-shadow: 0 0 6px #ef444488; }
+.diag-dot.checking { background: #94a3b8; animation: diag-pulse 1s infinite; }
+@keyframes diag-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+#diag-panel {
+  display: none; position: fixed; top: 64px; right: 16px; z-index: 9000;
+  width: min(420px, calc(100vw - 32px));
+  background: #0f172a; border: 1px solid #1e293b;
+  border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.6);
+  font-family: 'Barlow', sans-serif; overflow: hidden;
+}
+#diag-panel.open { display: block; }
+.diag-header {
+  background: linear-gradient(135deg,#003e6b,#005b99);
+  padding: .75rem 1rem; display: flex; align-items: center; gap: .6rem;
+}
+.diag-header h3 { font-family: 'Barlow Condensed',sans-serif; font-size: 1rem; font-weight: 700; color: white; flex: 1; }
+.diag-close { background: rgba(255,255,255,.15); border: none; border-radius: 6px; color: white; cursor: pointer; padding: 3px 8px; font-size: .8rem; }
+.diag-body { padding: .9rem 1rem; display: flex; flex-direction: column; gap: .55rem; max-height: 70vh; overflow-y: auto; }
+.diag-item {
+  display: flex; align-items: flex-start; gap: .7rem;
+  background: #1e293b; border: 1px solid #334155;
+  border-radius: 9px; padding: .65rem .85rem;
+}
+.diag-item.ok    { border-color: #166534; background: #052e16; }
+.diag-item.warn  { border-color: #92400e; background: #1c1007; }
+.diag-item.error { border-color: #7f1d1d; background: #1c0a0a; }
+.diag-item-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.diag-item-icon.ok    { background: #166534; }
+.diag-item-icon.warn  { background: #92400e; }
+.diag-item-icon.error { background: #7f1d1d; }
+.diag-item-icon.checking { background: #1e3a5f; }
+.diag-item-body { flex: 1; min-width: 0; }
+.diag-item-title { font-size: .82rem; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; }
+.diag-item-desc  { font-size: .72rem; color: #94a3b8; line-height: 1.45; }
+.diag-item-fix   { font-size: .72rem; color: #f59e0b; margin-top: 4px; line-height: 1.4; }
+.diag-footer { padding: .6rem 1rem; border-top: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; }
+.diag-refresh { background: none; border: 1px solid #334155; border-radius: 7px; color: #94a3b8; cursor: pointer; font-size: .75rem; padding: 4px 12px; font-family: 'Barlow',sans-serif; }
+.diag-refresh:hover { background: #1e293b; color: white; }
+.diag-stamp { font-size: .68rem; color: #475569; font-family: 'JetBrains Mono',monospace; }
+
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -367,6 +425,22 @@ body::before {
 </style>
 </head>
 <body>
+
+<!-- ═══ PANEL DIAGNÓSTICO ═══ -->
+<div id="diag-panel">
+  <div class="diag-header">
+    <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;stroke:white;stroke-width:1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
+    <h3>Diagnóstico del portal</h3>
+    <button class="diag-close" onclick="toggleDiag()">✕</button>
+  </div>
+  <div class="diag-body" id="diag-body">
+    <div style="text-align:center;padding:1.5rem;color:#94a3b8;font-size:.82rem;">Comprobando...</div>
+  </div>
+  <div class="diag-footer">
+    <button class="diag-refresh" onclick="runDiag()">↺ Volver a comprobar</button>
+    <div class="diag-stamp" id="diag-stamp">—</div>
+  </div>
+</div>
 
 <!-- ═══════════════════ LOGIN ═══════════════════ -->
 <div id="login-screen">
@@ -456,6 +530,10 @@ body::before {
       <div id="user-email-bar" style="font-size:.68rem;color:rgba(255,255,255,.45);font-family:'JetBrains Mono',monospace;margin-top:2px;"></div>
       <div style="display:flex;gap:4px;margin-top:3px;">
     <button id="manage-users-btn" onclick="openUserManager()" style="display:none;font-size:.68rem;padding:3px 9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:rgba(255,255,255,.7);cursor:pointer;font-family:'Barlow',sans-serif;">Usuarios</button>
+    <button class="diag-btn" onclick="toggleDiag()" id="diag-btn" title="Diagnóstico del portal">
+      <div class="diag-dot checking" id="diag-global-dot"></div>
+      <span>Estado</span>
+    </button>
     <button onclick="toggleFullscreen()" id="fs-btn" class="fs-btn" title="Pantalla completa">
       <svg viewBox="0 0 16 16" fill="none"><path d="M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
@@ -1946,6 +2024,195 @@ document.addEventListener('fullscreenchange', () => {
     ? '<path d="M6 3v3H3M13 6h-3V3M10 13v-3h3M3 10h3v3" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'
     : '<path d="M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
 });
+
+
+// ══════════════════════════════════════════════════════════════
+// DIAGNÓSTICO DEL PORTAL
+// ══════════════════════════════════════════════════════════════
+let _diagOpen = false;
+
+function toggleDiag() {
+  _diagOpen = !_diagOpen;
+  document.getElementById('diag-panel').classList.toggle('open', _diagOpen);
+  if(_diagOpen) runDiag();
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', e => {
+  const panel = document.getElementById('diag-panel');
+  const btn   = document.getElementById('diag-btn');
+  if(_diagOpen && !panel.contains(e.target) && !btn.contains(e.target)) {
+    _diagOpen = false;
+    panel.classList.remove('open');
+  }
+});
+
+async function runDiag() {
+  const body = document.getElementById('diag-body');
+  body.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#94a3b8;font-size:.82rem;">Comprobando...</div>';
+
+  const checks = [];
+  const results = [];
+
+  // ── 1. Conectividad general ────────────────────────────────────────────────
+  checks.push((async () => {
+    const online = navigator.onLine;
+    return {
+      id: 'net',
+      title: 'Conectividad de red',
+      ok: online ? 'ok' : 'error',
+      icon: online ? '🌐' : '📵',
+      desc: online ? 'El dispositivo tiene acceso a internet.' : 'Sin conexión a internet.',
+      fix: online ? null : 'Verifica tu WiFi o datos móviles e inténtalo de nuevo.'
+    };
+  })());
+
+  // ── 2. Firebase ────────────────────────────────────────────────────────────
+  checks.push((async () => {
+    const fbReady = !!window._fb;
+    let fbWrite = false;
+    if(fbReady) {
+      try {
+        await window._fb.set(window._fb.ref(window._fb.db, '_diag_ping'), Date.now());
+        fbWrite = true;
+      } catch(e) { fbWrite = false; }
+    }
+    const st = fbReady && fbWrite ? 'ok' : fbReady ? 'warn' : 'error';
+    return {
+      id: 'fb',
+      title: 'Firebase Realtime Database',
+      ok: st,
+      icon: st === 'ok' ? '🔥' : '⚠️',
+      desc: fbReady && fbWrite ? 'Conectado y con escritura correcta. Sincronización activa.'
+           : fbReady ? 'SDK cargado pero la escritura falló. Las reglas pueden estar mal configuradas.'
+           : 'Firebase no ha cargado. Puede ser un problema de red o CORS.',
+      fix: st !== 'ok' ? (fbReady
+        ? 'Comprueba las reglas en Firebase Console → Realtime Database → Reglas. Deben ser ".read": true, ".write": true'
+        : 'Comprueba la conexión a internet y recarga la página.')
+        : null
+    };
+  })());
+
+  // ── 3. Sesión de usuario ───────────────────────────────────────────────────
+  checks.push((async () => {
+    const session = getSession();
+    const ok = session && session.username;
+    return {
+      id: 'session',
+      title: 'Sesión de usuario',
+      ok: ok ? 'ok' : 'warn',
+      icon: ok ? '👤' : '🔒',
+      desc: ok
+        ? `Sesión activa: ${session.username} (${session.role}). Iniciada el ${new Date(session.loginAt).toLocaleDateString('es-ES')}.`
+        : 'No hay sesión activa en este dispositivo.',
+      fix: ok ? null : 'Inicia sesión con tu usuario y contraseña.'
+    };
+  })());
+
+  // ── 4. Service Worker ──────────────────────────────────────────────────────
+  checks.push((async () => {
+    if(!('serviceWorker' in navigator)) {
+      return { id:'sw', title:'Service Worker (PWA)', ok:'warn', icon:'📦',
+        desc:'Este navegador no soporta Service Workers. La app no puede instalarse.',
+        fix:'Usa Chrome o Edge en su versión más reciente.' };
+    }
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      const active = regs.some(r => r.active);
+      return { id:'sw', title:'Service Worker (PWA)', ok: active ? 'ok' : 'warn', icon: active ? '📦' : '⚙️',
+        desc: active ? `Service Worker activo. La app puede funcionar sin conexión y es instalable.`
+                     : 'Service Worker registrado pero no activo todavía. Recarga la página.',
+        fix: active ? null : 'Recarga la página con Ctrl+Shift+R para activar el Service Worker.' };
+    } catch(e) {
+      return { id:'sw', title:'Service Worker (PWA)', ok:'warn', icon:'⚙️',
+        desc:'No se pudo comprobar el estado del Service Worker.',
+        fix: 'Recarga la página.' };
+    }
+  })());
+
+  // ── 5. Caché offline ───────────────────────────────────────────────────────
+  checks.push((async () => {
+    if(!('caches' in window)) {
+      return { id:'cache', title:'Caché offline', ok:'warn', icon:'💾',
+        desc:'El navegador no soporta la API de caché.', fix: null };
+    }
+    try {
+      const keys = await caches.keys();
+      const hasCache = keys.length > 0;
+      const cacheKey = keys.find(k => k.startsWith('ute-sgi'));
+      return { id:'cache', title:'Caché offline', ok: hasCache ? 'ok' : 'warn', icon:'💾',
+        desc: hasCache
+          ? `Caché activa (${keys.length} versión${keys.length>1?'es':''}). El portal carga aunque no haya internet.`
+          : 'Sin caché todavía. Navega por las apps para que se cacheen.',
+        fix: hasCache ? null : 'Abre cada módulo del portal al menos una vez con conexión.' };
+    } catch(e) {
+      return { id:'cache', title:'Caché offline', ok:'warn', icon:'💾',
+        desc:'No se pudo comprobar la caché.', fix: null };
+    }
+  })());
+
+  // ── 6. Módulos críticos ────────────────────────────────────────────────────
+  checks.push((async () => {
+    const missing = [];
+    if(typeof React === 'undefined')    missing.push('React');
+    if(typeof ReactDOM === 'undefined') missing.push('ReactDOM');
+    if(typeof Babel === 'undefined')    missing.push('Babel');
+    if(typeof XLSX === 'undefined')     missing.push('XLSX (SheetJS)');
+    const ok = missing.length === 0;
+    return { id:'libs', title:'Librerías externas', ok: ok ? 'ok' : 'warn', icon: ok ? '📚' : '⚠️',
+      desc: ok ? 'Todas las librerías cargadas correctamente (React, Babel, XLSX).'
+               : `Faltan: ${missing.join(', ')}. Algunas apps pueden no funcionar.`,
+      fix: ok ? null : 'Verifica tu conexión a internet y recarga la página. Las librerías se cargan desde CDN externo.' };
+  })());
+
+  // ── Resolver todos y renderizar ────────────────────────────────────────────
+  const resolved = await Promise.all(checks);
+
+  const globalOk = resolved.every(r => r.ok === 'ok') ? 'ok'
+                 : resolved.some(r => r.ok === 'error') ? 'error' : 'warn';
+
+  // Update global dot
+  const dot = document.getElementById('diag-global-dot');
+  dot.className = 'diag-dot ' + globalOk;
+
+  // Render
+  const now = new Date();
+  document.getElementById('diag-stamp').textContent =
+    `Última comprobación: ${now.toLocaleTimeString('es-ES')}`;
+
+  body.innerHTML = resolved.map(r => `
+    <div class="diag-item ${r.ok}">
+      <div class="diag-item-icon ${r.ok}">${r.icon}</div>
+      <div class="diag-item-body">
+        <div class="diag-item-title">${r.title}</div>
+        <div class="diag-item-desc">${r.desc}</div>
+        ${r.fix ? `<div class="diag-item-fix">💡 ${r.fix}</div>` : ''}
+      </div>
+      <div style="font-size:1rem;flex-shrink:0;">${r.ok==='ok'?'✅':r.ok==='warn'?'⚠️':'❌'}</div>
+    </div>
+  `).join('');
+}
+
+// Run diagnostics automatically on load (just the dot indicator)
+window.addEventListener('firebase-ready', () => {
+  runDiag().catch(()=>{});
+});
+setTimeout(() => {
+  if(!_diagOpen) {
+    // Just update the dot without opening the panel
+    Promise.all([
+      navigator.onLine,
+      !!window._fb,
+      !!getSession()?.username,
+    ]).then(([online, fb]) => {
+      const dot = document.getElementById('diag-global-dot');
+      if(!dot) return;
+      if(!online) { dot.className = 'diag-dot error'; return; }
+      if(!fb)     { dot.className = 'diag-dot warn'; return; }
+      dot.className = 'diag-dot ok';
+    });
+  }
+}, 3000);
 
 // ── Reloj ──
 function updateClock(){
