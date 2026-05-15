@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>
+  // Auth guard — checks local session
+  (function() {
+    try {
+      const s = JSON.parse(localStorage.getItem('ute-session'));
+      if(!s || !s.username) { window.location.href = 'index.html'; }
+    } catch(e) { window.location.href = 'index.html'; }
+  })();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruta Colector EDARu — UTE Valle de Güímar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --brand:#005b99;--brand-dark:#003e6b;--brand-light:#e8f2fa;
+  --accent:#f0a500;
+  --ok:#2e7d32;--ok-bg:#e8f5e9;--ok-txt:#1b5e20;
+  --av:#b91c1c;--av-bg:#fee2e2;--av-txt:#7f1d1d;
+  --rep:#1565c0;--rep-bg:#dbeafe;--rep-txt:#1e3a5f;
+  --mant:#b45309;--mant-bg:#fef3c7;--mant-txt:#78350f;
+  --bg:#f4f6f9;--surface:#fff;--border:#dde3ec;
+  --text:#1a2332;--text2:#4a5568;--text3:#8898aa;
+  --sans:'Barlow',sans-serif;--cond:'Barlow Condensed',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:10px;--rlg:14px;
+  --sh:0 2px 12px rgba(0,0,0,.08);--shlg:0 8px 32px rgba(0,0,0,.16);
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;overflow:hidden;}
+.shell{display:flex;flex-direction:column;height:100vh;}
+
+/* HEADER */
+.app-header{background:linear-gradient(135deg,var(--brand-dark),var(--brand));color:white;display:flex;align-items:center;gap:.7rem;padding:.55rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2);position:relative;z-index:500;flex-wrap:wrap;}
+.hdr-logo{width:30px;height:30px;background:white;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hdr-logo svg{width:18px;height:18px;}
+.hdr-brand{flex:1;min-width:120px;}
+.hdr-brand .co{font-family:var(--cond);font-size:.88rem;font-weight:700;}
+.hdr-brand .mo{font-size:.68rem;color:rgba(255,255,255,.6);font-weight:300;}
+.hdr-stats{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;}
+.stat-pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:3px 9px;font-size:.7rem;font-weight:600;display:flex;align-items:center;gap:4px;}
+.stat-pill .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.hdr-actions{display:flex;gap:.4rem;align-items:center;}
+.hdr-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:7px;color:white;cursor:pointer;padding:5px 10px;font-size:.72rem;font-family:var(--sans);display:flex;align-items:center;gap:4px;font-weight:600;white-space:nowrap;}
+.hdr-btn:hover{background:rgba(255,255,255,.22);}
+.hdr-btn svg{width:13px;height:13px;stroke:currentColor;}
+.hdr-btn.xls{background:rgba(46,125,50,.7);border-color:rgba(200,230,201,.4);}
+.hdr-btn.pdf{background:rgba(185,28,28,.65);border-color:rgba(254,202,202,.35);}
+.hdr-btn.xls:hover{background:rgba(46,125,50,.9);}
+.hdr-btn.pdf:hover{background:rgba(185,28,28,.85);}
+
+/* LAYOUT */
+.main{display:flex;flex:1;min-height:0;}
+
+/* LEFT PANEL */
+.panel-left{width:255px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.plt{padding:.65rem;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:.45rem;}
+.search-box{display:flex;align-items:center;gap:.35rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:.32rem .55rem;}
+.search-box svg{width:13px;height:13px;stroke:var(--text3);flex-shrink:0;}
+.search-box input{border:none;background:none;font-size:.8rem;color:var(--text);font-family:var(--sans);width:100%;}
+.search-box input:focus{outline:none;}
+.filter-row select{width:100%;font-size:.75rem;padding:.3rem .5rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:var(--sans);}
+.add-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.42rem;background:var(--brand);color:white;border:none;border-radius:var(--r);font-size:.78rem;font-weight:600;font-family:var(--sans);cursor:pointer;}
+.add-btn:hover{background:var(--brand-dark);}
+.add-btn svg{width:13px;height:13px;stroke:currentColor;}
+.wells-count{font-size:.68rem;color:var(--text3);padding:.3rem .65rem;border-bottom:1px solid var(--border);}
+.wells-list{overflow-y:auto;flex:1;}
+.wells-list::-webkit-scrollbar{width:4px;}
+.wells-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.well-item{display:flex;align-items:center;gap:.55rem;padding:.5rem .65rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
+.well-item:hover{background:var(--bg);}
+.well-item.active{background:var(--brand-light);border-left:3px solid var(--brand);}
+.well-num{width:25px;height:25px;border-radius:50%;background:var(--brand);color:white;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+.well-item.active .well-num{background:var(--brand-dark);}
+.well-info{flex:1;min-width:0;}
+.well-info .wname{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.well-info .wdepth{font-size:.68rem;color:var(--text3);}
+.wsb{font-size:.62rem;font-weight:700;padding:2px 5px;border-radius:99px;white-space:nowrap;}
+
+/* MAP */
+.map-wrap{flex:1;position:relative;min-width:0;}
+#map{width:100%;height:100%;}
+.map-legend{position:absolute;top:8px;right:8px;z-index:400;background:rgba(255,255,255,.93);border-radius:var(--r);padding:.45rem .6rem;box-shadow:var(--sh);border:1px solid var(--border);}
+.li{display:flex;align-items:center;gap:.35rem;font-size:.7rem;color:var(--text2);margin-bottom:.2rem;}
+.li:last-child{margin-bottom:0;}
+.ld{width:9px;height:9px;border-radius:50%;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.coords-bar{position:absolute;bottom:8px;left:8px;z-index:400;background:rgba(0,0,0,.55);color:white;font-family:var(--mono);font-size:.65rem;padding:3px 8px;border-radius:6px;pointer-events:none;}
+
+/* RIGHT PANEL */
+.panel-right{width:300px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:transform .25s;}
+.panel-right.hidden{transform:translateX(100%);width:0;border:none;}
+.detail-header{background:linear-gradient(135deg,var(--brand-dark),var(--brand));color:white;padding:.8rem .9rem;display:flex;align-items:flex-start;justify-content:space-between;}
+.dnum{font-family:var(--mono);font-size:.7rem;opacity:.65;margin-bottom:.1rem;}
+.dname{font-family:var(--cond);font-size:1.15rem;font-weight:700;}
+.dprof{font-size:.72rem;opacity:.6;margin-top:.1rem;}
+.close-btn{background:rgba(255,255,255,.15);border:none;color:white;cursor:pointer;padding:4px;border-radius:6px;display:flex;}
+.close-btn:hover{background:rgba(255,255,255,.25);}
+.close-btn svg{width:14px;height:14px;stroke:currentColor;}
+.detail-body{flex:1;overflow-y:auto;padding:.8rem;}
+.detail-body::-webkit-scrollbar{width:4px;}
+.detail-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.ds{margin-bottom:.9rem;}
+.ds h4{font-size:.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem;border-bottom:1px solid var(--border);padding-bottom:.28rem;}
+.ir{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
+.ir .lbl{font-size:.75rem;color:var(--text2);}
+.ir .val{font-size:.75rem;font-weight:600;font-family:var(--mono);}
+.notes-box{background:var(--bg);border-radius:7px;padding:.5rem;font-size:.75rem;color:var(--text2);line-height:1.5;min-height:32px;}
+.notes-box.empty{color:var(--text3);font-style:italic;}
+.inc-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:.35rem;padding:.45rem;background:var(--brand);color:white;border:none;border-radius:var(--r);font-size:.78rem;font-weight:600;font-family:var(--sans);cursor:pointer;margin-bottom:.8rem;}
+.inc-btn:hover{background:var(--brand-dark);}
+.inc-btn svg{width:13px;height:13px;stroke:currentColor;}
+.hist-item{background:var(--bg);border-radius:7px;padding:.55rem;margin-bottom:.45rem;border-left:3px solid var(--border);}
+.hist-item.Avería{border-left-color:var(--av);}
+.hist-item.Mantenimiento{border-left-color:var(--mant);}
+.hist-item.Limpieza{border-left-color:var(--brand);}
+.hist-item.Inspección{border-left-color:var(--ok);}
+.hist-item.Reparación{border-left-color:var(--rep);}
+.hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem;}
+.hist-type{font-size:.7rem;font-weight:700;}
+.hist-date{font-size:.65rem;color:var(--text3);font-family:var(--mono);}
+.hist-tech{font-size:.7rem;color:var(--text2);margin-bottom:.15rem;}
+.hist-desc{font-size:.72rem;color:var(--text);line-height:1.4;}
+.hist-empty{font-size:.75rem;color:var(--text3);font-style:italic;text-align:center;padding:.7rem 0;}
+
+/* Fotos en historial */
+.hist-photos{display:flex;flex-wrap:wrap;gap:4px;margin-top:.35rem;}
+.hist-photo-wrap{position:relative;width:60px;height:60px;}
+.hist-photo-wrap img{width:60px;height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--border);cursor:pointer;}
+.photo-actions{position:absolute;bottom:2px;left:0;right:0;display:flex;justify-content:center;gap:2px;}
+.photo-dl,.photo-rm-btn{background:rgba(0,0,0,.6);border:none;border-radius:3px;color:white;cursor:pointer;padding:2px 3px;display:flex;align-items:center;}
+.photo-rm-btn{background:rgba(185,28,28,.75);}
+.photo-dl:hover{background:rgba(0,91,153,.85);}
+.photo-rm-btn:hover{background:rgba(185,28,28,1);}
+.photo-dl svg,.photo-rm-btn svg{width:9px;height:9px;stroke:currentColor;}
+
+.detail-footer{padding:.6rem;border-top:1px solid var(--border);display:flex;gap:.35rem;}
+.footer-btn{flex:1;font-size:.72rem;font-family:var(--sans);padding:.38rem;border-radius:7px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;gap:.3rem;}
+.footer-btn:hover{background:var(--bg);}
+.footer-btn svg{width:12px;height:12px;stroke:currentColor;}
+.footer-btn.del{color:var(--av);}
+.footer-btn.del:hover{background:var(--av-bg);border-color:var(--av);}
+
+/* Markers */
+.well-marker{width:27px;height:27px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:white;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;}
+.well-marker.Operativo{background:var(--ok);}
+.well-marker.Avería{background:var(--av);}
+.well-marker.Reparación{background:var(--rep);}
+.well-marker.Mantenimiento{background:var(--mant);}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px);}
+.modal{background:var(--surface);border-radius:var(--rlg);box-shadow:var(--shlg);padding:1.3rem;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;}
+.modal-title{font-family:var(--cond);font-size:1.1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.45rem;color:var(--brand-dark);}
+.modal-title svg{width:17px;height:17px;stroke:var(--brand);}
+.fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:.55rem;}
+.fg-grid.full{grid-template-columns:1fr;}
+.fg{display:flex;flex-direction:column;gap:3px;}
+.fg label{font-size:.68rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;}
+.fg input,.fg select,.fg textarea{font-size:.82rem;padding:.42rem .6rem;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--sans);transition:border-color .15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,91,153,.1);}
+.modal-footer{display:flex;justify-content:flex-end;gap:.45rem;margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border);}
+.btn{display:inline-flex;align-items:center;gap:.3rem;padding:.42rem .85rem;border-radius:7px;font-size:.8rem;font-weight:600;font-family:var(--sans);cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);}
+.btn:hover{background:var(--bg);}
+.btn svg{width:13px;height:13px;stroke:currentColor;}
+.btn.primary{background:var(--brand);color:white;border-color:var(--brand);}
+.btn.primary:hover{background:var(--brand-dark);}
+
+/* Zona fotos modal */
+.photo-upload-area{border:2px dashed var(--border);border-radius:var(--r);padding:1rem;text-align:center;cursor:pointer;transition:border-color .15s;position:relative;}
+.photo-upload-area:hover{border-color:var(--brand);}
+.photo-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.photo-upload-area svg{width:24px;height:24px;stroke:var(--text3);margin-bottom:.3rem;}
+.photo-upload-area p{font-size:.75rem;color:var(--text3);}
+.photo-upload-area span{font-size:.68rem;color:var(--text3);}
+.photos-preview{display:flex;flex-wrap:wrap;gap:5px;margin-top:.5rem;}
+.preview-wrap{position:relative;width:64px;height:64px;}
+.preview-wrap img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);}
+.preview-rm{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--av);border:none;border-radius:50%;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+
+/* Lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;display:flex;align-items:center;justify-content:center;}
+.lightbox img{max-width:92vw;max-height:90vh;border-radius:8px;object-fit:contain;}
+.lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:white;font-size:1.4rem;cursor:pointer;padding:4px 10px;border-radius:6px;}
+.lightbox-dl{position:absolute;bottom:16px;right:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;font-size:.8rem;cursor:pointer;padding:6px 14px;border-radius:7px;font-family:var(--sans);font-weight:600;display:flex;align-items:center;gap:5px;}
+.lightbox-dl svg{width:14px;height:14px;stroke:currentColor;}
+.lightbox-rm{position:absolute;bottom:16px;left:16px;background:rgba(185,28,28,.7);border:1px solid rgba(254,202,202,.35);color:white;font-size:.8rem;cursor:pointer;padding:6px 14px;border-radius:7px;font-family:var(--sans);font-weight:600;display:flex;align-items:center;gap:5px;}
+.lightbox-rm svg{width:14px;height:14px;stroke:currentColor;}
+
+/* ── PRINT / PDF ── */
+@media print{
+  body{overflow:auto!important;font-size:11pt;color:#000;}
+  .shell,.main{display:block!important;height:auto!important;overflow:visible!important;}
+  .app-header,.panel-left,.map-wrap,.panel-right,.detail-footer,.inc-btn,.close-btn,.photo-dl{display:none!important;}
+  .print-report{display:block!important;}
+  .print-report{page-break-after:avoid;}
+  .pr-well{page-break-inside:avoid;margin-bottom:18pt;border:1px solid #ccc;border-radius:4pt;padding:10pt;}
+  .pr-well h3{font-size:12pt;margin-bottom:6pt;color:#003e6b;}
+  .pr-well table{width:100%;border-collapse:collapse;font-size:9pt;}
+  .pr-well td,th{border:1px solid #ddd;padding:3pt 5pt;}
+  .pr-well th{background:#e8f2fa;font-weight:bold;}
+  .pr-photos img{width:70pt;height:70pt;object-fit:cover;border-radius:3pt;margin:2pt;}
+  .print-cover{text-align:center;margin-bottom:24pt;padding-bottom:12pt;border-bottom:2px solid #005b99;}
+  .print-cover h1{font-size:18pt;color:#003e6b;}
+  .print-cover p{font-size:10pt;color:#555;}
+}
+.print-report{display:none;}
+
+@media(max-width:768px){
+  .panel-left{width:210px;}
+  .panel-right{width:270px;position:absolute;right:0;top:0;bottom:0;z-index:300;box-shadow:var(--shlg);}
+  .hdr-stats{display:none;}
+}
+
+/* ══ RESPONSIVE RUTA COLECTOR ══ */
+@media (max-width: 1024px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; max-height: 340px; border-right: none; border-bottom: 1px solid var(--border); }
+  #map { height: 340px; flex: none; }
+  .detail-panel { width: 100%; max-height: 380px; }
+}
+@media (max-width: 600px) {
+  /* Header */
+  .app-header { padding: .45rem .7rem; gap: .5rem; }
+  .app-header .title-block .title { font-size: .88rem; }
+  .app-header .title-block .sub { display: none; }
+  .header-actions { gap: .35rem; }
+  .header-actions .btn { font-size: .72rem; padding: .35rem .6rem; }
+
+  /* Layout: full stack */
+  .layout { flex-direction: column; height: auto; overflow: visible; }
+  .sidebar { width: 100%; max-height: 220px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #map { height: 260px; flex: none; width: 100%; }
+
+  /* Well list items */
+  .well-item { padding: .5rem .75rem; gap: .5rem; }
+  .well-num { width: 28px; height: 28px; font-size: .78rem; }
+  .well-name { font-size: .82rem; }
+  .well-meta { font-size: .7rem; }
+
+  /* Detail panel */
+  .detail-panel { width: 100%; position: relative; max-height: none; border-left: none; border-top: 1px solid var(--border); }
+  .detail-header { padding: .65rem .85rem; }
+  .detail-body { padding: .75rem .85rem; }
+
+  /* Forms */
+  .field-row { flex-direction: column; gap: .4rem; }
+  .field-row label { font-size: .72rem; }
+  .field-row input, .field-row select, .field-row textarea { font-size: .85rem; }
+
+  /* Photos grid */
+  .photos-grid { grid-template-columns: repeat(2, 1fr); gap: .4rem; }
+
+  /* Export buttons */
+  .export-row { flex-wrap: wrap; gap: .4rem; }
+  .export-btn { font-size: .75rem; padding: .38rem .7rem; }
+
+  /* Lightbox */
+  .lightbox-img { max-width: 95vw; max-height: 70vh; }
+}
+
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
+    authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
+    databaseURL: "https://sgi-ute-valle-de-guimar-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sgi-ute-valle-de-guimar",
+    storageBucket: "sgi-ute-valle-de-guimar.firebasestorage.app",
+    messagingSenderId: "618175438367",
+    appId: "1:618175438367:web:03831aa0ce60cb355e3f2a"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window._fb = { db, ref, onValue, set };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+</head>
+<body>
+<div class="shell">
+
+  <header class="app-header">
+    <button class="hdr-btn" onclick="window.location.href='index.html'">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Inicio
+    </button>
+    <div class="hdr-logo">
+      <svg viewBox="0 0 34 34" fill="none">
+        <path d="M17 3C17 3 8 13.5 8 20a9 9 0 0018 0c0-6.5-9-17-9-17z" fill="#005b99"/>
+        <circle cx="17" cy="20" r="3.8" fill="white"/>
+      </svg>
+    </div>
+    <div class="hdr-brand">
+      <div class="co">Ruta Colector EDARu</div>
+      <div class="mo">UTE Valle de Güímar · Tasagaya, Tenerife</div>
+    </div>
+    <div class="hdr-stats" id="hdr-stats"></div>
+    <div class="hdr-actions">
+      <button class="hdr-btn xls" onclick="exportXLS()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Excel
+      </button>
+      <button class="hdr-btn pdf" onclick="exportPDF()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h6l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke-width="1.4"/><path d="M9 2v4h4M6 9h4M6 11h2" stroke-width="1.4" stroke-linecap="round"/></svg>
+        PDF
+      </button>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <!-- PANEL IZQUIERDO -->
+    <div class="panel-left">
+      <div class="plt">
+        <div class="search-box">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <input type="text" id="search" placeholder="Buscar pozo..." oninput="filterWells()">
+        </div>
+        <div class="filter-row">
+          <select id="filter-state" onchange="filterWells()">
+            <option value="">Todos los estados</option>
+            <option value="Operativo">Operativo</option>
+            <option value="Avería">Avería</option>
+            <option value="Reparación">Reparación</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+          </select>
+        </div>
+        <button class="add-btn" onclick="openAddWell()">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke-width="1.6" stroke-linecap="round"/></svg>
+          Añadir nuevo pozo
+        </button>
+      </div>
+      <div class="wells-count" id="wells-count"></div>
+      <div class="wells-list" id="wells-list"></div>
+    </div>
+
+    <!-- MAPA -->
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="li"><div class="ld" style="background:var(--ok)"></div>Operativo</div>
+        <div class="li"><div class="ld" style="background:var(--av)"></div>Avería</div>
+        <div class="li"><div class="ld" style="background:var(--rep)"></div>Reparación</div>
+        <div class="li"><div class="ld" style="background:var(--mant)"></div>Mantenimiento</div>
+      </div>
+      <div class="coords-bar" id="coords-bar">28.3161°N  16.4043°W</div>
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="panel-right hidden" id="panel-right">
+      <div class="detail-header">
+        <div>
+          <div class="dnum" id="d-num"></div>
+          <div class="dname" id="d-name"></div>
+          <div class="dprof" id="d-prof"></div>
+        </div>
+        <button class="close-btn" onclick="closeDetail()">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="detail-body">
+        <div class="ds">
+          <h4>Información</h4>
+          <div class="ir"><span class="lbl">Estado</span><span class="val" id="d-estado"></span></div>
+          <div class="ir"><span class="lbl">Latitud</span><span class="val" id="d-lat"></span></div>
+          <div class="ir"><span class="lbl">Longitud</span><span class="val" id="d-lon"></span></div>
+        </div>
+        <div class="ds">
+          <h4>Notas generales</h4>
+          <div class="notes-box" id="d-notes"></div>
+        </div>
+        <button class="inc-btn" onclick="openAddRecord()">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke-width="1.6" stroke-linecap="round"/></svg>
+          Registrar incidencia / trabajo
+        </button>
+        <div class="ds">
+          <h4>Historial</h4>
+          <div id="d-hist"></div>
+        </div>
+      </div>
+      <div class="detail-footer">
+        <button class="footer-btn" onclick="openEditWell()">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M11 2.5a1.5 1.5 0 012.12 2.12L5 13H2.5v-2.5L11 2.5z" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Editar
+        </button>
+        <button class="footer-btn del" onclick="deleteWell()">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT REPORT (hidden, shown on print) -->
+<div class="print-report" id="print-report"></div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox" style="display:none" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="Foto">
+  <button class="lightbox-rm" onclick="event.stopPropagation();deleteLightboxPhoto()">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Eliminar foto
+  </button>
+  <button class="lightbox-dl" onclick="event.stopPropagation();downloadLightboxPhoto()">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Descargar foto
+  </button>
+</div>
+
+<!-- MODAL: Añadir/editar pozo -->
+<div id="modal-well" class="modal-overlay" style="display:none" onclick="closeModals(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke-width="1.4"/><path d="M8 5v6M5 8h6" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span id="mw-title">Nuevo pozo</span>
+    </div>
+    <div class="fg-grid">
+      <div class="fg"><label>Nombre *</label><input id="w-name" placeholder="Pozo 42"></div>
+      <div class="fg"><label>Profundidad</label><input id="w-depth" placeholder="150 cm"></div>
+    </div>
+    <div class="fg-grid">
+      <div class="fg"><label>Latitud *</label><input id="w-lat" type="number" step="0.000001" placeholder="28.3161"></div>
+      <div class="fg"><label>Longitud *</label><input id="w-lon" type="number" step="0.000001" placeholder="-16.4043"></div>
+    </div>
+    <div class="fg-grid">
+      <div class="fg"><label>Estado</label>
+        <select id="w-state">
+          <option value="Operativo">Operativo</option>
+          <option value="Avería">Avería</option>
+          <option value="Reparación">Reparación</option>
+          <option value="Mantenimiento">Mantenimiento</option>
+        </select>
+      </div>
+      <div class="fg" style="justify-content:flex-end"><label style="opacity:0">t</label>
+        <div style="font-size:.68rem;color:var(--text3);line-height:1.5">Clic en el mapa para capturar coordenadas.</div>
+      </div>
+    </div>
+    <div class="fg-grid full">
+      <div class="fg"><label>Notas</label><textarea id="w-notes" rows="2" placeholder="Observaciones..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModals()">Cancelar</button>
+      <button class="btn primary" onclick="saveWell()">Guardar pozo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Registrar incidencia -->
+<div id="modal-rec" class="modal-overlay" style="display:none" onclick="closeModals(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke-width="1.4"/><path d="M5.5 6h5M5.5 9h5M5.5 12h3" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span id="mr-title">Registrar trabajo</span>
+    </div>
+    <div class="fg-grid">
+      <div class="fg"><label>Tipo *</label>
+        <select id="r-type">
+          <option>Inspección</option><option>Limpieza</option>
+          <option>Mantenimiento</option><option>Avería</option><option>Reparación</option>
+        </select>
+      </div>
+      <div class="fg"><label>Fecha *</label><input id="r-date" type="date"></div>
+    </div>
+    <div class="fg-grid">
+      <div class="fg"><label>Técnico</label><input id="r-tech" placeholder="Nombre"></div>
+      <div class="fg"><label>Estado resultante</label>
+        <select id="r-result">
+          <option value="Operativo">Operativo</option>
+          <option value="Avería">Con avería</option>
+          <option value="Reparación">En reparación</option>
+          <option value="Mantenimiento">En mantenimiento</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg-grid full">
+      <div class="fg"><label>Descripción</label><textarea id="r-desc" rows="2" placeholder="Describe el trabajo o incidencia..."></textarea></div>
+    </div>
+    <!-- FOTOS -->
+    <div class="fg-grid full" style="margin-top:.2rem">
+      <div class="fg">
+        <label>Fotos</label>
+        <div class="photo-upload-area" id="photo-upload-area">
+          <input type="file" id="photo-input" accept="image/*" multiple onchange="handlePhotoInput(event)">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p>Toca para añadir fotos</p>
+          <span>Cámara · galería · PC</span>
+        </div>
+        <div class="photos-preview" id="photos-preview"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModals()">Cancelar</button>
+      <button class="btn primary" onclick="saveRecord()">Guardar registro</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── SEED DATA ────────────────────────────────────────────────────────────────
+const SEED = [
+  {id:'w1',num:1,name:'Pozo 1',depth:'sellado',state:'Operativo',lat:28.3161489,lon:-16.4043279,notes:'Sellada como parte del mantenimiento del mes de abril'},
+  {id:'w2',num:2,name:'Pozo 2',depth:'215 cm',state:'Operativo',lat:28.3162266,lon:-16.4042395,notes:''},
+  {id:'w3',num:3,name:'Pozo 3',depth:'226 cm',state:'Operativo',lat:28.3165289,lon:-16.4037379,notes:''},
+  {id:'w4',num:4,name:'Pozo 4',depth:'240 cm',state:'Operativo',lat:28.3168614,lon:-16.4034743,notes:''},
+  {id:'w5',num:5,name:'Pozo 5',depth:'90 cm',state:'Operativo',lat:28.3170607,lon:-16.4031992,notes:''},
+  {id:'w6',num:6,name:'Pozo 6',depth:'80 cm',state:'Operativo',lat:28.3171622,lon:-16.4029048,notes:'Pozo sellado'},
+  {id:'w7',num:7,name:'Pozo 7',depth:'30 cm',state:'Operativo',lat:28.3173303,lon:-16.4027481,notes:'Pozo sellado'},
+  {id:'w8',num:8,name:'Pozo 8',depth:'130 cm',state:'Operativo',lat:28.3174059,lon:-16.4027267,notes:'Pozo sellado'},
+  {id:'w9',num:9,name:'Pozo 9',depth:'>300 cm',state:'Operativo',lat:28.3176557,lon:-16.402474,notes:''},
+  {id:'w10',num:10,name:'Pozo 10',depth:'300 cm',state:'Operativo',lat:28.3181408,lon:-16.4019562,notes:''},
+  {id:'w11',num:11,name:'Pozo 11',depth:'226 cm',state:'Operativo',lat:28.3184611,lon:-16.401613,notes:''},
+  {id:'w12',num:12,name:'Pozo 12',depth:'150 cm',state:'Operativo',lat:28.3187666,lon:-16.4014002,notes:''},
+  {id:'w13',num:13,name:'Pozo 13',depth:'130 cm',state:'Operativo',lat:28.319179,lon:-16.4011431,notes:''},
+  {id:'w14',num:14,name:'Pozo 14',depth:'130 cm',state:'Operativo',lat:28.3194704,lon:-16.400893,notes:''},
+  {id:'w15',num:15,name:'Pozo 15',depth:'160 cm',state:'Operativo',lat:28.3197797,lon:-16.4007231,notes:''},
+  {id:'w16',num:16,name:'Pozo 16',depth:'215 cm',state:'Operativo',lat:28.3201055,lon:-16.4004685,notes:''},
+  {id:'w17',num:17,name:'Pozo 17',depth:'165 cm',state:'Operativo',lat:28.3203751,lon:-16.4002752,notes:''},
+  {id:'w18',num:18,name:'Pozo 18',depth:'60 cm',state:'Operativo',lat:28.3205487,lon:-16.4000808,notes:''},
+  {id:'w19',num:19,name:'Pozo 19',depth:'130 cm',state:'Operativo',lat:28.3205809,lon:-16.3995727,notes:''},
+  {id:'w20',num:20,name:'Pozo 20',depth:'sellado',state:'Operativo',lat:28.3206629,lon:-16.3991717,notes:''},
+  {id:'w21',num:21,name:'Pozo 21',depth:'230 cm',state:'Operativo',lat:28.3209,lon:-16.3989,notes:''},
+  {id:'w22',num:22,name:'Pozo 22',depth:'210 cm',state:'Operativo',lat:28.3213,lon:-16.398708,notes:''},
+  {id:'w23',num:23,name:'Pozo 23',depth:'145 cm',state:'Operativo',lat:28.321609,lon:-16.398532,notes:''},
+  {id:'w24',num:24,name:'Pozo 24',depth:'145 cm',state:'Operativo',lat:28.322244,lon:-16.3984,notes:''},
+  {id:'w25',num:25,name:'Pozo 25',depth:'155 cm',state:'Operativo',lat:28.32256,lon:-16.39786,notes:''},
+  {id:'w26',num:26,name:'Pozo 26',depth:'150 cm',state:'Operativo',lat:28.3228,lon:-16.39743,notes:''},
+  {id:'w27',num:27,name:'Pozo 27',depth:'150 cm',state:'Operativo',lat:28.32298,lon:-16.39728,notes:''},
+  {id:'w28',num:28,name:'Pozo 28',depth:'180 cm',state:'Operativo',lat:28.32324,lon:-16.39708,notes:''},
+  {id:'w29',num:29,name:'Pozo 29',depth:'230 cm',state:'Operativo',lat:28.32348,lon:-16.39690,notes:''},
+  {id:'w30',num:30,name:'Pozo 30',depth:'175 cm',state:'Operativo',lat:28.32367,lon:-16.39673,notes:'Marco dañado y posible acometida de pluviales ilegal'},
+  {id:'w31',num:31,name:'Pozo 31',depth:'145 cm',state:'Operativo',lat:28.32373,lon:-16.39662,notes:'Marco dañado'},
+  {id:'w32',num:32,name:'Pozo 32',depth:'145 cm',state:'Operativo',lat:28.32399,lon:-16.39621,notes:'Marco dañado y posible acometida ilegal'},
+  {id:'w33',num:33,name:'Pozo 33',depth:'155 cm',state:'Operativo',lat:28.32407,lon:-16.39554,notes:''},
+  {id:'w34',num:34,name:'Pozo 34',depth:'155 cm',state:'Operativo',lat:28.32406,lon:-16.39517,notes:''},
+  {id:'w35',num:35,name:'Pozo 35',depth:'130 cm',state:'Operativo',lat:28.32378,lon:-16.39456,notes:''},
+  {id:'w36',num:36,name:'Pozo 36',depth:'105 cm',state:'Operativo',lat:28.32409,lon:-16.39421,notes:''},
+  {id:'w37',num:37,name:'Pozo 37',depth:'120 cm',state:'Operativo',lat:28.32413,lon:-16.39411,notes:'Registro con alivio.'},
+  {id:'w38',num:38,name:'Pozo 38',depth:'100 cm',state:'Operativo',lat:28.32448,lon:-16.39356,notes:''},
+  {id:'w39',num:39,name:'Pozo 39',depth:'165 cm',state:'Operativo',lat:28.32484,lon:-16.39323,notes:''},
+  {id:'w40',num:40,name:'Pozo 40',depth:'310 cm',state:'Operativo',lat:28.32522,lon:-16.39293,notes:''},
+  {id:'w41',num:41,name:'Pozo 41',depth:'280 cm',state:'Operativo',lat:28.32530,lon:-16.39280,notes:''},
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let wells=[], records={}, photos={};
+let selectedId=null, editWellId=null;
+let leafletMarkers={}, routeLine=null, pickingCoords=false;
+let pendingPhotos=[]; // base64 strings for current modal
+let lbPhotoData=null; // current lightbox photo
+
+function uid(){ return 'x'+Date.now()+Math.random().toString(36).slice(2,6); }
+
+// ─── STORAGE ──────────────────────────────────────────────────────────────────
+function save(){
+  localStorage.setItem('ute-c-wells', JSON.stringify(wells));
+  localStorage.setItem('ute-c-recs', JSON.stringify(records));
+  try{ localStorage.setItem('ute-c-photos', JSON.stringify(photos)); }catch(e){ console.warn('Storage full for photos'); }
+  // Sync wells + records to Firebase (photos stay local — too large for RTDB)
+  if(window._fb) {
+    window._fb.set(window._fb.ref(window._fb.db, 'colector'), {
+      wells, records, updated: Date.now()
+    }).catch(e=>console.warn('Firebase write error:', e));
+  }
+}
+let _fbColectorListening = false;
+function load(){
+  try{ const d=localStorage.getItem('ute-c-wells'); if(d) wells=JSON.parse(d); }catch(e){}
+  try{ const d=localStorage.getItem('ute-c-recs');  if(d) records=JSON.parse(d); }catch(e){}
+  try{ const d=localStorage.getItem('ute-c-photos'); if(d) photos=JSON.parse(d); }catch(e){}
+  if(!wells.length){ wells=SEED.map(w=>({...w})); records={}; photos={}; save(); }
+  // Subscribe Firebase once
+  if(window._fb && !_fbColectorListening) {
+    _fbColectorListening = true;
+    window._fb.onValue(window._fb.ref(window._fb.db, 'colector'), snap => {
+      const d = snap.val();
+      if(d) {
+        if(d.wells)   { wells   = d.wells;   localStorage.setItem('ute-c-wells', JSON.stringify(wells)); }
+        if(d.records) { records = d.records; localStorage.setItem('ute-c-recs',  JSON.stringify(records)); }
+        renderAll();
+        if(selectedId) selectWell(selectedId);
+      }
+    });
+  } else if(!window._fb) {
+    // Retry when Firebase ready
+    window.addEventListener('firebase-ready', load, {once:true});
+  }
+}
+
+// ─── COLORS ───────────────────────────────────────────────────────────────────
+const SBG ={Operativo:'#e8f5e9',Avería:'#fee2e2',Reparación:'#dbeafe',Mantenimiento:'#fef3c7'};
+const STXT={Operativo:'#1b5e20',Avería:'#7f1d1d',Reparación:'#1e3a5f',Mantenimiento:'#78350f'};
+const THEX={Inspección:'#2e7d32',Limpieza:'#005b99',Mantenimiento:'#b45309',Avería:'#b91c1c',Reparación:'#1565c0'};
+
+// ─── MAP ──────────────────────────────────────────────────────────────────────
+let map;
+function initMap(){
+  map=L.map('map',{zoomControl:true}).setView([28.3185,-16.3980],15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+  map.on('mousemove',e=>{ document.getElementById('coords-bar').textContent=e.latlng.lat.toFixed(6)+'°N  '+Math.abs(e.latlng.lng).toFixed(6)+'°W'; });
+  map.on('click',e=>{ if(pickingCoords){ document.getElementById('w-lat').value=e.latlng.lat.toFixed(7); document.getElementById('w-lon').value=e.latlng.lng.toFixed(7); } });
+}
+
+function makeIcon(w){
+  return L.divIcon({className:'',html:`<div class="well-marker ${w.state}" title="${w.name}">${w.num<=99?w.num:'?'}</div>`,iconSize:[27,27],iconAnchor:[13,13]});
+}
+
+function renderMarkers(){
+  Object.values(leafletMarkers).forEach(m=>map.removeLayer(m));
+  leafletMarkers={};
+  if(routeLine){map.removeLayer(routeLine);routeLine=null;}
+  const vis=getFiltered();
+  const coords=[];
+  vis.forEach(w=>{
+    const m=L.marker([w.lat,w.lon],{icon:makeIcon(w)}).addTo(map);
+    m.on('click',()=>selectWell(w.id));
+    leafletMarkers[w.id]=m;
+    coords.push([w.lat,w.lon]);
+  });
+  if(coords.length>1) routeLine=L.polyline(coords,{color:'#005b99',weight:2.5,opacity:.6,dashArray:'6 4'}).addTo(map);
+}
+
+// ─── FILTER / LIST ────────────────────────────────────────────────────────────
+function getFiltered(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const st=document.getElementById('filter-state').value;
+  return wells.filter(w=>(!q||w.name.toLowerCase().includes(q)||String(w.num).includes(q))&&(!st||w.state===st)).sort((a,b)=>a.num-b.num);
+}
+function filterWells(){ renderList(); renderMarkers(); updateStats(); }
+
+function renderList(){
+  const f=getFiltered();
+  document.getElementById('wells-count').textContent=`${f.length} de ${wells.length} pozos`;
+  document.getElementById('wells-list').innerHTML=f.map(w=>{
+    const nr=(records[w.id]||[]).length;
+    return `<div class="well-item${selectedId===w.id?' active':''}" onclick="selectWell('${w.id}')">
+      <div class="well-num">${w.num}</div>
+      <div class="well-info"><div class="wname">${w.name}</div><div class="wdepth">${w.depth||'—'}${nr?' · '+nr+' reg.':''}</div></div>
+      <span class="wsb" style="background:${SBG[w.state]};color:${STXT[w.state]}">${w.state}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateStats(){
+  const c={Operativo:0,Avería:0,Reparación:0,Mantenimiento:0};
+  wells.forEach(w=>{ if(c[w.state]!==undefined) c[w.state]++; });
+  document.getElementById('hdr-stats').innerHTML=
+    `<div class="stat-pill"><div class="dot" style="background:#2e7d32"></div>${c.Operativo} Oper.</div>`+
+    (c.Avería?`<div class="stat-pill"><div class="dot" style="background:#b91c1c"></div>${c.Avería} Avería</div>`:'')+
+    (c.Reparación?`<div class="stat-pill"><div class="dot" style="background:#1565c0"></div>${c.Reparación} Repar.</div>`:'')+
+    (c.Mantenimiento?`<div class="stat-pill"><div class="dot" style="background:#b45309"></div>${c.Mantenimiento} Mant.</div>`:'');
+}
+
+// ─── SELECT WELL ──────────────────────────────────────────────────────────────
+function selectWell(id){
+  selectedId=id;
+  const w=wells.find(x=>x.id===id);
+  if(!w) return;
+  document.getElementById('panel-right').classList.remove('hidden');
+  document.getElementById('d-num').textContent='Pozo '+w.num;
+  document.getElementById('d-name').textContent=w.name;
+  document.getElementById('d-prof').textContent='Prof: '+(w.depth||'—');
+  document.getElementById('d-estado').innerHTML=`<span style="background:${SBG[w.state]};color:${STXT[w.state]};padding:2px 8px;border-radius:99px;font-size:.72rem;font-weight:700">${w.state}</span>`;
+  document.getElementById('d-lat').textContent=w.lat.toFixed(6)+'°';
+  document.getElementById('d-lon').textContent=w.lon.toFixed(6)+'°';
+  const ne=document.getElementById('d-notes');
+  ne.textContent=w.notes||'Sin notas.';
+  ne.className='notes-box'+(w.notes?'':' empty');
+  renderHist(id);
+  map.flyTo([w.lat,w.lon],17,{duration:.8});
+  renderList();
+}
+
+function renderHist(id){
+  const recs=(records[id]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const el=document.getElementById('d-hist');
+  if(!recs.length){ el.innerHTML='<div class="hist-empty">Sin registros todavía</div>'; return; }
+  el.innerHTML=recs.map(r=>{
+    const ps=(photos[r.id]||[]);
+    const photoHtml=ps.length?`<div class="hist-photos">${ps.map((p,i)=>`
+      <div class="hist-photo-wrap">
+        <img src="${p}" alt="foto" onclick="openLightbox('${r.id}',${i})">
+        <div class="photo-actions">
+          <button class="photo-dl" title="Descargar" onclick="event.stopPropagation();downloadPhoto('${r.id}',${i})">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V4M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="photo-rm-btn" title="Eliminar" onclick="event.stopPropagation();deletePhoto('${r.id}',${i})">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>`).join('')}</div>`:'';
+    return `<div class="hist-item ${r.type}">
+      <div class="hist-top">
+        <span class="hist-type" style="color:${THEX[r.type]}">${r.type}</span>
+        <span class="hist-date">${r.date}</span>
+      </div>
+      ${r.tech?`<div class="hist-tech">${r.tech}</div>`:''}
+      ${r.desc?`<div class="hist-desc">${r.desc}</div>`:''}
+      ${photoHtml}
+    </div>`;
+  }).join('');
+}
+
+function closeDetail(){ selectedId=null; document.getElementById('panel-right').classList.add('hidden'); renderList(); }
+
+// ─── ADD / EDIT WELL ──────────────────────────────────────────────────────────
+function openAddWell(){
+  editWellId=null;
+  document.getElementById('mw-title').textContent='Nuevo pozo';
+  ['w-name','w-depth','w-lat','w-lon','w-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('w-state').value='Operativo';
+  pickingCoords=true;
+  document.getElementById('modal-well').style.display='flex';
+}
+function openEditWell(){
+  if(!selectedId) return;
+  const w=wells.find(x=>x.id===selectedId);
+  editWellId=selectedId;
+  document.getElementById('mw-title').textContent='Editar '+w.name;
+  document.getElementById('w-name').value=w.name;
+  document.getElementById('w-depth').value=w.depth||'';
+  document.getElementById('w-lat').value=w.lat;
+  document.getElementById('w-lon').value=w.lon;
+  document.getElementById('w-state').value=w.state;
+  document.getElementById('w-notes').value=w.notes||'';
+  pickingCoords=true;
+  document.getElementById('modal-well').style.display='flex';
+}
+function saveWell(){
+  const name=document.getElementById('w-name').value.trim();
+  const lat=parseFloat(document.getElementById('w-lat').value);
+  const lon=parseFloat(document.getElementById('w-lon').value);
+  if(!name||isNaN(lat)||isNaN(lon)){alert('Nombre y coordenadas son obligatorios.');return;}
+  const obj={name,depth:document.getElementById('w-depth').value.trim(),state:document.getElementById('w-state').value,lat,lon,notes:document.getElementById('w-notes').value.trim()};
+  if(editWellId){ wells=wells.map(w=>w.id===editWellId?{...w,...obj}:w); }
+  else{ const mx=wells.length?Math.max(...wells.map(w=>w.num)):0; wells.push({id:uid(),num:mx+1,...obj}); }
+  pickingCoords=false; save(); closeModals(); renderAll();
+  if(editWellId) selectWell(editWellId);
+}
+function deleteWell(){
+  if(!selectedId) return;
+  const w=wells.find(x=>x.id===selectedId);
+  if(!confirm(`¿Eliminar ${w.name} y todos sus registros?`)) return;
+  wells=wells.filter(x=>x.id!==selectedId);
+  delete records[selectedId];
+  selectedId=null; save();
+  document.getElementById('panel-right').classList.add('hidden');
+  renderAll();
+}
+
+// ─── RECORD + PHOTOS ──────────────────────────────────────────────────────────
+function openAddRecord(){
+  if(!selectedId) return;
+  const w=wells.find(x=>x.id===selectedId);
+  document.getElementById('mr-title').textContent='Registrar — '+w.name;
+  document.getElementById('r-date').value=new Date().toISOString().split('T')[0];
+  ['r-tech','r-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('r-type').value='Inspección';
+  document.getElementById('r-result').value='Operativo';
+  pendingPhotos=[];
+  document.getElementById('photos-preview').innerHTML='';
+  document.getElementById('modal-rec').style.display='flex';
+}
+
+function handlePhotoInput(evt){
+  const files=[...evt.target.files];
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{ pendingPhotos.push(e.target.result); renderPreview(); };
+    reader.readAsDataURL(f);
+  });
+  evt.target.value=''; // reset so same file can be added again
+}
+
+function renderPreview(){
+  document.getElementById('photos-preview').innerHTML=pendingPhotos.map((p,i)=>`
+    <div class="preview-wrap">
+      <img src="${p}" alt="foto ${i+1}">
+      <button class="preview-rm" onclick="removePreviewPhoto(${i})" title="Quitar">✕</button>
+    </div>`).join('');
+}
+
+function removePreviewPhoto(i){ pendingPhotos.splice(i,1); renderPreview(); }
+
+function saveRecord(){
+  if(!selectedId) return;
+  const rid=uid();
+  const rec={id:rid,type:document.getElementById('r-type').value,date:document.getElementById('r-date').value,tech:document.getElementById('r-tech').value.trim(),result:document.getElementById('r-result').value,desc:document.getElementById('r-desc').value.trim()};
+  if(!records[selectedId]) records[selectedId]=[];
+  records[selectedId].push(rec);
+  if(pendingPhotos.length) photos[rid]=[...pendingPhotos];
+  wells=wells.map(w=>w.id===selectedId?{...w,state:rec.result}:w);
+  save(); closeModals(); renderAll(); selectWell(selectedId);
+}
+
+// ─── LIGHTBOX ─────────────────────────────────────────────────────────────────
+function openLightbox(recId,idx){
+  const p=(photos[recId]||[])[idx];
+  if(!p) return;
+  lbPhotoData={recId,idx,data:p};
+  document.getElementById('lb-img').src=p;
+  document.getElementById('lightbox').style.display='flex';
+}
+function closeLightbox(){ document.getElementById('lightbox').style.display='none'; lbPhotoData=null; }
+function downloadLightboxPhoto(){ if(lbPhotoData) triggerDownload(lbPhotoData.data,'foto_pozo.jpg'); }
+function downloadPhoto(recId,idx){ const p=(photos[recId]||[])[idx]; if(p) triggerDownload(p,`foto_${recId}_${idx+1}.jpg`); }
+function deletePhoto(recId,idx){
+  if(!confirm('¿Eliminar esta foto?')) return;
+  if(photos[recId]){ photos[recId].splice(idx,1); if(!photos[recId].length) delete photos[recId]; }
+  save(); if(selectedId) renderHist(selectedId);
+}
+function deleteLightboxPhoto(){
+  if(!lbPhotoData) return;
+  if(!confirm('¿Eliminar esta foto?')) return;
+  const {recId,idx}=lbPhotoData;
+  if(photos[recId]){ photos[recId].splice(idx,1); if(!photos[recId].length) delete photos[recId]; }
+  save(); closeLightbox(); if(selectedId) renderHist(selectedId);
+}
+function triggerDownload(dataUrl,filename){
+  const a=document.createElement('a'); a.href=dataUrl; a.download=filename; a.click();
+}
+
+// ─── EXPORT EXCEL ─────────────────────────────────────────────────────────────
+function exportXLS(){
+  if(!window.XLSX){alert('Librería XLSX no disponible');return;}
+  const wb=XLSX.utils.book_new();
+  const dateStr=new Date().toISOString().split('T')[0];
+
+  const BD={top:{style:'thin',color:{rgb:'DDE3EC'}},bottom:{style:'thin',color:{rgb:'DDE3EC'}},left:{style:'thin',color:{rgb:'DDE3EC'}},right:{style:'thin',color:{rgb:'DDE3EC'}}};
+  const BDH={top:{style:'medium',color:{rgb:'003E6B'}},bottom:{style:'medium',color:{rgb:'003E6B'}},left:{style:'thin',color:{rgb:'003E6B'}},right:{style:'thin',color:{rgb:'003E6B'}}};
+  const S={
+    title:{font:{bold:true,sz:14,color:{rgb:'003E6B'},name:'Calibri'},fill:{fgColor:{rgb:'E8F2FA'}},alignment:{horizontal:'left',vertical:'center'}},
+    sub:{font:{sz:9,color:{rgb:'4A5568'},italic:true,name:'Calibri'},fill:{fgColor:{rgb:'E8F2FA'}},alignment:{horizontal:'left',vertical:'center'}},
+    hdr:{font:{bold:true,sz:10,color:{rgb:'FFFFFF'},name:'Calibri'},fill:{fgColor:{rgb:'005B99'}},alignment:{horizontal:'center',vertical:'center',wrapText:true},border:BDH},
+    cell:{font:{sz:10,name:'Calibri'},fill:{fgColor:{rgb:'FFFFFF'}},alignment:{vertical:'center'},border:BD},
+    alt:{font:{sz:10,name:'Calibri'},fill:{fgColor:{rgb:'F4F6F9'}},alignment:{vertical:'center'},border:BD},
+    mono:{font:{sz:10,name:'Courier New'},fill:{fgColor:{rgb:'FFFFFF'}},alignment:{vertical:'center',horizontal:'center'},border:BD},
+    altm:{font:{sz:10,name:'Courier New'},fill:{fgColor:{rgb:'F4F6F9'}},alignment:{vertical:'center',horizontal:'center'},border:BD},
+    ok:{font:{bold:true,sz:10,color:{rgb:'1B5E20'},name:'Calibri'},fill:{fgColor:{rgb:'E8F5E9'}},alignment:{horizontal:'center',vertical:'center'},border:BD},
+    av:{font:{bold:true,sz:10,color:{rgb:'7F1D1D'},name:'Calibri'},fill:{fgColor:{rgb:'FEE2E2'}},alignment:{horizontal:'center',vertical:'center'},border:BD},
+    rep:{font:{bold:true,sz:10,color:{rgb:'1E3A5F'},name:'Calibri'},fill:{fgColor:{rgb:'DBEAFE'}},alignment:{horizontal:'center',vertical:'center'},border:BD},
+    mant:{font:{bold:true,sz:10,color:{rgb:'78350F'},name:'Calibri'},fill:{fgColor:{rgb:'FEF3C7'}},alignment:{horizontal:'center',vertical:'center'},border:BD},
+  };
+  function stateStyle(st){ return st==='Operativo'?S.ok:st==='Avería'?S.av:st==='Reparación'?S.rep:S.mant; }
+
+  // Hoja 1 — Pozos
+  const wsP={};
+  wsP['A1']={v:'UTE Valle de Güímar — Ruta Colector EDARu',s:S.title,t:'s'};
+  wsP['A2']={v:`Generado: ${dateStr}   ·   Total pozos: ${wells.length}`,s:S.sub,t:'s'};
+  wsP['A3']={v:'',t:'s'};
+  ['Nº','Nombre','Profundidad','Estado','Latitud','Longitud','Registros','Notas'].forEach((h,ci)=>{ wsP[XLSX.utils.encode_cell({r:3,c:ci})]={v:h,s:S.hdr,t:'s'}; });
+  wells.sort((a,b)=>a.num-b.num).forEach((w,ri)=>{
+    const alt=ri%2===1; const row=ri+4;
+    const nr=(records[w.id]||[]).length;
+    wsP[XLSX.utils.encode_cell({r:row,c:0})]={v:w.num,s:alt?S.altm:S.mono,t:'n'};
+    wsP[XLSX.utils.encode_cell({r:row,c:1})]={v:w.name,s:alt?S.alt:S.cell,t:'s'};
+    wsP[XLSX.utils.encode_cell({r:row,c:2})]={v:w.depth||'',s:alt?S.altm:S.mono,t:'s'};
+    wsP[XLSX.utils.encode_cell({r:row,c:3})]={v:w.state,s:stateStyle(w.state),t:'s'};
+    wsP[XLSX.utils.encode_cell({r:row,c:4})]={v:w.lat,s:alt?S.altm:S.mono,t:'n'};
+    wsP[XLSX.utils.encode_cell({r:row,c:5})]={v:w.lon,s:alt?S.altm:S.mono,t:'n'};
+    wsP[XLSX.utils.encode_cell({r:row,c:6})]={v:nr,s:alt?S.altm:S.mono,t:'n'};
+    wsP[XLSX.utils.encode_cell({r:row,c:7})]={v:w.notes||'',s:alt?S.alt:S.cell,t:'s'};
+  });
+  const pRef=XLSX.utils.encode_range({s:{r:3,c:0},e:{r:3+wells.length,c:7}});
+  wsP['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:3+wells.length,c:7}});
+  wsP['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}},{s:{r:2,c:0},e:{r:2,c:7}}];
+  wsP['!cols']=[{wch:5},{wch:14},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10},{wch:40}];
+  wsP['!rows']=[{hpt:20},{hpt:14},{hpt:8},{hpt:28}];
+  wsP['!autofilter']={ref:pRef};
+  XLSX.utils.book_append_sheet(wb,wsP,'Pozos');
+
+  // Hoja 2 — Historial incidencias
+  const wsH={};
+  wsH['A1']={v:'UTE Valle de Güímar — Historial de incidencias y trabajos',s:S.title,t:'s'};
+  wsH['A2']={v:`Generado: ${dateStr}`,s:S.sub,t:'s'};
+  wsH['A3']={v:'',t:'s'};
+  ['Nº Pozo','Nombre Pozo','Fecha','Tipo','Técnico','Estado resultante','Descripción','Fotos'].forEach((h,ci)=>{ wsH[XLSX.utils.encode_cell({r:3,c:ci})]={v:h,s:S.hdr,t:'s'}; });
+  let ri=0;
+  wells.sort((a,b)=>a.num-b.num).forEach(w=>{
+    (records[w.id]||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(r=>{
+      const alt=ri%2===1; const row=ri+4;
+      const np=(photos[r.id]||[]).length;
+      wsH[XLSX.utils.encode_cell({r:row,c:0})]={v:w.num,s:alt?S.altm:S.mono,t:'n'};
+      wsH[XLSX.utils.encode_cell({r:row,c:1})]={v:w.name,s:alt?S.alt:S.cell,t:'s'};
+      wsH[XLSX.utils.encode_cell({r:row,c:2})]={v:r.date,s:alt?S.altm:S.mono,t:'s'};
+      wsH[XLSX.utils.encode_cell({r:row,c:3})]={v:r.type,s:alt?S.alt:S.cell,t:'s'};
+      wsH[XLSX.utils.encode_cell({r:row,c:4})]={v:r.tech||'',s:alt?S.alt:S.cell,t:'s'};
+      wsH[XLSX.utils.encode_cell({r:row,c:5})]={v:r.result||'',s:stateStyle(r.result),t:'s'};
+      wsH[XLSX.utils.encode_cell({r:row,c:6})]={v:r.desc||'',s:alt?S.alt:S.cell,t:'s'};
+      wsH[XLSX.utils.encode_cell({r:row,c:7})]={v:np?np+' foto(s)':'—',s:alt?S.alt:S.cell,t:'s'};
+      ri++;
+    });
+  });
+  const hRef=XLSX.utils.encode_range({s:{r:3,c:0},e:{r:3+Math.max(ri,1),c:7}});
+  wsH['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:3+Math.max(ri,1),c:7}});
+  wsH['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}},{s:{r:2,c:0},e:{r:2,c:7}}];
+  wsH['!cols']=[{wch:7},{wch:14},{wch:12},{wch:14},{wch:16},{wch:16},{wch:40},{wch:10}];
+  wsH['!rows']=[{hpt:20},{hpt:14},{hpt:8},{hpt:28}];
+  wsH['!autofilter']={ref:hRef};
+  XLSX.utils.book_append_sheet(wb,wsH,'Historial');
+
+  XLSX.writeFile(wb,`colector_EDARu_${dateStr}.xlsx`);
+}
+
+// ─── EXPORT PDF ───────────────────────────────────────────────────────────────
+function exportPDF(){
+  const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  const counts={Operativo:0,Avería:0,Reparación:0,Mantenimiento:0};
+  wells.forEach(w=>{if(counts[w.state]!==undefined) counts[w.state]++;});
+
+  let html=`<div class="print-cover">
+    <h1>Ruta Colector EDARu</h1>
+    <p>UTE Valle de Güímar · Tasagaya, Tenerife</p>
+    <p>Informe generado: ${dateStr}</p>
+    <p>Total pozos: ${wells.length} &nbsp;|&nbsp; Operativos: ${counts.Operativo} &nbsp;|&nbsp; Averías: ${counts.Avería} &nbsp;|&nbsp; En reparación: ${counts.Reparación} &nbsp;|&nbsp; Mantenimiento: ${counts.Mantenimiento}</p>
+  </div>`;
+
+  wells.sort((a,b)=>a.num-b.num).forEach(w=>{
+    const recs=(records[w.id]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const totalPhotos=recs.reduce((s,r)=>s+(photos[r.id]||[]).length,0);
+    html+=`<div class="pr-well">
+      <h3>Pozo ${w.num} — ${w.name}</h3>
+      <table>
+        <tr><th>Profundidad</th><td>${w.depth||'—'}</td><th>Estado</th><td>${w.state}</td><th>Coords</th><td>${w.lat.toFixed(5)}, ${w.lon.toFixed(5)}</td></tr>
+        ${w.notes?`<tr><th>Notas</th><td colspan="5">${w.notes}</td></tr>`:''}
+        <tr><th>Registros</th><td>${recs.length}</td><th>Fotos totales</th><td colspan="3">${totalPhotos}</td></tr>
+      </table>`;
+
+    if(recs.length){
+      html+=`<br><table><tr><th>Fecha</th><th>Tipo</th><th>Técnico</th><th>Estado result.</th><th>Descripción</th><th>Fotos</th></tr>`;
+      recs.forEach(r=>{
+        const np=(photos[r.id]||[]).length;
+        html+=`<tr><td>${r.date}</td><td>${r.type}</td><td>${r.tech||'—'}</td><td>${r.result||'—'}</td><td>${r.desc||'—'}</td><td>${np||'—'}</td></tr>`;
+      });
+      html+=`</table>`;
+      // Include photos in PDF (small thumbnails)
+      const allPhotos=recs.flatMap(r=>photos[r.id]||[]);
+      if(allPhotos.length){
+        html+=`<div class="pr-photos">${allPhotos.map(p=>`<img src="${p}" alt="foto">`).join('')}</div>`;
+      }
+    }
+    html+=`</div>`;
+  });
+
+  document.getElementById('print-report').innerHTML=html;
+  setTimeout(()=>{ window.print(); },200);
+}
+
+// ─── MODALS CLOSE ─────────────────────────────────────────────────────────────
+function closeModals(e){
+  if(e&&e.target!==e.currentTarget) return;
+  document.getElementById('modal-well').style.display='none';
+  document.getElementById('modal-rec').style.display='none';
+  pickingCoords=false;
+}
+
+function renderAll(){ renderList(); renderMarkers(); updateStats(); }
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+load(); initMap(); renderAll();
+</script>
+</body>
+</html>

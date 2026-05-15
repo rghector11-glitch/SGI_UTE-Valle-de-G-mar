@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>
+  // Auth guard — checks local session
+  (function() {
+    try {
+      const s = JSON.parse(localStorage.getItem('ute-session'));
+      if(!s || !s.username) { window.location.href = 'index.html'; }
+    } catch(e) { window.location.href = 'index.html'; }
+  })();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTE Valle de Güímar — Calibraciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand:       #005b99;
+  --brand-dark:  #003e6b;
+  --brand-light: #e8f2fa;
+  --accent:      #f0a500;
+  --ok:          #2e7d32;
+  --ok-bg:       #e8f5e9;
+  --warn:        #b45309;
+  --warn-bg:     #fef3c7;
+  --danger:      #b91c1c;
+  --danger-bg:   #fee2e2;
+  --bg:          #f4f6f9;
+  --surface:     #ffffff;
+  --border:      #dde3ec;
+  --text:        #1a2332;
+  --text-2:      #4a5568;
+  --text-3:      #8898aa;
+  --mono:        'JetBrains Mono', monospace;
+  --sans:        'Barlow', sans-serif;
+  --cond:        'Barlow Condensed', sans-serif;
+  --radius:      10px;
+  --radius-lg:   16px;
+  --shadow:      0 2px 12px rgba(0,0,0,.08);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,.14);
+}
+html, body { height: 100%; font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 15px; }
+
+/* ── Utility ── */
+.hidden { display: none !important; }
+.mono { font-family: var(--mono); }
+
+/* ══════════════════════════════════════════
+   SPLASH SCREEN
+══════════════════════════════════════════ */
+#splash {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, var(--brand-dark) 0%, var(--brand) 55%, #0077c2 100%);
+}
+
+/* Header corporativo */
+.splash-header {
+  padding: 2rem 2.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+.splash-logo {
+  width: 52px; height: 52px;
+  background: white;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+.splash-logo svg { width: 32px; height: 32px; }
+.splash-brand h1 {
+  font-family: var(--cond);
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: .02em;
+  line-height: 1.1;
+}
+.splash-brand p {
+  font-size: .8rem;
+  color: rgba(255,255,255,.65);
+  font-weight: 300;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Hero text */
+.splash-hero {
+  padding: 2.5rem 2.5rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+.splash-hero h2 {
+  font-family: var(--cond);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 600;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: .6rem;
+}
+.splash-hero h2 span { color: var(--accent); }
+.splash-hero p {
+  color: rgba(255,255,255,.7);
+  font-size: .95rem;
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+}
+
+/* Plant cards */
+.plant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.2rem;
+}
+.plant-card {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s, background .2s;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.plant-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255,255,255,.15);
+  box-shadow: 0 12px 40px rgba(0,0,0,.25);
+}
+.plant-card:active { transform: translateY(-1px); }
+
+.plant-card-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  background: rgba(255,255,255,.05);
+  /* SVG placeholder inline */
+}
+.plant-card-img-placeholder {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  background: rgba(0,0,0,.2);
+}
+.plant-card-body {
+  padding: 1rem 1.2rem 1.2rem;
+}
+.plant-card-tag {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: .3rem;
+}
+.plant-card-name {
+  font-family: var(--cond);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: .25rem;
+}
+.plant-card-desc {
+  font-size: .8rem;
+  color: rgba(255,255,255,.6);
+  font-weight: 300;
+}
+.plant-card-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: .8rem;
+  font-size: .8rem;
+  color: rgba(255,255,255,.8);
+  font-weight: 500;
+}
+.plant-card-arrow svg { width: 14px; height: 14px; stroke: currentColor; }
+
+/* Splash footer */
+.splash-footer {
+  padding: 1rem 2.5rem;
+  text-align: center;
+  font-size: .75rem;
+  color: rgba(255,255,255,.35);
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+
+/* ══════════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════════ */
+#app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* App header */
+.app-header {
+  background: var(--brand-dark);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.app-header-logo {
+  width: 34px; height: 34px;
+  background: white;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.app-header-logo svg { width: 20px; height: 20px; }
+.app-header-brand { flex: 1; }
+.app-header-brand .company { font-family: var(--cond); font-size: .9rem; font-weight: 600; letter-spacing: .03em; }
+.app-header-brand .module  { font-size: .72rem; color: rgba(255,255,255,.55); font-weight: 300; }
+.plant-pill {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: .78rem;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+.back-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .82rem;
+  font-family: var(--sans);
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.back-btn:hover { background: rgba(255,255,255,.1); color: white; }
+.back-btn svg { width: 16px; height: 16px; stroke: currentColor; }
+
+/* Tabs */
+.tabs-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  padding: 0 1rem;
+  gap: 0;
+  scrollbar-width: none;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: .75rem 1.1rem;
+  font-size: .82rem;
+  font-weight: 500;
+  font-family: var(--sans);
+  color: var(--text-3);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  transition: color .15s;
+}
+.tab-btn:hover { color: var(--text-2); }
+.tab-btn.active { color: var(--brand); border-bottom-color: var(--brand); }
+.tab-btn svg { width: 15px; height: 15px; stroke: currentColor; }
+
+/* Content */
+.app-content {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Sections */
+.section { display: none; }
+.section.active { display: block; }
+
+/* Metric cards */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+.metric-card .m-label { font-size: .72rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .3rem; }
+.metric-card .m-val { font-family: var(--mono); font-size: 1.8rem; font-weight: 500; line-height: 1; }
+.metric-card .m-val.ok     { color: var(--ok); }
+.metric-card .m-val.warn   { color: var(--warn); }
+.metric-card .m-val.danger { color: var(--danger); }
+
+/* Tables */
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+th { background: var(--bg); text-align: left; padding: .65rem .9rem; font-size: .72rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+td { padding: .75rem .9rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #f9fbfd; }
+
+/* Badges */
+.badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: .7rem; font-weight: 600; letter-spacing: .02em; }
+.badge.ok     { background: var(--ok-bg);   color: var(--ok); }
+.badge.warn   { background: var(--warn-bg); color: var(--warn); }
+.badge.danger { background: var(--danger-bg); color: var(--danger); }
+.badge.cal    { background: #dbeafe; color: #1d4ed8; }
+.badge.ver    { background: #ede9fe; color: #5b21b6; }
+
+/* Toolbar */
+.toolbar { display: flex; gap: .6rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+.toolbar select, .toolbar input[type=text] {
+  font-size: .83rem; padding: .45rem .75rem;
+  border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-family: var(--sans);
+}
+.spacer { flex: 1; }
+.section-title { font-family: var(--cond); font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
+.section-title svg { width: 18px; height: 18px; stroke: var(--brand); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .48rem 1rem; border-radius: var(--radius);
+  font-size: .83rem; font-weight: 500; font-family: var(--sans);
+  cursor: pointer; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+  transition: background .15s, transform .1s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--bg); }
+.btn:active { transform: scale(.98); }
+.btn svg { width: 15px; height: 15px; stroke: currentColor; }
+.btn.primary { background: var(--brand); color: white; border-color: var(--brand); }
+.btn.primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+.btn.danger-btn { color: var(--danger); }
+.btn.danger-btn:hover { background: var(--danger-bg); border-color: var(--danger); }
+.icon-btn { background: none; border: none; cursor: pointer; padding: .3rem .4rem; border-radius: 6px; color: var(--text-3); display: inline-flex; align-items: center; }
+.icon-btn svg { width: 15px; height: 15px; stroke: currentColor; }
+.icon-btn:hover { background: var(--bg); color: var(--text); }
+.icon-btn.del:hover { color: var(--danger); background: var(--danger-bg); }
+
+/* Alert rows */
+.alert-row td:first-child { border-left: 3px solid transparent; }
+.alert-row.danger td:first-child { border-left-color: var(--danger); }
+.alert-row.warn   td:first-child { border-left-color: var(--warn); }
+.alert-row.ok     td:first-child { border-left-color: var(--ok); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-3); }
+.empty-state svg { width: 40px; height: 40px; stroke: var(--text-3); margin-bottom: .75rem; display: block; margin: 0 auto .75rem; }
+
+/* ── Calendar ── */
+.cal-nav { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.cal-nav h3 { font-family: var(--cond); font-size: 1.25rem; font-weight: 600; flex: 1; }
+.cal-legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: .75rem; color: var(--text-2); }
+.cal-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-dow { text-align: center; font-size: .7rem; font-weight: 600; color: var(--text-3); padding: .3rem 0; text-transform: uppercase; letter-spacing: .04em; }
+.cal-day { min-height: 80px; border: 1px solid var(--border); border-radius: 8px; padding: 5px 6px; background: var(--surface); }
+.cal-day.other  { background: var(--bg); opacity: .5; }
+.cal-day.today  { border-color: var(--brand); border-width: 2px; }
+.cal-dn { font-size: .72rem; font-weight: 500; color: var(--text-3); margin-bottom: 3px; }
+.cal-day.today .cal-dn { background: var(--brand); color: white; border-radius: 99px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: .68rem; }
+.cal-ev { font-size: .65rem; padding: 1px 5px; border-radius: 3px; margin-bottom: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 1.5; }
+.cal-ev.done-cal { background: #dbeafe; color: #1e40af; }
+.cal-ev.done-ver { background: #ede9fe; color: #5b21b6; }
+.cal-ev.sched    { background: var(--warn-bg); color: var(--warn); }
+.cal-ev.overdue  { background: var(--danger-bg); color: var(--danger); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 1.75rem;
+  width: 100%;
+  max-width: 540px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+.modal-title { font-family: var(--cond); font-size: 1.2rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: .5rem; }
+.modal-title svg { width: 18px; height: 18px; stroke: var(--brand); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+.form-grid.full { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: .72rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .04em; }
+.form-group input, .form-group select, .form-group textarea {
+  font-size: .85rem; padding: .5rem .75rem;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-family: var(--sans);
+  transition: border-color .15s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(0,91,153,.12);
+}
+.derived-field {
+  font-family: var(--mono); font-size: .85rem; padding: .5rem .75rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text-2);
+}
+.sub-header { font-size: .72rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--border); padding-bottom: .4rem; margin: 1rem 0 .75rem; }
+.modal-footer { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .app-content { padding: 1rem .75rem; }
+  .form-grid { grid-template-columns: 1fr; }
+  .metrics-row { grid-template-columns: repeat(2,1fr); }
+  .splash-hero { padding: 1.5rem 1.25rem; }
+  .splash-header { padding: 1.25rem; }
+  .plant-grid { grid-template-columns: 1fr; gap: .9rem; }
+  .cal-grid { font-size: .6rem; }
+  .cal-day { min-height: 60px; }
+  table { font-size: .78rem; }
+  th, td { padding: .55rem .6rem; }
+}
+
+/* ══ RESPONSIVE CALIBRACIONES ══ */
+@media (max-width: 1024px) {
+  .plants-grid { grid-template-columns: 1fr 1fr 1fr; gap: .8rem; }
+  .content-grid { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main-panel { min-width: unset; }
+}
+@media (max-width: 600px) {
+  /* Splash */
+  .splash-header { padding: 1.2rem 1rem 1rem; gap: .8rem; }
+  .splash-logo { width: 40px; height: 40px; border-radius: 10px; }
+  .splash-brand h1 { font-size: 1.1rem; }
+  .splash-brand p { font-size: .7rem; }
+  .splash-hero { padding: 1.2rem 1rem; }
+  .splash-heading { font-size: 1.3rem; }
+
+  /* Plant cards */
+  .plants-grid { grid-template-columns: 1fr; gap: .65rem; padding: 0 1rem 1.5rem; }
+  .plant-card { flex-direction: row; padding: .85rem 1rem; gap: .9rem; }
+  .plant-card-img { width: 54px; height: 54px; flex-shrink: 0; }
+  .plant-card-img-placeholder { width: 54px; height: 54px; border-radius: 10px; flex-shrink: 0; }
+  .plant-card-name { font-size: 1.05rem; }
+  .plant-card-desc { font-size: .75rem; }
+  .plant-card-arrow { display: none; }
+
+  /* App header */
+  .app-header { padding: .5rem .75rem; gap: .5rem; }
+  .plant-pill { font-size: .65rem; padding: 2px 7px; }
+
+  /* Tabs */
+  .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 0; }
+  .tab-btn { font-size: .72rem; padding: .5rem .65rem; white-space: nowrap; flex-shrink: 0; }
+
+  /* Dashboard cards */
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .kpi-card { padding: .65rem .75rem; }
+  .kpi-value { font-size: 1.3rem; }
+
+  /* Tables — horizontal scroll */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table { min-width: 520px; }
+  .data-table th, .data-table td { font-size: .75rem; padding: .4rem .5rem; }
+
+  /* Forms */
+  .form-grid { grid-template-columns: 1fr !important; }
+  .form-row { flex-direction: column; gap: .4rem; }
+  .form-actions { flex-wrap: wrap; gap: .4rem; }
+  .btn { font-size: .78rem; padding: .4rem .75rem; }
+
+  /* Alerts */
+  .alert-card { padding: .65rem .85rem; }
+}
+
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
+    authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
+    databaseURL: "https://sgi-ute-valle-de-guimar-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sgi-ute-valle-de-guimar",
+    storageBucket: "sgi-ute-valle-de-guimar.firebasestorage.app",
+    messagingSenderId: "618175438367",
+    appId: "1:618175438367:web:03831aa0ce60cb355e3f2a"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window._fb = { db, ref, onValue, set };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     SPLASH / PANTALLA DE INICIO
+════════════════════════════════════════ -->
+<div id="splash">
+  <header class="splash-header">
+    <div class="splash-logo">
+      <!-- Water drop + gear icon -->
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 4C16 4 8 13 8 19a8 8 0 0016 0c0-6-8-15-8-15z" fill="#005b99"/>
+        <circle cx="16" cy="19" r="3.5" fill="white"/>
+        <path d="M22 10l1.5-1.5M10 10L8.5 8.5M25 16h2M5 16H7" stroke="#f0a500" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="splash-brand">
+      <h1>UTE Valle de Güímar</h1>
+      <p>Sistema de gestión de calibraciones</p>
+      <p style="font-size:.72rem;color:rgba(255,255,255,.45);font-weight:300;margin-top:2px;letter-spacing:.04em;">H. Hernández</p>
+    </div>
+  </header>
+
+  <div class="splash-hero">
+    <h2>Selecciona la <span>instalación</span></h2>
+    <p>Elige la planta o el laboratorio para acceder a su registro de calibraciones y verificaciones.</p>
+
+    <div class="plant-grid">
+
+      <!-- LABORATORIO -->
+      <div class="plant-card" onclick="enterPlant('lab')" role="button" tabindex="0" aria-label="Acceder a Laboratorio">
+        <div class="plant-card-img-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" style="width:80px;height:80px">
+            <!-- Flask -->
+            <rect x="32" y="8" width="16" height="22" rx="3" fill="rgba(255,255,255,.25)" stroke="rgba(255,255,255,.7)" stroke-width="2"/>
+            <path d="M28 30 L16 58 Q14 64 20 64 H60 Q66 64 64 58 L52 30Z" fill="rgba(0,91,153,.5)" stroke="rgba(255,255,255,.7)" stroke-width="2"/>
+            <ellipse cx="40" cy="54" rx="10" ry="4" fill="rgba(240,165,0,.5)"/>
+            <circle cx="30" cy="50" r="2.5" fill="rgba(255,255,255,.7)"/>
+            <circle cx="50" cy="46" r="2" fill="rgba(255,255,255,.5)"/>
+            <circle cx="38" cy="45" r="1.5" fill="rgba(255,255,255,.4)"/>
+          </svg>
+        </div>
+        <div class="plant-card-body">
+          <div class="plant-card-tag">Análisis · Control</div>
+          <div class="plant-card-name">Laboratorio</div>
+          <div class="plant-card-desc">pHmetros, conductivímetros e instrumentación analítica</div>
+          <div class="plant-card-arrow">
+            Acceder
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDARi -->
+      <div class="plant-card" onclick="enterPlant('edari')" role="button" tabindex="0" aria-label="Acceder a EDARi">
+        <div class="plant-card-img-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" style="width:80px;height:80px">
+            <!-- Reactor biológico lodos activados -->
+            <!-- Tanque principal rectangular -->
+            <rect x="8" y="22" width="64" height="46" rx="3" fill="rgba(0,91,153,.35)" stroke="rgba(255,255,255,.7)" stroke-width="1.8"/>
+            <!-- Nivel de licor mezcla (interior) -->
+            <rect x="9.5" y="30" width="61" height="37" rx="2" fill="rgba(0,91,153,.5)"/>
+            <!-- Difusores de burbuja fina en el fondo -->
+            <rect x="14" y="62" width="52" height="4" rx="2" fill="rgba(255,255,255,.35)" stroke="rgba(255,255,255,.6)" stroke-width="1"/>
+            <!-- Orificios difusores -->
+            <circle cx="20" cy="64" r="1" fill="rgba(255,255,255,.7)"/>
+            <circle cx="28" cy="64" r="1" fill="rgba(255,255,255,.7)"/>
+            <circle cx="36" cy="64" r="1" fill="rgba(255,255,255,.7)"/>
+            <circle cx="44" cy="64" r="1" fill="rgba(255,255,255,.7)"/>
+            <circle cx="52" cy="64" r="1" fill="rgba(255,255,255,.7)"/>
+            <circle cx="60" cy="64" r="1" fill="rgba(255,255,255,.7)"/>
+            <!-- Burbujas ascendentes columna 1 -->
+            <circle cx="20" cy="56" r="1.8" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="1"/>
+            <circle cx="22" cy="48" r="2.2" fill="none" stroke="rgba(255,255,255,.65)" stroke-width="1"/>
+            <circle cx="19" cy="40" r="1.5" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1"/>
+            <!-- Burbujas columna 2 -->
+            <circle cx="36" cy="54" r="2" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="1"/>
+            <circle cx="34" cy="45" r="2.5" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1"/>
+            <circle cx="37" cy="37" r="1.8" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1"/>
+            <!-- Burbujas columna 3 -->
+            <circle cx="52" cy="57" r="1.6" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="1"/>
+            <circle cx="54" cy="47" r="2.2" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1"/>
+            <circle cx="51" cy="38" r="1.5" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1"/>
+            <!-- Agitación superficial (olas) -->
+            <path d="M12 31 Q20 27 28 31 Q36 35 44 31 Q52 27 60 31 Q66 34 70 31" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- Entrada de agua (izq) -->
+            <rect x="2" y="26" width="8" height="5" rx="1" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.6)" stroke-width="1.2"/>
+            <path d="M5 28.5 h5" stroke="rgba(255,255,255,.8)" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- Salida + recirculación (der) -->
+            <rect x="70" y="26" width="8" height="5" rx="1" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.6)" stroke-width="1.2"/>
+            <path d="M70 28.5 h5" stroke="rgba(255,255,255,.8)" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- Flecha recirculación inferior -->
+            <path d="M66 68 Q74 68 74 60 Q74 32 72 30" fill="none" stroke="rgba(240,165,0,.9)" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 2"/>
+            <polygon points="72,26 70,32 74,32" fill="rgba(240,165,0,.9)"/>
+            <!-- Soplante / compresor (arriba centro) -->
+            <rect x="30" y="8" width="20" height="12" rx="3" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.6)" stroke-width="1.2"/>
+            <text x="40" y="17" text-anchor="middle" font-size="6" fill="rgba(255,255,255,.85)" font-family="sans-serif" font-weight="600">AIR</text>
+            <!-- Tubería aire al difusor -->
+            <line x1="40" y1="20" x2="40" y2="22" stroke="rgba(255,255,255,.6)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="plant-card-body">
+          <div class="plant-card-tag">Depuración · Industrial</div>
+          <div class="plant-card-name">EDARi</div>
+          <div class="plant-card-desc">Sondas de proceso, caudales y control de la línea industrial</div>
+          <div class="plant-card-arrow">
+            Acceder
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDARu -->
+      <div class="plant-card" onclick="enterPlant('edaru')" role="button" tabindex="0" aria-label="Acceder a EDARu">
+        <div class="plant-card-img-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" style="width:80px;height:80px">
+            <!-- MBR — Membrane Bioreactor -->
+            <!-- Tanque reactor -->
+            <rect x="6" y="20" width="68" height="52" rx="3" fill="rgba(0,91,153,.35)" stroke="rgba(255,255,255,.7)" stroke-width="1.8"/>
+            <rect x="7.5" y="28" width="65" height="43" rx="2" fill="rgba(0,91,153,.5)"/>
+            <!-- Agitación superficial -->
+            <path d="M10 29 Q18 25 26 29 Q34 33 42 29 Q50 25 58 29 Q64 32 72 29" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.1" stroke-linecap="round"/>
+
+            <!-- MÓDULOS DE MEMBRANA sumergidos (3 cassettes) -->
+            <!-- Cassette 1 -->
+            <rect x="14" y="36" width="10" height="26" rx="2" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.75)" stroke-width="1.2"/>
+            <line x1="17" y1="38" x2="17" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <line x1="19" y1="38" x2="19" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <line x1="21" y1="38" x2="21" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <!-- Cassette 2 -->
+            <rect x="29" y="36" width="10" height="26" rx="2" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.75)" stroke-width="1.2"/>
+            <line x1="32" y1="38" x2="32" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <line x1="34" y1="38" x2="34" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <line x1="36" y1="38" x2="36" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <!-- Cassette 3 -->
+            <rect x="44" y="36" width="10" height="26" rx="2" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.75)" stroke-width="1.2"/>
+            <line x1="47" y1="38" x2="47" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <line x1="49" y1="38" x2="49" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <line x1="51" y1="38" x2="51" y2="60" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+
+            <!-- Difusores de membrana en la base de cada cassette -->
+            <rect x="14" y="62" width="10" height="3" rx="1" fill="rgba(255,255,255,.3)" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <rect x="29" y="62" width="10" height="3" rx="1" fill="rgba(255,255,255,.3)" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <rect x="44" y="62" width="10" height="3" rx="1" fill="rgba(255,255,255,.3)" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <!-- Burbujas bajo membranas -->
+            <circle cx="17" cy="59" r="1.2" fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".8"/>
+            <circle cx="21" cy="56" r="1" fill="none" stroke="rgba(255,255,255,.6)" stroke-width=".8"/>
+            <circle cx="32" cy="58" r="1.2" fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".8"/>
+            <circle cx="36" cy="55" r="1" fill="none" stroke="rgba(255,255,255,.6)" stroke-width=".8"/>
+            <circle cx="47" cy="59" r="1.2" fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".8"/>
+            <circle cx="51" cy="56" r="1" fill="none" stroke="rgba(255,255,255,.6)" stroke-width=".8"/>
+
+            <!-- Colector de permeado (tubería superior, ámbar = agua tratada) -->
+            <rect x="12" y="33" width="42" height="3.5" rx="1.5" fill="rgba(240,165,0,.5)" stroke="rgba(240,165,0,.9)" stroke-width="1"/>
+            <!-- Tubería de extracción de permeado hacia arriba -->
+            <line x1="54" y1="33" x2="54" y2="20" stroke="rgba(240,165,0,.9)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="54" y1="20" x2="62" y2="20" stroke="rgba(240,165,0,.9)" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- Bomba de vacío (círculo pequeño) -->
+            <circle cx="64" cy="17" r="5" fill="rgba(240,165,0,.2)" stroke="rgba(240,165,0,.9)" stroke-width="1.2"/>
+            <text x="64" y="20" text-anchor="middle" font-size="5.5" fill="rgba(240,165,0,1)" font-family="sans-serif" font-weight="700">V</text>
+
+            <!-- Etiqueta MBR -->
+            <rect x="58" y="36" width="14" height="9" rx="2" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.5)" stroke-width=".8"/>
+            <text x="65" y="43" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,.95)" font-family="sans-serif" font-weight="700">MBR</text>
+          </svg>
+        </div>
+        <div class="plant-card-body">
+          <div class="plant-card-tag">Depuración · Urbana</div>
+          <div class="plant-card-name">EDARu</div>
+          <div class="plant-card-desc">Instrumentación de cabecera, reactores y decantación secundaria</div>
+          <div class="plant-card-arrow">
+            Acceder
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="splash-footer">
+    © 2025 UTE Valle de Güímar · Sistema de gestión interna
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════
+     APP PRINCIPAL
+════════════════════════════════════════ -->
+<div id="app" class="hidden">
+  <header class="app-header">
+    <button class="back-btn" onclick="goHome()" aria-label="Volver al inicio">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Inicio
+    </button>
+    <div class="app-header-logo">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 4C16 4 8 13 8 19a8 8 0 0016 0c0-6-8-15-8-15z" fill="#005b99"/>
+        <circle cx="16" cy="19" r="3.5" fill="white"/>
+      </svg>
+    </div>
+    <div class="app-header-brand">
+      <div class="company">UTE Valle de Güímar</div>
+      <div class="module">Calibraciones &amp; Verificaciones</div>
+    </div>
+    <div class="plant-pill" id="plant-pill">—</div>
+  </header>
+
+  <nav class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('dashboard')" id="tb-dashboard">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="5" height="5" rx="1" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke-width="1.4"/></svg>
+      Resumen
+    </button>
+    <button class="tab-btn" onclick="switchTab('calendar')" id="tb-calendar">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke-width="1.4"/><path d="M5 1v4M11 1v4M2 7h12" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Calendario
+    </button>
+    <button class="tab-btn" onclick="switchTab('instruments')" id="tb-instruments">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="5.5" stroke-width="1.4"/><path d="M8 5v3l2 2" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Instrumentos
+    </button>
+    <button class="tab-btn" onclick="switchTab('records')" id="tb-records">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke-width="1.4"/><path d="M5.5 6h5M5.5 9h5M5.5 12h3" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Registros
+    </button>
+    <button class="tab-btn" onclick="switchTab('alerts')" id="tb-alerts">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z" stroke-width="1.4"/><path d="M6.5 13.5a1.5 1.5 0 003 0" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Vencimientos
+    </button>
+    <button class="tab-btn" onclick="switchTab('criteria')" id="tb-criteria">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" stroke-width="1.4"/><path d="M8 7v4M8 5.5v.5" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Criterios
+    </button>
+  </nav>
+
+  <main class="app-content">
+
+    <!-- DASHBOARD -->
+    <div id="sec-dashboard" class="section active">
+      <div class="section-title">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="5" height="5" rx="1" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke-width="1.4"/></svg>
+        Resumen general
+      </div>
+      <div class="metrics-row" id="metrics-row"></div>
+      <p style="font-size:.78rem;color:var(--text-3);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em;">Próximas revisiones — 30 días</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Instrumento</th><th>Ubicación</th><th>Tipo</th><th>Próxima revisión</th><th>Estado</th></tr></thead>
+          <tbody id="dash-tbody"></tbody>
+        </table>
+        <div id="dash-empty" class="empty-state hidden">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sin vencimientos próximos
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="sec-calendar" class="section">
+      <div class="cal-nav">
+        <button class="btn" onclick="calPrev()">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h3 id="cal-title"></h3>
+        <button class="btn" onclick="calNext()">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 3l5 5-5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn" onclick="calToday()">Hoy</button>
+      </div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#dbeafe;border:1px solid #1d4ed8"></div>Calibración realizada</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ede9fe;border:1px solid #5b21b6"></div>Verificación realizada</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--warn-bg);border:1px solid var(--warn)"></div>Revisión programada</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--danger-bg);border:1px solid var(--danger)"></div>Vencida</div>
+      </div>
+      <div class="cal-grid" id="cal-dows">
+        <div class="cal-dow">L</div><div class="cal-dow">M</div><div class="cal-dow">X</div>
+        <div class="cal-dow">J</div><div class="cal-dow">V</div><div class="cal-dow">S</div><div class="cal-dow">D</div>
+      </div>
+      <div class="cal-grid" id="cal-cells" style="margin-top:4px"></div>
+    </div>
+
+    <!-- INSTRUMENTS -->
+    <div id="sec-instruments" class="section">
+      <div class="toolbar">
+        <button class="btn primary" onclick="openInstrModal()">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 3v10M3 8h10" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Nuevo instrumento
+        </button>
+        <div class="spacer"></div>
+        <input type="text" id="instr-search" placeholder="Buscar TAG, descripción..." oninput="renderInstruments()" style="min-width:180px">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>TAG</th><th>Descripción</th><th>Tipo</th><th>Ubicación</th><th>Frec.</th><th>Última calibración</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="instr-tbody"></tbody>
+        </table>
+        <div id="instr-empty" class="empty-state hidden">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Sin instrumentos registrados
+        </div>
+      </div>
+    </div>
+
+    <!-- RECORDS -->
+    <div id="sec-records" class="section">
+      <div class="toolbar">
+        <button class="btn primary" onclick="openRecModal()">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 3v10M3 8h10" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Nuevo registro
+        </button>
+        <div class="spacer"></div>
+        <select id="rec-type-f" onchange="renderRecords()">
+          <option value="">Todos los tipos</option>
+          <option value="Calibración">Calibración</option>
+          <option value="Verificación">Verificación</option>
+        </select>
+        <select id="rec-instr-f" onchange="renderRecords()"><option value="">Todos los instrumentos</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Instrumento</th><th>Tipo</th><th>Patrón</th><th>Lectura</th><th>Desviación</th><th>Ajuste</th><th>Técnico</th><th></th></tr></thead>
+          <tbody id="rec-tbody"></tbody>
+        </table>
+        <div id="rec-empty" class="empty-state hidden">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Sin registros todavía
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div id="sec-alerts" class="section">
+      <div class="toolbar">
+        <div class="spacer"></div>
+        <button class="btn" onclick="exportXLS()">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 10V3M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Exportar Excel
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>TAG</th><th>Descripción</th><th>Tipo</th><th>Próxima revisión</th><th>Días restantes</th><th>Estado</th></tr></thead>
+          <tbody id="alerts-tbody"></tbody>
+        </table>
+        <div id="alerts-empty" class="empty-state hidden">Sin alertas activas</div>
+      </div>
+    </div>
+
+    <!-- CRITERIA -->
+    <div id="sec-criteria" class="section">
+
+      <!-- Umbral global por defecto -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.5rem;margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+          <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;stroke:var(--brand)"><circle cx="8" cy="8" r="6" stroke-width="1.4"/><path d="M8 7v4M8 5.5v.5" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span style="font-family:var(--cond);font-size:1rem;font-weight:600;">Umbrales globales por defecto</span>
+        </div>
+        <p style="font-size:.83rem;color:var(--text-2);margin-bottom:1rem;line-height:1.6;">Cuando un instrumento no tiene definido un umbral propio, se aplica este criterio general. Cada instrumento puede sobrescribirlo en su ficha.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin-bottom:1rem;">
+          <div style="border-radius:var(--radius);border:1px solid #bbf7d0;background:#f0fdf4;padding:.9rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">✔ Aceptable</div>
+            <div style="font-size:1.4rem;font-weight:600;font-family:var(--mono);color:#166534;">≤ <span id="g-ok" style="cursor:pointer;border-bottom:1px dashed #166534;" onclick="editGlobal()" title="Haz clic para editar">2</span> %</div>
+            <div style="font-size:.75rem;color:#166534;margin-top:.3rem;">Sin intervención necesaria</div>
+          </div>
+          <div style="border-radius:var(--radius);border:1px solid #fde68a;background:#fffbeb;padding:.9rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">⚠ Atención</div>
+            <div style="font-size:1.4rem;font-weight:600;font-family:var(--mono);color:#92400e;">> <span id="g-warn-lo">2</span> % y ≤ <span id="g-warn-hi" style="cursor:pointer;border-bottom:1px dashed #92400e;" onclick="editGlobal()" title="Haz clic para editar">5</span> %</div>
+            <div style="font-size:.75rem;color:#92400e;margin-top:.3rem;">Revisar; calibrar si persiste</div>
+          </div>
+          <div style="border-radius:var(--radius);border:1px solid #fecaca;background:#fff1f2;padding:.9rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">✖ No aceptable</div>
+            <div style="font-size:1.4rem;font-weight:600;font-family:var(--mono);color:#991b1b;">> <span id="g-bad">5</span> %</div>
+            <div style="font-size:.75rem;color:#991b1b;margin-top:.3rem;">Calibración obligatoria</div>
+          </div>
+        </div>
+        <button class="btn" onclick="editGlobal()" style="font-size:.8rem;">
+          <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M11 2.5a1.5 1.5 0 012.12 2.12L5 13H2.5v-2.5L11 2.5z" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Editar umbrales globales
+        </button>
+      </div>
+
+      <!-- Tabla por instrumento -->
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.75rem;">
+        <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;stroke:var(--brand)"><circle cx="8" cy="8" r="5.5" stroke-width="1.4"/><path d="M8 5v3l2 2" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span style="font-family:var(--cond);font-size:1rem;font-weight:600;">Criterio por instrumento</span>
+      </div>
+      <p style="font-size:.83rem;color:var(--text-2);margin-bottom:1rem;line-height:1.6;">El umbral de cada instrumento define el límite de aceptación para ese sensor concreto. Se edita en la ficha del instrumento. Si está vacío, se aplica el umbral global.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>TAG</th><th>Descripción</th><th>Tipo</th>
+              <th>Desv. máx. aceptable</th><th>Umbral ámbar</th><th>Umbral rojo</th><th>Fuente</th>
+            </tr>
+          </thead>
+          <tbody id="criteria-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Explicación metodológica -->
+      <div style="background:var(--brand-light);border:1px solid #b3d4ec;border-radius:var(--radius);padding:1.2rem 1.5rem;margin-top:1.5rem;">
+        <div style="font-size:.78rem;font-weight:700;color:var(--brand-dark);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">¿Cómo se calcula la desviación?</div>
+        <div style="font-size:.83rem;color:var(--text);line-height:1.8;">
+          <p style="margin-bottom:.5rem;"><strong>Desviación absoluta</strong> = Lectura equipo − Valor patrón</p>
+          <p style="margin-bottom:.5rem;"><strong>Desviación relativa (%)</strong> = (Desviación absoluta / |Valor patrón|) × 100</p>
+          <p style="margin-bottom:.75rem;">El sistema aplica el criterio de aceptación sobre el <strong>valor absoluto</strong> de la desviación relativa.</p>
+          <hr style="border:none;border-top:1px solid #b3d4ec;margin-bottom:.75rem;">
+          <p style="margin-bottom:.3rem;"><strong>Ejemplo:</strong> Sonda pH, patrón = 7.00, lectura = 7.12</p>
+          <p style="margin-bottom:.3rem;margin-left:1rem;font-family:var(--mono);font-size:.8rem;">Desviación = 7.12 − 7.00 = +0.12 pH</p>
+          <p style="margin-left:1rem;font-family:var(--mono);font-size:.8rem;">Desv. % = (0.12 / 7.00) × 100 = <strong>+1.71 %</strong> → ✔ Aceptable si umbral ≥ 2 %</p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL — Instrumento
+════════════════════════════════════════ -->
+<div id="modal-instr" class="modal-overlay hidden" onclick="closeModals(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="5.5" stroke-width="1.4"/><path d="M8 5v3l2 2" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span id="mi-title">Nuevo instrumento</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>TAG / Código *</label><input id="i-tag" placeholder="pH-101"></div>
+      <div class="form-group"><label>Tipo de magnitud *</label>
+        <select id="i-type">
+          <option>pH</option><option>Redox (mV)</option><option>Oxígeno disuelto (mg/L)</option>
+          <option>SST / Turbidez (mg/L)</option><option>Caudal (m³/h)</option>
+          <option>Nivel (m)</option><option>Temperatura (°C)</option>
+          <option>Conductividad (µS/cm)</option><option>NTK (mg/L)</option><option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid full"><div class="form-group"><label>Descripción</label><input id="i-desc" placeholder="Sonda pH reactor biológico 1"></div></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Ubicación</label><input id="i-loc" placeholder="Reactor B1"></div>
+      <div class="form-group"><label>Fabricante / Modelo</label><input id="i-model" placeholder="Hach HQ30d"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Frecuencia revisión (días)</label><input id="i-freq" type="number" min="1" value="30"></div>
+      <div class="form-group"><label>Rango operativo</label><input id="i-range" placeholder="0–14 pH"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Desv. máx. aceptable (%)</label>
+        <input id="i-devmax" type="number" min="0" step="0.1" placeholder="Dejar vacío = usar umbral global">
+      </div>
+      <div class="form-group" style="justify-content:flex-end;">
+        <div style="font-size:.75rem;color:var(--text-3);line-height:1.5;padding-top:1.5rem;">
+          Si se define, verde ≤ este valor, ámbar hasta ×2.5, rojo por encima.
+        </div>
+      </div>
+    </div>
+    <div class="form-grid full"><div class="form-group"><label>Notas</label><textarea id="i-notes" rows="2"></textarea></div></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModals()">Cancelar</button>
+      <button class="btn primary" onclick="saveInstrument()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL — Registro
+════════════════════════════════════════ -->
+<div id="modal-rec" class="modal-overlay hidden" onclick="closeModals(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke-width="1.4"/><path d="M5.5 6h5M5.5 9h5M5.5 12h3" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Nuevo registro
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Instrumento *</label>
+        <select id="r-instr" onchange="updateRecUnit()"><option value="">-- Seleccionar --</option></select>
+      </div>
+      <div class="form-group"><label>Tipo de acto *</label>
+        <select id="r-type" onchange="toggleAdjust()">
+          <option value="Calibración">Calibración</option>
+          <option value="Verificación">Verificación</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Fecha *</label><input id="r-date" type="date"></div>
+      <div class="form-group"><label>Técnico / Operario</label><input id="r-tech" placeholder="Nombre"></div>
+    </div>
+    <div class="sub-header">Datos de calibración / verificación</div>
+    <div class="form-grid">
+      <div class="form-group"><label id="lbl-pat">Valor patrón</label><input id="r-pat" type="number" step="0.001" placeholder="0.000" oninput="calcDev()"></div>
+      <div class="form-group"><label id="lbl-read">Lectura equipo</label><input id="r-read" type="number" step="0.001" placeholder="0.000" oninput="calcDev()"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Desviación (calc.)</label><div class="derived-field" id="r-dev">—</div></div>
+      <div class="form-group"><label>Desviación %</label><div class="derived-field" id="r-dev-pct">—</div></div>
+    </div>
+    <div class="form-grid full" id="adjust-wrap">
+      <div class="form-group"><label>Ajuste realizado</label><input id="r-adjust" placeholder="p.ej. Offset −0.05 pH aplicado"></div>
+    </div>
+    <div class="form-grid full"><div class="form-group"><label>Solución patrón / referencia</label><input id="r-ref" placeholder="Tampón pH 7.00 Merck"></div></div>
+    <div class="form-grid full"><div class="form-group"><label>Observaciones</label><textarea id="r-notes" rows="2"></textarea></div></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModals()">Cancelar</button>
+      <button class="btn primary" onclick="saveRecord()">Guardar registro</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+const PLANTS = { lab:'Laboratorio', edari:'EDARi', edaru:'EDARu' };
+let plant = 'lab';
+let instruments = [], records = [];
+let editInstrId = null;
+let calYear, calMonth;
+const today = new Date();
+calYear = today.getFullYear(); calMonth = today.getMonth();
+
+// Umbrales globales por defecto (editables)
+let globalOk = 2;    // % — verde si |desv%| <= globalOk
+let globalWarn = 5;  // % — ámbar si <= globalWarn, rojo si >
+
+// ─── Storage ──────────────────────────────────────────────────────────────────
+function sk(t) { return `ute-guimar-${plant}-${t}`; }
+let _fbCalUnsubscribe = null;
+function loadData() {
+  instruments = []; records = [];
+  try { const d = localStorage.getItem(sk('instruments')); if(d) instruments = JSON.parse(d); } catch(e){}
+  try { const d = localStorage.getItem(sk('records'));     if(d) records    = JSON.parse(d); } catch(e){}
+  try { const d = localStorage.getItem('ute-guimar-global-thresholds'); if(d){ const t=JSON.parse(d); globalOk=t.ok; globalWarn=t.warn; } } catch(e){}
+  if(!instruments.length) seedDemo();
+  // Unsubscribe previous listener before subscribing new one
+  if(_fbCalUnsubscribe) { try { _fbCalUnsubscribe(); } catch(e){} _fbCalUnsubscribe = null; }
+  if(window._fb) {
+    const fbPath = 'calibraciones/' + plant;
+    _fbCalUnsubscribe = window._fb.onValue(window._fb.ref(window._fb.db, fbPath), snap => {
+      const d = snap.val();
+      if(d) {
+        if(d.instruments) instruments = d.instruments;
+        if(d.records)     records     = d.records;
+        if(d.thresholds)  { globalOk = d.thresholds.ok; globalWarn = d.thresholds.warn; }
+        localStorage.setItem(sk('instruments'), JSON.stringify(instruments));
+        localStorage.setItem(sk('records'),     JSON.stringify(records));
+        renderAll();
+        if(document.getElementById('tab-criteria') && document.getElementById('tab-criteria').classList.contains('active')) renderCriteria();
+      }
+    });
+  }
+}
+function saveAll() {
+  // Always save locally as backup
+  localStorage.setItem(sk('instruments'), JSON.stringify(instruments));
+  localStorage.setItem(sk('records'),     JSON.stringify(records));
+  localStorage.setItem('ute-guimar-global-thresholds', JSON.stringify({ok:globalOk,warn:globalWarn}));
+  // Sync to Firebase if available
+  if(window._fb) {
+    const fbPath = 'calibraciones/' + plant;
+    const data = { instruments, records, thresholds: {ok:globalOk,warn:globalWarn}, updated: Date.now() };
+    window._fb.set(window._fb.ref(window._fb.db, fbPath), data).catch(e=>console.warn('Firebase write error:', e));
+  }
+}
+function uid() { return 'x'+Date.now()+Math.random().toString(36).slice(2,6); }
+
+function seedDemo() {
+  const off = (n) => { const d=new Date(today); d.setDate(d.getDate()+n); return d.toISOString().split('T')[0]; };
+  if(plant==='lab') {
+    instruments = [
+      {id:'i1',tag:'pH-LAB-01',type:'pH',desc:'pHmetro de banco',loc:'Laboratorio',model:'Crison GLP21',freq:30,range:'0–14',devMax:1,notes:''},
+      {id:'i2',tag:'COND-LAB-01',type:'Conductividad (µS/cm)',desc:'Conductivímetro portátil',loc:'Laboratorio',model:'Hach HQ30d',freq:60,range:'0–2000 µS/cm',devMax:'',notes:''},
+    ];
+    records = [
+      {id:'r1',instrId:'i1',type:'Calibración',date:off(-25),tech:'Hector',pattern:7.00,reading:7.04,deviation:-0.04,deviationPct:-0.57,adjust:'Offset −0.04',ref:'Tampón pH 7.00 Merck',notes:''},
+      {id:'r2',instrId:'i2',type:'Verificación',date:off(-10),tech:'Hector',pattern:1413,reading:1415,deviation:-2,deviationPct:-0.14,adjust:'',ref:'Patrón 1413 µS/cm',notes:'En rango'},
+    ];
+  } else if(plant==='edari') {
+    instruments = [
+      {id:'i1',tag:'pH-101',type:'pH',desc:'Sonda pH reactor biológico',loc:'Reactor B1',model:'Hach PHC101',freq:30,range:'0–14',devMax:2,notes:''},
+      {id:'i2',tag:'OD-201',type:'Oxígeno disuelto (mg/L)',desc:'Sonda OD reactor aerobio',loc:'Reactor B2',model:'YSI Pro20',freq:15,range:'0–20 mg/L',devMax:5,notes:''},
+      {id:'i3',tag:'SST-301',type:'SST / Turbidez (mg/L)',desc:'Turbidímetro decantador',loc:'Decantador 1',model:'Hach 2100Q',freq:30,range:'0–500 mg/L',devMax:10,notes:''},
+    ];
+    records = [
+      {id:'r1',instrId:'i1',type:'Calibración',date:off(-20),tech:'Hector',pattern:7.00,reading:7.05,deviation:-0.05,deviationPct:-0.71,adjust:'Offset −0.05',ref:'Tampón pH 7.00',notes:''},
+      {id:'r2',instrId:'i2',type:'Verificación',date:off(-5),tech:'Hector',pattern:8.10,reading:8.08,deviation:0.02,deviationPct:0.25,adjust:'',ref:'Oxímetro YSI portátil',notes:'En rango'},
+    ];
+  } else {
+    instruments = [
+      {id:'i1',tag:'pH-501',type:'pH',desc:'Sonda pH entrada EDARu',loc:'Pretratamiento',model:'Endress PHC-S',freq:30,range:'0–14',devMax:2,notes:''},
+      {id:'i2',tag:'Q-501',type:'Caudal (m³/h)',desc:'Caudalímetro entrada',loc:'Cabecera',model:'Siemens MAG5100',freq:90,range:'0–500 m³/h',devMax:'',notes:''},
+    ];
+    records = [
+      {id:'r1',instrId:'i1',type:'Calibración',date:off(-35),tech:'Hector',pattern:7.00,reading:7.02,deviation:-0.02,deviationPct:-0.29,adjust:'Sin ajuste',ref:'Tampón pH 7.00',notes:''},
+    ];
+  }
+  saveAll();
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+function enterPlant(p) {
+  plant = p;
+  loadData();
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('plant-pill').textContent = PLANTS[p];
+  switchTab('dashboard');
+}
+function goHome() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('splash').classList.remove('hidden');
+}
+document.querySelectorAll('.plant-card').forEach(c => {
+  c.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') c.click(); });
+});
+
+function switchTab(t) {
+  ['dashboard','calendar','instruments','records','alerts','criteria'].forEach(s => {
+    document.getElementById('tb-'+s).classList.toggle('active', s===t);
+    document.getElementById('sec-'+s).classList.toggle('active', s===t);
+  });
+  if(t==='calendar') renderCalendar();
+  else if(t==='criteria') renderCriteria();
+  else renderAll();
+}
+
+function renderAll() { renderDashboard(); renderInstruments(); renderRecords(); renderAlerts(); }
+
+// ─── Deviation threshold helpers ──────────────────────────────────────────────
+function getThresholds(instr) {
+  const ok   = (instr && instr.devMax !== '' && instr.devMax !== null && instr.devMax !== undefined) ? Number(instr.devMax) : globalOk;
+  const warn = (instr && instr.devMax !== '' && instr.devMax !== null && instr.devMax !== undefined) ? Number(instr.devMax) * 2.5 : globalWarn;
+  return { ok, warn };
+}
+function devClass(pct, instr) {
+  if(pct === null || pct === undefined) return 'neutral';
+  const { ok, warn } = getThresholds(instr);
+  const abs = Math.abs(pct);
+  if(abs <= ok) return 'ok';
+  if(abs <= warn) return 'warn';
+  return 'danger';
+}
+
+// ─── Edit global thresholds ───────────────────────────────────────────────────
+function editGlobal() {
+  const ok = prompt('Umbral VERDE — Desv. máx. aceptable (%):', globalOk);
+  if(ok === null) return;
+  const warn = prompt('Umbral ÁMBAR — Desv. máx. con atención (%):', globalWarn);
+  if(warn === null) return;
+  const okN = parseFloat(ok), warnN = parseFloat(warn);
+  if(isNaN(okN)||isNaN(warnN)||okN<=0||warnN<=okN){ alert('Valores no válidos. El umbral ámbar debe ser mayor que el verde.'); return; }
+  globalOk = okN; globalWarn = warnN;
+  saveAll(); renderCriteria(); renderRecords();
+}
+
+// ─── Criteria panel ───────────────────────────────────────────────────────────
+function renderCriteria() {
+  // Update global threshold display
+  ['g-ok','g-warn-lo','g-warn-hi','g-bad'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(id==='g-ok')      el.textContent = globalOk;
+    if(id==='g-warn-lo') el.textContent = globalOk;
+    if(id==='g-warn-hi') el.textContent = globalWarn;
+    if(id==='g-bad')     el.textContent = globalWarn;
+  });
+
+  const tbody = document.getElementById('criteria-tbody');
+  if(!tbody) return;
+  if(!instruments.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:2rem">Sin instrumentos registrados</td></tr>'; return; }
+
+  tbody.innerHTML = instruments.map((inst,ri) => {
+    const hasOwn = inst.devMax !== '' && inst.devMax !== null && inst.devMax !== undefined;
+    const { ok, warn } = getThresholds(inst);
+    const alt = ri%2===1 ? 'background:var(--bg)' : '';
+    const source = hasOwn
+      ? `<span style="font-size:.72rem;font-weight:600;color:var(--brand);background:var(--brand-light);padding:2px 7px;border-radius:99px">Propio</span>`
+      : `<span style="font-size:.72rem;color:var(--text-3);background:var(--bg);padding:2px 7px;border-radius:99px;border:1px solid var(--border)">Global</span>`;
+    return `<tr style="${alt}">
+      <td><strong class="mono">${inst.tag}</strong></td>
+      <td>${inst.desc}</td>
+      <td style="font-size:.8rem;color:var(--text-2)">${inst.type}</td>
+      <td style="text-align:center"><span style="font-weight:600;color:#166534;background:#f0fdf4;padding:3px 10px;border-radius:99px;font-family:var(--mono);font-size:.82rem">≤ ${ok} %</span></td>
+      <td style="text-align:center"><span style="font-weight:600;color:#92400e;background:#fffbeb;padding:3px 10px;border-radius:99px;font-family:var(--mono);font-size:.82rem">${ok} – ${warn} %</span></td>
+      <td style="text-align:center"><span style="font-weight:600;color:#991b1b;background:#fff1f2;padding:3px 10px;border-radius:99px;font-family:var(--mono);font-size:.82rem">> ${warn} %</span></td>
+      <td style="text-align:center">${source}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function getNextDate(instrId) {
+  const instr = instruments.find(i=>i.id===instrId); if(!instr) return null;
+  const recs = records.filter(r=>r.instrId===instrId).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!recs.length) return null;
+  const d = new Date(recs[0].date); d.setDate(d.getDate()+Number(instr.freq));
+  return d.toISOString().split('T')[0];
+}
+function getDays(instrId) {
+  const nd = getNextDate(instrId); if(!nd) return null;
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((new Date(nd)-now)/86400000);
+}
+function badge(days) {
+  if(days===null) return '<span class="badge warn">Sin datos</span>';
+  if(days<0)  return `<span class="badge danger">Vencido (${Math.abs(days)}d)</span>`;
+  if(days<=7) return `<span class="badge danger">${days}d</span>`;
+  if(days<=14)return `<span class="badge warn">${days}d</span>`;
+  return `<span class="badge ok">${days}d</span>`;
+}
+function scls(days){ return days===null||days<=7?'danger':days<=14?'warn':'ok'; }
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const allDays = instruments.map(i=>getDays(i.id));
+  const exp=allDays.filter(d=>d!==null&&d<0).length;
+  const soon=allDays.filter(d=>d!==null&&d>=0&&d<=14).length;
+  const ok=allDays.filter(d=>d!==null&&d>14).length;
+  document.getElementById('metrics-row').innerHTML=`
+    <div class="metric-card"><div class="m-label">Instrumentos</div><div class="m-val">${instruments.length}</div></div>
+    <div class="metric-card"><div class="m-label">Vencidos</div><div class="m-val danger">${exp}</div></div>
+    <div class="metric-card"><div class="m-label">Próximos 14d</div><div class="m-val warn">${soon}</div></div>
+    <div class="metric-card"><div class="m-label">Al día</div><div class="m-val ok">${ok}</div></div>
+    <div class="metric-card"><div class="m-label">Registros</div><div class="m-val">${records.length}</div></div>`;
+  const upcoming=instruments.map(i=>({i,d:getDays(i.id)})).filter(x=>x.d===null||x.d<=30).sort((a,b)=>(a.d??-9999)-(b.d??-9999));
+  const empty=document.getElementById('dash-empty');
+  if(!upcoming.length){ empty.classList.remove('hidden'); document.getElementById('dash-tbody').innerHTML=''; return; }
+  empty.classList.add('hidden');
+  document.getElementById('dash-tbody').innerHTML=upcoming.map(x=>`<tr>
+    <td><strong class="mono">${x.i.tag}</strong></td><td>${x.i.loc}</td><td>${x.i.type}</td>
+    <td class="mono">${getNextDate(x.i.id)??'—'}</td><td>${badge(x.d)}</td></tr>`).join('');
+}
+
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+function calToday(){ calYear=today.getFullYear(); calMonth=today.getMonth(); renderCalendar(); }
+
+function renderCalendar(){
+  const MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-title').textContent=MN[calMonth]+' '+calYear;
+  const evMap={};
+  records.forEach(r=>{
+    if(!evMap[r.date]) evMap[r.date]=[];
+    const instr=instruments.find(i=>i.id===r.instrId);
+    evMap[r.date].push({label:instr?instr.tag:r.instrId, cls:r.type==='Calibración'?'done-cal':'done-ver'});
+  });
+  instruments.forEach(instr=>{
+    const nd=getNextDate(instr.id); if(!nd) return;
+    const d=getDays(instr.id);
+    if(!evMap[nd]) evMap[nd]=[];
+    const done=(evMap[nd]||[]).some(e=>e.label===instr.tag&&(e.cls==='done-cal'||e.cls==='done-ver'));
+    if(!done) evMap[nd].push({label:instr.tag, cls:d!==null&&d<0?'overdue':'sched'});
+  });
+  const first=new Date(calYear,calMonth,1);
+  let dow=first.getDay(); dow=dow===0?6:dow-1;
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const pmd=new Date(calYear,calMonth,0).getDate();
+  const todayStr=today.toISOString().split('T')[0];
+  const total=Math.ceil((dow+dim)/7)*7;
+  const cells=[];
+  for(let c=0;c<total;c++){
+    let day,mo=calMonth,yr=calYear,other=false;
+    if(c<dow){day=pmd-(dow-1-c);mo=calMonth-1;if(mo<0){mo=11;yr--;}other=true;}
+    else if(c>=dow+dim){day=c-dow-dim+1;mo=calMonth+1;if(mo>11){mo=0;yr++;}other=true;}
+    else{day=c-dow+1;}
+    const ds=`${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isT=ds===todayStr;
+    const evs=evMap[ds]||[];
+    const evH=evs.slice(0,3).map(e=>`<div class="cal-ev ${e.cls}" title="${e.label}">${e.label}</div>`).join('')
+      +(evs.length>3?`<div style="font-size:.62rem;color:var(--text-3)">+${evs.length-3}</div>`:'');
+    cells.push(`<div class="cal-day${other?' other':''}${isT?' today':''}"><div class="cal-dn">${day}</div>${evH}</div>`);
+  }
+  document.getElementById('cal-cells').innerHTML=cells.join('');
+}
+
+// ─── Instruments ──────────────────────────────────────────────────────────────
+function renderInstruments(){
+  const f=(document.getElementById('instr-search')||{value:''}).value.toLowerCase();
+  const list=instruments.filter(i=>i.tag.toLowerCase().includes(f)||i.desc.toLowerCase().includes(f)||i.loc.toLowerCase().includes(f));
+  document.getElementById('instr-empty').classList.toggle('hidden',list.length>0);
+  document.getElementById('instr-tbody').innerHTML=list.map(i=>{
+    const recs=records.filter(r=>r.instrId===i.id).sort((a,b)=>b.date.localeCompare(a.date));
+    const last=recs.length?recs[0].date:'—';
+    const d=getDays(i.id);
+    return `<tr>
+      <td><strong class="mono">${i.tag}</strong></td>
+      <td>${i.desc}<br><span style="font-size:.72rem;color:var(--text-3)">${i.model}</span></td>
+      <td>${i.type}</td><td>${i.loc}</td><td>${i.freq}d</td>
+      <td class="mono">${last}</td><td>${badge(d)}</td>
+      <td style="white-space:nowrap">
+        <button class="icon-btn" onclick="openRecModalFor('${i.id}')" title="Añadir registro">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn" onclick="openInstrModal('${i.id}')" title="Editar">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M11 2.5a1.5 1.5 0 012.12 2.12L5 13H2.5v-2.5L11 2.5z" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="delInstr('${i.id}')" title="Eliminar">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </td></tr>`;
+  }).join('');
+}
+
+// ─── Records ──────────────────────────────────────────────────────────────────
+function renderRecords(){
+  const tf=(document.getElementById('rec-type-f')||{value:''}).value;
+  const inf=(document.getElementById('rec-instr-f')||{value:''}).value;
+  const sel=document.getElementById('rec-instr-f');
+  if(sel) sel.innerHTML='<option value="">Todos los instrumentos</option>'+instruments.map(i=>`<option value="${i.id}"${inf===i.id?' selected':''}>${i.tag}</option>`).join('');
+  const list=records.filter(r=>(!tf||r.type===tf)&&(!inf||r.instrId===inf)).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('rec-empty').classList.toggle('hidden',list.length>0);
+  document.getElementById('rec-tbody').innerHTML=list.map(r=>{
+    const instr=instruments.find(i=>i.id===r.instrId);
+    const tag=instr?instr.tag:r.instrId;
+    const tb=r.type==='Calibración'?'<span class="badge cal">CAL</span>':'<span class="badge ver">VER</span>';
+    const cls = devClass(r.deviationPct, instr);
+    const dcStyle = cls==='ok'?'color:var(--ok)':cls==='warn'?'color:var(--warn)':cls==='danger'?'color:var(--danger)':'';
+    const { ok: tOk, warn: tWarn } = getThresholds(instr);
+    const criterioTip = instr ? `title="Criterio: ≤${tOk}% verde · ≤${tWarn}% ámbar · >${tWarn}% rojo"` : '';
+    return `<tr>
+      <td class="mono">${r.date}</td>
+      <td><strong>${tag}</strong></td><td>${tb}</td>
+      <td class="mono">${r.pattern!==null&&r.pattern!==undefined?Number(r.pattern).toFixed(3):'—'}</td>
+      <td class="mono">${r.reading!==null&&r.reading!==undefined?Number(r.reading).toFixed(3):'—'}</td>
+      <td class="mono" style="${dcStyle}" ${criterioTip}>${r.deviation!==null&&r.deviation!==undefined?((r.deviation>=0?'+':'')+Number(r.deviation).toFixed(3)+' ('+Number(r.deviationPct).toFixed(2)+'%)'):'—'}</td>
+      <td style="font-size:.8rem">${r.adjust||'<span style="color:var(--text-3)">Sin ajuste</span>'}</td>
+      <td>${r.tech||'—'}</td>
+      <td><button class="icon-btn del" onclick="delRec('${r.id}')">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button></td></tr>`;
+  }).join('');
+}
+
+// ─── Alerts ───────────────────────────────────────────────────────────────────
+function renderAlerts(){
+  const list=instruments.map(i=>({i,d:getDays(i.id)})).sort((a,b)=>(a.d??-9999)-(b.d??-9999));
+  document.getElementById('alerts-empty').classList.toggle('hidden',list.length>0);
+  document.getElementById('alerts-tbody').innerHTML=list.map(x=>`<tr class="alert-row ${scls(x.d)}">
+    <td><strong class="mono">${x.i.tag}</strong></td><td>${x.i.desc}</td><td>${x.i.type}</td>
+    <td class="mono">${getNextDate(x.i.id)??'—'}</td>
+    <td class="mono">${x.d===null?'—':x.d<0?'Hace '+Math.abs(x.d)+'d':x.d+'d'}</td>
+    <td>${badge(x.d)}</td></tr>`).join('');
+}
+
+// ─── Modal — Instrument ───────────────────────────────────────────────────────
+function openInstrModal(id=null){
+  editInstrId=id;
+  document.getElementById('mi-title').textContent=id?'Editar instrumento':'Nuevo instrumento';
+  if(id){
+    const i=instruments.find(x=>x.id===id);
+    document.getElementById('i-tag').value=i.tag; document.getElementById('i-type').value=i.type;
+    document.getElementById('i-desc').value=i.desc; document.getElementById('i-loc').value=i.loc;
+    document.getElementById('i-model').value=i.model; document.getElementById('i-freq').value=i.freq;
+    document.getElementById('i-range').value=i.range; document.getElementById('i-notes').value=i.notes;
+    document.getElementById('i-devmax').value = (i.devMax !== '' && i.devMax !== null && i.devMax !== undefined) ? i.devMax : '';
+  } else {
+    ['i-tag','i-desc','i-loc','i-model','i-range','i-notes'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('i-freq').value=30;
+    document.getElementById('i-devmax').value='';
+  }
+  document.getElementById('modal-instr').classList.remove('hidden');
+}
+function saveInstrument(){
+  const tag=document.getElementById('i-tag').value.trim();
+  if(!tag){alert('El TAG es obligatorio');return;}
+  const devMaxRaw = document.getElementById('i-devmax').value.trim();
+  const devMax = devMaxRaw === '' ? '' : Number(devMaxRaw);
+  const obj={id:editInstrId||uid(),tag,type:document.getElementById('i-type').value,
+    desc:document.getElementById('i-desc').value.trim(),loc:document.getElementById('i-loc').value.trim(),
+    model:document.getElementById('i-model').value.trim(),freq:Number(document.getElementById('i-freq').value)||30,
+    range:document.getElementById('i-range').value.trim(), devMax,
+    notes:document.getElementById('i-notes').value.trim()};
+  if(editInstrId) instruments=instruments.map(i=>i.id===editInstrId?obj:i); else instruments.push(obj);
+  saveAll(); closeModals(); renderAll();
+}
+function delInstr(id){if(!confirm('¿Eliminar instrumento y todos sus registros?'))return;instruments=instruments.filter(i=>i.id!==id);records=records.filter(r=>r.instrId!==id);saveAll();renderAll();}
+
+// ─── Modal — Record ───────────────────────────────────────────────────────────
+function openRecModal(){
+  const sel=document.getElementById('r-instr');
+  sel.innerHTML='<option value="">-- Seleccionar --</option>'+instruments.map(i=>`<option value="${i.id}">${i.tag} — ${i.desc}</option>`).join('');
+  document.getElementById('r-date').value=today.toISOString().split('T')[0];
+  ['r-tech','r-adjust','r-ref','r-notes'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('r-pat').value=''; document.getElementById('r-read').value='';
+  document.getElementById('r-dev').textContent='—'; document.getElementById('r-dev-pct').textContent='—';
+  document.getElementById('r-type').value='Calibración'; toggleAdjust();
+  document.getElementById('modal-rec').classList.remove('hidden');
+}
+function openRecModalFor(id){openRecModal();document.getElementById('r-instr').value=id;updateRecUnit();}
+function updateRecUnit(){
+  const instr=instruments.find(i=>i.id===document.getElementById('r-instr').value);
+  const u=instr?` (${instr.type})`:'';
+  document.getElementById('lbl-pat').textContent='Valor patrón'+u;
+  document.getElementById('lbl-read').textContent='Lectura equipo'+u;
+}
+function toggleAdjust(){document.getElementById('adjust-wrap').style.display=document.getElementById('r-type').value==='Calibración'?'':'none';}
+function calcDev(){
+  const p=parseFloat(document.getElementById('r-pat').value),r=parseFloat(document.getElementById('r-read').value);
+  if(isNaN(p)||isNaN(r)){document.getElementById('r-dev').textContent='—';document.getElementById('r-dev-pct').textContent='—';return;}
+  const dev=r-p,pct=p!==0?dev/Math.abs(p)*100:null;
+  document.getElementById('r-dev').textContent=(dev>=0?'+':'')+dev.toFixed(3);
+  document.getElementById('r-dev-pct').textContent=pct!==null?((pct>=0?'+':'')+pct.toFixed(2)+'%'):'—';
+}
+function saveRecord(){
+  const instrId=document.getElementById('r-instr').value,date=document.getElementById('r-date').value;
+  if(!instrId){alert('Selecciona un instrumento');return;}
+  if(!date){alert('La fecha es obligatoria');return;}
+  const p=parseFloat(document.getElementById('r-pat').value),r2=parseFloat(document.getElementById('r-read').value);
+  const dev=(!isNaN(p)&&!isNaN(r2))?r2-p:null,devPct=(dev!==null&&p!==0)?dev/Math.abs(p)*100:null;
+  records.push({id:uid(),instrId,date,type:document.getElementById('r-type').value,
+    tech:document.getElementById('r-tech').value.trim(),
+    pattern:isNaN(p)?null:p,reading:isNaN(r2)?null:r2,deviation:dev,deviationPct:devPct,
+    adjust:document.getElementById('r-adjust').value.trim(),
+    ref:document.getElementById('r-ref').value.trim(),notes:document.getElementById('r-notes').value.trim()});
+  saveAll(); closeModals(); renderAll();
+}
+function delRec(id){if(!confirm('¿Eliminar este registro?'))return;records=records.filter(r=>r.id!==id);saveAll();renderAll();}
+
+function closeModals(e){
+  if(e&&e.target!==e.currentTarget)return;
+  document.getElementById('modal-instr').classList.add('hidden');
+  document.getElementById('modal-rec').classList.add('hidden');
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+function exportXLS(){
+  if(!window.XLSX){alert('Librería XLSX no disponible');return;}
+  const wb = XLSX.utils.book_new();
+  const dateStr = today.toISOString().split('T')[0];
+
+  // ── Paleta idéntica a la app ───────────────────────────────────────────────
+  // Brand: #005B99 (azul) / #003E6B (oscuro) / #E8F2FA (claro) / #F0A500 (ámbar acento)
+  // Semáforo: ok=#2E7D32 bg=#E8F5E9 · warn=#B45309 bg=#FEF3C7 · danger=#B91C1C bg=#FEE2E2
+  // Tabla: fila normal blanca · fila alterna #F4F6F9 · borde #DDE3EC
+  const BD = {top:{style:'thin',color:{rgb:'DDE3EC'}},bottom:{style:'thin',color:{rgb:'DDE3EC'}},left:{style:'thin',color:{rgb:'DDE3EC'}},right:{style:'thin',color:{rgb:'DDE3EC'}}};
+  const BD_HDR = {top:{style:'medium',color:{rgb:'003E6B'}},bottom:{style:'medium',color:{rgb:'003E6B'}},left:{style:'thin',color:{rgb:'003E6B'}},right:{style:'thin',color:{rgb:'003E6B'}}};
+  const S = {
+    // Cabeceras de informe
+    title:    { font:{bold:true,sz:15,color:{rgb:'003E6B'},name:'Calibri'}, fill:{fgColor:{rgb:'E8F2FA'}}, alignment:{horizontal:'left',vertical:'center'} },
+    subtitle: { font:{sz:9,color:{rgb:'4A5568'},italic:true,name:'Calibri'}, fill:{fgColor:{rgb:'E8F2FA'}}, alignment:{horizontal:'left',vertical:'center'} },
+    // Cabecera de tabla — azul corporativo con texto blanco y borde inferior fuerte
+    hdr: {
+      font:{bold:true,sz:10,color:{rgb:'FFFFFF'},name:'Calibri'},
+      fill:{fgColor:{rgb:'005B99'}},
+      alignment:{horizontal:'center',vertical:'center',wrapText:true},
+      border:BD_HDR
+    },
+    // Fila normal — fondo blanco
+    cell:     { font:{sz:10,name:'Calibri'}, fill:{fgColor:{rgb:'FFFFFF'}}, alignment:{vertical:'center',wrapText:false}, border:BD },
+    cellMono: { font:{sz:10,name:'Courier New'}, fill:{fgColor:{rgb:'FFFFFF'}}, alignment:{vertical:'center',horizontal:'center'}, border:BD },
+    // Fila alterna — gris muy claro (#F4F6F9), igual que --bg de la app
+    altRow:   { font:{sz:10,name:'Calibri'}, fill:{fgColor:{rgb:'F4F6F9'}}, alignment:{vertical:'center'}, border:BD },
+    altMono:  { font:{sz:10,name:'Courier New'}, fill:{fgColor:{rgb:'F4F6F9'}}, alignment:{vertical:'center',horizontal:'center'}, border:BD },
+    // Sub-cabecera de sección (gris-azul)
+    secHdr:   { font:{bold:true,sz:10,color:{rgb:'FFFFFF'},name:'Calibri'}, fill:{fgColor:{rgb:'003E6B'}}, alignment:{horizontal:'left',vertical:'center'}, border:BD_HDR },
+    // Semáforo de vencimientos / estado
+    ok:     { font:{bold:true,sz:10,color:{rgb:'2E7D32'},name:'Calibri'}, fill:{fgColor:{rgb:'E8F5E9'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    warn:   { font:{bold:true,sz:10,color:{rgb:'B45309'},name:'Calibri'}, fill:{fgColor:{rgb:'FEF3C7'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    danger: { font:{bold:true,sz:10,color:{rgb:'B91C1C'},name:'Calibri'}, fill:{fgColor:{rgb:'FEE2E2'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    // Tipo CAL / VER
+    cal:    { font:{bold:true,sz:10,color:{rgb:'1D4ED8'},name:'Calibri'}, fill:{fgColor:{rgb:'DBEAFE'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    ver:    { font:{bold:true,sz:10,color:{rgb:'5B21B6'},name:'Calibri'}, fill:{fgColor:{rgb:'EDE9FE'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    // Desviación con color semáforo (monoespaciado)
+    devOk:  { font:{sz:10,name:'Courier New',color:{rgb:'2E7D32'}}, fill:{fgColor:{rgb:'FFFFFF'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    devWarn:{ font:{sz:10,name:'Courier New',color:{rgb:'B45309'}}, fill:{fgColor:{rgb:'FEF3C7'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    devBad: { font:{sz:10,name:'Courier New',color:{rgb:'B91C1C'}}, fill:{fgColor:{rgb:'FEE2E2'}}, alignment:{horizontal:'center',vertical:'center'}, border:BD },
+    // Acento ámbar para resaltar celdas especiales (igual que --accent de la app)
+    amber:  { font:{bold:true,sz:10,color:{rgb:'7A4200'},name:'Calibri'}, fill:{fgColor:{rgb:'FEF3C7'}}, alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin',color:{rgb:'F0A500'}},bottom:{style:'thin',color:{rgb:'F0A500'}},left:{style:'thin',color:{rgb:'F0A500'}},right:{style:'thin',color:{rgb:'F0A500'}}} },
+  };
+
+  function c(v, s){ return {v, s, t: typeof v==='number'?'n':'s'}; }
+
+  // ════════════════════════════════════════
+  // HOJA 1 — INSTRUMENTOS
+  // ════════════════════════════════════════
+  const wsI = {};
+  // Cabecera del informe (filas 1-3)
+  wsI['A1'] = {v:'UTE Valle de Güímar', s:{...S.title,fill:{fgColor:{rgb:'E8F2FA'}}}, t:'s'};
+  wsI['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
+  wsI['A3'] = {v:'', t:'s'};
+
+  // Cabeceras de tabla (fila 4)
+  const iHdrs = ['TAG','Descripción','Tipo de magnitud','Ubicación','Fabricante / Modelo','Frec. revisión (días)','Rango operativo','Última calibración','Próxima revisión','Días restantes','Estado'];
+  iHdrs.forEach((h,ci)=>{ wsI[XLSX.utils.encode_cell({r:3,c:ci})]={v:h,s:S.hdr,t:'s'}; });
+
+  // Datos (desde fila 5)
+  instruments.forEach((inst,ri)=>{
+    const d = getDays(inst.id);
+    const estado = d===null?'Sin datos':d<0?'VENCIDO':d<=7?'CRÍTICO':d<=14?'PRÓXIMO':'OK';
+    const estadoStyle = d===null||d<=7?S.danger:d<=14?S.warn:S.ok;
+    const recs = records.filter(r=>r.instrId===inst.id).sort((a,b)=>b.date.localeCompare(a.date));
+    const lastDate = recs.length?recs[0].date:'Sin registros';
+    const alt = ri%2===1;
+    const base = alt?S.altRow:S.cell;
+    const baseMono = alt?S.altMono:S.cellMono;
+    const row = ri+4;
+    wsI[XLSX.utils.encode_cell({r:row,c:0})]  = {v:inst.tag,  s:{...baseMono,alignment:{horizontal:'left',vertical:'center'}}, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:1})]  = {v:inst.desc, s:base, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:2})]  = {v:inst.type, s:base, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:3})]  = {v:inst.loc,  s:base, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:4})]  = {v:inst.model,s:base, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:5})]  = {v:inst.freq, s:baseMono, t:'n'};
+    wsI[XLSX.utils.encode_cell({r:row,c:6})]  = {v:inst.range,s:base, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:7})]  = {v:lastDate,  s:baseMono, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:8})]  = {v:getNextDate(inst.id)??'—', s:baseMono, t:'s'};
+    wsI[XLSX.utils.encode_cell({r:row,c:9})]  = {v:d===null?'—':d, s:baseMono, t:d===null?'s':'n'};
+    wsI[XLSX.utils.encode_cell({r:row,c:10})] = {v:estado, s:estadoStyle, t:'s'};
+  });
+
+  const iRef = XLSX.utils.encode_range({s:{r:3,c:0},e:{r:3+instruments.length,c:10}});
+  wsI['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:3+instruments.length,c:10}});
+  wsI['!merges'] = [{s:{r:0,c:0},e:{r:0,c:10}},{s:{r:1,c:0},e:{r:1,c:10}},{s:{r:2,c:0},e:{r:2,c:10}}];
+  wsI['!cols'] = [{wch:14},{wch:28},{wch:24},{wch:18},{wch:20},{wch:10},{wch:14},{wch:16},{wch:16},{wch:10},{wch:12}];
+  wsI['!rows'] = [{hpt:20},{hpt:14},{hpt:8},{hpt:30}];
+  wsI['!autofilter'] = {ref: iRef};
+
+  XLSX.utils.book_append_sheet(wb, wsI, 'Instrumentos');
+
+  // ════════════════════════════════════════
+  // HOJA 2 — REGISTROS
+  // ════════════════════════════════════════
+  const wsR = {};
+  wsR['A1'] = {v:'UTE Valle de Güímar — Registros de calibración y verificación', s:S.title, t:'s'};
+  wsR['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
+  wsR['A3'] = {v:'', t:'s'};
+
+  const rHdrs = ['Fecha','TAG','Descripción','Instalación','Tipo','Valor patrón','Lectura equipo','Desviación','Desv. (%)','Ajuste realizado','Patrón / referencia','Técnico','Observaciones'];
+  rHdrs.forEach((h,ci)=>{ wsR[XLSX.utils.encode_cell({r:3,c:ci})]={v:h,s:S.hdr,t:'s'}; });
+
+  const sortedRecs = [...records].sort((a,b)=>b.date.localeCompare(a.date));
+  sortedRecs.forEach((r,ri)=>{
+    const instr = instruments.find(i=>i.id===r.instrId);
+    const alt = ri%2===1;
+    const base = alt?S.altRow:S.cell;
+    const baseMono = alt?S.altMono:S.cellMono;
+    const typeStyle = r.type==='Calibración'?S.cal:S.ver;
+    let devStyle = baseMono;
+    if(r.deviationPct!==null&&r.deviationPct!==undefined){
+      const cls = devClass(r.deviationPct, instr);
+      devStyle = cls==='ok'?S.devOk:cls==='warn'?S.devWarn:S.devBad;
+    }
+    const row = ri+4;
+    wsR[XLSX.utils.encode_cell({r:row,c:0})]  = {v:r.date,                                   s:baseMono, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:1})]  = {v:instr?instr.tag:r.instrId,                s:{...baseMono,alignment:{horizontal:'left',vertical:'center'}}, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:2})]  = {v:instr?instr.desc:'',                       s:base, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:3})]  = {v:PLANTS[plant],                             s:base, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:4})]  = {v:r.type,                                    s:typeStyle, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:5})]  = {v:r.pattern!==null&&r.pattern!==undefined?Number(r.pattern):''  , s:baseMono, t:r.pattern!==null?'n':'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:6})]  = {v:r.reading!==null&&r.reading!==undefined?Number(r.reading):''  , s:baseMono, t:r.reading!==null?'n':'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:7})]  = {v:r.deviation!==null&&r.deviation!==undefined?Number(r.deviation.toFixed(4)):'' , s:devStyle, t:r.deviation!==null?'n':'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:8})]  = {v:r.deviationPct!==null&&r.deviationPct!==undefined?Number(r.deviationPct.toFixed(3)):'' , s:devStyle, t:r.deviationPct!==null?'n':'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:9})]  = {v:r.adjust||'',   s:base, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:10})] = {v:r.ref||'',      s:base, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:11})] = {v:r.tech||'',     s:base, t:'s'};
+    wsR[XLSX.utils.encode_cell({r:row,c:12})] = {v:r.notes||'',    s:base, t:'s'};
+  });
+
+  const rRef = XLSX.utils.encode_range({s:{r:3,c:0},e:{r:3+sortedRecs.length,c:12}});
+  wsR['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:3+sortedRecs.length,c:12}});
+  wsR['!merges'] = [{s:{r:0,c:0},e:{r:0,c:12}},{s:{r:1,c:0},e:{r:1,c:12}},{s:{r:2,c:0},e:{r:2,c:12}}];
+  wsR['!cols'] = [{wch:12},{wch:12},{wch:26},{wch:14},{wch:14},{wch:12},{wch:12},{wch:12},{wch:10},{wch:28},{wch:26},{wch:14},{wch:28}];
+  wsR['!rows'] = [{hpt:20},{hpt:14},{hpt:8},{hpt:30}];
+  wsR['!autofilter'] = {ref: rRef};
+
+  XLSX.utils.book_append_sheet(wb, wsR, 'Registros');
+
+  // ════════════════════════════════════════
+  // HOJA 3 — VENCIMIENTOS
+  // ════════════════════════════════════════
+  const wsV = {};
+  wsV['A1'] = {v:'UTE Valle de Güímar — Estado de vencimientos', s:S.title, t:'s'};
+  wsV['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
+  wsV['A3'] = {v:'', t:'s'};
+
+  const vHdrs = ['TAG','Descripción','Tipo','Última calibración','Próxima revisión','Días restantes','Estado'];
+  vHdrs.forEach((h,ci)=>{ wsV[XLSX.utils.encode_cell({r:3,c:ci})]={v:h,s:S.hdr,t:'s'}; });
+
+  const sortedInstr = [...instruments].map(i=>({i,d:getDays(i.id)})).sort((a,b)=>(a.d??-9999)-(b.d??-9999));
+  sortedInstr.forEach(({i:inst,d},ri)=>{
+    const alt = ri%2===1;
+    const base = alt?S.altRow:S.cell;
+    const baseMono = alt?S.altMono:S.cellMono;
+    const estadoStyle = d===null||d<=7?S.danger:d<=14?S.warn:S.ok;
+    const estado = d===null?'Sin datos':d<0?'VENCIDO':d<=7?'CRÍTICO':d<=14?'PRÓXIMO':'OK';
+    const recs = records.filter(r=>r.instrId===inst.id).sort((a,b)=>b.date.localeCompare(a.date));
+    const row = ri+4;
+    wsV[XLSX.utils.encode_cell({r:row,c:0})] = {v:inst.tag,  s:{...baseMono,alignment:{horizontal:'left',vertical:'center'}}, t:'s'};
+    wsV[XLSX.utils.encode_cell({r:row,c:1})] = {v:inst.desc, s:base, t:'s'};
+    wsV[XLSX.utils.encode_cell({r:row,c:2})] = {v:inst.type, s:base, t:'s'};
+    wsV[XLSX.utils.encode_cell({r:row,c:3})] = {v:recs.length?recs[0].date:'Sin registros', s:baseMono, t:'s'};
+    wsV[XLSX.utils.encode_cell({r:row,c:4})] = {v:getNextDate(inst.id)??'—', s:baseMono, t:'s'};
+    wsV[XLSX.utils.encode_cell({r:row,c:5})] = {v:d===null?'—':d, s:baseMono, t:d===null?'s':'n'};
+    wsV[XLSX.utils.encode_cell({r:row,c:6})] = {v:estado, s:estadoStyle, t:'s'};
+  });
+
+  const vRef = XLSX.utils.encode_range({s:{r:3,c:0},e:{r:3+sortedInstr.length,c:6}});
+  wsV['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:3+sortedInstr.length,c:6}});
+  wsV['!merges'] = [{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}},{s:{r:2,c:0},e:{r:2,c:6}}];
+  wsV['!cols'] = [{wch:14},{wch:28},{wch:24},{wch:16},{wch:16},{wch:12},{wch:12}];
+  wsV['!rows'] = [{hpt:20},{hpt:14},{hpt:8},{hpt:30}];
+  wsV['!autofilter'] = {ref: vRef};
+
+  XLSX.utils.book_append_sheet(wb, wsV, 'Vencimientos');
+
+  // ════════════════════════════════════════
+  // HOJA 4 — CRITERIOS DE ACEPTACIÓN
+  // ════════════════════════════════════════
+  const wsC = {};
+
+  const nota = { font:{sz:10,italic:true,color:{rgb:'4A5568'}}, alignment:{horizontal:'left',vertical:'center',wrapText:true} };
+  const lblStyle = { font:{bold:true,sz:10,color:{rgb:'003E6B'}}, alignment:{horizontal:'left',vertical:'center'} };
+
+  wsC['A1'] = {v:'UTE Valle de Güímar — Criterios de aceptación de desviación', s:{...S.title,fill:{fgColor:{rgb:'E8F2FA'}}}, t:'s'};
+  wsC['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
+  wsC['A3'] = {v:'', t:'s'};
+
+  // Sección global
+  wsC['A4'] = {v:'UMBRALES GLOBALES POR DEFECTO', s:S.secHdr, t:'s'};
+  wsC['A5'] = {v:'Aplican cuando el instrumento no tiene definido un umbral propio.', s:nota, t:'s'};
+  wsC['A6'] = {v:'', t:'s'};
+  wsC['A7'] = {v:'✔  ACEPTABLE', s:{font:{bold:true,sz:10,color:{rgb:'166534'}},fill:{fgColor:{rgb:'F0FDF4'}},alignment:{horizontal:'left',vertical:'center'},border:{top:{style:'thin',color:{rgb:'BBF7D0'}},bottom:{style:'thin',color:{rgb:'BBF7D0'}},left:{style:'thin',color:{rgb:'BBF7D0'}},right:{style:'thin',color:{rgb:'BBF7D0'}}}}, t:'s'};
+  wsC['B7'] = {v:`Desviación ≤ ${globalOk} %`, s:{font:{sz:10,name:'Courier New',color:{rgb:'166534'}},fill:{fgColor:{rgb:'F0FDF4'}},alignment:{horizontal:'left',vertical:'center'},border:{top:{style:'thin',color:{rgb:'BBF7D0'}},bottom:{style:'thin',color:{rgb:'BBF7D0'}},left:{style:'thin',color:{rgb:'BBF7D0'}},right:{style:'thin',color:{rgb:'BBF7D0'}}}}, t:'s'};
+  wsC['C7'] = {v:'Sin intervención necesaria. El instrumento funciona correctamente.', s:{font:{sz:10,color:{rgb:'166534'}},fill:{fgColor:{rgb:'F0FDF4'}},alignment:{horizontal:'left',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:'BBF7D0'}},bottom:{style:'thin',color:{rgb:'BBF7D0'}},left:{style:'thin',color:{rgb:'BBF7D0'}},right:{style:'thin',color:{rgb:'BBF7D0'}}}}, t:'s'};
+  wsC['A8'] = {v:'⚠  ATENCIÓN', s:{font:{bold:true,sz:10,color:{rgb:'92400E'}},fill:{fgColor:{rgb:'FFFBEB'}},alignment:{horizontal:'left',vertical:'center'},border:{top:{style:'thin',color:{rgb:'FDE68A'}},bottom:{style:'thin',color:{rgb:'FDE68A'}},left:{style:'thin',color:{rgb:'FDE68A'}},right:{style:'thin',color:{rgb:'FDE68A'}}}}, t:'s'};
+  wsC['B8'] = {v:`Desviación > ${globalOk} % y ≤ ${globalWarn} %`, s:{font:{sz:10,name:'Courier New',color:{rgb:'92400E'}},fill:{fgColor:{rgb:'FFFBEB'}},alignment:{horizontal:'left',vertical:'center'},border:{top:{style:'thin',color:{rgb:'FDE68A'}},bottom:{style:'thin',color:{rgb:'FDE68A'}},left:{style:'thin',color:{rgb:'FDE68A'}},right:{style:'thin',color:{rgb:'FDE68A'}}}}, t:'s'};
+  wsC['C8'] = {v:'Vigilar evolución. Calibrar si la desviación persiste o aumenta.', s:{font:{sz:10,color:{rgb:'92400E'}},fill:{fgColor:{rgb:'FFFBEB'}},alignment:{horizontal:'left',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:'FDE68A'}},bottom:{style:'thin',color:{rgb:'FDE68A'}},left:{style:'thin',color:{rgb:'FDE68A'}},right:{style:'thin',color:{rgb:'FDE68A'}}}}, t:'s'};
+  wsC['A9'] = {v:'✖  NO ACEPTABLE', s:{font:{bold:true,sz:10,color:{rgb:'991B1B'}},fill:{fgColor:{rgb:'FFF1F2'}},alignment:{horizontal:'left',vertical:'center'},border:{top:{style:'thin',color:{rgb:'FECACA'}},bottom:{style:'thin',color:{rgb:'FECACA'}},left:{style:'thin',color:{rgb:'FECACA'}},right:{style:'thin',color:{rgb:'FECACA'}}}}, t:'s'};
+  wsC['B9'] = {v:`Desviación > ${globalWarn} %`, s:{font:{sz:10,name:'Courier New',color:{rgb:'991B1B'}},fill:{fgColor:{rgb:'FFF1F2'}},alignment:{horizontal:'left',vertical:'center'},border:{top:{style:'thin',color:{rgb:'FECACA'}},bottom:{style:'thin',color:{rgb:'FECACA'}},left:{style:'thin',color:{rgb:'FECACA'}},right:{style:'thin',color:{rgb:'FECACA'}}}}, t:'s'};
+  wsC['C9'] = {v:'Calibración obligatoria antes de continuar usando el instrumento.', s:{font:{sz:10,color:{rgb:'991B1B'}},fill:{fgColor:{rgb:'FFF1F2'}},alignment:{horizontal:'left',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:'FECACA'}},bottom:{style:'thin',color:{rgb:'FECACA'}},left:{style:'thin',color:{rgb:'FECACA'}},right:{style:'thin',color:{rgb:'FECACA'}}}}, t:'s'};
+
+  wsC['A10'] = {v:'', t:'s'};
+
+  // Metodología
+  wsC['A11'] = {v:'METODOLOGÍA DE CÁLCULO', s:S.secHdr, t:'s'};
+  wsC['A12'] = {v:'Desviación absoluta', s:lblStyle, t:'s'};
+  wsC['B12'] = {v:'= Lectura equipo − Valor patrón', s:{font:{sz:10,name:'Courier New'},alignment:{horizontal:'left',vertical:'center'}}, t:'s'};
+  wsC['A13'] = {v:'Desviación relativa (%)', s:lblStyle, t:'s'};
+  wsC['B13'] = {v:'= (Desviación absoluta / |Valor patrón|) × 100', s:{font:{sz:10,name:'Courier New'},alignment:{horizontal:'left',vertical:'center'}}, t:'s'};
+  wsC['A14'] = {v:'Criterio aplicado sobre', s:lblStyle, t:'s'};
+  wsC['B14'] = {v:'Valor absoluto de la desviación relativa — |Desv. %|', s:{font:{sz:10},alignment:{horizontal:'left',vertical:'center'}}, t:'s'};
+  wsC['A15'] = {v:'', t:'s'};
+
+  // Tabla por instrumento
+  wsC['A16'] = {v:'CRITERIO POR INSTRUMENTO', s:S.secHdr, t:'s'};
+  const cHdrs = ['TAG','Descripción','Tipo','Umbral verde (≤)', 'Umbral ámbar (≤)','Umbral rojo (>)','Fuente'];
+  cHdrs.forEach((h,ci)=>{ wsC[XLSX.utils.encode_cell({r:16,c:ci})]={v:h,s:S.hdr,t:'s'}; });
+  instruments.forEach((inst,ri)=>{
+    const hasOwn = inst.devMax !== '' && inst.devMax !== null && inst.devMax !== undefined;
+    const { ok: iok, warn: iwarn } = getThresholds(inst);
+    const alt = ri%2===1;
+    const base = alt?S.altRow:S.cell;
+    const row = ri+17;
+    wsC[XLSX.utils.encode_cell({r:row,c:0})] = {v:inst.tag,  s:{...S.cellMono,alignment:{horizontal:'left',vertical:'center'}}, t:'s'};
+    wsC[XLSX.utils.encode_cell({r:row,c:1})] = {v:inst.desc, s:base, t:'s'};
+    wsC[XLSX.utils.encode_cell({r:row,c:2})] = {v:inst.type, s:base, t:'s'};
+    wsC[XLSX.utils.encode_cell({r:row,c:3})] = {v:`≤ ${iok} %`,  s:{...S.devOk,fill:{fgColor:{rgb:'F0FDF4'}}}, t:'s'};
+    wsC[XLSX.utils.encode_cell({r:row,c:4})] = {v:`${iok} – ${iwarn} %`, s:{...S.devWarn,fill:{fgColor:{rgb:'FFFBEB'}}}, t:'s'};
+    wsC[XLSX.utils.encode_cell({r:row,c:5})] = {v:`> ${iwarn} %`, s:{...S.devBad,fill:{fgColor:{rgb:'FFF1F2'}}}, t:'s'};
+    wsC[XLSX.utils.encode_cell({r:row,c:6})] = {v:hasOwn?'Propio (ficha instrumento)':'Global (por defecto)', s:{...base,font:{...base.font,italic:true}}, t:'s'};
+  });
+
+  wsC['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:17+instruments.length,c:6}});
+  wsC['!merges'] = [
+    {s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}},{s:{r:2,c:0},e:{r:2,c:6}},
+    {s:{r:3,c:0},e:{r:3,c:6}},{s:{r:4,c:0},e:{r:4,c:6}},{s:{r:5,c:0},e:{r:5,c:6}},
+    {s:{r:9,c:0},e:{r:9,c:6}},{s:{r:10,c:0},e:{r:10,c:6}},{s:{r:14,c:0},e:{r:14,c:6}},
+    {s:{r:15,c:0},e:{r:15,c:6}},
+    {s:{r:6,c:2},e:{r:6,c:6}},{s:{r:7,c:2},e:{r:7,c:6}},{s:{r:8,c:2},e:{r:8,c:6}},
+    {s:{r:11,c:2},e:{r:11,c:6}},{s:{r:12,c:2},e:{r:12,c:6}},{s:{r:13,c:2},e:{r:13,c:6}},
+  ];
+  wsC['!cols'] = [{wch:18},{wch:28},{wch:22},{wch:16},{wch:18},{wch:16},{wch:28}];
+  wsC['!rows'] = [{hpt:20},{hpt:14},{hpt:8},{hpt:22},{hpt:16},{hpt:10},{hpt:22},{hpt:22},{hpt:22},{hpt:10},{hpt:22},{hpt:18},{hpt:18},{hpt:18},{hpt:10},{hpt:22},{hpt:28}];
+
+  XLSX.utils.book_append_sheet(wb, wsC, 'Criterios');
+
+  XLSX.writeFile(wb, `calibraciones_${PLANTS[plant]}_${dateStr}.xlsx`);
+}
+</script>
+</body>
+</html>
