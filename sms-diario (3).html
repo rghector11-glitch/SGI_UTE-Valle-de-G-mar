@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>
+  // Auth guard — checks local session
+  (function() {
+    try {
+      const s = JSON.parse(localStorage.getItem('ute-session'));
+      if(!s || !s.username) { window.location.href = 'index.html'; }
+    } catch(e) { window.location.href = 'index.html'; }
+  })();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plantilla SMS Diario — UTE Valle de Güímar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand: #005b99; --brand-dark: #003e6b; --brand-light: #e8f2fa;
+  --accent: #f0a500;
+  --ok: #2e7d32; --ok-bg: #e8f5e9;
+  --warn: #b45309; --warn-bg: #fef3c7;
+  --danger: #b91c1c; --danger-bg: #fee2e2;
+  --bg: #f4f6f9; --surface: #fff; --border: #dde3ec;
+  --text: #1a2332; --text2: #4a5568; --text3: #8898aa;
+  --sans: 'Barlow', sans-serif;
+  --cond: 'Barlow Condensed', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --r: 10px; --rlg: 14px;
+  --sh: 0 2px 12px rgba(0,0,0,.08);
+  --shlg: 0 8px 32px rgba(0,0,0,.16);
+}
+html, body { min-height: 100%; font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 15px; }
+
+/* ── HEADER ── */
+.app-header {
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+  color: white; display: flex; align-items: center; gap: .8rem;
+  padding: .65rem 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,.22);
+  position: sticky; top: 0; z-index: 50;
+}
+.hdr-logo { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hdr-logo svg { width: 20px; height: 20px; }
+.hdr-brand { flex: 1; }
+.hdr-brand .co { font-family: var(--cond); font-size: .9rem; font-weight: 700; letter-spacing: .02em; }
+.hdr-brand .mo { font-size: .7rem; color: rgba(255,255,255,.6); font-weight: 300; }
+.back-btn { background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.23); border-radius: 8px; color: white; cursor: pointer; padding: 5px 11px; font-size: .76rem; font-family: var(--sans); display: flex; align-items: center; gap: 4px; font-weight: 600; }
+.back-btn:hover { background: rgba(255,255,255,.22); }
+.back-btn svg { width: 14px; height: 14px; stroke: currentColor; }
+
+/* ── LAYOUT ── */
+.page { max-width: 980px; margin: 0 auto; padding: 1.5rem 1.2rem 3rem; }
+.page-title { font-family: var(--cond); font-size: 1.4rem; font-weight: 700; color: var(--brand-dark); margin-bottom: .25rem; }
+.page-sub { font-size: .82rem; color: var(--text3); margin-bottom: 1.5rem; }
+
+/* ── DATE ROW ── */
+.date-row { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.date-row label { font-size: .78rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; }
+.date-row input[type=date] {
+  font-size: .9rem; padding: .45rem .75rem; border: 1px solid var(--border);
+  border-radius: var(--r); background: var(--surface); color: var(--text);
+  font-family: var(--mono); cursor: pointer;
+}
+.date-row input[type=date]:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(0,91,153,.12); }
+.day-badge { font-family: var(--mono); font-size: .82rem; background: var(--brand-light); color: var(--brand-dark); padding: .35rem .8rem; border-radius: var(--r); font-weight: 600; }
+
+/* ── EXCEL LOADER ── */
+.excel-loader {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--rlg); padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem; box-shadow: var(--sh);
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.excel-loader-label { font-size: .8rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+.excel-upload-zone {
+  position: relative; display: flex; align-items: center; gap: .6rem;
+  background: var(--bg); border: 1.5px dashed var(--border);
+  border-radius: var(--r); padding: .5rem .9rem;
+  cursor: pointer; transition: border-color .15s, background .15s;
+  flex: 1; min-width: 200px;
+}
+.excel-upload-zone:hover { border-color: var(--brand); background: var(--brand-light); }
+.excel-upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.excel-upload-zone svg { width: 18px; height: 18px; stroke: var(--text3); flex-shrink: 0; }
+.excel-upload-zone:hover svg { stroke: var(--brand); }
+.excel-upload-text { font-size: .8rem; color: var(--text3); }
+.excel-upload-text strong { color: var(--brand); font-weight: 600; }
+.excel-status { font-size: .78rem; font-family: var(--mono); padding: .35rem .75rem; border-radius: 6px; white-space: nowrap; }
+.excel-status.idle    { background: var(--bg); color: var(--text3); border: 1px solid var(--border); }
+.excel-status.loaded  { background: var(--ok-bg); color: var(--ok); border: 1px solid #a5d6a7; }
+.excel-status.error   { background: var(--danger-bg); color: var(--danger); border: 1px solid #ef9a9a; }
+.excel-status.finding { background: var(--warn-bg); color: var(--warn); border: 1px solid #f6c90e; }
+
+/* ── TWO PANELS ── */
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem; }
+@media(max-width: 680px) { .panels { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rlg); overflow: hidden; box-shadow: var(--sh); }
+.panel-header { padding: .75rem 1.1rem; display: flex; align-items: center; gap: .5rem; }
+.panel-header.edari { background: linear-gradient(135deg, #003e6b, #005b99); color: white; }
+.panel-header.edaru { background: linear-gradient(135deg, #0f6e56, #1d9e75); color: white; }
+.panel-header h2 { font-family: var(--cond); font-size: 1.05rem; font-weight: 700; }
+.panel-header .pdate { font-size: .72rem; opacity: .7; font-family: var(--mono); margin-left: auto; }
+
+.section-label {
+  font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text3); padding: .55rem 1rem .3rem;
+  border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .4rem;
+}
+.section-label.entrada { color: var(--brand); border-left: 3px solid var(--brand); }
+.section-label.salida  { color: var(--ok);    border-left: 3px solid var(--ok);    }
+
+.param-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .5rem 1rem; border-bottom: 1px solid var(--border); gap: .6rem;
+}
+.param-row:last-child { border-bottom: none; }
+.param-label { font-size: .83rem; color: var(--text2); font-weight: 500; white-space: nowrap; }
+.param-unit  { font-size: .72rem; color: var(--text3); margin-left: .2rem; }
+.param-input {
+  width: 110px; text-align: right; font-family: var(--mono); font-size: .88rem;
+  padding: .35rem .55rem; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg); color: var(--text); font-weight: 500;
+  transition: border-color .15s, box-shadow .15s;
+}
+.param-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(0,91,153,.12); background: var(--surface); }
+.param-input.empty { border-color: var(--border); color: var(--text3); }
+.param-input.filled { border-color: #b3d4ec; background: var(--brand-light); color: var(--brand-dark); }
+
+/* ── SMS PREVIEW ── */
+.sms-section { margin-bottom: 1.2rem; }
+.sms-section-title { font-family: var(--cond); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .6rem; display: flex; align-items: center; gap: .5rem; }
+.sms-section-title svg { width: 16px; height: 16px; stroke: var(--brand); }
+.sms-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width: 680px) { .sms-boxes { grid-template-columns: 1fr; } }
+
+.sms-box-wrap { display: flex; flex-direction: column; gap: .5rem; }
+.sms-box-label { font-size: .75rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; display: flex; align-items: center; gap: .4rem; }
+.sms-bubble {
+  background: #e7f8e8;
+  border: 1px solid #b7dfb9;
+  border-radius: 14px 14px 14px 4px;
+  padding: .8rem 1rem;
+  font-family: var(--mono);
+  font-size: .78rem;
+  line-height: 1.65;
+  color: #1b3a1e;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 160px;
+}
+
+.action-row { display: flex; gap: .6rem; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .48rem 1rem; border-radius: var(--r);
+  font-size: .82rem; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+  transition: background .15s, transform .1s;
+}
+.btn:hover { background: var(--bg); }
+.btn:active { transform: scale(.98); }
+.btn svg { width: 15px; height: 15px; stroke: currentColor; }
+.btn.primary { background: var(--brand); color: white; border-color: var(--brand); }
+.btn.primary:hover { background: var(--brand-dark); }
+.btn.green { background: var(--ok); color: white; border-color: var(--ok); }
+.btn.green:hover { background: #1b5e20; }
+.btn.amber { background: var(--accent); color: white; border-color: var(--accent); }
+.btn.amber:hover { background: #c87f00; }
+
+/* ── COPY TOAST ── */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(60px);
+  background: #1b5e20; color: white; padding: .6rem 1.4rem;
+  border-radius: 99px; font-size: .82rem; font-weight: 600;
+  box-shadow: var(--shlg); z-index: 1000;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── HISTORIAL ── */
+.hist-section { margin-top: 1.5rem; }
+.hist-title { font-family: var(--cond); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .6rem; display: flex; align-items: center; gap: .5rem; }
+.hist-title svg { width: 16px; height: 16px; stroke: var(--text3); }
+.hist-empty { font-size: .82rem; color: var(--text3); font-style: italic; padding: .5rem 0; }
+.hist-grid { display: flex; flex-direction: column; gap: .5rem; }
+.hist-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .65rem 1rem; display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+.hist-date { font-family: var(--mono); font-size: .78rem; font-weight: 700; color: var(--brand); min-width: 90px; }
+.hist-preview { font-family: var(--mono); font-size: .72rem; color: var(--text2); flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.hist-actions { display: flex; gap: .35rem; }
+.hist-btn { font-size: .72rem; padding: .28rem .65rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; font-family: var(--sans); font-weight: 600; }
+.hist-btn:hover { background: var(--bg); }
+.hist-btn.del { color: var(--danger); }
+.hist-btn.del:hover { background: var(--danger-bg); border-color: var(--danger); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
+    authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
+    databaseURL: "https://sgi-ute-valle-de-guimar-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sgi-ute-valle-de-guimar",
+    storageBucket: "sgi-ute-valle-de-guimar.firebasestorage.app",
+    messagingSenderId: "618175438367",
+    appId: "1:618175438367:web:03831aa0ce60cb355e3f2a"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window._fb = { db, ref, onValue, set };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+</head>
+<body>
+
+<header class="app-header">
+  <button class="back-btn" onclick="window.location.href='index.html'">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Inicio
+  </button>
+  <div class="hdr-logo">
+    <svg viewBox="0 0 34 34" fill="none">
+      <path d="M17 3C17 3 8 13.5 8 20a9 9 0 0018 0c0-6.5-9-17-9-17z" fill="#005b99"/>
+      <circle cx="17" cy="20" r="3.8" fill="white"/>
+    </svg>
+  </div>
+  <div class="hdr-brand">
+    <div class="co">Plantilla SMS Diario</div>
+    <div class="mo">UTE Valle de Güímar · SAR Valle Güímar</div>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-title">Parte diario de explotación</div>
+  <div class="page-sub">Carga tu Excel con los datos de la tabla, elige la fecha y los valores se rellenan automáticamente. El SMS queda listo para copiar al WhatsApp.</div>
+
+  <!-- Cargador Excel -->
+  <div class="excel-loader">
+    <span class="excel-loader-label">
+      <svg viewBox="0 0 16 16" fill="none" style="width:15px;height:15px;stroke:var(--ok);display:inline;vertical-align:-3px;margin-right:4px"><rect x="2" y="2" width="12" height="12" rx="2" stroke-width="1.4"/><path d="M5 8l2 2 4-4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Excel de datos
+    </span>
+    <div class="excel-upload-zone">
+      <input type="file" id="excel-file" accept=".xlsx,.xls" onchange="loadExcelFile(this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="excel-upload-text"><strong>Cargar Excel</strong> con los datos de la tabla</div>
+    </div>
+    <div class="excel-status idle" id="excel-status">Sin fichero</div>
+  </div>
+
+  <!-- Fecha -->
+  <div class="date-row">
+    <label>Fecha del parte</label>
+    <input type="date" id="report-date" oninput="updateAll(); findDateInExcel()">
+    <div class="day-badge" id="day-badge">—</div>
+  </div>
+
+  <!-- Paneles de datos -->
+  <div class="panels">
+
+    <!-- EDARi -->
+    <div class="panel">
+      <div class="panel-header edari">
+        <svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px;stroke:white;stroke-width:1.4;flex-shrink:0"><rect x="2" y="6" width="16" height="11" rx="2"/><path d="M6 6V4a4 4 0 018 0v2"/></svg>
+        <h2>SAR Valle Güímar EDARi</h2>
+        <span class="pdate" id="edari-date-badge">—</span>
+      </div>
+      <div class="section-label entrada">
+        <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;stroke:currentColor"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Entrada
+      </div>
+      <div class="param-row">
+        <span class="param-label">Q <span class="param-unit">(m³/d)</span></span>
+        <input class="param-input" type="number" id="ei-Q" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">DQO <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="ei-DQO" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">SST <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="ei-SST" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="section-label salida">
+        <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;stroke:currentColor"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Salida
+      </div>
+      <div class="param-row">
+        <span class="param-label">Q <span class="param-unit">(m³/d)</span></span>
+        <input class="param-input" type="number" id="eo-Q" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">DQO <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="eo-DQO" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">SST <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="eo-SST" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">NTU</span>
+        <input class="param-input" type="number" id="eo-NTU" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">C.E <span class="param-unit">(µS/cm)</span></span>
+        <input class="param-input" type="number" id="eo-CE" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+    </div>
+
+    <!-- EDARu -->
+    <div class="panel">
+      <div class="panel-header edaru">
+        <svg viewBox="0 0 20 20" fill="none" style="width:18px;height:18px;stroke:white;stroke-width:1.4;flex-shrink:0"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2" stroke-linecap="round"/></svg>
+        <h2>SAR Valle Güímar EDARu</h2>
+        <span class="pdate" id="edaru-date-badge">—</span>
+      </div>
+      <div class="section-label entrada">
+        <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;stroke:currentColor"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Entrada
+      </div>
+      <div class="param-row">
+        <span class="param-label">Q <span class="param-unit">(m³/d)</span></span>
+        <input class="param-input" type="number" id="ui-Q" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">DQO <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="ui-DQO" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">SST <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="ui-SST" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="section-label salida">
+        <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;stroke:currentColor"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Salida
+      </div>
+      <div class="param-row">
+        <span class="param-label">Q <span class="param-unit">(m³/d)</span></span>
+        <input class="param-input" type="number" id="uo-Q" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">DQO <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="uo-DQO" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">SST <span class="param-unit">(mg/L)</span></span>
+        <input class="param-input" type="number" id="uo-SST" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">NTU</span>
+        <input class="param-input" type="number" id="uo-NTU" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+      <div class="param-row">
+        <span class="param-label">C.E <span class="param-unit">(µS/cm)</span></span>
+        <input class="param-input" type="number" id="uo-CE" placeholder="0" oninput="updateAll(); markFilled(this)">
+      </div>
+    </div>
+  </div>
+
+  <!-- SMS Preview -->
+  <div class="sms-section">
+    <div class="sms-section-title">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 3h12a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 2V4a1 1 0 011-1z" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      Vista previa del SMS
+    </div>
+    <div class="sms-boxes">
+      <div class="sms-box-wrap">
+        <div class="sms-box-label">
+          <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;stroke:#005b99;stroke-width:1.5"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 10h4" stroke-linecap="round"/></svg>
+          EDARi
+        </div>
+        <div class="sms-bubble" id="sms-edari">—</div>
+        <div class="action-row">
+          <button class="btn primary" onclick="copySMS('edari')">
+            <svg viewBox="0 0 16 16" fill="none"><rect x="5" y="3" width="9" height="11" rx="1.5" stroke-width="1.4"/><path d="M3 5v8a1 1 0 001 1h7" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Copiar EDARi
+          </button>
+          <button class="btn amber" onclick="shareWA('edari')">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke-width="1.3"/><path d="M5.5 8.5c.5 1 1.5 1.8 2.5 2 .8.2 1.6-.2 1.8-1 .1-.3 0-.6-.3-.8l-.8-.4c-.3-.1-.5 0-.7.2l-.2.3c-.7-.4-1.2-.9-1.5-1.6l.2-.2c.2-.2.3-.4.2-.7l-.4-.8c-.2-.3-.5-.4-.8-.3-.8.2-1.2 1-.5 2.3z" stroke-width="1.1" stroke-linecap="round"/></svg>
+            WhatsApp
+          </button>
+        </div>
+      </div>
+      <div class="sms-box-wrap">
+        <div class="sms-box-label">
+          <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;stroke:#0f6e56;stroke-width:1.5"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2"/></svg>
+          EDARu
+        </div>
+        <div class="sms-bubble" id="sms-edaru">—</div>
+        <div class="action-row">
+          <button class="btn primary" onclick="copySMS('edaru')">
+            <svg viewBox="0 0 16 16" fill="none"><rect x="5" y="3" width="9" height="11" rx="1.5" stroke-width="1.4"/><path d="M3 5v8a1 1 0 001 1h7" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Copiar EDARu
+          </button>
+          <button class="btn amber" onclick="shareWA('edaru')">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke-width="1.3"/><path d="M5.5 8.5c.5 1 1.5 1.8 2.5 2 .8.2 1.6-.2 1.8-1 .1-.3 0-.6-.3-.8l-.8-.4c-.3-.1-.5 0-.7.2l-.2.3c-.7-.4-1.2-.9-1.5-1.6l.2-.2c.2-.2.3-.4.2-.7l-.4-.8c-.2-.3-.5-.4-.8-.3-.8.2-1.2 1-.5 2.3z" stroke-width="1.1" stroke-linecap="round"/></svg>
+            WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones guardar / limpiar -->
+  <div class="action-row" style="margin-top:1.2rem; padding-top:1.2rem; border-top:1px solid var(--border);">
+    <button class="btn green" onclick="saveRecord()">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M13 5l-7 7-3-3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Guardar en historial
+    </button>
+    <button class="btn" onclick="resetForm()">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M3 8a5 5 0 105-5H5M5 1v4H1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Limpiar
+    </button>
+  </div>
+
+  <!-- Historial -->
+  <div class="hist-section">
+    <div class="hist-title">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v5l3 3M8 1a7 7 0 100 14A7 7 0 008 1z" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Historial de partes
+    </div>
+    <div id="hist-list"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ Copiado al portapapeles</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let history_records = [];
+
+const FIELDS_I = ['ei-Q','ei-DQO','ei-SST'];
+const FIELDS_O_E = ['eo-Q','eo-DQO','eo-SST','eo-NTU','eo-CE'];
+const FIELDS_I_U = ['ui-Q','ui-DQO','ui-SST'];
+const FIELDS_O_U = ['uo-Q','uo-DQO','uo-SST','uo-NTU','uo-CE'];
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+// ─── EXCEL DATA ──────────────────────────────────────────────────────────────
+let excelData = []; // array of row objects keyed by column headers
+
+function loadExcelFile(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('excel-status');
+  statusEl.className = 'excel-status finding';
+  statusEl.textContent = 'Leyendo...';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+
+      // raw:false → SheetJS formats dates as strings using dateNF
+      // header:1  → returns array of arrays (we pick row 5 as headers manually)
+      const rows = XLSX.utils.sheet_to_json(ws, {raw:false, dateNF:'yyyy-mm-dd', header:1, defval:''});
+
+      // Row 5 (index 4) = column headers, clean newlines
+      const headerRow = rows[4] || [];
+      const cleanHeaders = headerRow.map(h => h ? String(h).replace(/[\n\r]/g,' ').replace(/\s+/g,' ').trim() : '');
+
+      // Data starts at row 6 (index 5)
+      excelData = rows.slice(5)
+        .filter(row => row && row.some(v => v !== '' && v !== null && v !== undefined))
+        .map(row => {
+          const obj = {};
+          cleanHeaders.forEach((h, i) => {
+            let val = row[i];
+            // Catch any Date objects that slipped through and format them
+            if(val instanceof Date) {
+              const yy = val.getFullYear();
+              const mm = String(val.getMonth()+1).padStart(2,'0');
+              const dd = String(val.getDate()).padStart(2,'0');
+              val = `${yy}-${mm}-${dd}`;
+            }
+            obj[h] = (val !== undefined && val !== null) ? String(val).trim() : '';
+          });
+          return obj;
+        });
+
+      statusEl.className = 'excel-status loaded';
+      statusEl.textContent = '✓ ' + file.name + ' (' + excelData.length + ' filas)';
+      console.log('Headers:', cleanHeaders);
+      console.log('Primera fila:', excelData[0]);
+      findDateInExcel();
+    } catch(err) {
+      statusEl.className = 'excel-status error';
+      statusEl.textContent = '✗ Error al leer el fichero';
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function findDateInExcel() {
+  if(!excelData.length) return;
+  const iso = document.getElementById('report-date').value;
+  if(!iso) return;
+
+  // Try to find the row matching the selected date
+  // Normalize date: try matching yyyy-mm-dd, dd/mm/yyyy, d/m/yyyy variants
+  const [y,m,d] = iso.split('-');
+  const targets = [
+    iso,                              // 2026-05-14
+    `${d}/${m}/${y}`,                // 14/05/2026
+    `${parseInt(d)}/${parseInt(m)}/${y}`, // 14/5/2026
+    `${y}/${m}/${d}`,                // 2026/05/14
+    `${d}-${m}-${y}`,                // 14-05-2026
+  ];
+
+  // Find the date column (first column that looks like dates or is named Fecha/Date/fecha)
+  const headers = Object.keys(excelData[0]);
+  const dateCol = headers.find(h => 
+    /fecha|date|día|dia|jornada/i.test(h)
+  ) || headers[0]; // fallback to first column
+
+  const row = excelData.find(r => {
+    const cellVal = String(r[dateCol] || '').trim();
+    // Also try as Date object formatted
+    return targets.some(t => cellVal === t || cellVal.startsWith(t));
+  });
+
+  const statusEl = document.getElementById('excel-status');
+  if(!row) {
+    statusEl.className = 'excel-status finding';
+    statusEl.textContent = '⚠ Sin datos para ' + `${d}/${m}/${y}`;
+    return;
+  }
+
+  // Map columns to fields — flexible: looks for column names containing the parameter
+  // Map columns — keywords match the cleaned header names of the plantilla
+  function findVal(keywords) {
+    const key = headers.find(h => keywords.some(kw => h.toLowerCase().includes(kw.toLowerCase())));
+    if(!key) return '';
+    const v = row[key];
+    return (v === undefined || v === null || v === '') ? '' : String(v).replace(',','.');
+  }
+
+  // EDARi entrada
+  setField('ei-Q',   findVal(['q entrada edari']));
+  setField('ei-DQO', findVal(['dqo entrada edari']));
+  setField('ei-SST', findVal(['sst entrada edari']));
+  // EDARi salida
+  setField('eo-Q',   findVal(['q salida edari']));
+  setField('eo-DQO', findVal(['dqo salida edari']));
+  setField('eo-SST', findVal(['sst salida edari']));
+  setField('eo-NTU', findVal(['ntu edari']));
+  setField('eo-CE',  findVal(['c.e edari']));
+  // EDARu entrada
+  setField('ui-Q',   findVal(['q entrada edaru']));
+  setField('ui-DQO', findVal(['dqo entrada edaru']));
+  setField('ui-SST', findVal(['sst entrada edaru']));
+  // EDARu salida
+  setField('uo-Q',   findVal(['q salida edaru']));
+  setField('uo-DQO', findVal(['dqo salida edaru']));
+  setField('uo-SST', findVal(['sst salida edaru']));
+  setField('uo-NTU', findVal(['ntu edaru']));
+  setField('uo-CE',  findVal(['c.e edaru']));
+
+  statusEl.className = 'excel-status loaded';
+  statusEl.textContent = '✓ Datos cargados para ' + `${d}/${m}/${y}`;
+  updateAll();
+  showToast('✓ Datos importados del Excel');
+}
+
+function setField(id, value) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.value = value;
+  markFilled(el);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+let _fbSmsListening = false;
+function load() {
+  try { const d = localStorage.getItem('ute-sms-history'); if(d) history_records = JSON.parse(d); } catch(e){}
+  const today = new Date();
+  document.getElementById('report-date').value = today.toISOString().split('T')[0];
+  updateAll();
+  renderHistory();
+  // Subscribe Firebase
+  if(window._fb && !_fbSmsListening) {
+    _fbSmsListening = true;
+    window._fb.onValue(window._fb.ref(window._fb.db, 'sms-history'), snap => {
+      const d = snap.val();
+      if(d && Array.isArray(d)) {
+        history_records = d;
+        localStorage.setItem('ute-sms-history', JSON.stringify(history_records));
+        renderHistory();
+      }
+    });
+  } else if(!window._fb) {
+    window.addEventListener('firebase-ready', load, {once:true});
+  }
+}
+
+// ─── DATE UTILS ──────────────────────────────────────────────────────────────
+function formatDateDisplay(iso) {
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${y}/${m}/${d}`;
+}
+function formatDayBadge(iso) {
+  if(!iso) return '—';
+  const date = new Date(iso + 'T12:00:00');
+  const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${DIAS[date.getDay()]} ${date.getDate()} de ${MESES[date.getMonth()]} de ${date.getFullYear()}`;
+}
+
+// ─── BUILD SMS ────────────────────────────────────────────────────────────────
+function val(id) {
+  const v = document.getElementById(id).value;
+  return v === '' ? 0 : Number(v);
+}
+
+function buildSMS(plant, dateIso) {
+  const dateStr = formatDateDisplay(dateIso);
+  if(plant === 'edari') {
+    return `SAR VALLE GUIMAR EDARI
+${dateStr}
+-----ENTRADA-----
+Q(m3/d): ${val('ei-Q')}
+DQO (mg/L): ${val('ei-DQO')}
+SST (mg/L): ${val('ei-SST')}
+-----SALIDA-----
+Q (m3/d): ${val('eo-Q')}
+DQO (mg/L): ${val('eo-DQO')}
+SST (mg/L): ${val('eo-SST')}
+NTU: ${val('eo-NTU')}
+C.E (us/cm): ${val('eo-CE')}`;
+  } else {
+    return `SAR VALLE GUIMAR EDARU
+${dateStr}
+-----ENTRADA-----
+Q(m3/d): ${val('ui-Q')}
+DQO (mg/L): ${val('ui-DQO')}
+SST (mg/L): ${val('ui-SST')}
+-----SALIDA-----
+Q (m3/d): ${val('uo-Q')}
+DQO (mg/L): ${val('uo-DQO')}
+SST (mg/L): ${val('uo-SST')}
+NTU: ${val('uo-NTU')}
+C.E (us/cm): ${val('uo-CE')}`;
+  }
+}
+
+// ─── UPDATE UI ────────────────────────────────────────────────────────────────
+function updateAll() {
+  const iso = document.getElementById('report-date').value;
+  const dateStr = formatDateDisplay(iso);
+
+  document.getElementById('day-badge').textContent = formatDayBadge(iso);
+  document.getElementById('edari-date-badge').textContent = dateStr;
+  document.getElementById('edaru-date-badge').textContent = dateStr;
+
+  document.getElementById('sms-edari').textContent = buildSMS('edari', iso);
+  document.getElementById('sms-edaru').textContent = buildSMS('edaru', iso);
+}
+
+function markFilled(input) {
+  input.classList.toggle('filled', input.value !== '');
+  input.classList.toggle('empty',  input.value === '');
+}
+
+// ─── COPY / SHARE ─────────────────────────────────────────────────────────────
+function copySMS(plant) {
+  const iso = document.getElementById('report-date').value;
+  const text = buildSMS(plant, iso);
+  navigator.clipboard.writeText(text).then(() => showToast('✓ Copiado al portapapeles')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✓ Copiado');
+  });
+}
+
+function shareWA(plant) {
+  const iso = document.getElementById('report-date').value;
+  const text = buildSMS(plant, iso);
+  const encoded = encodeURIComponent(text);
+  window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ─── SAVE / RESET ─────────────────────────────────────────────────────────────
+function saveRecord() {
+  const iso = document.getElementById('report-date').value;
+  if(!iso) { alert('Selecciona una fecha antes de guardar.'); return; }
+
+  const record = {
+    id: 'r' + Date.now(),
+    date: iso,
+    edari: {
+      ei: { Q: val('ei-Q'), DQO: val('ei-DQO'), SST: val('ei-SST') },
+      eo: { Q: val('eo-Q'), DQO: val('eo-DQO'), SST: val('eo-SST'), NTU: val('eo-NTU'), CE: val('eo-CE') }
+    },
+    edaru: {
+      ui: { Q: val('ui-Q'), DQO: val('ui-DQO'), SST: val('ui-SST') },
+      uo: { Q: val('uo-Q'), DQO: val('uo-DQO'), SST: val('uo-SST'), NTU: val('uo-NTU'), CE: val('uo-CE') }
+    }
+  };
+
+  // Remove existing entry for same date
+  history_records = history_records.filter(r => r.date !== iso);
+  history_records.unshift(record);
+
+  try { localStorage.setItem('ute-sms-history', JSON.stringify(history_records)); } catch(e){}
+  showToast('✓ Guardado en historial');
+  renderHistory();
+}
+
+function resetForm() {
+  [...FIELDS_I, ...FIELDS_O_E, ...FIELDS_I_U, ...FIELDS_O_U].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+    el.classList.remove('filled','empty');
+  });
+  updateAll();
+}
+
+function loadRecord(id) {
+  const r = history_records.find(x => x.id === id);
+  if(!r) return;
+  document.getElementById('report-date').value = r.date;
+  document.getElementById('ei-Q').value   = r.edari.ei.Q   || '';
+  document.getElementById('ei-DQO').value = r.edari.ei.DQO || '';
+  document.getElementById('ei-SST').value = r.edari.ei.SST || '';
+  document.getElementById('eo-Q').value   = r.edari.eo.Q   || '';
+  document.getElementById('eo-DQO').value = r.edari.eo.DQO || '';
+  document.getElementById('eo-SST').value = r.edari.eo.SST || '';
+  document.getElementById('eo-NTU').value = r.edari.eo.NTU || '';
+  document.getElementById('eo-CE').value  = r.edari.eo.CE  || '';
+  document.getElementById('ui-Q').value   = r.edaru.ui.Q   || '';
+  document.getElementById('ui-DQO').value = r.edaru.ui.DQO || '';
+  document.getElementById('ui-SST').value = r.edaru.ui.SST || '';
+  document.getElementById('uo-Q').value   = r.edaru.uo.Q   || '';
+  document.getElementById('uo-DQO').value = r.edaru.uo.DQO || '';
+  document.getElementById('uo-SST').value = r.edaru.uo.SST || '';
+  document.getElementById('uo-NTU').value = r.edaru.uo.NTU || '';
+  document.getElementById('uo-CE').value  = r.edaru.uo.CE  || '';
+  // Mark filled
+  [...FIELDS_I, ...FIELDS_O_E, ...FIELDS_I_U, ...FIELDS_O_U].forEach(fid => markFilled(document.getElementById(fid)));
+  updateAll();
+  window.scrollTo({top:0, behavior:'smooth'});
+  showToast('✓ Parte cargado');
+}
+
+function deleteRecord(id) {
+  if(!confirm('¿Eliminar este parte del historial?')) return;
+  history_records = history_records.filter(r => r.id !== id);
+  try { localStorage.setItem('ute-sms-history', JSON.stringify(history_records)); } catch(e){}
+  if(window._fb) {
+    window._fb.set(window._fb.ref(window._fb.db, 'sms-history'), history_records)
+      .catch(e=>console.warn('Firebase write error:', e));
+  }
+  renderHistory();
+}
+
+// ─── RENDER HISTORY ───────────────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('hist-list');
+  if(!history_records.length) {
+    el.innerHTML = '<div class="hist-empty">Sin partes guardados todavía.</div>';
+    return;
+  }
+  el.innerHTML = '<div class="hist-grid">' + history_records.map(r => {
+    const preview = `EDARi Q=${r.edari.ei.Q} · EDARu Q=${r.edaru.ui.Q}`;
+    const [y,m,d] = r.date.split('-');
+    return `<div class="hist-item">
+      <div class="hist-date">${y}/${m}/${d}</div>
+      <div class="hist-preview">${preview}</div>
+      <div class="hist-actions">
+        <button class="hist-btn" onclick="loadRecord('${r.id}')">Cargar</button>
+        <button class="hist-btn" onclick="copySMSFromRecord('${r.id}','edari')">SMS EDARi</button>
+        <button class="hist-btn" onclick="copySMSFromRecord('${r.id}','edaru')">SMS EDARu</button>
+        <button class="hist-btn del" onclick="deleteRecord('${r.id}')">Eliminar</button>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function copySMSFromRecord(id, plant) {
+  const r = history_records.find(x => x.id === id);
+  if(!r) return;
+  const iso = r.date;
+  const dateStr = formatDateDisplay(iso);
+  let text;
+  if(plant === 'edari') {
+    text = `SAR VALLE GUIMAR EDARI\n${dateStr}\n-----ENTRADA-----\nQ(m3/d): ${r.edari.ei.Q}\nDQO (mg/L): ${r.edari.ei.DQO}\nSST (mg/L): ${r.edari.ei.SST}\n-----SALIDA-----\nQ (m3/d): ${r.edari.eo.Q}\nDQO (mg/L): ${r.edari.eo.DQO}\nSST (mg/L): ${r.edari.eo.SST}\nNTU: ${r.edari.eo.NTU}\nC.E (us/cm): ${r.edari.eo.CE}`;
+  } else {
+    text = `SAR VALLE GUIMAR EDARU\n${dateStr}\n-----ENTRADA-----\nQ(m3/d): ${r.edaru.ui.Q}\nDQO (mg/L): ${r.edaru.ui.DQO}\nSST (mg/L): ${r.edaru.ui.SST}\n-----SALIDA-----\nQ (m3/d): ${r.edaru.uo.Q}\nDQO (mg/L): ${r.edaru.uo.DQO}\nSST (mg/L): ${r.edaru.uo.SST}\nNTU: ${r.edaru.uo.NTU}\nC.E (us/cm): ${r.edaru.uo.CE}`;
+  }
+  navigator.clipboard.writeText(text).then(() => showToast('✓ Copiado al portapapeles')).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = text;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); showToast('✓ Copiado');
+  });
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+load();
+</script>
+</body>
+</html>
