@@ -293,6 +293,16 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
   window._fb = { db, ref, onValue, set };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
+<script>
+// Si estamos dentro de un iframe (portal), ocultamos nuestra propia cabecera
+// para evitar la doble barra de navegación
+if(window.self !== window.top) {
+  document.addEventListener('DOMContentLoaded', function() {
+    var h = document.querySelector('.app-header');
+    if(h) h.style.display = 'none';
+  });
+}
+</script>
 </head>
 <body>
 <!-- Logo header — solo visible al imprimir -->

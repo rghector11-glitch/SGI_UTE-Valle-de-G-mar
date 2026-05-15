@@ -528,6 +528,15 @@ tbody tr:hover td { background: #f9fbfd; }
   window._fb = { db, ref, onValue, set };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
+<script>
+// Ocultar cabecera propia si cargamos dentro del iframe del portal
+if(window.self !== window.top) {
+  document.addEventListener('DOMContentLoaded', function() {
+    var h = document.querySelector('.app-header, .splash-header, .topbar');
+    if(h) h.style.display = 'none';
+  });
+}
+</script>
 </head>
 <body>
 

@@ -177,6 +177,15 @@ html,body{height:100%;overflow:hidden;font-family:'Barlow',sans-serif;background
 .ph-back:hover{background:rgba(255,255,255,.22);}
 .ph-back svg{width:14px;height:14px;stroke:currentColor;}
 </style>
+<script>
+// Ocultar cabecera propia si cargamos dentro del iframe del portal
+if(window.self !== window.top) {
+  document.addEventListener('DOMContentLoaded', function() {
+    var h = document.querySelector('.app-header, .splash-header, .topbar');
+    if(h) h.style.display = 'none';
+  });
+}
+</script>
 </head>
 <body>
 
