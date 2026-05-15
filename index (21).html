@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestión Interna — UTE Valle de Güímar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand:      #005b99;
+  --brand-dark: #003e6b;
+  --brand-mid:  #0077c2;
+  --accent:     #f0a500;
+  --surface:    rgba(255,255,255,.08);
+  --border:     rgba(255,255,255,.18);
+  --sans:       'Barlow', sans-serif;
+  --cond:       'Barlow Condensed', sans-serif;
+  --mono:       'JetBrains Mono', monospace;
+  --radius:     14px;
+}
+html, body { min-height: 100%; height: 100%; font-family: var(--sans); color: white; overflow: hidden; }
+body { background: linear-gradient(155deg, var(--brand-dark) 0%, var(--brand) 50%, var(--brand-mid) 100%); }
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ── SPLASH (pantalla de inicio) ── */
+#splash {
+  position: relative; z-index: 1;
+  height: 100vh; display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+
+.header {
+  padding: 1.8rem 2.5rem 1.4rem;
+  display: flex; align-items: center; gap: 1.3rem;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(4px); flex-shrink: 0;
+}
+.logo { width: 56px; height: 56px; background: white; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.logo svg { width: 34px; height: 34px; }
+.brand { flex: 1; }
+.brand-name { font-family: var(--cond); font-size: clamp(1.1rem, 2.5vw, 1.6rem); font-weight: 700; letter-spacing: .02em; line-height: 1.1; }
+.brand-sub { font-size: .78rem; color: rgba(255,255,255,.55); font-weight: 300; letter-spacing: .08em; text-transform: uppercase; margin-top: 3px; }
+.header-meta { text-align: right; font-size: .75rem; color: rgba(255,255,255,.45); font-family: var(--mono); line-height: 1.6; }
+
+.hero { padding: 2.5rem 2.5rem 1.5rem; max-width: 1060px; width: 100%; margin: 0 auto; flex: 1; }
+.hero-heading { font-family: var(--cond); font-size: clamp(1.6rem, 3.5vw, 2.6rem); font-weight: 600; margin-bottom: .4rem; line-height: 1.1; }
+.hero-heading span { color: var(--accent); }
+.hero-sub { font-size: .9rem; color: rgba(255,255,255,.6); font-weight: 300; margin-bottom: 2.5rem; max-width: 520px; }
+
+.apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; }
+
+.app-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; text-decoration: none; color: white; display: flex; flex-direction: column;
+  cursor: pointer; transition: transform .2s, background .2s, box-shadow .2s;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.app-card:hover { transform: translateY(-5px); background: rgba(255,255,255,.14); box-shadow: 0 14px 40px rgba(0,0,0,.28); }
+.app-card:active { transform: translateY(-2px); }
+.app-card-stripe { height: 4px; width: 100%; }
+.app-card-ilu { width: 100%; height: 148px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.18); position: relative; overflow: hidden; }
+.app-card-ilu svg { width: 110px; height: 110px; }
+.app-badge { position: absolute; top: 10px; right: 10px; font-size: .65rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; }
+.badge-ready  { background: rgba(46,125,50,.9); color: #c8e6c9; }
+.badge-coming { background: rgba(0,0,0,.45); color: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.2); }
+.app-card-body { padding: 1.1rem 1.3rem 1.3rem; flex: 1; display: flex; flex-direction: column; }
+.app-number { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: .3rem; }
+.app-title { font-family: var(--cond); font-size: 1.28rem; font-weight: 600; line-height: 1.15; margin-bottom: .35rem; }
+.app-desc { font-size: .8rem; color: rgba(255,255,255,.58); font-weight: 300; line-height: 1.55; flex: 1; }
+.app-arrow { display: inline-flex; align-items: center; gap: 5px; margin-top: .9rem; font-size: .8rem; font-weight: 500; color: rgba(255,255,255,.75); }
+.app-arrow svg { width: 14px; height: 14px; stroke: currentColor; transition: transform .15s; }
+.app-card:hover .app-arrow svg { transform: translateX(4px); }
+.app-card.coming { pointer-events: none; opacity: .75; }
+
+.footer { text-align: center; padding: 1.2rem 2rem; font-size: .72rem; color: rgba(255,255,255,.3); border-top: 1px solid rgba(255,255,255,.08); flex-shrink: 0; }
+
+/* ── APP VIEWER (iframe shell) ── */
+#app-viewer {
+  position: fixed; inset: 0; z-index: 10;
+  display: none; flex-direction: column;
+  background: #f4f6f9;
+}
+#app-viewer.active { display: flex; }
+
+/* Barra de retorno */
+.viewer-bar {
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+  display: flex; align-items: center; gap: .8rem;
+  padding: .5rem 1rem; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.viewer-back {
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 8px; color: white; cursor: pointer;
+  padding: 5px 12px; font-size: .78rem; font-family: var(--sans);
+  display: flex; align-items: center; gap: 5px; font-weight: 600;
+  transition: background .15s;
+}
+.viewer-back:hover { background: rgba(255,255,255,.25); }
+.viewer-back svg { width: 14px; height: 14px; stroke: currentColor; }
+.viewer-title { font-family: var(--cond); font-size: 1rem; font-weight: 700; color: white; }
+.viewer-sub { font-size: .7rem; color: rgba(255,255,255,.55); }
+
+/* iframe ocupa todo el resto */
+#app-frame {
+  flex: 1; width: 100%; border: none;
+  background: #f4f6f9;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .header { padding: 1.2rem 1.1rem; gap: 1rem; }
+  .logo { width: 44px; height: 44px; border-radius: 10px; }
+  .logo svg { width: 26px; height: 26px; }
+  .hero { padding: 1.5rem 1.1rem 1rem; }
+  .apps-grid { grid-template-columns: 1fr; gap: .9rem; }
+  .header-meta { display: none; }
+}
+
+/* ── LOGIN SCREEN ── */
+#login-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(155deg, #003e6b 0%, #005b99 55%, #0077c2 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: 'Barlow', sans-serif;
+}
+#login-screen::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events: none;
+}
+.login-box {
+  position: relative; z-index: 1;
+  background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px; padding: 2.5rem 2.2rem;
+  width: 100%; max-width: 380px; backdrop-filter: blur(12px);
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+.login-logo {
+  display: flex; align-items: center; justify-content: center;
+  gap: .8rem; margin-bottom: 1.8rem;
+}
+.login-logo-icon {
+  width: 48px; height: 48px; background: white; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.login-logo-icon svg { width: 30px; height: 30px; }
+.login-brand h1 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem;
+  font-weight: 700; color: white; line-height: 1.1;
+}
+.login-brand p { font-size: .72rem; color: rgba(255,255,255,.55); margin-top: 2px; }
+.login-field { margin-bottom: 1rem; }
+.login-field label {
+  display: block; font-size: .72rem; font-weight: 600;
+  color: rgba(255,255,255,.7); text-transform: uppercase;
+  letter-spacing: .06em; margin-bottom: .35rem;
+}
+.login-field input {
+  width: 100%; padding: .65rem .9rem; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.12);
+  color: white; font-family: 'Barlow', sans-serif; font-size: .9rem;
+  outline: none; transition: border-color .15s, background .15s;
+}
+.login-field input::placeholder { color: rgba(255,255,255,.4); }
+.login-field input:focus { border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.18); }
+.login-btn {
+  width: 100%; padding: .7rem; background: white; color: #003e6b;
+  border: none; border-radius: 10px; font-family: 'Barlow', sans-serif;
+  font-size: .92rem; font-weight: 700; cursor: pointer; margin-top: .5rem;
+  transition: opacity .15s, transform .1s; letter-spacing: .02em;
+}
+.login-btn:hover { opacity: .93; }
+.login-btn:active { transform: scale(.98); }
+.login-btn:disabled { opacity: .5; cursor: not-allowed; }
+.login-error {
+  background: rgba(185,28,28,.25); border: 1px solid rgba(254,202,202,.4);
+  border-radius: 8px; padding: .55rem .85rem; font-size: .8rem;
+  color: #fecaca; margin-top: .75rem; display: none; text-align: center;
+}
+.login-error.show { display: block; }
+.login-footer {
+  margin-top: 1.5rem; text-align: center; font-size: .72rem;
+  color: rgba(255,255,255,.3);
+}
+.login-user-bar {
+  position: fixed; top: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; gap: .5rem;
+  padding: .4rem .8rem;
+}
+.user-email {
+  font-size: .72rem; color: rgba(255,255,255,.6);
+  font-family: 'JetBrains Mono', monospace;
+}
+.logout-btn {
+  font-size: .72rem; padding: 3px 10px; background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2); border-radius: 6px; color: white;
+  cursor: pointer; font-family: 'Barlow', sans-serif; font-weight: 600;
+}
+.logout-btn:hover { background: rgba(255,255,255,.22); }
+
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
+    authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
+    databaseURL: "https://sgi-ute-valle-de-guimar-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sgi-ute-valle-de-guimar",
+    storageBucket: "sgi-ute-valle-de-guimar.firebasestorage.app",
+    messagingSenderId: "618175438367",
+    appId: "1:618175438367:web:03831aa0ce60cb355e3f2a"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window._fb = { db, ref, get, set };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+</head>
+<body>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 34 34" fill="none">
+          <path d="M17 3C17 3 8 13.5 8 20a9 9 0 0018 0c0-6.5-9-17-9-17z" fill="#005b99"/>
+          <circle cx="17" cy="20" r="3.8" fill="white"/>
+          <path d="M23 10.5l2-2M11 10.5l-2-2M26.5 17h2.5M5 17h2.5" stroke="#f0a500" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="login-brand">
+        <h1>UTE Valle de Güímar</h1>
+        <p>Sistema de Gestión Interna</p>
+      </div>
+    </div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="nombre de usuario" autocomplete="username" spellcheck="false" autocorrect="off" autocapitalize="none">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Acceder</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-footer">Acceso restringido · Solo personal autorizado</div>
+  </div>
+</div>
+
+<!-- MODAL: Gestión de usuarios (solo supervisor) -->
+<div id="modal-users" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:none;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:white;border-radius:16px;padding:1.5rem;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+      <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;color:#003e6b;">Gestión de usuarios</h3>
+      <button onclick="document.getElementById('modal-users').style.display='none'" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8898aa;">✕</button>
+    </div>
+    <div id="users-list" style="margin-bottom:1.2rem;"></div>
+    <div style="border-top:1px solid #dde3ec;padding-top:1rem;">
+      <div style="font-size:.72rem;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;">Añadir usuario</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
+        <div>
+          <div style="font-size:.72rem;color:#4a5568;margin-bottom:3px;">Usuario</div>
+          <input id="nu-user" type="text" placeholder="nombre" autocapitalize="none" style="width:100%;padding:.4rem .6rem;border:1px solid #dde3ec;border-radius:7px;font-size:.83rem;font-family:'Barlow',sans-serif;">
+        </div>
+        <div>
+          <div style="font-size:.72rem;color:#4a5568;margin-bottom:3px;">Contraseña</div>
+          <input id="nu-pass" type="password" placeholder="contraseña" style="width:100%;padding:.4rem .6rem;border:1px solid #dde3ec;border-radius:7px;font-size:.83rem;font-family:'Barlow',sans-serif;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;">
+        <div>
+          <div style="font-size:.72rem;color:#4a5568;margin-bottom:3px;">Nombre completo</div>
+          <input id="nu-name" type="text" placeholder="Nombre Apellido" style="width:100%;padding:.4rem .6rem;border:1px solid #dde3ec;border-radius:7px;font-size:.83rem;font-family:'Barlow',sans-serif;">
+        </div>
+        <div>
+          <div style="font-size:.72rem;color:#4a5568;margin-bottom:3px;">Rol</div>
+          <select id="nu-role" style="width:100%;padding:.4rem .6rem;border:1px solid #dde3ec;border-radius:7px;font-size:.83rem;font-family:'Barlow',sans-serif;">
+            <option value="operario">Operario</option>
+            <option value="supervisor">Supervisor</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="addUser()" style="width:100%;padding:.48rem;background:#005b99;color:white;border:none;border-radius:8px;font-size:.83rem;font-weight:600;font-family:'Barlow',sans-serif;cursor:pointer;">Crear usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SPLASH ═══════════════════ -->
+<div id="splash">
+  <header class="header">
+    <div class="logo">
+      <svg viewBox="0 0 34 34" fill="none">
+        <path d="M17 3C17 3 8 13.5 8 20a9 9 0 0018 0c0-6.5-9-17-9-17z" fill="#005b99"/>
+        <circle cx="17" cy="20" r="3.8" fill="white"/>
+        <path d="M23 10.5l2-2M11 10.5l-2-2M26.5 17h2.5M5 17h2.5" stroke="#f0a500" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="brand">
+      <div class="brand-name">UTE Valle de Güímar</div>
+      <div class="brand-sub">Sistema de Gestión Interna</div>
+    </div>
+    <div class="header-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+      <div id="clock"></div>
+      <div id="dateline"></div>
+      <div id="user-email-bar" style="font-size:.68rem;color:rgba(255,255,255,.45);font-family:'JetBrains Mono',monospace;margin-top:2px;"></div>
+      <div style="display:flex;gap:4px;margin-top:3px;">
+    <button id="manage-users-btn" onclick="openUserManager()" style="display:none;font-size:.68rem;padding:3px 9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:rgba(255,255,255,.7);cursor:pointer;font-family:'Barlow',sans-serif;">Usuarios</button>
+    <button onclick="doLogout()" style="font-size:.68rem;padding:3px 9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:rgba(255,255,255,.7);cursor:pointer;font-family:'Barlow',sans-serif;">Cerrar sesión</button>
+  </div>
+  </div>
+  </header>
+
+  <main class="hero">
+    <h1 class="hero-heading">Selecciona una <span>aplicación</span></h1>
+    <p class="hero-sub">Accede a las herramientas de gestión, control y seguimiento de la planta.</p>
+
+    <div class="apps-grid">
+
+      <!-- 1. Calibraciones -->
+      <a class="app-card" href="calibraciones.html" aria-label="Abrir Calibraciones">
+        <div class="app-card-stripe" style="background:linear-gradient(90deg,#005b99,#0077c2)"></div>
+        <div class="app-card-ilu">
+          <div class="app-badge badge-ready">Disponible</div>
+          <svg viewBox="0 0 110 110" fill="none">
+            <rect x="28" y="30" width="54" height="62" rx="6" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.6)" stroke-width="1.8"/>
+            <rect x="34" y="38" width="42" height="18" rx="3" fill="rgba(0,91,153,.5)" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <text x="55" y="51" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="rgba(255,255,255,.95)" font-weight="600">7.04 pH</text>
+            <circle cx="40" cy="66" r="5" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+            <circle cx="55" cy="66" r="5" fill="rgba(240,165,0,.4)" stroke="rgba(240,165,0,.8)" stroke-width="1.2"/>
+            <circle cx="70" cy="66" r="5" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+            <rect x="48" y="78" width="14" height="6" rx="2" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.5)" stroke-width="1"/>
+            <rect x="52" y="84" width="6" height="16" rx="1" fill="rgba(255,255,255,.3)" stroke="rgba(255,255,255,.5)" stroke-width="1"/>
+            <ellipse cx="55" cy="100" rx="3" ry="2.5" fill="rgba(240,165,0,.7)" stroke="rgba(240,165,0,1)" stroke-width="1"/>
+            <circle cx="82" cy="38" r="9" fill="rgba(46,125,50,.8)" stroke="rgba(200,230,201,1)" stroke-width="1.2"/>
+            <path d="M77 38l3.5 3.5 5.5-6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="app-card-body">
+          <div class="app-number">Módulo 01</div>
+          <div class="app-title">Calibraciones &amp; Verificaciones</div>
+          <div class="app-desc">Registro y trazabilidad de calibraciones, verificaciones y vencimientos de instrumentación analítica.</div>
+          <div class="app-arrow">Acceder <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </a>
+
+      <!-- 2. Simulador EDARi -->
+      <div class="app-card" onclick="openApp('simulador-edari.html','Simulador Proceso EDARi','Módulo 02')" style="cursor:pointer" aria-label="Abrir Simulador EDARi">
+        <div class="app-card-stripe" style="background:linear-gradient(90deg,#0f6e56,#1d9e75)"></div>
+        <div class="app-card-ilu">
+          <div class="app-badge badge-ready">Disponible</div>
+          <svg viewBox="0 0 110 110" fill="none">
+            <rect x="14" y="32" width="82" height="58" rx="5" fill="rgba(13,110,86,.4)" stroke="rgba(255,255,255,.6)" stroke-width="1.8"/>
+            <rect x="15.5" y="42" width="79" height="47" rx="3" fill="rgba(13,110,86,.6)"/>
+            <path d="M18 44 Q28 39 38 44 Q48 49 58 44 Q68 39 78 44 Q86 47 95 44" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.2" stroke-linecap="round"/>
+            <rect x="20" y="83" width="70" height="4" rx="2" fill="rgba(255,255,255,.25)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
+            <circle cx="28" cy="73" r="2.5" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1"/>
+            <circle cx="30" cy="62" r="3" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1"/>
+            <circle cx="55" cy="70" r="3" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1"/>
+            <circle cx="53" cy="59" r="2.5" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/>
+            <circle cx="80" cy="72" r="2.5" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1"/>
+            <rect x="38" y="14" width="34" height="16" rx="4" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+            <text x="55" y="25" text-anchor="middle" font-family="sans-serif" font-size="7" fill="rgba(255,255,255,.9)" font-weight="700">SOPLANTE</text>
+            <path d="M94 82 Q102 82 102 70 Q102 40 98 36" fill="none" stroke="rgba(240,165,0,.85)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="4 3"/>
+            <polygon points="98,32 95,39 101,39" fill="rgba(240,165,0,.85)"/>
+          </svg>
+        </div>
+        <div class="app-card-body">
+          <div class="app-number">Módulo 02</div>
+          <div class="app-title">Simulador Proceso EDARi</div>
+          <div class="app-desc">Procedimientos de laboratorio: Cloro, DBO₅, Microbiología, Sólidos, V30, Turbidez y más.</div>
+          <div class="app-arrow">Acceder <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </div>
+
+      <!-- 3. Ruta Colector EDARu — EMBEBIDA -->
+      <div class="app-card" onclick="openApp('ruta-colector-edaru.html','Ruta Colector EDARu','Módulo 03')" style="cursor:pointer" aria-label="Abrir Ruta Colector EDARu">
+        <div class="app-card-stripe" style="background:linear-gradient(90deg,#854f0b,#f0a500)"></div>
+        <div class="app-card-ilu">
+          <div class="app-badge badge-ready">Disponible</div>
+          <svg viewBox="0 0 110 110" fill="none">
+            <rect x="12" y="16" width="86" height="80" rx="6" fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+            <line x1="12" y1="43" x2="98" y2="43" stroke="rgba(255,255,255,.1)" stroke-width=".8"/>
+            <line x1="12" y1="69" x2="98" y2="69" stroke="rgba(255,255,255,.1)" stroke-width=".8"/>
+            <line x1="41" y1="16" x2="41" y2="96" stroke="rgba(255,255,255,.1)" stroke-width=".8"/>
+            <line x1="69" y1="16" x2="69" y2="96" stroke="rgba(255,255,255,.1)" stroke-width=".8"/>
+            <path d="M20 80 Q28 80 34 70 Q40 58 46 56 Q58 52 66 44 Q74 36 84 32" fill="none" stroke="rgba(240,165,0,.9)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M46 56 Q42 62 36 66" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="3 2"/>
+            <path d="M58 50 Q55 60 52 68" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="3 2"/>
+            <circle cx="34" cy="70" r="4" fill="rgba(240,165,0,.8)" stroke="white" stroke-width="1.2"/>
+            <circle cx="46" cy="56" r="4" fill="rgba(240,165,0,.8)" stroke="white" stroke-width="1.2"/>
+            <circle cx="66" cy="44" r="4" fill="rgba(240,165,0,.8)" stroke="white" stroke-width="1.2"/>
+            <circle cx="20" cy="80" r="6" fill="rgba(46,125,50,.9)" stroke="white" stroke-width="1.5"/>
+            <text x="20" y="84" text-anchor="middle" font-size="7" fill="white" font-weight="700">S</text>
+            <circle cx="84" cy="32" r="7" fill="rgba(0,91,153,.9)" stroke="white" stroke-width="1.5"/>
+            <text x="84" y="36" text-anchor="middle" font-size="6.5" fill="white" font-weight="700">E</text>
+            <rect x="48" y="28" width="22" height="10" rx="3" fill="rgba(0,0,0,.5)"/>
+            <text x="59" y="36" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="rgba(255,255,255,.9)">4.2 km</text>
+          </svg>
+        </div>
+        <div class="app-card-body">
+          <div class="app-number">Módulo 03</div>
+          <div class="app-title">Ruta Colector EDARu</div>
+          <div class="app-desc">Seguimiento y registro de la ruta de inspección del colector de la EDARu. Pozos, incidencias y fotos.</div>
+          <div class="app-arrow">Acceder <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </div>
+
+      <!-- 4. SMS Diario -->
+      <a class="app-card" href="sms-diario.html" aria-label="Abrir SMS Diario">
+        <div class="app-card-stripe" style="background:linear-gradient(90deg,#5b21b6,#7c3aed)"></div>
+        <div class="app-card-ilu">
+          <div class="app-badge badge-ready">Disponible</div>
+          <svg viewBox="0 0 110 110" fill="none">
+            <rect x="22" y="12" width="58" height="76" rx="5" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.55)" stroke-width="1.8"/>
+            <path d="M64 12 L80 28 L64 28 Z" fill="rgba(0,0,0,.3)" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+            <rect x="30" y="34" width="28" height="3.5" rx="1.5" fill="rgba(240,165,0,.8)"/>
+            <rect x="30" y="42" width="40" height="2.5" rx="1.2" fill="rgba(255,255,255,.35)"/>
+            <rect x="30" y="48" width="35" height="2.5" rx="1.2" fill="rgba(255,255,255,.3)"/>
+            <rect x="30" y="54" width="38" height="2.5" rx="1.2" fill="rgba(255,255,255,.3)"/>
+            <line x1="30" y1="62" x2="70" y2="62" stroke="rgba(255,255,255,.2)" stroke-width=".8"/>
+            <rect x="30" y="65" width="12" height="2.5" rx="1" fill="rgba(255,255,255,.5)"/>
+            <rect x="46" y="65" width="10" height="2.5" rx="1" fill="rgba(255,255,255,.25)"/>
+            <rect x="30" y="71" width="12" height="2.5" rx="1" fill="rgba(255,255,255,.35)"/>
+            <rect x="46" y="71" width="10" height="2.5" rx="1" fill="rgba(46,125,50,.6)"/>
+            <rect x="30" y="77" width="12" height="2.5" rx="1" fill="rgba(255,255,255,.35)"/>
+            <rect x="46" y="77" width="10" height="2.5" rx="1" fill="rgba(185,28,28,.5)"/>
+            <circle cx="78" cy="82" r="14" fill="rgba(92,33,182,.7)" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
+            <path d="M70 79 Q78 73 86 79 L86 87 Q86 89 84 89 L72 89 Q70 89 70 87 Z" fill="rgba(255,255,255,.25)" stroke="rgba(255,255,255,.7)" stroke-width="1"/>
+            <path d="M70 79 L78 84 L86 79" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="app-card-body">
+          <div class="app-number">Módulo 04</div>
+          <div class="app-title">Plantilla SMS Diario</div>
+          <div class="app-desc">Generación del parte diario de explotación. Registro de parámetros, incidencias y envío de informe.</div>
+          <div class="app-arrow">Acceder <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </a>
+
+      <!-- 5. Inventarios -->
+      <a class="app-card" href="inventarios.html" aria-label="Abrir Inventarios">
+        <div class="app-card-stripe" style="background:linear-gradient(90deg,#b91c1c,#dc2626)"></div>
+        <div class="app-card-ilu">
+          <div class="app-badge badge-ready">Disponible</div>
+          <svg viewBox="0 0 110 110" fill="none">
+            <rect x="12" y="24" width="36" height="72" rx="4" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+            <line x1="12" y1="48" x2="48" y2="48" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>
+            <line x1="12" y1="72" x2="48" y2="72" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>
+            <rect x="17" y="28" width="10" height="17" rx="2" fill="rgba(185,28,28,.45)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
+            <rect x="30" y="30" width="13" height="15" rx="2" fill="rgba(185,28,28,.3)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+            <rect x="17" y="52" width="14" height="17" rx="2" fill="rgba(185,28,28,.5)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
+            <rect x="17" y="75" width="12" height="16" rx="2" fill="rgba(185,28,28,.4)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
+            <rect x="62" y="24" width="36" height="72" rx="4" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+            <line x1="62" y1="48" x2="98" y2="48" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>
+            <line x1="62" y1="72" x2="98" y2="72" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>
+            <rect x="67" y="28" width="13" height="17" rx="2" fill="rgba(185,28,28,.35)" stroke="rgba(255,255,255,.35)" stroke-width=".8"/>
+            <rect x="67" y="52" width="10" height="17" rx="2" fill="rgba(185,28,28,.3)" stroke="rgba(255,255,255,.3)" stroke-width=".8"/>
+            <rect x="67" y="75" width="14" height="16" rx="2" fill="rgba(185,28,28,.45)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
+            <rect x="44" y="54" width="22" height="28" rx="3" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+            <rect x="47" y="58" width="16" height="2" rx="1" fill="rgba(255,255,255,.5)"/>
+            <rect x="47" y="63" width="12" height="2" rx="1" fill="rgba(255,255,255,.35)"/>
+            <rect x="47" y="68" width="14" height="2" rx="1" fill="rgba(255,255,255,.35)"/>
+            <rect x="50" y="51" width="10" height="5" rx="2" fill="rgba(240,165,0,.8)" stroke="rgba(240,165,0,1)" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="app-card-body">
+          <div class="app-number">Módulo 05</div>
+          <div class="app-title">Inventarios</div>
+          <div class="app-desc">Control de stock de reactivos, repuestos y materiales. Entradas, salidas y alertas de mínimos.</div>
+          <div class="app-arrow">Acceder <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </a>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    © 2025 UTE Valle de Güímar · Sistema de Gestión Interna · H. Hernández
+  </footer>
+</div>
+
+<!-- ═══════════════════ SIMULADOR (inline) ═══════════════════ -->
+<div id="app-simulador" style="display:none;position:fixed;inset:0;z-index:10;background:#0d1f1a;overflow:hidden;">
+  <style id="sim-styles">
+
+:root{--bg:#0d1f1a;--bg2:#122319;--bg3:#0a1a14;--card:#152b20;--card2:#1a3328;--border:#2a4d38;--border2:#1e3d2c;--green:#2ecc71;--green2:#27ae60;--green3:#1e8449;--teal:#1abc9c;--yellow:#f39c12;--red:#e74c3c;--blue:#3498db;--text:#e8f5ec;--text2:#a8c9b0;--text3:#6a9878;--accent:#4ade80}
+*{box-sizing:border-box;margin:0;padding:0}
+#sim-app{height:100%;overflow:hidden;font-family:'Barlow',sans-serif;background:var(--bg3);color:var(--text)}
+
+/* ── LAYOUT SHELL ── */
+.screen{display:none;flex-direction:column;height:100vh;overflow:hidden}
+.screen.active{display:flex}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px}
+.scrollable{flex:1;overflow-y:auto;overflow-x:hidden}
+
+/* ── HOME ── */
+.home-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--accent);letter-spacing:.05em}
+.home-org{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--text);text-align:right;line-height:1.3}
+.home-org span{font-size:10px;color:var(--text3);font-weight:400;display:block}
+.home-org em{font-size:9px;color:var(--text3);opacity:.45;font-family:'Barlow',sans-serif;font-weight:300;letter-spacing:.03em;font-style:normal;display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;padding:12px}
+.pc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:border-color .15s}
+.pc:hover{border-color:var(--green2)}
+.pc-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-bottom:6px}
+.pc-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--text);line-height:1.2;margin-bottom:3px}
+.pc-desc{font-size:11px;color:var(--text2);line-height:1.4;margin-bottom:10px}
+.pc-meta{display:flex;gap:10px;font-size:10px;color:var(--text3)}
+
+/* ── PROC HEADER ── */
+.proc-bar{background:var(--bg);border-bottom:1px solid var(--border);padding:5px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.breadcrumb{font-size:9px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase}
+.breadcrumb span{color:var(--accent)}
+.org-r{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);text-align:right;line-height:1.2}
+.org-r small{font-size:9px;color:var(--text3);font-family:'Barlow',sans-serif;font-weight:400;display:block}
+.org-r em{font-size:8px;color:var(--text3);opacity:.4;font-style:normal;display:block;letter-spacing:.03em}
+.proc-title-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.proc-h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--text);line-height:1}
+.proc-h1 small{font-size:14px;font-weight:400;color:var(--text2)}
+.badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:12px;border:1px solid}
+.badge.green{background:#1a3d2a;border-color:#2ecc71;color:#2ecc71}
+.badge.teal{background:#0d2d28;border-color:#1abc9c;color:#1abc9c}
+.badge.blue{background:#0d1f35;border-color:#3498db;color:#3498db}
+.badge.yellow{background:#2d2000;border-color:#f39c12;color:#f39c12}
+
+/* ── TABS ── */
+.tabs{display:flex;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{padding:7px 16px;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+.tab.active{color:var(--accent);border-color:var(--accent)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── DASHBOARD GRID ── */
+.dash{padding:10px;display:grid;gap:8px}
+.r2{grid-template-columns:1fr 1fr}
+.r3{grid-template-columns:1fr 1fr 1fr}
+.r4{grid-template-columns:1fr 1fr 1fr 1fr}
+.r13{grid-template-columns:1fr 3fr}
+.r31{grid-template-columns:3fr 1fr}
+.r21{grid-template-columns:2fr 1fr}
+
+/* ── CARDS ── */
+.dc{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.dc-h{background:var(--card2);border-bottom:1px solid var(--border);padding:5px 10px;display:flex;align-items:center;justify-content:space-between}
+.dc-ht{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.step-badge{font-size:8px;font-weight:700;letter-spacing:.05em;background:var(--green3);color:var(--accent);padding:2px 6px;border-radius:3px}
+.dc-b{padding:8px 10px}
+
+/* ── CONTENT ELEMENTS ── */
+.lbl{font-size:9px;font-weight:700;color:var(--green);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.txt{font-size:11px;color:var(--text);line-height:1.5;margin-bottom:6px}
+.txt:last-child{margin-bottom:0}
+.mat-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:2px 12px}
+.mat-list li{font-size:10px;color:var(--text2);display:flex;align-items:center;gap:5px;padding:1px 0}
+.mat-dot{width:5px;height:5px;border-radius:50%;background:var(--green2);flex-shrink:0}
+.dash-table{width:100%;border-collapse:collapse;font-size:10px}
+.dash-table th{background:var(--bg);color:var(--text3);font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.dash-table td{padding:5px 8px;border-bottom:1px solid var(--border2);color:var(--text)}
+.dash-table tr:last-child td{border-bottom:none}
+.dash-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.vol-badge{display:inline-block;background:var(--green3);color:var(--accent);font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px}
+.dots-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border2);font-size:10px}
+.dots-row:last-child{border-bottom:none}
+.dots{display:flex;gap:2px;flex-wrap:wrap}
+.dot{width:7px;height:7px;border-radius:50%}
+.dot.g{background:var(--green2)}.dot.y{background:var(--yellow)}.dot.r{background:var(--teal)}
+.dot-label{font-size:9px;font-weight:600;color:var(--accent);margin-left:4px;white-space:nowrap}
+.perlas-opt{background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:6px 10px;margin-bottom:5px}
+.perlas-opt:last-child{margin-bottom:0}
+.perlas-num{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--accent)}
+.perlas-desc{font-size:10px;color:var(--text2);margin-top:1px}
+.perlas-note{font-size:9px;color:var(--text3);margin-top:4px;font-style:italic}
+.temp-big{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;color:var(--accent);display:flex;align-items:flex-start;gap:3px}
+.temp-big span{font-size:14px;margin-top:4px}
+.temp-note{font-size:10px;color:var(--text2);margin-top:4px;line-height:1.4}
+.timeline{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 6px 4px;position:relative}
+.timeline::before{content:'';position:absolute;top:22px;left:22px;right:22px;height:2px;background:var(--border)}
+.tl-day{display:flex;flex-direction:column;align-items:center;gap:4px;z-index:1}
+.tl-c{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;color:var(--text3);transition:all .3s}
+.tl-c.active{border-color:var(--green2);background:var(--green3);color:var(--accent)}
+.tl-c.done{border-color:var(--green);background:var(--green2);color:#fff}
+.tl-lbl{font-size:8px;color:var(--text3);text-align:center;letter-spacing:.03em;line-height:1.2}
+.tl-lbl.active{color:var(--accent)}
+.step-list{list-style:none}
+.step-item{display:flex;gap:8px;padding:5px 6px;border-bottom:1px solid var(--border2);align-items:flex-start}
+.step-item:last-child{border-bottom:none}
+.step-n{width:17px;height:17px;border-radius:50%;background:var(--green3);color:var(--accent);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--green2);margin-top:1px}
+.step-t{font-size:10px;color:var(--text);line-height:1.4;flex:1}
+.alert-item{border-left:3px solid;border-radius:0 4px 4px 0;padding:5px 10px;margin-bottom:5px;font-size:10px;line-height:1.4}
+.alert-item:last-child{margin-bottom:0}
+.alert-item.success{border-color:var(--green);background:rgba(46,204,113,.08);color:#a8e6bf}
+.alert-item.warning{border-color:var(--yellow);background:rgba(243,156,18,.08);color:#f5cba7}
+.alert-item.danger{border-color:var(--red);background:rgba(231,76,60,.08);color:#f1948a}
+.alert-item.info{border-color:var(--blue);background:rgba(52,152,219,.08);color:#aed6f1}
+.alert-title{font-weight:700;font-size:9px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px}
+.timer-block{display:flex;align-items:center;gap:8px;margin-top:4px}
+.timer-disp{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--accent);font-variant-numeric:tabular-nums}
+.btn-timer{font-size:10px;padding:4px 12px;border-radius:12px;border:1px solid var(--green2);background:rgba(46,204,113,.1);color:var(--green);cursor:pointer;font-weight:600;transition:background .15s}
+.btn-timer:hover{background:rgba(46,204,113,.2)}
+.timer-lbl{font-size:9px;color:var(--text3);margin-top:2px}
+.confirm-step{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border2);font-size:10px;color:var(--text2)}
+.confirm-step:last-child{border-bottom:none}
+.confirm-n{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--green);flex-shrink:0;width:16px}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border2);font-size:10px}
+.kv:last-child{border-bottom:none}
+.kv-k{color:var(--text3)}.kv-v{font-weight:600;color:var(--text)}
+.formula{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:7px 10px;font-family:monospace;font-size:10px;color:var(--accent);line-height:1.7}
+.dil-row{background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.dil-row:last-child{margin-bottom:0}
+.dil-factor{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--yellow)}
+.dil-desc{font-size:10px;color:var(--text2)}
+.check-item{display:flex;gap:6px;padding:4px 0;font-size:10px;color:var(--text2);align-items:flex-start}
+.ci-ok{color:var(--green)}.ci-w{color:var(--yellow)}.ci-e{color:var(--red)}
+.result-big{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--accent);text-align:center;padding:8px}
+.result-unit{font-size:13px;color:var(--text3)}
+
+/* ── FOOTER ── */
+.proc-foot{background:var(--bg);border-top:1px solid var(--border);padding:5px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.foot-id{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--accent)}
+.foot-name{font-size:10px;color:var(--text3)}
+.foot-ver{font-size:9px;color:var(--text3)}
+
+/* ── BUTTONS ── */
+.btn-back{font-size:10px;color:var(--text3);background:none;border:1px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap}
+.btn-back:hover{color:var(--text);border-color:var(--text3)}
+.btn-fs{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);cursor:pointer;padding:4px 8px;font-size:13px;line-height:1;transition:color .15s,border-color .15s;flex-shrink:0}
+.btn-fs:hover{color:var(--accent);border-color:var(--accent)}
+.btn-day{font-size:9px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);background:rgba(46,204,113,.05);color:var(--text3);cursor:pointer}
+.btn-day:hover{border-color:var(--green2);color:var(--accent)}
+
+  </style>
+  <div id="sim-app" style="height:100%;overflow:hidden;display:flex;flex-direction:column;">
+<!-- ══════════════ HOME ══════════════ -->
+<div class="screen active" id="screen-home">
+  <div class="topbar">
+    <div class="home-logo">⚗ EDAR · Procedimientos de laboratorio</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="home-org">UTE VALLE DE GÜÍMAR<span>Control de calidad · Aguas residuales</span><em>H. Hernández</em></div>
+      <button class="btn-fs" onclick="toggleFS()" title="Pantalla completa">⛶</button>
+    </div>
+  </div>
+  <div class="scrollable">
+    <div class="grid" id="home-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════ PROC PAGES ══════════════ -->
+<div id="proc-screens"></div>
+
+<script>
+// ── DATA ──
+const PROCS = [
+  { id:'cloro', tag:'Agua potable', tagBg:'#0d1f35', tagColor:'#3498db',
+    title:'Cloro libre', titleSub:'en agua potable',
+    desc:'Método colorimétrico mediante fotómetro para control rutinario de calidad.',
+    dur:'~15 min', area:'Calidad', steps:7,
+    badges:[{t:'⏱ Análisis rápido',c:'green'},{t:'💧 Agua potable',c:'teal'},{t:'🔬 Fotométrico',c:'blue'}] },
+  { id:'dbo5', tag:'Agua residual', tagBg:'#0d2a1a', tagColor:'#2ecc71',
+    title:'DBO₅', titleSub:'en aguas residuales',
+    desc:'Demanda Biológica de Oxígeno a 5 días por método respirométrico.',
+    dur:'5 días', area:'EDAR', steps:10,
+    badges:[{t:'⏱ 5 días',c:'green'},{t:'🌡 20 °C',c:'teal'},{t:'🫧 Respirométrico',c:'blue'}] },
+  { id:'micro', tag:'Microbiología', tagBg:'#2d0d0d', tagColor:'#e74c3c',
+    title:'E. coli y enterococos', titleSub:'en aguas residuales',
+    desc:'Filtración y cultivo en medios selectivos. Confirmación con Kovacs.',
+    dur:'18–48 h', area:'EDAR', steps:10,
+    badges:[{t:'🧫 Filtración',c:'green'},{t:'⚠ Bioseguridad',c:'yellow'},{t:'🔬 UFC/100mL',c:'blue'}] },
+  { id:'sequedad', tag:'Fangos', tagBg:'#2a1500', tagColor:'#c0874f',
+    title:'Sequedad y materia volátil', titleSub:'en fangos de EDAR',
+    desc:'% de sequedad (105 °C) y materia volátil (550 °C) en lodos.',
+    dur:'~26 h', area:'EDAR', steps:8,
+    badges:[{t:'🔥 105/550 °C',c:'yellow'},{t:'⚖ Gravimétrico',c:'green'},{t:'💧 Fangos',c:'blue'}] },
+  { id:'solidos', tag:'Agua residual', tagBg:'#0d2a1a', tagColor:'#2ecc71',
+    title:'Sólidos SS · SD · SSV', titleSub:'en aguas residuales',
+    desc:'Sólidos en suspensión, disueltos y volátiles por filtración gravimétrica.',
+    dur:'~26 h', area:'EDAR', steps:8,
+    badges:[{t:'🔬 SS·SD·SSV',c:'blue'},{t:'🔥 105–550 °C',c:'yellow'},{t:'⚖ Filtración',c:'green'}] },
+  { id:'v30', tag:'Control proceso', tagBg:'#1a0d2d', tagColor:'#9b59b6',
+    title:'V30 — Sedimentables', titleSub:'licor mezcla EDAR',
+    desc:'Volumen de sólidos sedimentados a 30 min. Indicador de decantabilidad.',
+    dur:'30–60 min', area:'EDAR', steps:6,
+    badges:[{t:'⏱ 30 min',c:'green'},{t:'📏 mL/L',c:'blue'},{t:'🌀 Licor mezcla',c:'teal'}] },
+  { id:'turbidez', tag:'Agua residual', tagBg:'#0d2a1a', tagColor:'#2ecc71',
+    title:'Turbidez', titleSub:'en agua',
+    desc:'Medición directa en NTU mediante turbidímetro nefelométrico.',
+    dur:'~5 min', area:'EDAR', steps:6,
+    badges:[{t:'💡 Nefelométrico',c:'teal'},{t:'📊 NTU',c:'blue'},{t:'⚡ Rápido',c:'green'}] }
+];
+
+let activeTimers = {};
+
+// ── HOME ──
+function buildHome() {
+  document.getElementById('home-grid').innerHTML = PROCS.map(p => `
+    <div class="pc" onclick="openProc('${p.id}')">
+      <div class="pc-tag" style="background:${p.tagBg};color:${p.tagColor}">${p.tag}</div>
+      <div class="pc-title">${p.title}</div>
+      <div class="pc-desc">${p.desc}</div>
+      <div class="pc-meta"><span>⏱ ${p.dur}</span><span>📋 ${p.steps} pasos</span><span>🏭 ${p.area}</span></div>
+    </div>`).join('');
+}
+
+function openProc(id) {
+  document.getElementById('screen-home').classList.remove('active');
+  document.querySelectorAll('.proc-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('ps-' + id).classList.add('active');
+}
+function goHome() {
+  Object.values(activeTimers).forEach(clearInterval); activeTimers = {};
+  document.querySelectorAll('.proc-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-home').classList.add('active');
+}
+
+// ── TABS ──
+function switchTab(procId, tabId) {
+  document.querySelectorAll('#ps-' + procId + ' .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#ps-' + procId + ' .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('#ps-' + procId + ' .tab[data-tab="' + tabId + '"]').classList.add('active');
+  document.getElementById('tp-' + procId + '-' + tabId).classList.add('active');
+}
+
+// ── TIMERS ──
+function fmt(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function startTimer(key, total, dispId, btnId) {
+  if (activeTimers[key]) { clearInterval(activeTimers[key]); delete activeTimers[key]; document.getElementById(btnId).textContent='Iniciar'; return; }
+  const disp = document.getElementById(dispId), btn = document.getElementById(btnId);
+  let rem = parseInt(disp.dataset.rem || total);
+  btn.textContent = 'Pausar';
+  activeTimers[key] = setInterval(() => {
+    rem--; disp.dataset.rem = rem; disp.textContent = fmt(rem);
+    if (rem <= 0) { clearInterval(activeTimers[key]); delete activeTimers[key]; btn.textContent='Fin ✓'; }
+  }, 1000);
+}
+function markDay(d) {
+  for (let i=0;i<=5;i++) {
+    const el=document.getElementById('tld-'+i); if(!el) continue;
+    const lb=el.nextElementSibling;
+    if(i<d){el.className='tl-c done';lb.className='tl-lbl';}
+    else if(i===d){el.className='tl-c active';lb.className='tl-lbl active';}
+    else{el.className='tl-c';lb.className='tl-lbl';}
+  }
+}
+
+// ── FULLSCREEN ──
+function toggleFS() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
+}
+document.addEventListener('fullscreenchange', () => {
+  const icon = document.fullscreenElement ? '✕' : '⛶';
+  document.querySelectorAll('.btn-fs').forEach(b => b.textContent = icon);
+});
+
+// ─────────────────────────────────────────
+// ── PAGE BUILDERS ──
+// ─────────────────────────────────────────
+
+function header(p, subtitle) {
+  return `
+  <div class="proc-bar">
+    <div class="breadcrumb">PROCEDIMIENTO DE TRABAJO · EDAR · <span>${subtitle}</span></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="org-r">UTE VALLE DE GÜÍMAR<small>Control de calidad · ${subtitle}</small><em>H. Hernández</em></div>
+      <button class="btn-fs" onclick="toggleFS()" title="Pantalla completa">⛶</button>
+    </div>
+  </div>
+  <div class="proc-title-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn-back" onclick="goHome()">← Inicio</button>
+      <div class="proc-h1">${p.title} <small>${p.titleSub}</small></div>
+    </div>
+    <div class="badges">${p.badges.map(b=>`<div class="badge ${b.c}">${b.t}</div>`).join('')}</div>
+  </div>`;
+}
+
+function footer(id, name) {
+  return `<div class="proc-foot"><div class="foot-id">${id}</div><div class="foot-name">${name}</div><div class="foot-ver">EDAR · v1.0</div></div>`;
+}
+
+// ── CLORO ──
+function buildCloro() {
+  const p = PROCS.find(x=>x.id==='cloro');
+  return header(p,'MÉTODO COLORIMÉTRICO') + `
+  <div class="scrollable">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Objetivo y fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">Determinar la concentración de cloro libre en agua potable por método colorimétrico.</div>
+        <div class="lbl">Fundamento</div><div class="txt">El cloro libre reacciona con reactivos A y B formando un compuesto coloreado. La intensidad es proporcional a la concentración → medida en ppm (mg/L).</div>
+        <div class="lbl">Alcance</div><div class="txt" style="margin:0">Control rutinario de calidad en laboratorio o planta de tratamiento.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento</div><div class="step-badge">7 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Llenar el primer tubo con 10 mL de muestra (blanco).</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">En el segundo tubo añadir 3 gotas del reactivo A.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Añadir 3 gotas del reactivo B. Completar hasta 10 mL con muestra. Mezclar suavemente.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Encender el fotómetro pulsando el botón de encendido.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Pantalla <strong>C1</strong>: introducir tubo blanco → pulsar para calibrar.</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Pantalla <strong>C2</strong>: introducir tubo con reactivos → pulsar para medir.</div></li>
+          <li class="step-item"><div class="step-n">7</div><div class="step-t">Leer y registrar el resultado en ppm (mg/L).</div></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🔧 Materiales</div></div>
+        <div class="dc-b">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Fotómetro / colorímetro</li>
+            <li><div class="mat-dot"></div>Tubos de medición (×2)</li>
+            <li><div class="mat-dot"></div>Reactivo A · Reactivo B</li>
+            <li><div class="mat-dot"></div>Muestra de agua potable</li>
+          </ul>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">✅ Control de calidad</div></div>
+        <div class="dc-b">
+          <div class="check-item"><span class="ci-ok">✓</span>Limpiar cubetas antes del uso</div>
+          <div class="check-item"><span class="ci-w">⚠</span>Evitar burbujas o partículas</div>
+          <div class="check-item"><span class="ci-e">!</span>Analizar inmediatamente tras añadir reactivos</div>
+          <div class="check-item"><span class="ci-ok">✓</span>Duplicado si es necesario</div>
+          <div style="margin-top:6px"><div class="result-big">ppm <span class="result-unit">(mg/L)</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('CLORO','Determinación de Cloro Libre · Fotómetro · Método Colorimétrico');
+}
+
+// ── DBO5 (con pestañas) ──
+function buildDBO5() {
+  const p = PROCS.find(x=>x.id==='dbo5');
+  return header(p,'MÉTODO RESPIROMÉTRICO') + `
+  <div class="tabs">
+    <div class="tab active" data-tab="proc" onclick="switchTab('dbo5','proc')">Preparación</div>
+    <div class="tab" data-tab="config" onclick="switchTab('dbo5','config')">Configuración e incubación</div>
+    <div class="tab" data-tab="cc" onclick="switchTab('dbo5','cc')">Lectura y control</div>
+  </div>
+  <div class="scrollable">
+
+  <div class="tab-panel active" id="tp-dbo5-proc">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">DBO₅ en aguas residuales de EDAR por método respirométrico.</div>
+        <div class="lbl">Fundamento</div><div class="txt">O₂ consumido por microorganismos en 5 días a 20 °C. La DBO₅ ≈ 20–40% de la DQO.</div>
+        <div class="lbl">Paso 5.1</div><div class="txt" style="margin:0">Determinar DQO previamente y estimar el rango de DBO₅.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📐 Rango y volumen</div><div class="step-badge">PASO 5.2</div></div>
+      <div class="dc-b" style="padding:0">
+        <table class="dash-table">
+          <thead><tr><th>Rango (ppm O₂)</th><th>Volumen</th><th>Tipo</th></tr></thead>
+          <tbody>
+            <tr><td>0 – 90</td><td><span class="vol-badge">400 mL</span></td><td style="color:var(--text3)">Muy diluida / efluente</td></tr>
+            <tr><td>0 – 250</td><td><span class="vol-badge">250 mL</span></td><td style="color:var(--text3)">Moderada</td></tr>
+            <tr><td>0 – 600</td><td><span class="vol-badge">150 mL</span></td><td style="color:var(--text3)">Urbana</td></tr>
+            <tr><td>0 – 999</td><td><span class="vol-badge">100 mL</span></td><td style="color:var(--text3)">Industrial</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">💧 Inhibidor nitrificación</div><div class="step-badge">PASO 5.3</div></div>
+      <div class="dc-b">
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–40 ppm</span><div class="dots">${Array(10).fill('<div class="dot g"></div>').join('')}</div><span class="dot-label">10 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–80 ppm</span><div class="dots">${Array(10).fill('<div class="dot g"></div>').join('')}</div><span class="dot-label">10 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–200 ppm</span><div class="dots">${Array(5).fill('<div class="dot y"></div>').join('')}</div><span class="dot-label">5 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–400 ppm</span><div class="dots">${Array(5).fill('<div class="dot y"></div>').join('')}</div><span class="dot-label">5 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–800 ppm</span><div class="dots">${Array(3).fill('<div class="dot r"></div>').join('')}</div><span class="dot-label">3 g</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">⚗ NaOH/KOH álcali</div><div class="step-badge">PASO 5.3</div></div>
+        <div class="dc-b">
+          <div class="perlas-opt"><div class="perlas-num">10 perlas</div><div class="perlas-desc">DBO₅ alta</div></div>
+          <div class="perlas-opt"><div class="perlas-num" style="color:var(--yellow)">5 perlas</div><div class="perlas-desc">DBO₅ baja</div></div>
+          <div class="perlas-note">Absorbe CO₂ → mide presión negativa (consumo O₂)</div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🌡 Atemperado</div><div class="step-badge">PASO 5.4</div></div>
+        <div class="dc-b">
+          <div class="temp-big"><span>🌡</span>20<span>°C</span></div>
+          <div class="temp-note">30–40 min en incubadora antes de iniciar</div>
+          <div class="timer-block"><div class="timer-disp" id="td-dbo5-atm" data-rem="2100">${fmt(2100)}</div><button class="btn-timer" id="tb-dbo5-atm" onclick="startTimer('dbo5-atm',2100,'td-dbo5-atm','tb-dbo5-atm')">Iniciar</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-dbo5-config">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚙ Configuración del equipo</div><div class="step-badge">PASO 5.5</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Enroscar sensores sobre las botellas</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Pulsar <strong>SET + START</strong> simultáneamente → acceso al menú</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Pulsar <strong>SET</strong> para seleccionar el rango</div></div>
+        <div class="confirm-step"><div class="confirm-n">4</div><div>Pulsar <strong>START</strong> con pantalla encendida → inicia medición</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📅 Incubación — 5 días a 20 °C</div><div class="step-badge">PASO 5.6</div></div>
+      <div class="dc-b">
+        <div class="timeline">
+          <div class="tl-day"><div class="tl-c active" id="tld-0">D0</div><div class="tl-lbl active">Inicio<br>Config.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-1">D1</div><div class="tl-lbl">Día 1<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-2">D2</div><div class="tl-lbl">Día 2<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-3">D3</div><div class="tl-lbl">Día 3<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-4">D4</div><div class="tl-lbl">Día 4<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-5">D5</div><div class="tl-lbl">Día 5<br>✓ Lect.</div></div>
+        </div>
+        <div style="display:flex;gap:6px;padding:4px 6px;flex-wrap:wrap">
+          ${[0,1,2,3,4,5].map(d=>`<button class="btn-day" onclick="markDay(${d})">D${d}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔧 Materiales</div></div>
+      <div class="dc-b">
+        <ul class="mat-list" style="grid-template-columns:1fr">
+          <li><div class="mat-dot"></div>Equipo respirométrico DBO₅</li>
+          <li><div class="mat-dot"></div>Botellas topacio + sensores</li>
+          <li><div class="mat-dot"></div>Probetas graduadas</li>
+          <li><div class="mat-dot"></div>Agitadores magnéticos</li>
+          <li><div class="mat-dot"></div>Inhibidor de nitrificación</li>
+          <li><div class="mat-dot"></div>NaOH / KOH en perlas</li>
+          <li><div class="mat-dot"></div>Incubadora a 20 °C</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-dbo5-cc">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📊 Lectura</div><div class="step-badge">PASO 5.7</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--teal)">▶</div><div>Mantener pulsado <strong>START</strong> para activar pantalla</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--teal)">▶</div><div>Pulsar <strong>START</strong> hasta visualizar Día 5</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--teal)">■</div><div>Pulsar <strong>SET</strong> → muestra valor DBO₅</div></div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px;margin-top:6px;text-align:center">
+          <div style="font-size:9px;color:var(--text3)">Resultado</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--accent)">DBO₅ ppm (mg O₂/L)</div>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧹 Limpieza</div><div class="step-badge">PASO 5.8</div></div>
+      <div class="dc-b">
+        <div class="check-item"><span class="ci-ok">✓</span>Limpiar con escobilla</div>
+        <div class="check-item"><span class="ci-e">✗</span><strong>NO</strong> utilizar jabón</div>
+        <div class="check-item"><span class="ci-ok">✓</span>Enjuagar con agua desionizada</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">✅ Control de calidad</div></div>
+      <div class="dc-b">
+        <div class="alert-item success"><div class="alert-title">Coherencia DQO/DBO₅</div>DBO₅ debe ser el 20–40% de la DQO.</div>
+        <div class="alert-item warning"><div class="alert-title">Valores anormales</div>Verificar sensor o pérdidas de presión.</div>
+        <div class="alert-item info"><div class="alert-title">Valor muy bajo</div>Posibles restos de hipoclorito en muestra.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Resumen pasos</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Determinar DQO y estimar rango DBO₅</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Seleccionar rango y volumen de muestra</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Introducir muestra en botella topacio con agitador</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Añadir inhibidor de nitrificación</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Añadir perlas NaOH/KOH en contenedor álcali</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Atemperар 30–40 min a 20 °C</div></li>
+          <li class="step-item"><div class="step-n">7</div><div class="step-t">Enroscar sensores. SET+START → configurar → START</div></li>
+          <li class="step-item"><div class="step-n">8</div><div class="step-t">Incubar 5 días a 20 °C</div></li>
+          <li class="step-item"><div class="step-n">9</div><div class="step-t">Leer DBO₅ en día 5</div></li>
+          <li class="step-item"><div class="step-n">10</div><div class="step-t">Limpiar sin jabón, enjuagar con agua desionizada</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>` + footer('DBO₅','Determinación Biológica de Oxígeno · Respirométrico · 5 días a 20 °C');
+}
+
+// ── MICRO (con pestañas) ──
+function buildMicro() {
+  const p = PROCS.find(x=>x.id==='micro');
+  return header(p,'MICROBIOLOGÍA') + `
+  <div class="tabs">
+    <div class="tab active" data-tab="seg" onclick="switchTab('micro','seg')">Seguridad y preparación</div>
+    <div class="tab" data-tab="proc" onclick="switchTab('micro','proc')">Filtración e incubación</div>
+    <div class="tab" data-tab="lect" onclick="switchTab('micro','lect')">Lectura y confirmación</div>
+  </div>
+  <div class="scrollable">
+
+  <div class="tab-panel active" id="tp-micro-seg">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚠ Seguridad — obligatorio</div></div>
+      <div class="dc-b">
+        <div class="alert-item danger"><div class="alert-title">EPI obligatorio</div>Guantes, bata y protección ocular en todo momento.</div>
+        <div class="alert-item danger"><div class="alert-title">Cabina de flujo laminar</div>Trabajar siempre dentro. No abrir fuera.</div>
+        <div class="alert-item warning"><div class="alert-title">Residuos biológicos</div>Gestionar conforme a normativa de residuos peligrosos.</div>
+        <div class="alert-item info"><div class="alert-title">Esterilidad</div>Verificar material antes de comenzar. Evitar contaminaciones.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧪 Preparación material</div><div class="step-badge">PASO 4.1</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Desinfectar material con solución de hipoclorito</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Enjuagar con agua estéril (eliminar restos de desinfectante)</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Secar en cabina de flujo laminar (luz UV si procede)</div></div>
+        <div class="confirm-step"><div class="confirm-n">4</div><div>Recoger muestra de efluente en recipiente estéril. Enjuagar el recipiente con la propia muestra.</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--text3);font-size:10px">nota</div><div style="color:var(--text3)">Si se dosifica hipoclorito → tomar muestra en el decantador</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔧 Materiales</div></div>
+      <div class="dc-b">
+        <ul class="mat-list" style="grid-template-columns:1fr">
+          <li><div class="mat-dot"></div>Sistema filtración membrana</li>
+          <li><div class="mat-dot"></div>Filtros estériles</li>
+          <li><div class="mat-dot"></div>Pinzas estériles</li>
+          <li><div class="mat-dot"></div>Medios cultivo selectivos</li>
+          <li><div class="mat-dot"></div>Cabina flujo laminar</li>
+          <li><div class="mat-dot"></div>Incubadora</li>
+          <li><div class="mat-dot"></div>Tampón fosfato (diluyente)</li>
+          <li><div class="mat-dot"></div>Reactivo Kovacs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-micro-proc">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔬 Diluciones</div><div class="step-badge">PASO 4.3</div></div>
+      <div class="dc-b" style="padding:0">
+        <table class="dash-table">
+          <thead><tr><th>Microorganismo</th><th>Diluciones</th></tr></thead>
+          <tbody>
+            <tr><td><em>E. coli</em></td><td><span class="vol-badge">10⁻³ – 10⁻²</span></td></tr>
+            <tr><td>Enterococos</td><td><span class="vol-badge" style="background:#0d2a1a;color:#2ecc71">10⁻² – 10⁻¹</span></td></tr>
+            <tr><td colspan="2" style="color:var(--text3);font-size:9px">Diluyente: agua estéril o tampón fosfato</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧫 Filtración y siembra</div><div class="step-badge">PASO 4.4–4.5</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Colocar filtro estéril con pinzas sobre el sistema</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Filtrar 100 mL de muestra o dilución</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Transferir filtro al medio selectivo con cara filtrante hacia arriba</div></div>
+        <div class="confirm-step"><div class="confirm-n">4</div><div>Incubar placas invertidas según los tiempos indicados</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⏱ Incubación</div><div class="step-badge">PASO 4.5</div></div>
+      <div class="dc-b">
+        <div class="kv"><div class="kv-k"><em>E. coli</em></div><div class="kv-v">18 – 24 h</div></div>
+        <div class="kv"><div class="kv-k">Enterococos</div><div class="kv-v">24 – 48 h</div></div>
+        <div class="kv"><div class="kv-k">Posición placas</div><div class="kv-v">Invertidas</div></div>
+        <div class="kv"><div class="kv-k">Cara filtro</div><div class="kv-v">Hacia arriba</div></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-micro-lect">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔎 Lectura de colonias</div><div class="step-badge">PASO 4.6</div></div>
+      <div class="dc-b">
+        <div class="txt">Tras la incubación, observar y contar colonias características.</div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin:6px 0">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">E. coli</div>
+          <div style="font-size:11px;color:var(--text)">Colonias <strong style="color:#9b59b6">violeta</strong> → posibles positivos</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">Añadir reactivo Kovacs → vira a <strong style="color:var(--red)">rojo cereza</strong> en segundos = E. coli confirmada</div>
+        </div>
+        <div style="font-size:11px;color:var(--accent);font-weight:600;margin-top:4px">Resultado: UFC / 100 mL</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧫 Confirmación E. coli — Kovacs</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Identificar colonias de color violeta</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Añadir reactivo Kovacs sobre las colonias violeta</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Observar durante unos segundos</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--red)">✓</div><div><strong style="color:var(--red)">Vira a rojo cereza</strong> → E. coli confirmada</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--text3)">✗</div><div style="color:var(--text3)">No vira → negativo</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">✅ Control de calidad</div></div>
+      <div class="dc-b">
+        <div class="alert-item info"><div class="alert-title">Esterilidad</div>Verificar siempre la esterilidad del material.</div>
+        <div class="alert-item warning"><div class="alert-title">Diluciones</div>Seleccionar diluciones que permitan recuentos interpretables.</div>
+        <div class="alert-item danger"><div class="alert-title">Contaminación</div>Evitar contaminaciones durante todo el proceso.</div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>` + footer('MICRO','E. coli y Enterococos · Filtración membrana · UFC/100 mL');
+}
+
+// ── SEQUEDAD ──
+function buildSequedad() {
+  const p = PROCS.find(x=>x.id==='sequedad');
+  return header(p,'ANÁLISIS GRAVIMÉTRICO') + `
+  <div class="scrollable">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Sequedad</div><div class="txt">Fracción de sólidos tras eliminar el agua por secado a <strong>105 °C</strong>.</div>
+        <div class="lbl">Materia volátil</div><div class="txt" style="margin:0">Fracción orgánica perdida por calcinación a <strong>550 °C</strong>.</div>
+        <div style="margin-top:8px">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Crisoles (porcelana/metálicos)</li>
+            <li><div class="mat-dot"></div>Estufa a 105 °C</li>
+            <li><div class="mat-dot"></div>Mufla a 550 °C</li>
+            <li><div class="mat-dot"></div>Balanza analítica</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento</div><div class="step-badge">8 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Limpiar y secar el crisol. Pesar crisol vacío → <strong>P₁</strong>.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Añadir muestra de fango. Pesar crisol + muestra húmeda → <strong>P₂</strong>.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Introducir en estufa a 105 °C durante 24 horas.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Retirar, enfriar y pesar → <strong>P₃</strong>. Calcular sequedad.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Seq (%) = (P₃–P₁) / (P₂–P₁) × 100</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Introducir crisol seco en mufla a 550 °C durante ~2 horas.</div></li>
+          <li class="step-item"><div class="step-n">7</div><div class="step-t">Retirar, enfriar y pesar → <strong>P₄</strong>.</div></li>
+          <li class="step-item"><div class="step-n">8</div><div class="step-t">MV (%) = (P₃–P₄) / (P₃–P₁) × 100</div></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🌡 Estufa — Sequedad</div><div class="step-badge">PASO 3</div></div>
+        <div class="dc-b" style="text-align:center">
+          <div class="temp-big" style="justify-content:center"><span>🌡</span>105<span>°C</span></div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--yellow)">24 horas</div>
+          <div class="timer-block" style="justify-content:center;margin-top:4px">
+            <div class="timer-disp" id="td-seq-est" data-rem="86400">${fmt(86400)}</div>
+            <button class="btn-timer" id="tb-seq-est" onclick="startTimer('seq-est',86400,'td-seq-est','tb-seq-est')">Iniciar</button>
+          </div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🔥 Mufla — Volátil</div><div class="step-badge">PASO 6</div></div>
+        <div class="dc-b" style="text-align:center">
+          <div class="temp-big" style="justify-content:center;color:var(--red)"><span>🔥</span>550<span>°C</span></div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--red)">~2 horas</div>
+          <div class="timer-block" style="justify-content:center;margin-top:4px">
+            <div class="timer-disp" id="td-seq-muf" data-rem="7200">${fmt(7200)}</div>
+            <button class="btn-timer" id="tb-seq-muf" onclick="startTimer('seq-muf',7200,'td-seq-muf','tb-seq-muf')">Iniciar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🧮 Fórmulas</div></div>
+        <div class="dc-b">
+          <div class="kv"><div class="kv-k">P₁</div><div class="kv-v">Crisol vacío</div></div>
+          <div class="kv"><div class="kv-k">P₂</div><div class="kv-v">Crisol + húmedo</div></div>
+          <div class="kv"><div class="kv-k">P₃</div><div class="kv-v">Crisol + seco (105°C)</div></div>
+          <div class="kv"><div class="kv-k">P₄</div><div class="kv-v">Crisol + calcinado</div></div>
+          <div class="formula" style="margin-top:6px">Seq(%) = (P₃–P₁)/(P₂–P₁)×100<br>MV(%) = (P₃–P₄)/(P₃–P₁)×100</div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">⚠ Advertencias</div></div>
+        <div class="dc-b">
+          <div class="alert-item warning"><div class="alert-title">Pesada en frío</div>Pesar siempre con el crisol completamente enfriado.</div>
+          <div class="alert-item info"><div class="alert-title">Temperaturas</div>Verificar 105 °C y 550 °C antes de introducir muestras.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('SEQ','Sequedad y Materia Volátil · Estufa 105°C / Mufla 550°C');
+}
+
+// ── SOLIDOS (con pestañas) ──
+function buildSolidos() {
+  const p = PROCS.find(x=>x.id==='solidos');
+  return header(p,'ANÁLISIS GRAVIMÉTRICO') + `
+  <div class="tabs">
+    <div class="tab active" data-tab="ss" onclick="switchTab('solidos','ss')">SS — Suspensión</div>
+    <div class="tab" data-tab="sd" onclick="switchTab('solidos','sd')">SD — Disueltos</div>
+    <div class="tab" data-tab="ssv" onclick="switchTab('solidos','ssv')">SSV — Volátiles</div>
+  </div>
+  <div class="scrollable">
+
+  <div class="tab-panel active" id="tp-solidos-ss">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔵 Sólidos en suspensión (SS)</div></div>
+      <div class="dc-b">
+        <div class="lbl">Definición</div><div class="txt">Fracción <strong>retenida en el filtro</strong> tras la filtración.</div>
+        <div class="formula">SS (mg/L) = (P₂–P₁) / V × 1000</div>
+        <div class="kv" style="margin-top:6px"><div class="kv-k">Estufa</div><div class="kv-v">105 °C</div></div>
+        <div class="kv"><div class="kv-k">Tiempo</div><div class="kv-v">~5 h hasta peso constante</div></div>
+        <div class="timer-block" style="margin-top:8px">
+          <div class="timer-disp" id="td-sol-ss" data-rem="18000">${fmt(18000)}</div>
+          <button class="btn-timer" id="tb-sol-ss" onclick="startTimer('sol-ss',18000,'td-sol-ss','tb-sol-ss')">Iniciar</button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento SS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Secar filtro a 105 °C (si no está acondicionado). Pesar → <strong>P₁</strong>.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Colocar filtro en rampa y fijar embudo con pinza.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Homogeneizar muestra. Medir 100 mL con probeta y verter sobre el filtro.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Retirar filtro. Secar a 105 °C hasta peso constante (~5 h) → <strong>P₂</strong>.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Calcular: SS (mg/L) = (P₂–P₁) / V × 1000</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚠ Advertencias</div></div>
+      <div class="dc-b">
+        <div class="alert-item warning"><div class="alert-title">Filtro saturado</div>Si se satura, registrar el volumen real filtrado (&lt;100 mL) para el cálculo.</div>
+        <div class="alert-item info"><div class="alert-title">Peso constante</div>Secar el filtro hasta peso constante. En condiciones habituales ~5 h.</div>
+        <div style="margin-top:8px">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Filtros fibra de vidrio</li>
+            <li><div class="mat-dot"></div>Rampa + embudo + pinza</li>
+            <li><div class="mat-dot"></div>Probeta 100 mL</li>
+            <li><div class="mat-dot"></div>Balanza analítica</li>
+            <li><div class="mat-dot"></div>Estufa 105 °C</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-solidos-sd">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🟢 Sólidos disueltos (SD)</div></div>
+      <div class="dc-b">
+        <div class="lbl">Definición</div><div class="txt">Fracción que <strong>atraviesa el filtro</strong> y permanece tras evaporación.</div>
+        <div class="formula">SD (mg/L) = (V₂–V₁) / V × 1000</div>
+        <div class="kv" style="margin-top:6px"><div class="kv-k">Estufa</div><div class="kv-v">105 °C</div></div>
+        <div class="kv"><div class="kv-k">Tiempo</div><div class="kv-v">~24 h hasta sequedad</div></div>
+        <div class="timer-block" style="margin-top:8px">
+          <div class="timer-disp" id="td-sol-sd" data-rem="86400">${fmt(86400)}</div>
+          <button class="btn-timer" id="tb-sol-sd" onclick="startTimer('sol-sd',86400,'td-sol-sd','tb-sol-sd')">Iniciar</button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento SD</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Pesar vaso de precipitados limpio y seco → <strong>V₁</strong>.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Recoger el filtrado (proveniente de la filtración de SS) en el vaso.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Secar en estufa a 105 °C durante ~24 h hasta sequedad completa.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Pesar y registrar masa final → <strong>V₂</strong>.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Calcular: SD (mg/L) = (V₂–V₁) / V × 1000</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📌 Nota importante</div></div>
+      <div class="dc-b">
+        <div class="alert-item info"><div class="alert-title">Secuencia</div>El filtrado para SD se recoge en el mismo paso de filtración que el SS. Ambas determinaciones son simultáneas.</div>
+        <div class="alert-item warning"><div class="alert-title">Volumen</div>Usar el mismo volumen V registrado en la filtración de SS para el cálculo.</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-solidos-ssv">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔴 Sólidos en suspensión volátiles (SSV)</div></div>
+      <div class="dc-b">
+        <div class="lbl">Definición</div><div class="txt">Fracción orgánica <strong>volatilizada</strong> por calcinación a alta temperatura.</div>
+        <div class="formula">SSV (mg/L) = (P₂–P₃) / V × 1000</div>
+        <div class="kv" style="margin-top:6px"><div class="kv-k">Mufla</div><div class="kv-v">550 °C</div></div>
+        <div class="kv"><div class="kv-k">Tiempo</div><div class="kv-v">~2 horas</div></div>
+        <div class="kv"><div class="kv-k">Muestra</div><div class="kv-v">Filtro seco (post SS)</div></div>
+        <div class="timer-block" style="margin-top:8px">
+          <div class="timer-disp" id="td-sol-ssv" data-rem="7200">${fmt(7200)}</div>
+          <button class="btn-timer" id="tb-sol-ssv" onclick="startTimer('sol-ssv',7200,'td-sol-ssv','tb-sol-ssv')">Iniciar</button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento SSV</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Tomar el filtro seco usado en la determinación de SS (ya pesado como P₂).</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Introducir el filtro en la mufla a 550 °C durante ~2 horas.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Retirar, enfriar completamente y pesar → <strong>P₃</strong>.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Calcular: SSV (mg/L) = (P₂–P₃) / V × 1000</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧮 Resumen fórmulas</div></div>
+      <div class="dc-b">
+        <div class="formula">SS  (mg/L) = (P₂–P₁)/V × 1000<br>SD  (mg/L) = (V₂–V₁)/V × 1000<br>SSV (mg/L) = (P₂–P₃)/V × 1000</div>
+        <div class="alert-item info" style="margin-top:8px"><div class="alert-title">Secuencia de determinaciones</div>SS → recoger filtrado (SD) → mufla con filtro seco (SSV)</div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>` + footer('SS·SD·SSV','Sólidos en Suspensión, Disueltos y Volátiles · Filtración Gravimétrica');
+}
+
+// ── V30 ──
+function buildV30() {
+  const p = PROCS.find(x=>x.id==='v30');
+  return header(p,'CONTROL OPERACIONAL') + `
+  <div class="scrollable">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">Volumen de sólidos sedimentables a 30 min en licor mezcla. Indicador de decantabilidad del fango.</div>
+        <div class="lbl">Fundamento</div><div class="txt" style="margin:0">Volumen ocupado por sólidos tras 30 min en probeta de 1 L. Detecta <strong style="color:var(--yellow)">bulking</strong> o mala sedimentación.</div>
+        <div style="margin-top:8px">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Probeta graduada 1 L</li>
+            <li><div class="mat-dot"></div>Cronómetro</li>
+            <li><div class="mat-dot"></div>Licor mezcla (mín. 1 L)</li>
+            <li><div class="mat-dot"></div>Agua efluente (diluciones)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⏱ Sedimentación — 30 min</div></div>
+      <div class="dc-b" style="text-align:center">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--accent);line-height:1">30</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:10px">minutos · sin perturbaciones</div>
+        <div class="timer-block" style="justify-content:center">
+          <div class="timer-disp" id="td-v30-s" data-rem="1800" style="font-size:30px">${fmt(1800)}</div>
+          <button class="btn-timer" id="tb-v30-s" onclick="startTimer('v30-s',1800,'td-v30-s','tb-v30-s')">Iniciar</button>
+        </div>
+        <div class="alert-item warning" style="margin-top:10px;text-align:left"><div class="alert-title">Precaución</div>Evitar vibraciones durante la sedimentación. Medir inmediatamente tras la toma.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📐 Criterios de dilución</div><div class="step-badge">PASO 5.2</div></div>
+      <div class="dc-b">
+        <div class="dil-row"><div><div style="font-size:9px;color:var(--text3)">Medición directa</div><div class="dil-desc">V30 &lt; 800 mL/L</div></div><div class="dil-factor">×1</div></div>
+        <div class="dil-row"><div><div style="font-size:9px;color:var(--text3)">1 dilución 1:1</div><div class="dil-desc">V30 entre 800–900 mL/L</div></div><div class="dil-factor">×2</div></div>
+        <div class="dil-row"><div><div style="font-size:9px;color:var(--text3)">2 diluciones 1:1</div><div class="dil-desc">Sigue elevado tras 1ª</div></div><div class="dil-factor">×4</div></div>
+        <div class="formula" style="margin-top:6px">Sin dil.: V30 = medido<br>×1 dil.: V30 = medido × 2<br>×2 dil.: V30 = medido × 4</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento</div><div class="step-badge">6 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Homogeneizar la muestra de licor mezcla.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Verter 1 L de muestra en la probeta de 1 L.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Dejar sedimentar sin perturbaciones durante 30 minutos.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Registrar el volumen de sólidos sedimentados (mL/L).</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Si V30 entre 800–900: dilución 1:1 con efluente y repetir.</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Aplicar factor de corrección y expresar en mL/L.</div></li>
+        </ul>
+        <div class="alert-item info" style="margin-top:6px"><div class="alert-title">Control de calidad</div>Registrar siempre si se han realizado diluciones y el factor aplicado.</div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('V30','Sólidos Sedimentables · 30 minutos · Licor mezcla EDAR');
+}
+
+// ── TURBIDEZ ──
+function buildTurbidez() {
+  const p = PROCS.find(x=>x.id==='turbidez');
+  return header(p,'MÉTODO NEFELOMÉTRICO') + `
+  <div class="scrollable">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Objetivo y fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">Determinar la turbidez de una muestra de agua para el control de calidad.</div>
+        <div class="lbl">Fundamento</div><div class="txt">La turbidez mide la <strong>dispersión de la luz</strong> causada por partículas en suspensión. Se determina con turbidímetro y se expresa en <strong style="color:var(--accent)">NTU</strong>.</div>
+        <div class="lbl">Materiales</div>
+        <ul class="mat-list" style="grid-template-columns:1fr;margin-top:2px">
+          <li><div class="mat-dot"></div>Turbidímetro nefelométrico</li>
+          <li><div class="mat-dot"></div>Viales o cubetas de medición</li>
+          <li><div class="mat-dot"></div>Paño seco (limpieza vial)</li>
+          <li><div class="mat-dot"></div>Muestra de agua</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚡ Procedimiento</div><div class="step-badge">6 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Homogeneizar la muestra suavemente, evitando la formación de burbujas.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Introducir la muestra en un vial limpio hasta el volumen indicado.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Limpiar el exterior del vial con paño seco (eliminar huellas y gotas).</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Colocar el vial en el turbidímetro.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Pulsar el botón <strong>READ</strong> para realizar la medición.</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Leer y registrar el resultado en NTU.</div></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">📊 Resultado</div></div>
+        <div class="dc-b" style="text-align:center;padding:16px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--accent)">NTU</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">El equipo muestra directamente el valor de turbidez</div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">⚠ Advertencias</div></div>
+        <div class="dc-b">
+          <div class="alert-item warning"><div class="alert-title">Burbujas</div>Homogeneizar suavemente. Las burbujas generan lecturas erróneas.</div>
+          <div class="alert-item warning"><div class="alert-title">Limpieza del vial</div>Huellas y gotas en el exterior afectan a la medición.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('TURBIDEZ','Determinación de Turbidez · Nefelométrico · NTU');
+}
+
+// ── BUILD ALL ──
+const builders = { cloro:buildCloro, dbo5:buildDBO5, micro:buildMicro, sequedad:buildSequedad, solidos:buildSolidos, v30:buildV30, turbidez:buildTurbidez };
+const container = document.getElementById('proc-screens');
+PROCS.forEach(p => {
+  const div = document.createElement('div');
+  div.className = 'screen proc-screen';
+  div.id = 'ps-' + p.id;
+  div.innerHTML = builders[p.id]();
+  container.appendChild(div);
+});
+
+buildHome();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+</script>
+  </div>
+</div>
+
+<script>
+
+// ══════════════════════════════════════════════════════════════
+// AUTENTICACIÓN POR NOMBRE DE USUARIO (sin Firebase Auth)
+// Usuarios y contraseñas hasheadas se guardan en /usuarios en RTDB
+// Sesión se mantiene en localStorage hasta logout manual
+// ══════════════════════════════════════════════════════════════
+
+// Hash simple (SHA-256 via SubtleCrypto)
+async function hashPass(pass) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// Session helpers
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('ute-session')); } catch(e){ return null; }
+}
+function setSession(data) {
+  localStorage.setItem('ute-session', JSON.stringify(data));
+}
+function clearSession() {
+  localStorage.removeItem('ute-session');
+}
+
+// Show / hide screens
+function showPortal(session) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('splash').style.display = 'flex';
+  const bar = document.getElementById('user-email-bar');
+  if(bar) bar.textContent = session.name + ' · ' + session.role;
+  window._currentUser = session;
+  // Show manage users btn if supervisor
+  const mub = document.getElementById('manage-users-btn');
+  if(mub) mub.style.display = session.role === 'supervisor' ? 'block' : 'none';
+}
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('splash').style.display = 'none';
+  const viewer = document.getElementById('app-viewer');
+  if(viewer) viewer.style.display = 'none';
+}
+
+// Init
+// Wait for Firebase to be ready (max 10 seconds)
+function waitForFirebase() {
+  return new Promise((resolve, reject) => {
+    if(window._fb) { resolve(); return; }
+    const t = setTimeout(() => reject(new Error('Firebase timeout')), 10000);
+    window.addEventListener('firebase-ready', () => { clearTimeout(t); resolve(); }, { once: true });
+  });
+}
+
+async function initAuth() {
+  document.getElementById('splash').style.display = 'none';
+  ['login-user','login-pass'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if(e.key === 'Enter') doLogin();
+    });
+  });
+
+  // Check existing session
+  const session = getSession();
+  if(session && session.username) {
+    showPortal(session);
+    // Seed admin in background (won't block)
+    waitForFirebase().then(seedDefaultAdmin).catch(()=>{});
+    return;
+  }
+  showLogin();
+
+  // Show connecting state on button
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Conectando...';
+
+  // Wait for Firebase then seed admin and enable button
+  waitForFirebase()
+    .then(() => {
+      btn.disabled = false;
+      btn.textContent = 'Acceder';
+      return seedDefaultAdmin();
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.textContent = 'Acceder';
+      showLoginError('Sin conexión a la base de datos. Verifica tu red.');
+    });
+}
+
+// Seed admin user on first run
+async function seedDefaultAdmin() {
+  if(!window._fb) return;
+  try {
+    const snap = await window._fb.get(window._fb.ref(window._fb.db, 'usuarios'));
+    if(!snap.val()) {
+      const h = await hashPass('admin1234');
+      await window._fb.set(window._fb.ref(window._fb.db, 'usuarios/admin'), {
+        username: 'admin', name: 'Administrador', role: 'supervisor', hash: h, created: Date.now()
+      });
+      console.log('✅ Usuario admin creado. Contraseña: admin1234 — cámbiala desde Gestión de usuarios');
+    }
+  } catch(e){ console.warn('No se pudo crear usuario admin:', e); }
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim().toLowerCase();
+  const pass     = document.getElementById('login-pass').value;
+  const btn      = document.getElementById('login-btn');
+
+  if(!username || !pass) { showLoginError('Introduce usuario y contraseña.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Accediendo...';
+  clearLoginError();
+
+  try {
+    // Wait for Firebase if not ready yet
+    await waitForFirebase();
+
+    const snap = await window._fb.get(window._fb.ref(window._fb.db, 'usuarios/' + username));
+    const user = snap.val();
+    if(!user) {
+      showLoginError('Usuario no encontrado.');
+      btn.disabled=false; btn.textContent='Acceder';
+      return;
+    }
+    const h = await hashPass(pass);
+    if(h !== user.hash) {
+      showLoginError('Contraseña incorrecta.');
+      btn.disabled=false; btn.textContent='Acceder';
+      return;
+    }
+    const session = { username: user.username, name: user.name, role: user.role, loginAt: Date.now() };
+    setSession(session);
+    showPortal(session);
+  } catch(e) {
+    btn.disabled=false; btn.textContent='Acceder';
+    if(e.message === 'Firebase timeout') {
+      showLoginError('Sin conexión a la base de datos. Verifica tu red e inténtalo de nuevo.');
+    } else {
+      showLoginError('Error al acceder. Inténtalo de nuevo.');
+    }
+    console.error(e);
+  }
+}
+
+function doLogout() {
+  if(!confirm('¿Cerrar sesión?')) return;
+  clearSession();
+  showLogin();
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.classList.add('show');
+}
+function clearLoginError() {
+  document.getElementById('login-error').classList.remove('show');
+}
+
+// ── USER MANAGEMENT (supervisor only) ─────────────────────────
+function openUserManager() {
+  const session = getSession();
+  if(!session || session.role !== 'supervisor') return;
+  document.getElementById('modal-users').style.display = 'flex';
+  loadUsersList();
+}
+
+async function loadUsersList() {
+  const el = document.getElementById('users-list');
+  el.innerHTML = '<div style="font-size:.78rem;color:#8898aa;">Cargando...</div>';
+  try {
+    const snap = await window._fb.get(window._fb.ref(window._fb.db, 'usuarios'));
+    const data = snap.val() || {};
+    const users = Object.values(data).sort((a,b)=>a.username.localeCompare(b.username));
+    if(!users.length) { el.innerHTML='<div style="font-size:.78rem;color:#8898aa;">Sin usuarios registrados.</div>'; return; }
+    el.innerHTML = users.map(u => `
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid #dde3ec;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#e8f2fa;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#005b99;flex-shrink:0;">${u.name.charAt(0).toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.85rem;font-weight:600;color:#1a2332;">${u.username}</div>
+          <div style="font-size:.72rem;color:#8898aa;">${u.name} · <span style="color:${u.role==='supervisor'?'#005b99':'#2e7d32'}">${u.role}</span></div>
+        </div>
+        <button onclick="changePassword('${u.username}')" style="font-size:.72rem;padding:3px 8px;border:1px solid #dde3ec;border-radius:6px;background:white;cursor:pointer;color:#4a5568;">Cambiar clave</button>
+        ${u.username !== getSession().username ? `<button onclick="deleteUser('${u.username}')" style="font-size:.72rem;padding:3px 8px;border:1px solid #fee2e2;border-radius:6px;background:white;cursor:pointer;color:#b91c1c;">Eliminar</button>` : '<span style="font-size:.7rem;color:#8898aa;padding:3px 8px;">(tú)</span>'}
+      </div>`).join('');
+  } catch(e){ el.innerHTML='<div style="font-size:.78rem;color:#b91c1c;">Error al cargar usuarios.</div>'; }
+}
+
+async function addUser() {
+  const username = document.getElementById('nu-user').value.trim().toLowerCase().replace(/\s+/g,'');
+  const pass     = document.getElementById('nu-pass').value;
+  const name     = document.getElementById('nu-name').value.trim();
+  const role     = document.getElementById('nu-role').value;
+  if(!username||!pass||!name){ alert('Rellena todos los campos.'); return; }
+  if(username.length < 3){ alert('El nombre de usuario debe tener al menos 3 caracteres.'); return; }
+  if(pass.length < 6){ alert('La contraseña debe tener al menos 6 caracteres.'); return; }
+  try {
+    const snap = await window._fb.get(window._fb.ref(window._fb.db, 'usuarios/' + username));
+    if(snap.val()){ alert('Ya existe un usuario con ese nombre.'); return; }
+    const h = await hashPass(pass);
+    await window._fb.set(window._fb.ref(window._fb.db, 'usuarios/' + username), {
+      username, name, role, hash: h, created: Date.now()
+    });
+    document.getElementById('nu-user').value='';
+    document.getElementById('nu-pass').value='';
+    document.getElementById('nu-name').value='';
+    loadUsersList();
+  } catch(e){ alert('Error al crear usuario.'); console.error(e); }
+}
+
+async function changePassword(username) {
+  const newPass = prompt('Nueva contraseña para "' + username + '" (mín. 6 caracteres):');
+  if(!newPass) return;
+  if(newPass.length < 6){ alert('Mínimo 6 caracteres.'); return; }
+  try {
+    const h = await hashPass(newPass);
+    await window._fb.set(window._fb.ref(window._fb.db, 'usuarios/' + username + '/hash'), h);
+    alert('Contraseña actualizada.');
+    // If changing own password, update session
+    if(username === getSession().username) { clearSession(); showLogin(); }
+  } catch(e){ alert('Error al cambiar contraseña.'); }
+}
+
+async function deleteUser(username) {
+  if(!confirm('¿Eliminar el usuario "' + username + '"? No se puede deshacer.')) return;
+  try {
+    await window._fb.set(window._fb.ref(window._fb.db, 'usuarios/' + username), null);
+    loadUsersList();
+  } catch(e){ alert('Error al eliminar usuario.'); }
+}
+
+// Init on load
+initAuth();
+
+// ── Reloj ──
+function updateClock(){
+  const n=new Date();
+  const pad=v=>String(v).padStart(2,'0');
+  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const mo=n.toLocaleString('es-ES',{month:'short'}).replace('.','');
+  document.getElementById('clock').textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  document.getElementById('dateline').textContent=`${dias[n.getDay()]} ${pad(n.getDate())} ${mo} ${n.getFullYear()}`;
+}
+updateClock(); setInterval(updateClock,1000);
+
+// ── App viewer ──
+const INLINE_APPS = {'simulador-edari.html': 'app-simulador'};
+
+function openApp(url, title, module){
+  document.getElementById('splash').style.display = 'none';
+  const inlineId = INLINE_APPS[url];
+  if(inlineId){
+    document.getElementById(inlineId).style.display = 'block';
+    history.pushState({app: url, title}, '', '#' + url.replace('.html',''));
+  } else {
+    // iframe path for external apps (ruta colector, etc.)
+    if(!document.getElementById('app-viewer')){
+      const v = document.createElement('div');
+      v.id = 'app-viewer';
+      v.style.cssText = 'position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;background:#f4f6f9;';
+      v.innerHTML = `<div style="background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);">
+        <button onclick="closeApp()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;">
+          <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Inicio
+        </button>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;color:white;font-size:1rem;" id="viewer-title2">—</div>
+      </div>
+      <iframe id="app-frame" style="flex:1;border:none;width:100%;" allowfullscreen></iframe>`;
+      document.body.appendChild(v);
+    }
+    document.getElementById('viewer-title2').textContent = title;
+    document.getElementById('app-frame').src = url;
+    document.getElementById('app-viewer').style.display = 'flex';
+    history.pushState({app: url, title}, '', '#' + url.replace('.html',''));
+  }
+}
+
+function closeApp(){
+  // Hide all inline apps
+  Object.values(INLINE_APPS).forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+  // Hide iframe viewer
+  const viewer = document.getElementById('app-viewer');
+  if(viewer){
+    viewer.style.display = 'none';
+    const frame = document.getElementById('app-frame');
+    if(frame) frame.src = '';
+  }
+  document.getElementById('splash').style.display = 'flex';
+  history.pushState({}, '', window.location.pathname);
+}
+
+// Handle browser back button
+window.addEventListener('popstate', e => {
+  if(!e.state || !e.state.app) closeApp();
+});
+
+// Handle hash on load (deep link)
+window.addEventListener('DOMContentLoaded', () => {
+  const h = window.location.hash.replace('#','');
+  if(h === 'ruta-colector-edaru'){
+    openApp('ruta-colector-edaru.html', 'Ruta Colector EDARu', 'Módulo 03');
+  } else if(h === 'simulador-edari'){
+    openApp('simulador-edari.html', 'Simulador Proceso EDARi', 'Módulo 02');
+  }
+});
+
+// ── SIMULADOR JS ──
+// ── DATA ──
+const PROCS = [
+  { id:'cloro', tag:'Agua potable', tagBg:'#0d1f35', tagColor:'#3498db',
+    title:'Cloro libre', titleSub:'en agua potable',
+    desc:'Método colorimétrico mediante fotómetro para control rutinario de calidad.',
+    dur:'~15 min', area:'Calidad', steps:7,
+    badges:[{t:'⏱ Análisis rápido',c:'green'},{t:'💧 Agua potable',c:'teal'},{t:'🔬 Fotométrico',c:'blue'}] },
+  { id:'dbo5', tag:'Agua residual', tagBg:'#0d2a1a', tagColor:'#2ecc71',
+    title:'DBO₅', titleSub:'en aguas residuales',
+    desc:'Demanda Biológica de Oxígeno a 5 días por método respirométrico.',
+    dur:'5 días', area:'EDAR', steps:10,
+    badges:[{t:'⏱ 5 días',c:'green'},{t:'🌡 20 °C',c:'teal'},{t:'🫧 Respirométrico',c:'blue'}] },
+  { id:'micro', tag:'Microbiología', tagBg:'#2d0d0d', tagColor:'#e74c3c',
+    title:'E. coli y enterococos', titleSub:'en aguas residuales',
+    desc:'Filtración y cultivo en medios selectivos. Confirmación con Kovacs.',
+    dur:'18–48 h', area:'EDAR', steps:10,
+    badges:[{t:'🧫 Filtración',c:'green'},{t:'⚠ Bioseguridad',c:'yellow'},{t:'🔬 UFC/100mL',c:'blue'}] },
+  { id:'sequedad', tag:'Fangos', tagBg:'#2a1500', tagColor:'#c0874f',
+    title:'Sequedad y materia volátil', titleSub:'en fangos de EDAR',
+    desc:'% de sequedad (105 °C) y materia volátil (550 °C) en lodos.',
+    dur:'~26 h', area:'EDAR', steps:8,
+    badges:[{t:'🔥 105/550 °C',c:'yellow'},{t:'⚖ Gravimétrico',c:'green'},{t:'💧 Fangos',c:'blue'}] },
+  { id:'solidos', tag:'Agua residual', tagBg:'#0d2a1a', tagColor:'#2ecc71',
+    title:'Sólidos SS · SD · SSV', titleSub:'en aguas residuales',
+    desc:'Sólidos en suspensión, disueltos y volátiles por filtración gravimétrica.',
+    dur:'~26 h', area:'EDAR', steps:8,
+    badges:[{t:'🔬 SS·SD·SSV',c:'blue'},{t:'🔥 105–550 °C',c:'yellow'},{t:'⚖ Filtración',c:'green'}] },
+  { id:'v30', tag:'Control proceso', tagBg:'#1a0d2d', tagColor:'#9b59b6',
+    title:'V30 — Sedimentables', titleSub:'licor mezcla EDAR',
+    desc:'Volumen de sólidos sedimentados a 30 min. Indicador de decantabilidad.',
+    dur:'30–60 min', area:'EDAR', steps:6,
+    badges:[{t:'⏱ 30 min',c:'green'},{t:'📏 mL/L',c:'blue'},{t:'🌀 Licor mezcla',c:'teal'}] },
+  { id:'turbidez', tag:'Agua residual', tagBg:'#0d2a1a', tagColor:'#2ecc71',
+    title:'Turbidez', titleSub:'en agua',
+    desc:'Medición directa en NTU mediante turbidímetro nefelométrico.',
+    dur:'~5 min', area:'EDAR', steps:6,
+    badges:[{t:'💡 Nefelométrico',c:'teal'},{t:'📊 NTU',c:'blue'},{t:'⚡ Rápido',c:'green'}] }
+];
+
+let activeTimers = {};
+
+// ── HOME ──
+function buildHome() {
+  document.getElementById('home-grid').innerHTML = PROCS.map(p => `
+    <div class="pc" onclick="openProc('${p.id}')">
+      <div class="pc-tag" style="background:${p.tagBg};color:${p.tagColor}">${p.tag}</div>
+      <div class="pc-title">${p.title}</div>
+      <div class="pc-desc">${p.desc}</div>
+      <div class="pc-meta"><span>⏱ ${p.dur}</span><span>📋 ${p.steps} pasos</span><span>🏭 ${p.area}</span></div>
+    </div>`).join('');
+}
+
+function openProc(id) {
+  document.getElementById('screen-home').classList.remove('active');
+  document.querySelectorAll('.proc-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('ps-' + id).classList.add('active');
+}
+function goHome() {
+  Object.values(activeTimers).forEach(clearInterval); activeTimers = {};
+  document.querySelectorAll('.proc-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-home').classList.add('active');
+}
+function goPortal() { closeApp(); }
+
+// ── TABS ──
+function switchTab(procId, tabId) {
+  document.querySelectorAll('#ps-' + procId + ' .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#ps-' + procId + ' .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('#ps-' + procId + ' .tab[data-tab="' + tabId + '"]').classList.add('active');
+  document.getElementById('tp-' + procId + '-' + tabId).classList.add('active');
+}
+
+// ── TIMERS ──
+function fmt(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function startTimer(key, total, dispId, btnId) {
+  if (activeTimers[key]) { clearInterval(activeTimers[key]); delete activeTimers[key]; document.getElementById(btnId).textContent='Iniciar'; return; }
+  const disp = document.getElementById(dispId), btn = document.getElementById(btnId);
+  let rem = parseInt(disp.dataset.rem || total);
+  btn.textContent = 'Pausar';
+  activeTimers[key] = setInterval(() => {
+    rem--; disp.dataset.rem = rem; disp.textContent = fmt(rem);
+    if (rem <= 0) { clearInterval(activeTimers[key]); delete activeTimers[key]; btn.textContent='Fin ✓'; }
+  }, 1000);
+}
+function markDay(d) {
+  for (let i=0;i<=5;i++) {
+    const el=document.getElementById('tld-'+i); if(!el) continue;
+    const lb=el.nextElementSibling;
+    if(i<d){el.className='tl-c done';lb.className='tl-lbl';}
+    else if(i===d){el.className='tl-c active';lb.className='tl-lbl active';}
+    else{el.className='tl-c';lb.className='tl-lbl';}
+  }
+}
+
+// ── FULLSCREEN ──
+function toggleFS() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
+}
+document.addEventListener('fullscreenchange', () => {
+  const icon = document.fullscreenElement ? '✕' : '⛶';
+  document.querySelectorAll('.btn-fs').forEach(b => b.textContent = icon);
+});
+
+// ─────────────────────────────────────────
+// ── PAGE BUILDERS ──
+// ─────────────────────────────────────────
+
+function header(p, subtitle) {
+  return `
+  <div class="proc-bar">
+    <div class="breadcrumb">PROCEDIMIENTO DE TRABAJO · EDAR · <span>${subtitle}</span></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="org-r">UTE VALLE DE GÜÍMAR<small>Control de calidad · ${subtitle}</small><em>H. Hernández</em></div>
+      <button class="btn-fs" onclick="toggleFS()" title="Pantalla completa">⛶</button>
+    </div>
+  </div>
+  <div class="proc-title-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn-back" onclick="goHome()">← Inicio</button>
+      <div class="proc-h1">${p.title} <small>${p.titleSub}</small></div>
+    </div>
+    <div class="badges">${p.badges.map(b=>`<div class="badge ${b.c}">${b.t}</div>`).join('')}</div>
+  </div>`;
+}
+
+function footer(id, name) {
+  return `<div class="proc-foot"><div class="foot-id">${id}</div><div class="foot-name">${name}</div><div class="foot-ver">EDAR · v1.0</div></div>`;
+}
+
+// ── CLORO ──
+function buildCloro() {
+  const p = PROCS.find(x=>x.id==='cloro');
+  return header(p,'MÉTODO COLORIMÉTRICO') + `
+  <div class="scrollable">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Objetivo y fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">Determinar la concentración de cloro libre en agua potable por método colorimétrico.</div>
+        <div class="lbl">Fundamento</div><div class="txt">El cloro libre reacciona con reactivos A y B formando un compuesto coloreado. La intensidad es proporcional a la concentración → medida en ppm (mg/L).</div>
+        <div class="lbl">Alcance</div><div class="txt" style="margin:0">Control rutinario de calidad en laboratorio o planta de tratamiento.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento</div><div class="step-badge">7 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Llenar el primer tubo con 10 mL de muestra (blanco).</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">En el segundo tubo añadir 3 gotas del reactivo A.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Añadir 3 gotas del reactivo B. Completar hasta 10 mL con muestra. Mezclar suavemente.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Encender el fotómetro pulsando el botón de encendido.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Pantalla <strong>C1</strong>: introducir tubo blanco → pulsar para calibrar.</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Pantalla <strong>C2</strong>: introducir tubo con reactivos → pulsar para medir.</div></li>
+          <li class="step-item"><div class="step-n">7</div><div class="step-t">Leer y registrar el resultado en ppm (mg/L).</div></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🔧 Materiales</div></div>
+        <div class="dc-b">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Fotómetro / colorímetro</li>
+            <li><div class="mat-dot"></div>Tubos de medición (×2)</li>
+            <li><div class="mat-dot"></div>Reactivo A · Reactivo B</li>
+            <li><div class="mat-dot"></div>Muestra de agua potable</li>
+          </ul>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">✅ Control de calidad</div></div>
+        <div class="dc-b">
+          <div class="check-item"><span class="ci-ok">✓</span>Limpiar cubetas antes del uso</div>
+          <div class="check-item"><span class="ci-w">⚠</span>Evitar burbujas o partículas</div>
+          <div class="check-item"><span class="ci-e">!</span>Analizar inmediatamente tras añadir reactivos</div>
+          <div class="check-item"><span class="ci-ok">✓</span>Duplicado si es necesario</div>
+          <div style="margin-top:6px"><div class="result-big">ppm <span class="result-unit">(mg/L)</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('CLORO','Determinación de Cloro Libre · Fotómetro · Método Colorimétrico');
+}
+
+// ── DBO5 (con pestañas) ──
+function buildDBO5() {
+  const p = PROCS.find(x=>x.id==='dbo5');
+  return header(p,'MÉTODO RESPIROMÉTRICO') + `
+  <div class="tabs">
+    <div class="tab active" data-tab="proc" onclick="switchTab('dbo5','proc')">Preparación</div>
+    <div class="tab" data-tab="config" onclick="switchTab('dbo5','config')">Configuración e incubación</div>
+    <div class="tab" data-tab="cc" onclick="switchTab('dbo5','cc')">Lectura y control</div>
+  </div>
+  <div class="scrollable">
+
+  <div class="tab-panel active" id="tp-dbo5-proc">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">DBO₅ en aguas residuales de EDAR por método respirométrico.</div>
+        <div class="lbl">Fundamento</div><div class="txt">O₂ consumido por microorganismos en 5 días a 20 °C. La DBO₅ ≈ 20–40% de la DQO.</div>
+        <div class="lbl">Paso 5.1</div><div class="txt" style="margin:0">Determinar DQO previamente y estimar el rango de DBO₅.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📐 Rango y volumen</div><div class="step-badge">PASO 5.2</div></div>
+      <div class="dc-b" style="padding:0">
+        <table class="dash-table">
+          <thead><tr><th>Rango (ppm O₂)</th><th>Volumen</th><th>Tipo</th></tr></thead>
+          <tbody>
+            <tr><td>0 – 90</td><td><span class="vol-badge">400 mL</span></td><td style="color:var(--text3)">Muy diluida / efluente</td></tr>
+            <tr><td>0 – 250</td><td><span class="vol-badge">250 mL</span></td><td style="color:var(--text3)">Moderada</td></tr>
+            <tr><td>0 – 600</td><td><span class="vol-badge">150 mL</span></td><td style="color:var(--text3)">Urbana</td></tr>
+            <tr><td>0 – 999</td><td><span class="vol-badge">100 mL</span></td><td style="color:var(--text3)">Industrial</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">💧 Inhibidor nitrificación</div><div class="step-badge">PASO 5.3</div></div>
+      <div class="dc-b">
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–40 ppm</span><div class="dots">${Array(10).fill('<div class="dot g"></div>').join('')}</div><span class="dot-label">10 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–80 ppm</span><div class="dots">${Array(10).fill('<div class="dot g"></div>').join('')}</div><span class="dot-label">10 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–200 ppm</span><div class="dots">${Array(5).fill('<div class="dot y"></div>').join('')}</div><span class="dot-label">5 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–400 ppm</span><div class="dots">${Array(5).fill('<div class="dot y"></div>').join('')}</div><span class="dot-label">5 g</span></div>
+        <div class="dots-row"><span style="font-size:9px;color:var(--text2)">0–800 ppm</span><div class="dots">${Array(3).fill('<div class="dot r"></div>').join('')}</div><span class="dot-label">3 g</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">⚗ NaOH/KOH álcali</div><div class="step-badge">PASO 5.3</div></div>
+        <div class="dc-b">
+          <div class="perlas-opt"><div class="perlas-num">10 perlas</div><div class="perlas-desc">DBO₅ alta</div></div>
+          <div class="perlas-opt"><div class="perlas-num" style="color:var(--yellow)">5 perlas</div><div class="perlas-desc">DBO₅ baja</div></div>
+          <div class="perlas-note">Absorbe CO₂ → mide presión negativa (consumo O₂)</div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🌡 Atemperado</div><div class="step-badge">PASO 5.4</div></div>
+        <div class="dc-b">
+          <div class="temp-big"><span>🌡</span>20<span>°C</span></div>
+          <div class="temp-note">30–40 min en incubadora antes de iniciar</div>
+          <div class="timer-block"><div class="timer-disp" id="td-dbo5-atm" data-rem="2100">${fmt(2100)}</div><button class="btn-timer" id="tb-dbo5-atm" onclick="startTimer('dbo5-atm',2100,'td-dbo5-atm','tb-dbo5-atm')">Iniciar</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-dbo5-config">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚙ Configuración del equipo</div><div class="step-badge">PASO 5.5</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Enroscar sensores sobre las botellas</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Pulsar <strong>SET + START</strong> simultáneamente → acceso al menú</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Pulsar <strong>SET</strong> para seleccionar el rango</div></div>
+        <div class="confirm-step"><div class="confirm-n">4</div><div>Pulsar <strong>START</strong> con pantalla encendida → inicia medición</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📅 Incubación — 5 días a 20 °C</div><div class="step-badge">PASO 5.6</div></div>
+      <div class="dc-b">
+        <div class="timeline">
+          <div class="tl-day"><div class="tl-c active" id="tld-0">D0</div><div class="tl-lbl active">Inicio<br>Config.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-1">D1</div><div class="tl-lbl">Día 1<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-2">D2</div><div class="tl-lbl">Día 2<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-3">D3</div><div class="tl-lbl">Día 3<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-4">D4</div><div class="tl-lbl">Día 4<br>Incub.</div></div>
+          <div class="tl-day"><div class="tl-c" id="tld-5">D5</div><div class="tl-lbl">Día 5<br>✓ Lect.</div></div>
+        </div>
+        <div style="display:flex;gap:6px;padding:4px 6px;flex-wrap:wrap">
+          ${[0,1,2,3,4,5].map(d=>`<button class="btn-day" onclick="markDay(${d})">D${d}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔧 Materiales</div></div>
+      <div class="dc-b">
+        <ul class="mat-list" style="grid-template-columns:1fr">
+          <li><div class="mat-dot"></div>Equipo respirométrico DBO₅</li>
+          <li><div class="mat-dot"></div>Botellas topacio + sensores</li>
+          <li><div class="mat-dot"></div>Probetas graduadas</li>
+          <li><div class="mat-dot"></div>Agitadores magnéticos</li>
+          <li><div class="mat-dot"></div>Inhibidor de nitrificación</li>
+          <li><div class="mat-dot"></div>NaOH / KOH en perlas</li>
+          <li><div class="mat-dot"></div>Incubadora a 20 °C</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-dbo5-cc">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📊 Lectura</div><div class="step-badge">PASO 5.7</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--teal)">▶</div><div>Mantener pulsado <strong>START</strong> para activar pantalla</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--teal)">▶</div><div>Pulsar <strong>START</strong> hasta visualizar Día 5</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--teal)">■</div><div>Pulsar <strong>SET</strong> → muestra valor DBO₅</div></div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px;margin-top:6px;text-align:center">
+          <div style="font-size:9px;color:var(--text3)">Resultado</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--accent)">DBO₅ ppm (mg O₂/L)</div>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧹 Limpieza</div><div class="step-badge">PASO 5.8</div></div>
+      <div class="dc-b">
+        <div class="check-item"><span class="ci-ok">✓</span>Limpiar con escobilla</div>
+        <div class="check-item"><span class="ci-e">✗</span><strong>NO</strong> utilizar jabón</div>
+        <div class="check-item"><span class="ci-ok">✓</span>Enjuagar con agua desionizada</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">✅ Control de calidad</div></div>
+      <div class="dc-b">
+        <div class="alert-item success"><div class="alert-title">Coherencia DQO/DBO₅</div>DBO₅ debe ser el 20–40% de la DQO.</div>
+        <div class="alert-item warning"><div class="alert-title">Valores anormales</div>Verificar sensor o pérdidas de presión.</div>
+        <div class="alert-item info"><div class="alert-title">Valor muy bajo</div>Posibles restos de hipoclorito en muestra.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Resumen pasos</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Determinar DQO y estimar rango DBO₅</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Seleccionar rango y volumen de muestra</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Introducir muestra en botella topacio con agitador</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Añadir inhibidor de nitrificación</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Añadir perlas NaOH/KOH en contenedor álcali</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Atemperар 30–40 min a 20 °C</div></li>
+          <li class="step-item"><div class="step-n">7</div><div class="step-t">Enroscar sensores. SET+START → configurar → START</div></li>
+          <li class="step-item"><div class="step-n">8</div><div class="step-t">Incubar 5 días a 20 °C</div></li>
+          <li class="step-item"><div class="step-n">9</div><div class="step-t">Leer DBO₅ en día 5</div></li>
+          <li class="step-item"><div class="step-n">10</div><div class="step-t">Limpiar sin jabón, enjuagar con agua desionizada</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>` + footer('DBO₅','Determinación Biológica de Oxígeno · Respirométrico · 5 días a 20 °C');
+}
+
+// ── MICRO (con pestañas) ──
+function buildMicro() {
+  const p = PROCS.find(x=>x.id==='micro');
+  return header(p,'MICROBIOLOGÍA') + `
+  <div class="tabs">
+    <div class="tab active" data-tab="seg" onclick="switchTab('micro','seg')">Seguridad y preparación</div>
+    <div class="tab" data-tab="proc" onclick="switchTab('micro','proc')">Filtración e incubación</div>
+    <div class="tab" data-tab="lect" onclick="switchTab('micro','lect')">Lectura y confirmación</div>
+  </div>
+  <div class="scrollable">
+
+  <div class="tab-panel active" id="tp-micro-seg">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚠ Seguridad — obligatorio</div></div>
+      <div class="dc-b">
+        <div class="alert-item danger"><div class="alert-title">EPI obligatorio</div>Guantes, bata y protección ocular en todo momento.</div>
+        <div class="alert-item danger"><div class="alert-title">Cabina de flujo laminar</div>Trabajar siempre dentro. No abrir fuera.</div>
+        <div class="alert-item warning"><div class="alert-title">Residuos biológicos</div>Gestionar conforme a normativa de residuos peligrosos.</div>
+        <div class="alert-item info"><div class="alert-title">Esterilidad</div>Verificar material antes de comenzar. Evitar contaminaciones.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧪 Preparación material</div><div class="step-badge">PASO 4.1</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Desinfectar material con solución de hipoclorito</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Enjuagar con agua estéril (eliminar restos de desinfectante)</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Secar en cabina de flujo laminar (luz UV si procede)</div></div>
+        <div class="confirm-step"><div class="confirm-n">4</div><div>Recoger muestra de efluente en recipiente estéril. Enjuagar el recipiente con la propia muestra.</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--text3);font-size:10px">nota</div><div style="color:var(--text3)">Si se dosifica hipoclorito → tomar muestra en el decantador</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔧 Materiales</div></div>
+      <div class="dc-b">
+        <ul class="mat-list" style="grid-template-columns:1fr">
+          <li><div class="mat-dot"></div>Sistema filtración membrana</li>
+          <li><div class="mat-dot"></div>Filtros estériles</li>
+          <li><div class="mat-dot"></div>Pinzas estériles</li>
+          <li><div class="mat-dot"></div>Medios cultivo selectivos</li>
+          <li><div class="mat-dot"></div>Cabina flujo laminar</li>
+          <li><div class="mat-dot"></div>Incubadora</li>
+          <li><div class="mat-dot"></div>Tampón fosfato (diluyente)</li>
+          <li><div class="mat-dot"></div>Reactivo Kovacs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-micro-proc">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔬 Diluciones</div><div class="step-badge">PASO 4.3</div></div>
+      <div class="dc-b" style="padding:0">
+        <table class="dash-table">
+          <thead><tr><th>Microorganismo</th><th>Diluciones</th></tr></thead>
+          <tbody>
+            <tr><td><em>E. coli</em></td><td><span class="vol-badge">10⁻³ – 10⁻²</span></td></tr>
+            <tr><td>Enterococos</td><td><span class="vol-badge" style="background:#0d2a1a;color:#2ecc71">10⁻² – 10⁻¹</span></td></tr>
+            <tr><td colspan="2" style="color:var(--text3);font-size:9px">Diluyente: agua estéril o tampón fosfato</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧫 Filtración y siembra</div><div class="step-badge">PASO 4.4–4.5</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Colocar filtro estéril con pinzas sobre el sistema</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Filtrar 100 mL de muestra o dilución</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Transferir filtro al medio selectivo con cara filtrante hacia arriba</div></div>
+        <div class="confirm-step"><div class="confirm-n">4</div><div>Incubar placas invertidas según los tiempos indicados</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⏱ Incubación</div><div class="step-badge">PASO 4.5</div></div>
+      <div class="dc-b">
+        <div class="kv"><div class="kv-k"><em>E. coli</em></div><div class="kv-v">18 – 24 h</div></div>
+        <div class="kv"><div class="kv-k">Enterococos</div><div class="kv-v">24 – 48 h</div></div>
+        <div class="kv"><div class="kv-k">Posición placas</div><div class="kv-v">Invertidas</div></div>
+        <div class="kv"><div class="kv-k">Cara filtro</div><div class="kv-v">Hacia arriba</div></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-micro-lect">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔎 Lectura de colonias</div><div class="step-badge">PASO 4.6</div></div>
+      <div class="dc-b">
+        <div class="txt">Tras la incubación, observar y contar colonias características.</div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin:6px 0">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">E. coli</div>
+          <div style="font-size:11px;color:var(--text)">Colonias <strong style="color:#9b59b6">violeta</strong> → posibles positivos</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">Añadir reactivo Kovacs → vira a <strong style="color:var(--red)">rojo cereza</strong> en segundos = E. coli confirmada</div>
+        </div>
+        <div style="font-size:11px;color:var(--accent);font-weight:600;margin-top:4px">Resultado: UFC / 100 mL</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧫 Confirmación E. coli — Kovacs</div></div>
+      <div class="dc-b">
+        <div class="confirm-step"><div class="confirm-n">1</div><div>Identificar colonias de color violeta</div></div>
+        <div class="confirm-step"><div class="confirm-n">2</div><div>Añadir reactivo Kovacs sobre las colonias violeta</div></div>
+        <div class="confirm-step"><div class="confirm-n">3</div><div>Observar durante unos segundos</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--red)">✓</div><div><strong style="color:var(--red)">Vira a rojo cereza</strong> → E. coli confirmada</div></div>
+        <div class="confirm-step"><div class="confirm-n" style="color:var(--text3)">✗</div><div style="color:var(--text3)">No vira → negativo</div></div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">✅ Control de calidad</div></div>
+      <div class="dc-b">
+        <div class="alert-item info"><div class="alert-title">Esterilidad</div>Verificar siempre la esterilidad del material.</div>
+        <div class="alert-item warning"><div class="alert-title">Diluciones</div>Seleccionar diluciones que permitan recuentos interpretables.</div>
+        <div class="alert-item danger"><div class="alert-title">Contaminación</div>Evitar contaminaciones durante todo el proceso.</div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>` + footer('MICRO','E. coli y Enterococos · Filtración membrana · UFC/100 mL');
+}
+
+// ── SEQUEDAD ──
+function buildSequedad() {
+  const p = PROCS.find(x=>x.id==='sequedad');
+  return header(p,'ANÁLISIS GRAVIMÉTRICO') + `
+  <div class="scrollable">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Sequedad</div><div class="txt">Fracción de sólidos tras eliminar el agua por secado a <strong>105 °C</strong>.</div>
+        <div class="lbl">Materia volátil</div><div class="txt" style="margin:0">Fracción orgánica perdida por calcinación a <strong>550 °C</strong>.</div>
+        <div style="margin-top:8px">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Crisoles (porcelana/metálicos)</li>
+            <li><div class="mat-dot"></div>Estufa a 105 °C</li>
+            <li><div class="mat-dot"></div>Mufla a 550 °C</li>
+            <li><div class="mat-dot"></div>Balanza analítica</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento</div><div class="step-badge">8 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Limpiar y secar el crisol. Pesar crisol vacío → <strong>P₁</strong>.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Añadir muestra de fango. Pesar crisol + muestra húmeda → <strong>P₂</strong>.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Introducir en estufa a 105 °C durante 24 horas.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Retirar, enfriar y pesar → <strong>P₃</strong>. Calcular sequedad.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Seq (%) = (P₃–P₁) / (P₂–P₁) × 100</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Introducir crisol seco en mufla a 550 °C durante ~2 horas.</div></li>
+          <li class="step-item"><div class="step-n">7</div><div class="step-t">Retirar, enfriar y pesar → <strong>P₄</strong>.</div></li>
+          <li class="step-item"><div class="step-n">8</div><div class="step-t">MV (%) = (P₃–P₄) / (P₃–P₁) × 100</div></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🌡 Estufa — Sequedad</div><div class="step-badge">PASO 3</div></div>
+        <div class="dc-b" style="text-align:center">
+          <div class="temp-big" style="justify-content:center"><span>🌡</span>105<span>°C</span></div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--yellow)">24 horas</div>
+          <div class="timer-block" style="justify-content:center;margin-top:4px">
+            <div class="timer-disp" id="td-seq-est" data-rem="86400">${fmt(86400)}</div>
+            <button class="btn-timer" id="tb-seq-est" onclick="startTimer('seq-est',86400,'td-seq-est','tb-seq-est')">Iniciar</button>
+          </div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🔥 Mufla — Volátil</div><div class="step-badge">PASO 6</div></div>
+        <div class="dc-b" style="text-align:center">
+          <div class="temp-big" style="justify-content:center;color:var(--red)"><span>🔥</span>550<span>°C</span></div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--red)">~2 horas</div>
+          <div class="timer-block" style="justify-content:center;margin-top:4px">
+            <div class="timer-disp" id="td-seq-muf" data-rem="7200">${fmt(7200)}</div>
+            <button class="btn-timer" id="tb-seq-muf" onclick="startTimer('seq-muf',7200,'td-seq-muf','tb-seq-muf')">Iniciar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">🧮 Fórmulas</div></div>
+        <div class="dc-b">
+          <div class="kv"><div class="kv-k">P₁</div><div class="kv-v">Crisol vacío</div></div>
+          <div class="kv"><div class="kv-k">P₂</div><div class="kv-v">Crisol + húmedo</div></div>
+          <div class="kv"><div class="kv-k">P₃</div><div class="kv-v">Crisol + seco (105°C)</div></div>
+          <div class="kv"><div class="kv-k">P₄</div><div class="kv-v">Crisol + calcinado</div></div>
+          <div class="formula" style="margin-top:6px">Seq(%) = (P₃–P₁)/(P₂–P₁)×100<br>MV(%) = (P₃–P₄)/(P₃–P₁)×100</div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">⚠ Advertencias</div></div>
+        <div class="dc-b">
+          <div class="alert-item warning"><div class="alert-title">Pesada en frío</div>Pesar siempre con el crisol completamente enfriado.</div>
+          <div class="alert-item info"><div class="alert-title">Temperaturas</div>Verificar 105 °C y 550 °C antes de introducir muestras.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('SEQ','Sequedad y Materia Volátil · Estufa 105°C / Mufla 550°C');
+}
+
+// ── SOLIDOS (con pestañas) ──
+function buildSolidos() {
+  const p = PROCS.find(x=>x.id==='solidos');
+  return header(p,'ANÁLISIS GRAVIMÉTRICO') + `
+  <div class="tabs">
+    <div class="tab active" data-tab="ss" onclick="switchTab('solidos','ss')">SS — Suspensión</div>
+    <div class="tab" data-tab="sd" onclick="switchTab('solidos','sd')">SD — Disueltos</div>
+    <div class="tab" data-tab="ssv" onclick="switchTab('solidos','ssv')">SSV — Volátiles</div>
+  </div>
+  <div class="scrollable">
+
+  <div class="tab-panel active" id="tp-solidos-ss">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔵 Sólidos en suspensión (SS)</div></div>
+      <div class="dc-b">
+        <div class="lbl">Definición</div><div class="txt">Fracción <strong>retenida en el filtro</strong> tras la filtración.</div>
+        <div class="formula">SS (mg/L) = (P₂–P₁) / V × 1000</div>
+        <div class="kv" style="margin-top:6px"><div class="kv-k">Estufa</div><div class="kv-v">105 °C</div></div>
+        <div class="kv"><div class="kv-k">Tiempo</div><div class="kv-v">~5 h hasta peso constante</div></div>
+        <div class="timer-block" style="margin-top:8px">
+          <div class="timer-disp" id="td-sol-ss" data-rem="18000">${fmt(18000)}</div>
+          <button class="btn-timer" id="tb-sol-ss" onclick="startTimer('sol-ss',18000,'td-sol-ss','tb-sol-ss')">Iniciar</button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento SS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Secar filtro a 105 °C (si no está acondicionado). Pesar → <strong>P₁</strong>.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Colocar filtro en rampa y fijar embudo con pinza.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Homogeneizar muestra. Medir 100 mL con probeta y verter sobre el filtro.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Retirar filtro. Secar a 105 °C hasta peso constante (~5 h) → <strong>P₂</strong>.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Calcular: SS (mg/L) = (P₂–P₁) / V × 1000</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚠ Advertencias</div></div>
+      <div class="dc-b">
+        <div class="alert-item warning"><div class="alert-title">Filtro saturado</div>Si se satura, registrar el volumen real filtrado (&lt;100 mL) para el cálculo.</div>
+        <div class="alert-item info"><div class="alert-title">Peso constante</div>Secar el filtro hasta peso constante. En condiciones habituales ~5 h.</div>
+        <div style="margin-top:8px">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Filtros fibra de vidrio</li>
+            <li><div class="mat-dot"></div>Rampa + embudo + pinza</li>
+            <li><div class="mat-dot"></div>Probeta 100 mL</li>
+            <li><div class="mat-dot"></div>Balanza analítica</li>
+            <li><div class="mat-dot"></div>Estufa 105 °C</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-solidos-sd">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🟢 Sólidos disueltos (SD)</div></div>
+      <div class="dc-b">
+        <div class="lbl">Definición</div><div class="txt">Fracción que <strong>atraviesa el filtro</strong> y permanece tras evaporación.</div>
+        <div class="formula">SD (mg/L) = (V₂–V₁) / V × 1000</div>
+        <div class="kv" style="margin-top:6px"><div class="kv-k">Estufa</div><div class="kv-v">105 °C</div></div>
+        <div class="kv"><div class="kv-k">Tiempo</div><div class="kv-v">~24 h hasta sequedad</div></div>
+        <div class="timer-block" style="margin-top:8px">
+          <div class="timer-disp" id="td-sol-sd" data-rem="86400">${fmt(86400)}</div>
+          <button class="btn-timer" id="tb-sol-sd" onclick="startTimer('sol-sd',86400,'td-sol-sd','tb-sol-sd')">Iniciar</button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento SD</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Pesar vaso de precipitados limpio y seco → <strong>V₁</strong>.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Recoger el filtrado (proveniente de la filtración de SS) en el vaso.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Secar en estufa a 105 °C durante ~24 h hasta sequedad completa.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Pesar y registrar masa final → <strong>V₂</strong>.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Calcular: SD (mg/L) = (V₂–V₁) / V × 1000</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📌 Nota importante</div></div>
+      <div class="dc-b">
+        <div class="alert-item info"><div class="alert-title">Secuencia</div>El filtrado para SD se recoge en el mismo paso de filtración que el SS. Ambas determinaciones son simultáneas.</div>
+        <div class="alert-item warning"><div class="alert-title">Volumen</div>Usar el mismo volumen V registrado en la filtración de SS para el cálculo.</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-panel" id="tp-solidos-ssv">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🔴 Sólidos en suspensión volátiles (SSV)</div></div>
+      <div class="dc-b">
+        <div class="lbl">Definición</div><div class="txt">Fracción orgánica <strong>volatilizada</strong> por calcinación a alta temperatura.</div>
+        <div class="formula">SSV (mg/L) = (P₂–P₃) / V × 1000</div>
+        <div class="kv" style="margin-top:6px"><div class="kv-k">Mufla</div><div class="kv-v">550 °C</div></div>
+        <div class="kv"><div class="kv-k">Tiempo</div><div class="kv-v">~2 horas</div></div>
+        <div class="kv"><div class="kv-k">Muestra</div><div class="kv-v">Filtro seco (post SS)</div></div>
+        <div class="timer-block" style="margin-top:8px">
+          <div class="timer-disp" id="td-sol-ssv" data-rem="7200">${fmt(7200)}</div>
+          <button class="btn-timer" id="tb-sol-ssv" onclick="startTimer('sol-ssv',7200,'td-sol-ssv','tb-sol-ssv')">Iniciar</button>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento SSV</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Tomar el filtro seco usado en la determinación de SS (ya pesado como P₂).</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Introducir el filtro en la mufla a 550 °C durante ~2 horas.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Retirar, enfriar completamente y pesar → <strong>P₃</strong>.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Calcular: SSV (mg/L) = (P₂–P₃) / V × 1000</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🧮 Resumen fórmulas</div></div>
+      <div class="dc-b">
+        <div class="formula">SS  (mg/L) = (P₂–P₁)/V × 1000<br>SD  (mg/L) = (V₂–V₁)/V × 1000<br>SSV (mg/L) = (P₂–P₃)/V × 1000</div>
+        <div class="alert-item info" style="margin-top:8px"><div class="alert-title">Secuencia de determinaciones</div>SS → recoger filtrado (SD) → mufla con filtro seco (SSV)</div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>` + footer('SS·SD·SSV','Sólidos en Suspensión, Disueltos y Volátiles · Filtración Gravimétrica');
+}
+
+// ── V30 ──
+function buildV30() {
+  const p = PROCS.find(x=>x.id==='v30');
+  return header(p,'CONTROL OPERACIONAL') + `
+  <div class="scrollable">
+  <div class="dash r4">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">Volumen de sólidos sedimentables a 30 min en licor mezcla. Indicador de decantabilidad del fango.</div>
+        <div class="lbl">Fundamento</div><div class="txt" style="margin:0">Volumen ocupado por sólidos tras 30 min en probeta de 1 L. Detecta <strong style="color:var(--yellow)">bulking</strong> o mala sedimentación.</div>
+        <div style="margin-top:8px">
+          <ul class="mat-list" style="grid-template-columns:1fr">
+            <li><div class="mat-dot"></div>Probeta graduada 1 L</li>
+            <li><div class="mat-dot"></div>Cronómetro</li>
+            <li><div class="mat-dot"></div>Licor mezcla (mín. 1 L)</li>
+            <li><div class="mat-dot"></div>Agua efluente (diluciones)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⏱ Sedimentación — 30 min</div></div>
+      <div class="dc-b" style="text-align:center">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--accent);line-height:1">30</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:10px">minutos · sin perturbaciones</div>
+        <div class="timer-block" style="justify-content:center">
+          <div class="timer-disp" id="td-v30-s" data-rem="1800" style="font-size:30px">${fmt(1800)}</div>
+          <button class="btn-timer" id="tb-v30-s" onclick="startTimer('v30-s',1800,'td-v30-s','tb-v30-s')">Iniciar</button>
+        </div>
+        <div class="alert-item warning" style="margin-top:10px;text-align:left"><div class="alert-title">Precaución</div>Evitar vibraciones durante la sedimentación. Medir inmediatamente tras la toma.</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📐 Criterios de dilución</div><div class="step-badge">PASO 5.2</div></div>
+      <div class="dc-b">
+        <div class="dil-row"><div><div style="font-size:9px;color:var(--text3)">Medición directa</div><div class="dil-desc">V30 &lt; 800 mL/L</div></div><div class="dil-factor">×1</div></div>
+        <div class="dil-row"><div><div style="font-size:9px;color:var(--text3)">1 dilución 1:1</div><div class="dil-desc">V30 entre 800–900 mL/L</div></div><div class="dil-factor">×2</div></div>
+        <div class="dil-row"><div><div style="font-size:9px;color:var(--text3)">2 diluciones 1:1</div><div class="dil-desc">Sigue elevado tras 1ª</div></div><div class="dil-factor">×4</div></div>
+        <div class="formula" style="margin-top:6px">Sin dil.: V30 = medido<br>×1 dil.: V30 = medido × 2<br>×2 dil.: V30 = medido × 4</div>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">📋 Procedimiento</div><div class="step-badge">6 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Homogeneizar la muestra de licor mezcla.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Verter 1 L de muestra en la probeta de 1 L.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Dejar sedimentar sin perturbaciones durante 30 minutos.</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Registrar el volumen de sólidos sedimentados (mL/L).</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Si V30 entre 800–900: dilución 1:1 con efluente y repetir.</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Aplicar factor de corrección y expresar en mL/L.</div></li>
+        </ul>
+        <div class="alert-item info" style="margin-top:6px"><div class="alert-title">Control de calidad</div>Registrar siempre si se han realizado diluciones y el factor aplicado.</div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('V30','Sólidos Sedimentables · 30 minutos · Licor mezcla EDAR');
+}
+
+// ── TURBIDEZ ──
+function buildTurbidez() {
+  const p = PROCS.find(x=>x.id==='turbidez');
+  return header(p,'MÉTODO NEFELOMÉTRICO') + `
+  <div class="scrollable">
+  <div class="dash r3">
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">🎯 Objetivo y fundamento</div></div>
+      <div class="dc-b">
+        <div class="lbl">Objetivo</div><div class="txt">Determinar la turbidez de una muestra de agua para el control de calidad.</div>
+        <div class="lbl">Fundamento</div><div class="txt">La turbidez mide la <strong>dispersión de la luz</strong> causada por partículas en suspensión. Se determina con turbidímetro y se expresa en <strong style="color:var(--accent)">NTU</strong>.</div>
+        <div class="lbl">Materiales</div>
+        <ul class="mat-list" style="grid-template-columns:1fr;margin-top:2px">
+          <li><div class="mat-dot"></div>Turbidímetro nefelométrico</li>
+          <li><div class="mat-dot"></div>Viales o cubetas de medición</li>
+          <li><div class="mat-dot"></div>Paño seco (limpieza vial)</li>
+          <li><div class="mat-dot"></div>Muestra de agua</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dc">
+      <div class="dc-h"><div class="dc-ht">⚡ Procedimiento</div><div class="step-badge">6 PASOS</div></div>
+      <div class="dc-b" style="padding:4px 6px">
+        <ul class="step-list">
+          <li class="step-item"><div class="step-n">1</div><div class="step-t">Homogeneizar la muestra suavemente, evitando la formación de burbujas.</div></li>
+          <li class="step-item"><div class="step-n">2</div><div class="step-t">Introducir la muestra en un vial limpio hasta el volumen indicado.</div></li>
+          <li class="step-item"><div class="step-n">3</div><div class="step-t">Limpiar el exterior del vial con paño seco (eliminar huellas y gotas).</div></li>
+          <li class="step-item"><div class="step-n">4</div><div class="step-t">Colocar el vial en el turbidímetro.</div></li>
+          <li class="step-item"><div class="step-n">5</div><div class="step-t">Pulsar el botón <strong>READ</strong> para realizar la medición.</div></li>
+          <li class="step-item"><div class="step-n">6</div><div class="step-t">Leer y registrar el resultado en NTU.</div></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">📊 Resultado</div></div>
+        <div class="dc-b" style="text-align:center;padding:16px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--accent)">NTU</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">El equipo muestra directamente el valor de turbidez</div>
+        </div>
+      </div>
+      <div class="dc">
+        <div class="dc-h"><div class="dc-ht">⚠ Advertencias</div></div>
+        <div class="dc-b">
+          <div class="alert-item warning"><div class="alert-title">Burbujas</div>Homogeneizar suavemente. Las burbujas generan lecturas erróneas.</div>
+          <div class="alert-item warning"><div class="alert-title">Limpieza del vial</div>Huellas y gotas en el exterior afectan a la medición.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>` + footer('TURBIDEZ','Determinación de Turbidez · Nefelométrico · NTU');
+}
+
+// ── BUILD ALL ──
+const builders = { cloro:buildCloro, dbo5:buildDBO5, micro:buildMicro, sequedad:buildSequedad, solidos:buildSolidos, v30:buildV30, turbidez:buildTurbidez };
+const container = document.getElementById('proc-screens');
+PROCS.forEach(p => {
+  const div = document.createElement('div');
+  div.className = 'screen proc-screen';
+  div.id = 'ps-' + p.id;
+  div.innerHTML = builders[p.id]();
+  container.appendChild(div);
+});
+
+buildHome();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+buildHome();
+</script>
+</body>
+</html>
