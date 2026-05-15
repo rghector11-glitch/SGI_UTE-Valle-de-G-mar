@@ -34,7 +34,8 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(cached => {
       const network = fetch(e.request).then(res => {
         if(res && res.status === 200 && res.type === 'basic') {
-          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          const toCache = res.clone(); // clone BEFORE returning
+          caches.open(CACHE).then(c => c.put(e.request, toCache));
         }
         return res;
       }).catch(() => cached);
