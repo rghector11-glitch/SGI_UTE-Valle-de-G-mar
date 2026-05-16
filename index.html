@@ -326,58 +326,68 @@ body::before {
 .logout-btn:hover { background: rgba(255,255,255,.22); }
 
 
-/* ── DIAGNÓSTICO ── */
-.diag-btn {
-  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
-  border-radius: 8px; color: white; cursor: pointer;
-  padding: 5px 10px; font-size: .78rem; font-family: 'Barlow', sans-serif;
-  display: flex; align-items: center; gap: 4px; font-weight: 600;
-  transition: background .15s; flex-shrink: 0;
+/* ── DIAGNÓSTICO M08 ── */
+#m08-overlay {
+  display: none; position: fixed; inset: 0; z-index: 8999;
 }
-.diag-btn:hover { background: rgba(255,255,255,.22); }
-.diag-dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; transition: background .3s; }
-.diag-dot.ok    { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
-.diag-dot.warn  { background: #f59e0b; box-shadow: 0 0 6px #f59e0b88; }
-.diag-dot.error { background: #ef4444; box-shadow: 0 0 6px #ef444488; }
-.diag-dot.checking { background: #94a3b8; animation: diag-pulse 1s infinite; }
-@keyframes diag-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-#diag-panel {
-  display: none; position: fixed; top: 64px; right: 16px; z-index: 9000;
-  width: min(420px, calc(100vw - 32px));
-  background: #0f172a; border: 1px solid #1e293b;
-  border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,.6);
+#m08-overlay.open { display: block; }
+#m08-panel {
+  position: fixed; top: 60px; right: 16px; z-index: 9000;
+  width: min(400px, calc(100vw - 32px));
+  background: #0f172a; border: 1px solid #1e3a5f;
+  border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.7);
   font-family: 'Barlow', sans-serif; overflow: hidden;
+  display: none;
 }
-#diag-panel.open { display: block; }
-.diag-header {
+#m08-panel.open { display: flex; flex-direction: column; }
+#m08-head {
   background: linear-gradient(135deg,#003e6b,#005b99);
-  padding: .75rem 1rem; display: flex; align-items: center; gap: .6rem;
+  padding: .7rem 1rem; display: flex; align-items: center; gap: .5rem;
 }
-.diag-header h3 { font-family: 'Barlow Condensed',sans-serif; font-size: 1rem; font-weight: 700; color: white; flex: 1; }
-.diag-close { background: rgba(255,255,255,.15); border: none; border-radius: 6px; color: white; cursor: pointer; padding: 3px 8px; font-size: .8rem; }
-.diag-body { padding: .9rem 1rem; display: flex; flex-direction: column; gap: .55rem; max-height: 70vh; overflow-y: auto; }
-.diag-item {
-  display: flex; align-items: flex-start; gap: .7rem;
-  background: #1e293b; border: 1px solid #334155;
-  border-radius: 9px; padding: .65rem .85rem;
+#m08-head h3 {
+  font-family: 'Barlow Condensed',sans-serif; font-size: 1rem;
+  font-weight: 700; color: white; flex: 1; margin: 0;
 }
-.diag-item.ok    { border-color: #166534; background: #052e16; }
-.diag-item.warn  { border-color: #92400e; background: #1c1007; }
-.diag-item.error { border-color: #7f1d1d; background: #1c0a0a; }
-.diag-item-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-.diag-item-icon.ok    { background: #166534; }
-.diag-item-icon.warn  { background: #92400e; }
-.diag-item-icon.error { background: #7f1d1d; }
-.diag-item-icon.checking { background: #1e3a5f; }
-.diag-item-body { flex: 1; min-width: 0; }
-.diag-item-title { font-size: .82rem; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; }
-.diag-item-desc  { font-size: .72rem; color: #94a3b8; line-height: 1.45; }
-.diag-item-fix   { font-size: .72rem; color: #f59e0b; margin-top: 4px; line-height: 1.4; }
-.diag-footer { padding: .6rem 1rem; border-top: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; }
-.diag-refresh { background: none; border: 1px solid #334155; border-radius: 7px; color: #94a3b8; cursor: pointer; font-size: .75rem; padding: 4px 12px; font-family: 'Barlow',sans-serif; }
-.diag-refresh:hover { background: #1e293b; color: white; }
-.diag-stamp { font-size: .68rem; color: #475569; font-family: 'JetBrains Mono',monospace; }
+#m08-close {
+  background: rgba(255,255,255,.15); border: none; border-radius: 6px;
+  color: white; cursor: pointer; padding: 3px 10px; font-size: .85rem; line-height: 1.4;
+}
+#m08-body {
+  padding: .85rem 1rem; display: flex; flex-direction: column;
+  gap: .5rem; max-height: 65vh; overflow-y: auto;
+}
+#m08-footer {
+  padding: .55rem 1rem; border-top: 1px solid #1e293b;
+  display: flex; align-items: center; justify-content: space-between;
+}
+#m08-recheck {
+  background: none; border: 1px solid #334155; border-radius: 7px;
+  color: #94a3b8; cursor: pointer; font-size: .75rem;
+  padding: 4px 12px; font-family: 'Barlow',sans-serif;
+}
+#m08-recheck:hover { background: #1e293b; color: white; }
+#m08-stamp { font-size: .68rem; color: #475569; }
+.m08-row {
+  display: flex; align-items: flex-start; gap: .65rem;
+  border-radius: 9px; padding: .6rem .8rem;
+  border: 1px solid #334155; background: #1e293b;
+}
+.m08-row.ok    { border-color: #166534; background: #052e16; }
+.m08-row.warn  { border-color: #92400e; background: #1c1007; }
+.m08-row.error { border-color: #7f1d1d; background: #1c0a0a; }
+.m08-ico {
+  font-size: 1rem; width: 26px; height: 26px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: #1e3a5f;
+}
+.m08-row.ok   .m08-ico { background: #166534; }
+.m08-row.warn .m08-ico { background: #92400e; }
+.m08-row.error .m08-ico { background: #7f1d1d; }
+.m08-info { flex: 1; min-width: 0; }
+.m08-title { font-size: .8rem; font-weight: 600; color: #e2e8f0; margin-bottom: 2px; }
+.m08-desc  { font-size: .71rem; color: #94a3b8; line-height: 1.4; }
+.m08-fix   { font-size: .71rem; color: #f59e0b; margin-top: 3px; line-height: 1.4; }
+.m08-badge { font-size: .85rem; flex-shrink: 0; align-self: center; }
 
 
 /* ── BUZÓN DE SUGERENCIAS ── */
@@ -676,19 +686,19 @@ body::before {
 </div>
 
 <!-- ═══ PANEL DIAGNÓSTICO ═══ -->
-<div id="diag-panel">
-  <div class="diag-header">
-    <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;stroke:white;stroke-width:1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
-    <h3>Diagnóstico del portal</h3>
-    <div id="diag-global-dot" class="diag-dot checking" style="margin-left:auto;margin-right:8px;"></div>
-    <button class="diag-close" id="diag-btn" onclick="toggleDiag()">✕</button>
+<!-- M08 DIAGNÓSTICO -->
+<div id="m08-overlay" onclick="m08Close()"></div>
+<div id="m08-panel">
+  <div id="m08-head">
+    <h3>🔍 Diagnóstico del portal</h3>
+    <button id="m08-close" onclick="m08Close()">✕</button>
   </div>
-  <div class="diag-body" id="diag-body">
-    <div style="text-align:center;padding:1.5rem;color:#94a3b8;font-size:.82rem;">Comprobando...</div>
+  <div id="m08-body">
+    <div style="text-align:center;padding:2rem;color:#94a3b8;font-size:.82rem;">Iniciando comprobación…</div>
   </div>
-  <div class="diag-footer">
-    <button class="diag-refresh" onclick="runDiag()">↺ Volver a comprobar</button>
-    <div class="diag-stamp" id="diag-stamp">—</div>
+  <div id="m08-footer">
+    <button id="m08-recheck" onclick="m08Run()">↺ Repetir</button>
+    <span id="m08-stamp" style="font-size:.68rem;color:#475569;">—</span>
   </div>
 </div>
 
@@ -1090,7 +1100,7 @@ body::before {
             </div></div>
 
             <!-- M08 Estado del sistema -->
-            <div class="mc" onclick="toggleDiag()" role="button" tabindex="0" style="--mc-color:var(--accent)">
+            <div class="mc" onclick="m08Open()" role="button" tabindex="0" style="--mc-color:var(--accent)">
               <div class="mc-ilu" style="">
                 <div class="mc-num">M·08</div>
                 <div class="mc-badge ok" id="mc-status-badge">OPERATIVO</div>
@@ -1167,7 +1177,7 @@ body::before {
             </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
               <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">DIAGNÓSTICO DEL PORTAL</div>
-              <button style="background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;padding:6px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;" onclick="toggleDiag()">EJECUTAR DIAGNÓSTICO</button>
+              <button style="background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;padding:6px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;" onclick="m08Open()">EJECUTAR DIAGNÓSTICO</button>
             </div>
           </div>
         </div>
@@ -2485,207 +2495,161 @@ document.addEventListener('fullscreenchange', () => {
 
 // ══════════════════════════════════════════════════════════════
 // DIAGNÓSTICO DEL PORTAL
-// ══════════════════════════════════════════════════════════════
-let _diagOpen = false;
-let _diagOpenedAt = 0;
+// ══ M08 DIAGNÓSTICO (reescrito) ══
+(function() {
 
-function toggleDiag() {
-  _diagOpen = !_diagOpen;
-  if(_diagOpen) _diagOpenedAt = Date.now();
-  document.getElementById('diag-panel').classList.toggle('open', _diagOpen);
-  if(_diagOpen) runDiag();
-}
-
-// Close panel when clicking outside (but not the same click that opened it)
-document.addEventListener('click', e => {
-  if(!_diagOpen) return;
-  if(Date.now() - _diagOpenedAt < 150) return;
-  const panel = document.getElementById('diag-panel');
-  const btn   = document.getElementById('diag-btn');
-  if(!panel.contains(e.target) && !(btn && btn.contains(e.target))) {
-    _diagOpen = false;
-    panel.classList.remove('open');
+  function m08Open() {
+    document.getElementById('m08-overlay').classList.add('open');
+    document.getElementById('m08-panel').classList.add('open');
+    m08Run();
   }
-});
-
-async function runDiag() {
-  const body = document.getElementById('diag-body');
-  body.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#94a3b8;font-size:.82rem;">Comprobando...</div>';
-
-  const checks = [];
-  const results = [];
-
-  // ── 1. Conectividad general ────────────────────────────────────────────────
-  checks.push((async () => {
-    const online = navigator.onLine;
-    return {
-      id: 'net',
-      title: 'Conectividad de red',
-      ok: online ? 'ok' : 'error',
-      icon: online ? '🌐' : '📵',
-      desc: online ? 'El dispositivo tiene acceso a internet.' : 'Sin conexión a internet.',
-      fix: online ? null : 'Verifica tu WiFi o datos móviles e inténtalo de nuevo.'
-    };
-  })());
-
-  // ── 2. Firebase ────────────────────────────────────────────────────────────
-  checks.push((async () => {
-    const fbReady = !!window._fb;
-    let fbWrite = false;
-    if(fbReady) {
-      try {
-        const _fbTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
-        await Promise.race([
-          window._fb.set(window._fb.ref(window._fb.db, '_diag_ping'), Date.now()),
-          _fbTimeout
-        ]);
-        fbWrite = true;
-      } catch(e) { fbWrite = false; }
-    }
-    const st = fbReady && fbWrite ? 'ok' : fbReady ? 'warn' : 'error';
-    return {
-      id: 'fb',
-      title: 'Firebase Realtime Database',
-      ok: st,
-      icon: st === 'ok' ? '🔥' : '⚠️',
-      desc: fbReady && fbWrite ? 'Conectado y con escritura correcta. Sincronización activa.'
-           : fbReady ? 'SDK cargado pero la escritura falló. Las reglas pueden estar mal configuradas.'
-           : 'Firebase no ha cargado. Puede ser un problema de red o CORS.',
-      fix: st !== 'ok' ? (fbReady
-        ? 'Comprueba las reglas en Firebase Console → Realtime Database → Reglas. Deben ser ".read": true, ".write": true'
-        : 'Comprueba la conexión a internet y recarga la página.')
-        : null
-    };
-  })());
-
-  // ── 3. Sesión de usuario ───────────────────────────────────────────────────
-  checks.push((async () => {
-    const session = getSession();
-    const ok = session && session.username;
-    return {
-      id: 'session',
-      title: 'Sesión de usuario',
-      ok: ok ? 'ok' : 'warn',
-      icon: ok ? '👤' : '🔒',
-      desc: ok
-        ? `Sesión activa: ${session.username} (${session.role}). Iniciada el ${new Date(session.loginAt).toLocaleDateString('es-ES')}.`
-        : 'No hay sesión activa en este dispositivo.',
-      fix: ok ? null : 'Inicia sesión con tu usuario y contraseña.'
-    };
-  })());
-
-  // ── 4. Service Worker ──────────────────────────────────────────────────────
-  checks.push((async () => {
-    if(!('serviceWorker' in navigator)) {
-      return { id:'sw', title:'Service Worker (PWA)', ok:'warn', icon:'📦',
-        desc:'Este navegador no soporta Service Workers. La app no puede instalarse.',
-        fix:'Usa Chrome o Edge en su versión más reciente.' };
-    }
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      const active = regs.some(r => r.active);
-      return { id:'sw', title:'Service Worker (PWA)', ok: active ? 'ok' : 'warn', icon: active ? '📦' : '⚙️',
-        desc: active ? `Service Worker activo. La app puede funcionar sin conexión y es instalable.`
-                     : 'Service Worker registrado pero no activo todavía. Recarga la página.',
-        fix: active ? null : 'Recarga la página con Ctrl+Shift+R para activar el Service Worker.' };
-    } catch(e) {
-      return { id:'sw', title:'Service Worker (PWA)', ok:'warn', icon:'⚙️',
-        desc:'No se pudo comprobar el estado del Service Worker.',
-        fix: 'Recarga la página.' };
-    }
-  })());
-
-  // ── 5. Caché offline ───────────────────────────────────────────────────────
-  checks.push((async () => {
-    if(!('caches' in window)) {
-      return { id:'cache', title:'Caché offline', ok:'warn', icon:'💾',
-        desc:'El navegador no soporta la API de caché.', fix: null };
-    }
-    try {
-      const keys = await caches.keys();
-      const hasCache = keys.length > 0;
-      const cacheKey = keys.find(k => k.startsWith('ute-sgi'));
-      return { id:'cache', title:'Caché offline', ok: hasCache ? 'ok' : 'warn', icon:'💾',
-        desc: hasCache
-          ? `Caché activa (${keys.length} versión${keys.length>1?'es':''}). El portal carga aunque no haya internet.`
-          : 'Sin caché todavía. Navega por las apps para que se cacheen.',
-        fix: hasCache ? null : 'Abre cada módulo del portal al menos una vez con conexión.' };
-    } catch(e) {
-      return { id:'cache', title:'Caché offline', ok:'warn', icon:'💾',
-        desc:'No se pudo comprobar la caché.', fix: null };
-    }
-  })());
-
-  // ── 6. Módulos críticos ────────────────────────────────────────────────────
-  checks.push((async () => {
-    const missing = [];
-    if(typeof React === 'undefined')    missing.push('React');
-    if(typeof ReactDOM === 'undefined') missing.push('ReactDOM');
-    if(typeof Babel === 'undefined')    missing.push('Babel');
-    if(typeof XLSX === 'undefined')     missing.push('XLSX (SheetJS)');
-    const ok = missing.length === 0;
-    return { id:'libs', title:'Librerías externas', ok: ok ? 'ok' : 'warn', icon: ok ? '📚' : '⚠️',
-      desc: ok ? 'Todas las librerías cargadas correctamente (React, Babel, XLSX).'
-               : `Faltan: ${missing.join(', ')}. Algunas apps pueden no funcionar.`,
-      fix: ok ? null : 'Verifica tu conexión a internet y recarga la página. Las librerías se cargan desde CDN externo.' };
-  })());
-
-  // ── Resolver todos y renderizar (con timeout global de 8s) ──────────────────
-  const _globalTimeout = new Promise(resolve =>
-    setTimeout(() => resolve(checks.map(() => ({
-      id:'timeout', title:'Comprobación', ok:'warn', icon:'⏱️',
-      desc:'La comprobación tardó demasiado. Puede haber un problema de red.',
-      fix:'Recarga la página e inténtalo de nuevo.'
-    }))), 8000)
-  );
-  const resolved = await Promise.race([Promise.all(checks), _globalTimeout]);
-
-  const globalOk = resolved.every(r => r.ok === 'ok') ? 'ok'
-                 : resolved.some(r => r.ok === 'error') ? 'error' : 'warn';
-
-  // Update global dot
-  const dot = document.getElementById('diag-global-dot');
-  if(dot) dot.className = 'diag-dot ' + globalOk;
-
-  // Render
-  const now = new Date();
-  document.getElementById('diag-stamp').textContent =
-    `Última comprobación: ${now.toLocaleTimeString('es-ES')}`;
-
-  body.innerHTML = resolved.map(r => `
-    <div class="diag-item ${r.ok}">
-      <div class="diag-item-icon ${r.ok}">${r.icon}</div>
-      <div class="diag-item-body">
-        <div class="diag-item-title">${r.title}</div>
-        <div class="diag-item-desc">${r.desc}</div>
-        ${r.fix ? `<div class="diag-item-fix">💡 ${r.fix}</div>` : ''}
-      </div>
-      <div style="font-size:1rem;flex-shrink:0;">${r.ok==='ok'?'✅':r.ok==='warn'?'⚠️':'❌'}</div>
-    </div>
-  `).join('');
-}
-
-// Run diagnostics automatically on load (just the dot indicator)
-window.addEventListener('firebase-ready', () => {
-  runDiag().catch(()=>{});
-});
-setTimeout(() => {
-  if(!_diagOpen) {
-    // Just update the dot without opening the panel
-    Promise.all([
-      navigator.onLine,
-      !!window._fb,
-      !!getSession()?.username,
-    ]).then(([online, fb]) => {
-      const dot = document.getElementById('diag-global-dot');
-      if(!dot) return;
-      if(!online) { if(dot) dot.className = 'diag-dot error'; return; }
-      if(!fb)     { if(dot) dot.className = 'diag-dot warn'; return; }
-      if(dot) dot.className = 'diag-dot ok';
-    });
+  function m08Close() {
+    document.getElementById('m08-overlay').classList.remove('open');
+    document.getElementById('m08-panel').classList.remove('open');
   }
-}, 3000);
 
+  // Exponer globalmente para el onclick del módulo
+  window.m08Open  = m08Open;
+  window.m08Close = m08Close;
+  window.m08Run   = m08Run;
+
+  async function m08Run() {
+    var body = document.getElementById('m08-body');
+    body.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:.82rem;">Comprobando…</div>';
+
+    // Ejecutar cada check de forma independiente con try/catch total
+    var results = await Promise.all([
+      checkNet(),
+      checkFirebase(),
+      checkSession(),
+      checkSW(),
+      checkCache(),
+      checkLibs()
+    ]);
+
+    // Renderizar
+    body.innerHTML = results.map(function(r) {
+      return '<div class="m08-row ' + r.st + '">' +
+        '<div class="m08-ico">' + r.icon + '</div>' +
+        '<div class="m08-info">' +
+          '<div class="m08-title">' + r.title + '</div>' +
+          '<div class="m08-desc">' + r.desc + '</div>' +
+          (r.fix ? '<div class="m08-fix">💡 ' + r.fix + '</div>' : '') +
+        '</div>' +
+        '<div class="m08-badge">' + (r.st==='ok'?'✅':r.st==='warn'?'⚠️':'❌') + '</div>' +
+      '</div>';
+    }).join('');
+
+    var now = new Date();
+    document.getElementById('m08-stamp').textContent =
+      'Última: ' + now.toLocaleTimeString('es-ES');
+  }
+
+  // ── Checks individuales ───────────────────────────────────────────────────
+
+  async function checkNet() {
+    try {
+      var ok = navigator.onLine;
+      return {
+        st: ok ? 'ok' : 'error', icon: ok ? '🌐' : '📵',
+        title: 'Conectividad de red',
+        desc: ok ? 'El dispositivo tiene acceso a internet.' : 'Sin conexión a internet.',
+        fix: ok ? null : 'Verifica WiFi o datos móviles.'
+      };
+    } catch(e) {
+      return { st:'warn', icon:'🌐', title:'Conectividad de red', desc:'No se pudo comprobar.', fix:null };
+    }
+  }
+
+  async function checkFirebase() {
+    try {
+      if(!window._fb) {
+        return { st:'error', icon:'🔥', title:'Firebase', desc:'Firebase no está cargado.', fix:'Recarga la página.' };
+      }
+      // Solo comprobar si el SDK está listo; sin escritura para evitar cuelgues
+      var fbOk = !!(window._fb.db && window._fb.ref && window._fb.get);
+      return {
+        st: fbOk ? 'ok' : 'warn', icon:'🔥',
+        title: 'Firebase Realtime DB',
+        desc: fbOk ? 'SDK conectado y listo.' : 'SDK cargado pero puede tener problemas.',
+        fix: fbOk ? null : 'Comprueba reglas en Firebase Console.'
+      };
+    } catch(e) {
+      return { st:'error', icon:'🔥', title:'Firebase', desc:'Error al comprobar Firebase: ' + e.message, fix:'Recarga la página.' };
+    }
+  }
+
+  async function checkSession() {
+    try {
+      var s = getSession();
+      var ok = s && s.username;
+      return {
+        st: ok ? 'ok' : 'warn', icon: ok ? '👤' : '🔒',
+        title: 'Sesión de usuario',
+        desc: ok ? 'Sesión activa: ' + s.username + ' (' + s.role + ').' : 'Sin sesión activa.',
+        fix: ok ? null : 'Inicia sesión.'
+      };
+    } catch(e) {
+      return { st:'warn', icon:'🔒', title:'Sesión de usuario', desc:'No se pudo leer la sesión.', fix:null };
+    }
+  }
+
+  async function checkSW() {
+    try {
+      if(!('serviceWorker' in navigator)) {
+        return { st:'warn', icon:'📦', title:'Service Worker', desc:'El navegador no soporta SW.', fix:'Usa Chrome o Edge.' };
+      }
+      var regs = await navigator.serviceWorker.getRegistrations();
+      var active = regs.some(function(r){ return r.active; });
+      return {
+        st: active ? 'ok' : 'warn', icon:'📦',
+        title: 'Service Worker (PWA)',
+        desc: active ? 'Activo. La app puede funcionar sin conexión.' : 'No activo todavía.',
+        fix: active ? null : 'Recarga con Ctrl+Shift+R.'
+      };
+    } catch(e) {
+      return { st:'warn', icon:'📦', title:'Service Worker', desc:'No se pudo comprobar.', fix:null };
+    }
+  }
+
+  async function checkCache() {
+    try {
+      if(!('caches' in window)) {
+        return { st:'warn', icon:'💾', title:'Caché offline', desc:'El navegador no soporta caché.', fix:null };
+      }
+      var keys = await caches.keys();
+      var ok = keys.length > 0;
+      return {
+        st: ok ? 'ok' : 'warn', icon:'💾',
+        title: 'Caché offline',
+        desc: ok ? 'Caché activa (' + keys.length + ' entrada/s).' : 'Sin caché todavía.',
+        fix: ok ? null : 'Abre cada módulo al menos una vez con conexión.'
+      };
+    } catch(e) {
+      return { st:'warn', icon:'💾', title:'Caché offline', desc:'No se pudo comprobar.', fix:null };
+    }
+  }
+
+  async function checkLibs() {
+    try {
+      var missing = [];
+      if(typeof React    === 'undefined') missing.push('React');
+      if(typeof ReactDOM === 'undefined') missing.push('ReactDOM');
+      if(typeof Babel    === 'undefined') missing.push('Babel');
+      if(typeof XLSX     === 'undefined') missing.push('XLSX');
+      var ok = missing.length === 0;
+      return {
+        st: ok ? 'ok' : 'warn', icon:'📚',
+        title: 'Librerías externas',
+        desc: ok ? 'React, Babel, XLSX cargados.' : 'Faltan: ' + missing.join(', ') + '.',
+        fix: ok ? null : 'Verifica conexión y recarga la página.'
+      };
+    } catch(e) {
+      return { st:'warn', icon:'📚', title:'Librerías externas', desc:'No se pudo comprobar.', fix:null };
+    }
+  }
+
+})();
 
 // ══ BUZÓN DE SUGERENCIAS ══
 function openBuzon() {
