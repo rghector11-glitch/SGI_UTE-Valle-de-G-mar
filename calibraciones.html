@@ -1078,7 +1078,8 @@ function loadData() {
   if(_fbCalUnsubscribe) { try { _fbCalUnsubscribe(); } catch(e){} _fbCalUnsubscribe = null; }
 
   const applyData = (d) => {
-    if(d && d.instruments && d.instruments.length) {
+    const fbIsDemo = d && d.instruments && d.instruments.length > 0 && d.instruments[0].id === 'i1';
+    if(d && d.instruments && d.instruments.length && !fbIsDemo) {
       instruments = d.instruments;
       records     = d.records     || [];
       if(d.thresholds) { globalOk = d.thresholds.ok; globalWarn = d.thresholds.warn; }
@@ -1088,13 +1089,26 @@ function loadData() {
       try { const ls = localStorage.getItem(sk('records'));     if(ls) records    = JSON.parse(ls); } catch(e){}
       try { const ls = localStorage.getItem('ute-guimar-global-thresholds'); if(ls){ const t=JSON.parse(ls); globalOk=t.ok; globalWarn=t.warn; } } catch(e){}
       if(!instruments.length) { seedDemo(); }
-      // Migrate localStorage data to Firebase so it persists across devices
-      if(instruments.length && window._fb) {
+      // Migrate localStorage data to Firebase (only if it's real data, not demo)
+      const isDemo = instruments.length > 0 && instruments[0].id === 'i1';
+      if(instruments.length && !isDemo && window._fb) {
         const fbPath = 'calibraciones/' + plant;
         const data = { instruments, records, thresholds:{ok:globalOk,warn:globalWarn}, updated:Date.now() };
         window._fb.set(window._fb.ref(window._fb.db, fbPath), data)
-          .then(()=>console.log('✅ Datos migrados a Firebase'))
+          .then(()=>console.log('✅ Datos reales migrados a Firebase'))
           .catch(e=>console.warn('Migration error:', e));
+      } else if(isDemo && window._fb) {
+        // Clear any accidentally saved demo data from Firebase
+        const fbPath = 'calibraciones/' + plant;
+        window._fb.get(window._fb.ref(window._fb.db, fbPath)).then(snap => {
+          const fb = snap.val();
+          if(fb && fb.instruments && fb.instruments[0] && fb.instruments[0].id === 'i1') {
+            // Firebase also has demo data - clear it
+            window._fb.set(window._fb.ref(window._fb.db, fbPath), null)
+              .then(()=>console.log('🗑 Demo data cleared from Firebase'))
+              .catch(()=>{});
+          }
+        }).catch(()=>{});
       }
     }
     // Cache in localStorage
