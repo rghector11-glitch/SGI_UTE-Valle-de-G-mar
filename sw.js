@@ -1,4 +1,4 @@
-const CACHE = 'ute-sgi-v6';
+const CACHE = 'ute-sgi-v7';
 const BASE = '/SGI_UTE-Valle-de-G-mar';
 const ASSETS = [
   BASE + '/',
