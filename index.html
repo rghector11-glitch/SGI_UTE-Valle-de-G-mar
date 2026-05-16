@@ -1189,7 +1189,7 @@ body::before {
 
 
 <!-- ═══════════════════ APP VIEWER (iframe para apps externas) ═══════════════════ -->
-<div id="app-viewer" style="display:none;position:fixed;inset:0;z-index:10;display:none;flex-direction:column;background:#f4f6f9;">
+<div id="app-viewer" style="display:none;position:fixed;inset:0;z-index:10;flex-direction:column;background:#f4f6f9;">
   <div style="background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);">
     <button onclick="closeApp()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:'Barlow',sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;">
       <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2274,7 +2274,7 @@ function showPortal(session) {
 }
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('splash').style.display = 'none';
+  const _splash = document.getElementById('splash'); if(_splash) _splash.style.display = 'none';
   const viewer = document.getElementById('app-viewer');
   if(viewer) viewer.style.display = 'none';
 }
@@ -2290,7 +2290,7 @@ function waitForFirebase() {
 }
 
 async function initAuth() {
-  document.getElementById('splash').style.display = 'none';
+  const _splash = document.getElementById('splash'); if(_splash) _splash.style.display = 'none';
   ['login-user','login-pass'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if(e.key === 'Enter') doLogin();
@@ -2831,7 +2831,7 @@ updateClock(); setInterval(updateClock,1000);
 const INLINE_APPS = {'simulador-edari.html': 'app-simulador'};
 
 function openApp(url, title, module){
-  document.getElementById('splash').style.display = 'none';
+  const _splash = document.getElementById('splash'); if(_splash) _splash.style.display = 'none';
   // Hide new portal shell when opening an app
   const shell = document.getElementById('portal-shell');
   if(shell) shell.style.display = 'none';
