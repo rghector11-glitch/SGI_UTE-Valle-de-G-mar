@@ -510,6 +510,38 @@ tbody tr:hover td { background: #f9fbfd; }
   .alert-card { padding: .65rem .85rem; }
 }
 
+
+/* ── Sync indicator ── */
+#sync-indicator {
+  display: flex; align-items: center; gap: 5px;
+  font-size: .72rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 99px;
+  transition: all .3s; white-space: nowrap; flex-shrink: 0;
+}
+#sync-indicator.syncing {
+  background: rgba(251,191,36,.15); color: #fbbf24;
+  border: 1px solid rgba(251,191,36,.35);
+}
+#sync-indicator.synced {
+  background: rgba(52,211,153,.15); color: #34d399;
+  border: 1px solid rgba(52,211,153,.35);
+}
+#sync-indicator.error {
+  background: rgba(239,68,68,.15); color: #f87171;
+  border: 1px solid rgba(239,68,68,.35);
+}
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+#sync-indicator.syncing .sync-dot {
+  background: #fbbf24; animation: pulse-sync .9s ease-in-out infinite;
+}
+#sync-indicator.synced .sync-dot { background: #34d399; }
+#sync-indicator.error   .sync-dot { background: #f87171; }
+@keyframes pulse-sync {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.3; transform:scale(.7); }
+}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -749,6 +781,10 @@ if(window.self !== window.top) {
       <div class="module">Calibraciones &amp; Verificaciones</div>
     </div>
     <div class="plant-pill" id="plant-pill">—</div>
+    <div id="sync-indicator" class="synced">
+      <div class="sync-dot"></div>
+      <span id="sync-label">Firebase ✓</span>
+    </div>
   </header>
 
   <nav class="tabs-bar">
@@ -1083,6 +1119,7 @@ function loadData() {
       instruments = d.instruments;
       records     = d.records     || [];
       if(d.thresholds) { globalOk = d.thresholds.ok; globalWarn = d.thresholds.warn; }
+      setSyncState('synced', 'Firebase ✓');
     } else {
       // Fall back to localStorage, then seedDemo
       try { const ls = localStorage.getItem(sk('instruments')); if(ls) instruments = JSON.parse(ls); } catch(e){}
@@ -1141,9 +1178,20 @@ function loadData() {
       }
     });
   } else {
+    setSyncState('error', 'Sin Firebase');
     applyData(null);
   }
 }
+
+// ── Sync state indicator ──────────────────────────────────────────────────────
+function setSyncState(state, msg) {
+  const el = document.getElementById('sync-indicator');
+  const lb = document.getElementById('sync-label');
+  if(!el || !lb) return;
+  el.className = state;  // syncing | synced | error
+  lb.textContent = msg;
+}
+
 function saveAll() {
   // Always save locally as backup
   localStorage.setItem(sk('instruments'), JSON.stringify(instruments));
@@ -1153,7 +1201,10 @@ function saveAll() {
   if(window._fb) {
     const fbPath = 'calibraciones/' + plant;
     const data = { instruments, records, thresholds: {ok:globalOk,warn:globalWarn}, updated: Date.now() };
-    window._fb.set(window._fb.ref(window._fb.db, fbPath), data).catch(e=>console.warn('Firebase write error:', e));
+    setSyncState('syncing', 'Guardando…');
+    window._fb.set(window._fb.ref(window._fb.db, fbPath), data)
+      .then(() => setSyncState('synced', 'Firebase ✓'))
+      .catch(e => { console.warn('Firebase write error:', e); setSyncState('error', 'Error al guardar'); });
   }
 }
 function uid() { return 'x'+Date.now()+Math.random().toString(36).slice(2,6); }
