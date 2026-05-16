@@ -513,7 +513,7 @@ tbody tr:hover td { background: #f9fbfd; }
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const firebaseConfig = {
     apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
     authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
@@ -525,7 +525,7 @@ tbody tr:hover td { background: #f9fbfd; }
   };
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-  window._fb = { db, ref, onValue, set };
+  window._fb = { db, ref, onValue, set, get };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <script>
