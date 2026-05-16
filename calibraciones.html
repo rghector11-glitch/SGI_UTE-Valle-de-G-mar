@@ -1180,11 +1180,21 @@ function seedDemo() {
 // ─── Navigation ───────────────────────────────────────────────────────────────
 function enterPlant(p) {
   plant = p;
-  loadData();
+  // Show app immediately (don't wait for Firebase)
   document.getElementById('splash').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('plant-pill').textContent = PLANTS[p];
-  switchTab('dashboard');
+  // Load from localStorage first for instant render
+  try {
+    const ls = localStorage.getItem(sk('instruments'));
+    if(ls) instruments = JSON.parse(ls);
+    const lr = localStorage.getItem(sk('records'));
+    if(lr) records = JSON.parse(lr);
+    if(!instruments.length) seedDemo();
+    switchTab('dashboard');
+  } catch(e) { seedDemo(); switchTab('dashboard'); }
+  // Then sync Firebase in background
+  loadData();
 }
 function goHome() {
   document.getElementById('app').classList.add('hidden');
