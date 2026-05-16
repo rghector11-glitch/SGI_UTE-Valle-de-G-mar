@@ -1087,7 +1087,15 @@ function loadData() {
       try { const ls = localStorage.getItem(sk('instruments')); if(ls) instruments = JSON.parse(ls); } catch(e){}
       try { const ls = localStorage.getItem(sk('records'));     if(ls) records    = JSON.parse(ls); } catch(e){}
       try { const ls = localStorage.getItem('ute-guimar-global-thresholds'); if(ls){ const t=JSON.parse(ls); globalOk=t.ok; globalWarn=t.warn; } } catch(e){}
-      if(!instruments.length) seedDemo();
+      if(!instruments.length) { seedDemo(); }
+      // Migrate localStorage data to Firebase so it persists across devices
+      if(instruments.length && window._fb) {
+        const fbPath = 'calibraciones/' + plant;
+        const data = { instruments, records, thresholds:{ok:globalOk,warn:globalWarn}, updated:Date.now() };
+        window._fb.set(window._fb.ref(window._fb.db, fbPath), data)
+          .then(()=>console.log('✅ Datos migrados a Firebase'))
+          .catch(e=>console.warn('Migration error:', e));
+      }
     }
     // Cache in localStorage
     try { localStorage.setItem(sk('instruments'), JSON.stringify(instruments)); } catch(e){}
