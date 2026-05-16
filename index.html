@@ -2486,18 +2486,22 @@ document.addEventListener('fullscreenchange', () => {
 // DIAGNÓSTICO DEL PORTAL
 // ══════════════════════════════════════════════════════════════
 let _diagOpen = false;
+let _diagOpenedAt = 0;
 
 function toggleDiag() {
   _diagOpen = !_diagOpen;
+  if(_diagOpen) _diagOpenedAt = Date.now();
   document.getElementById('diag-panel').classList.toggle('open', _diagOpen);
   if(_diagOpen) runDiag();
 }
 
-// Close panel when clicking outside
+// Close panel when clicking outside (but not the same click that opened it)
 document.addEventListener('click', e => {
+  if(!_diagOpen) return;
+  if(Date.now() - _diagOpenedAt < 150) return;
   const panel = document.getElementById('diag-panel');
   const btn   = document.getElementById('diag-btn');
-  if(_diagOpen && !panel.contains(e.target) && !btn.contains(e.target)) {
+  if(!panel.contains(e.target) && !(btn && btn.contains(e.target))) {
     _diagOpen = false;
     panel.classList.remove('open');
   }
