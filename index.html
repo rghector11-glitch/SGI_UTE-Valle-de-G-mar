@@ -719,7 +719,7 @@ body::before {
 </div>
 
 <!-- MODAL: Gestión de usuarios (solo supervisor) -->
-<div id="modal-users" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:none;align-items:center;justify-content:center;padding:1rem;">
+<div id="modal-users" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center;padding:1rem;">
   <div style="background:white;border-radius:16px;padding:1.5rem;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
       <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;font-weight:700;color:#003e6b;">Gestión de usuarios</h3>
@@ -2388,10 +2388,12 @@ function clearLoginError() {
 // ── USER MANAGEMENT (supervisor only) ─────────────────────────
 function openUserManager() {
   const session = getSession();
-  if(!session || session.role !== 'supervisor') return;
+  if(!session || session.role !== 'supervisor') { alert('Solo los supervisores pueden gestionar usuarios.'); return; }
   document.getElementById('modal-users').style.display = 'flex';
   loadUsersList();
 }
+// Alias usado en varios botones del HTML
+window.showUsersModal = openUserManager;
 
 async function loadUsersList() {
   const el = document.getElementById('users-list');
