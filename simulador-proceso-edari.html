@@ -6,19 +6,27 @@
 <title>Simulador Proceso EDARi — UTE Valle de Güímar</title>
 <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:#07090f;font-family:'Barlow',sans-serif;}
-#app-root{height:100%;overflow:hidden;}
-/* Hide back bar when loaded standalone (not in iframe) */
+html,body,#app-root{height:100%;overflow:hidden;background:#07090f;}
+#sim-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:1rem;background:#07090f;z-index:10;}
+#sim-loading p{color:#4a6a7a;font-family:monospace;font-size:.85rem;}
+.spin{width:32px;height:32px;border:3px solid #1a2540;border-top-color:#00c8ff;
+  border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-<div id="app-root" style="height:100%;"></div>
-<script type="text/babel">
+<div id="sim-loading">
+  <div class="spin"></div>
+  <p>Compilando simulador...</p>
+</div>
+<div id="app-root" style="height:100%;display:none;"></div>
+<script id="sim-jsx-src" type="text/jsx-source">
+
 const { useState, useEffect, useCallback, useRef } = React;
 
 // \u2500\u2500\u2500 Temas \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -174,7 +182,7 @@ function Slider({label,unit,min,max,step,value,onChange,color,C,compact=false}){
       </div>
       <div style={{position:'relative',height:3,background:C.inputBg,borderRadius:2}}>
         <div style={{position:'absolute',inset:0,width:`${pct}%`,background:`linear-gradient(90deg,${color}44,${color})`,borderRadius:2}}/>
-        <input type=\\\\"range\\\\" min={min} max={max} step={step} value={value}
+        <input type="range" min={min} max={max} step={step} value={value}
           onChange={e=>onChange(Number(e.target.value))}
           style={{position:'absolute',top:-9,left:0,width:'100%',height:20,opacity:0,cursor:'pointer',margin:0}}/>
         <div style={{position:'absolute',top:-5,left:`calc(${pct}% - 5px)`,width:10,height:10,
@@ -198,7 +206,7 @@ function NumInput({label,unit,value,onChange,color,C,compact=false}){
         <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{label}</span>
         <span style={{fontSize:8,color:C.muted}}>{unit}</span>
       </div>
-      <input type=\\\\"number\\\\" value={local}
+      <input type="number" value={local}
         onChange={e=>setLocal(e.target.value)}
         onBlur={commit}
         onKeyDown={e=>{ if(e.key==='Enter'){ commit(); e.target.blur(); } }}
@@ -311,76 +319,76 @@ function Diagrama({p,res,t,C,onGoDec}){
     </>);
   }
   return(
-    <svg viewBox=\\\\"0 0 900 300\\\\" style={{width:'100%',height:'auto'}}>
+    <svg viewBox="0 0 900 300" style={{width:'100%',height:'auto'}}>
       <defs>
-        <clipPath id=\\\\"ch\\\\"><rect x={200} y={60} width={100} height={80}/></clipPath>
-        <clipPath id=\\\\"cb\\\\"><rect x={360} y={50} width={130} height={100}/></clipPath>
-        <clipPath id=\\\\"cd\\\\"><rect x={555} y={45} width={110} height={110}/></clipPath>
+        <clipPath id="ch"><rect x={200} y={60} width={100} height={80}/></clipPath>
+        <clipPath id="cb"><rect x={360} y={50} width={130} height={100}/></clipPath>
+        <clipPath id="cd"><rect x={555} y={45} width={110} height={110}/></clipPath>
       </defs>
       {/* Pretratamiento */}
-      <rect x={30} y={80} width={90} height={60} rx={4} fill=\\\\"#0c1018\\\\" stroke={`${C.accent}50`} strokeWidth={1}/>
+      <rect x={30} y={80} width={90} height={60} rx={4} fill="#0c1018" stroke={`${C.accent}50`} strokeWidth={1}/>
       <rect x={30} y={110} width={90} height={30} fill={wD} opacity={0.4}/>
-      {[38,44,50,56,62,68,74,80,86,92,98,104,110,116].map(x=>(<rect key={x} x={x} y={82} width={1.5} height={48} fill=\\\\"#2a4060\\\\" opacity={0.85}/>))}
-      <line x1={75} y1={80} x2={75} y2={66} stroke={C.muted} strokeWidth={0.8} strokeDasharray=\\\\"2,2\\\\"/>
-      <polygon points=\\\\"75,60 71,67 79,67\\\\" fill={C.muted} opacity={0.5}/>
-      <text x={75} y={57} textAnchor=\\\\"middle\\\\" fill={C.muted} fontSize={5.5} fontFamily=\\\\"monospace\\\\">{t.solidos}</text>
-      <text x={75} y={77} textAnchor=\\\\"middle\\\\" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily=\\\\"monospace\\\\">{t.pretratamiento}</text>
-      <text x={75} y={153} textAnchor=\\\\"middle\\\\" fill={C.muted} fontSize={6} fontFamily=\\\\"monospace\\\\">{t.cribasDesarenador}</text>
+      {[38,44,50,56,62,68,74,80,86,92,98,104,110,116].map(x=>(<rect key={x} x={x} y={82} width={1.5} height={48} fill="#2a4060" opacity={0.85}/>))}
+      <line x1={75} y1={80} x2={75} y2={66} stroke={C.muted} strokeWidth={0.8} strokeDasharray="2,2"/>
+      <polygon points="75,60 71,67 79,67" fill={C.muted} opacity={0.5}/>
+      <text x={75} y={57} textAnchor="middle" fill={C.muted} fontSize={5.5} fontFamily="monospace">{t.solidos}</text>
+      <text x={75} y={77} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.pretratamiento}</text>
+      <text x={75} y={153} textAnchor="middle" fill={C.muted} fontSize={6} fontFamily="monospace">{t.cribasDesarenador}</text>
       <Arr x1={3} y1={112} x2={30} y2={112} color={wD} w={6}/>
       <Arr x1={120} y1={110} x2={200} y2={110} color={wM} w={5}/>
       {/* Homogenizaci\u00f3n */}
-      <rect x={200} y={60} width={100} height={80} rx={4} fill=\\\\"#080e1a\\\\" stroke={`${C.accent}60`} strokeWidth={1.2}/>
-      <rect x={200} y={100} width={100} height={40} fill={wM} opacity={0.5} clipPath=\\\\"url(#ch)\\\\"/>
-      {[215,250,285].map(x=>(<g key={x}><line x1={x} y1={65} x2={x} y2={128} stroke=\\\\"#2a4060\\\\" strokeWidth={2}/><ellipse cx={x} cy={105} rx={9} ry={3.5} fill=\\\\"none\\\\" stroke={`${C.accent}70`} strokeWidth={1}/></g>))}
-      <text x={250} y={57} textAnchor=\\\\"middle\\\\" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily=\\\\"monospace\\\\">{t.homogenizacion}</text>
-      <text x={250} y={153} textAnchor=\\\\"middle\\\\" fill={C.muted} fontSize={6} fontFamily=\\\\"monospace\\\\">{t.agitacion}</text>
+      <rect x={200} y={60} width={100} height={80} rx={4} fill="#080e1a" stroke={`${C.accent}60`} strokeWidth={1.2}/>
+      <rect x={200} y={100} width={100} height={40} fill={wM} opacity={0.5} clipPath="url(#ch)"/>
+      {[215,250,285].map(x=>(<g key={x}><line x1={x} y1={65} x2={x} y2={128} stroke="#2a4060" strokeWidth={2}/><ellipse cx={x} cy={105} rx={9} ry={3.5} fill="none" stroke={`${C.accent}70`} strokeWidth={1}/></g>))}
+      <text x={250} y={57} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.homogenizacion}</text>
+      <text x={250} y={153} textAnchor="middle" fill={C.muted} fontSize={6} fontFamily="monospace">{t.agitacion}</text>
       <Arr x1={300} y1={100} x2={360} y2={100} color={wM} w={5}/>
-      <text x={330} y={93} textAnchor=\\\\"middle\\\\" fill={C.accent} fontSize={6} fontFamily=\\\\"monospace\\\\">Q={p.caudal}m\u00b3/d</text>
+      <text x={330} y={93} textAnchor="middle" fill={C.accent} fontSize={6} fontFamily="monospace">Q={p.caudal}m\u00b3/d</text>
       {/* Reactor */}
-      <rect x={360} y={50} width={130} height={100} rx={4} fill=\\\\"#080e1a\\\\" stroke={`${C.accent}50`} strokeWidth={1.2}/>
-      <rect x={360} y={90} width={130} height={60} fill={wM} opacity={0.55} clipPath=\\\\"url(#cb)\\\\"/>
+      <rect x={360} y={50} width={130} height={100} rx={4} fill="#080e1a" stroke={`${C.accent}50`} strokeWidth={1.2}/>
+      <rect x={360} y={90} width={130} height={60} fill={wM} opacity={0.55} clipPath="url(#cb)"/>
       {[370,385,400,415,430,445,460,470].map((x,i)=>(<rect key={i} x={x} y={146} width={9} height={4} rx={2} fill={`${C.green}80`}/>))}
       {[375,395,415,435,455,475].map((x,i)=>(<ellipse key={i} cx={x} cy={115-(i%3)*8} rx={2.5} ry={3.5} fill={`${C.green}55`}/>))}
       <rect x={362} y={52} width={46} height={11} rx={2} fill={`${C.green}20`} stroke={`${C.green}40`} strokeWidth={0.6}/>
-      <text x={385} y={60} textAnchor=\\\\"middle\\\\" fill={C.green} fontSize={5.5} fontWeight={700} fontFamily=\\\\"monospace\\\\">{t.od}={p.od}mg/L</text>
+      <text x={385} y={60} textAnchor="middle" fill={C.green} fontSize={5.5} fontWeight={700} fontFamily="monospace">{t.od}={p.od}mg/L</text>
       <rect x={414} y={52} width={72} height={11} rx={2} fill={`${C.purple}15`} stroke={`${C.purple}40`} strokeWidth={0.6}/>
-      <text x={450} y={60} textAnchor=\\\\"middle\\\\" fill={C.purple} fontSize={5.5} fontWeight={700} fontFamily=\\\\"monospace\\\\">SST={p.sst_reactor}mg/L</text>
-      <rect x={420} y={150} width={6} height={18} rx={1} fill=\\\\"#0a1820\\\\" stroke={`${C.green}60`} strokeWidth={0.8}/>
-      <text x={423} y={175} textAnchor=\\\\"middle\\\\" fill={C.green} fontSize={5.5} fontFamily=\\\\"monospace\\\\">AIRE</text>
-      <text x={425} y={47} textAnchor=\\\\"middle\\\\" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily=\\\\"monospace\\\\">{t.reactorBio}</text>
-      <text x={425} y={175} textAnchor=\\\\"middle\\\\" fill={C.muted} fontSize={6} fontFamily=\\\\"monospace\\\\">V={p.vol_reactor} m\u00b3</text>
+      <text x={450} y={60} textAnchor="middle" fill={C.purple} fontSize={5.5} fontWeight={700} fontFamily="monospace">SST={p.sst_reactor}mg/L</text>
+      <rect x={420} y={150} width={6} height={18} rx={1} fill="#0a1820" stroke={`${C.green}60`} strokeWidth={0.8}/>
+      <text x={423} y={175} textAnchor="middle" fill={C.green} fontSize={5.5} fontFamily="monospace">AIRE</text>
+      <text x={425} y={47} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.reactorBio}</text>
+      <text x={425} y={175} textAnchor="middle" fill={C.muted} fontSize={6} fontFamily="monospace">V={p.vol_reactor} m\u00b3</text>
       <Arr x1={490} y1={100} x2={555} y2={100} color={wM} w={5}/>
       {/* Decantador */}
-      <path d=\\\\"M555,45 L665,45 L665,155 L610,175 L555,155 Z\\\\" fill=\\\\"#080e18\\\\" stroke={C.border} strokeWidth={1.2}/>
-      <path d=\\\\"M555,45 L665,45 L665,95 L555,95 Z\\\\" fill={wC} opacity={0.3} clipPath=\\\\"url(#cd)\\\\"/>
-      <path d=\\\\"M555,120 L665,120 L665,155 L610,175 L555,155 Z\\\\" fill={wS} opacity={0.55}/>
-      <line x1={555} y1={120} x2={665} y2={120} stroke={`${C.green}40`} strokeWidth={0.8} strokeDasharray=\\\\"3,2\\\\"/>
+      <path d="M555,45 L665,45 L665,155 L610,175 L555,155 Z" fill="#080e18" stroke={C.border} strokeWidth={1.2}/>
+      <path d="M555,45 L665,45 L665,95 L555,95 Z" fill={wC} opacity={0.3} clipPath="url(#cd)"/>
+      <path d="M555,120 L665,120 L665,155 L610,175 L555,155 Z" fill={wS} opacity={0.55}/>
+      <line x1={555} y1={120} x2={665} y2={120} stroke={`${C.green}40`} strokeWidth={0.8} strokeDasharray="3,2"/>
       <line x1={555} y1={78} x2={665} y2={78} stroke={C.muted} strokeWidth={1.5} opacity={0.35}/>
       <rect x={595} y={74} width={35} height={4} rx={2} fill={C.muted} opacity={0.4}/>
-      <circle cx={610} cy={78} r={4} fill=\\\\"none\\\\" stroke={C.muted} strokeWidth={1} opacity={0.4}/>
-      <text x={610} y={42} textAnchor=\\\\"middle\\\\" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily=\\\\"monospace\\\\" style={{cursor:'pointer'}} onClick={onGoDec}>{t.decantadorSec}</text>
+      <circle cx={610} cy={78} r={4} fill="none" stroke={C.muted} strokeWidth={1} opacity={0.4}/>
+      <text x={610} y={42} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace" style={{cursor:'pointer'}} onClick={onGoDec}>{t.decantadorSec}</text>
       {/* Recirculaci\u00f3n */}
-      <path d=\\\\"M555,140 Q490,220 425,220 Q425,220 425,150\\\\" fill=\\\\"none\\\\" stroke={`${C.warn}80`} strokeWidth={2} strokeDasharray=\\\\"5,3\\\\"/>
-      <polygon points=\\\\"425,150 421,158 429,158\\\\" fill={C.warn} opacity={0.8}/>
-      <text x={480} y={233} textAnchor=\\\\"middle\\\\" fill={C.warn} fontSize={6} fontFamily=\\\\"monospace\\\\">{p.caudal_recirculacion}m\u00b3/d \u00b7 IR={res.IR.toFixed(1)}%</text>
+      <path d="M555,140 Q490,220 425,220 Q425,220 425,150" fill="none" stroke={`${C.warn}80`} strokeWidth={2} strokeDasharray="5,3"/>
+      <polygon points="425,150 421,158 429,158" fill={C.warn} opacity={0.8}/>
+      <text x={480} y={233} textAnchor="middle" fill={C.warn} fontSize={6} fontFamily="monospace">{p.caudal_recirculacion}m\u00b3/d \u00b7 IR={res.IR.toFixed(1)}%</text>
       {/* Purga */}
-      <rect x={605} y={175} width={10} height={22} rx={2} fill=\\\\"#0a1820\\\\" stroke={C.muted} strokeWidth={0.6}/>
+      <rect x={605} y={175} width={10} height={22} rx={2} fill="#0a1820" stroke={C.muted} strokeWidth={0.6}/>
       <Arr x1={610} y1={197} x2={610} y2={250} color={C.orange} w={4}/>
       <rect x={572} y={250} width={76} height={18} rx={3} fill={C.inputBg} stroke={`${C.orange}40`} strokeWidth={0.8}/>
-      <text x={610} y={262} textAnchor=\\\\"middle\\\\" fill={C.orange} fontSize={6.5} fontWeight={700} fontFamily=\\\\"monospace\\\\">{t.purga} {p.caudal_purga_d} m\u00b3/d</text>
+      <text x={610} y={262} textAnchor="middle" fill={C.orange} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.purga} {p.caudal_purga_d} m\u00b3/d</text>
       {/* Efluente */}
       <Arr x1={665} y1={75} x2={710} y2={75} color={ec} w={5}/>
       <rect x={710} y={55} width={75} height={40} rx={4} fill={ok?'#081810':'#180808'} stroke={`${ec}70`} strokeWidth={1.2}/>
-      <text x={747} y={73} textAnchor=\\\\"middle\\\\" fill={ec} fontSize={7} fontWeight={700} fontFamily=\\\\"monospace\\\\">{t.arquetaSalida}</text>
-      <text x={747} y={48} textAnchor=\\\\"middle\\\\" fill={ec} fontSize={5.5} fontFamily=\\\\"monospace\\\\">DBO {res.dbo_ef.toFixed(1)} \u00b7 SS {res.ss_ef.toFixed(1)} mg/L</text>
+      <text x={747} y={73} textAnchor="middle" fill={ec} fontSize={7} fontWeight={700} fontFamily="monospace">{t.arquetaSalida}</text>
+      <text x={747} y={48} textAnchor="middle" fill={ec} fontSize={5.5} fontFamily="monospace">DBO {res.dbo_ef.toFixed(1)} \u00b7 SS {res.ss_ef.toFixed(1)} mg/L</text>
       <Arr x1={785} y1={75} x2={800} y2={75} color={ec} w={4}/>
       {/* Cauce receptor \u2014 ondas */}
-      {[0,1,2].map(i=>(<path key={i} d={`M800,${68+i*7} Q820,${64+i*7} 840,${68+i*7} Q860,${72+i*7} 880,${68+i*7}`} fill=\\\\"none\\\\" stroke={ec} strokeWidth={1.2-i*0.3} opacity={0.6-i*0.15}/>))}
-      <text x={840} y={98} textAnchor=\\\\"middle\\\\" fill={ec} fontSize={6} fontWeight={700} fontFamily=\\\\"monospace\\\\">{t.cauce}</text>
-      <text x={840} y={107} textAnchor=\\\\"middle\\\\" fill={ec} fontSize={5.5} fontFamily=\\\\"monospace\\\\">{ok?t.conforme:t.incumple}</text>
+      {[0,1,2].map(i=>(<path key={i} d={`M800,${68+i*7} Q820,${64+i*7} 840,${68+i*7} Q860,${72+i*7} 880,${68+i*7}`} fill="none" stroke={ec} strokeWidth={1.2-i*0.3} opacity={0.6-i*0.15}/>))}
+      <text x={840} y={98} textAnchor="middle" fill={ec} fontSize={6} fontWeight={700} fontFamily="monospace">{t.cauce}</text>
+      <text x={840} y={107} textAnchor="middle" fill={ec} fontSize={5.5} fontFamily="monospace">{ok?t.conforme:t.incumple}</text>
       {/* Leyenda */}
       {[{col:wM,lbl:'Agua/Water'},{col:C.warn,lbl:'Recirc.'},{col:C.orange,lbl:'Purga/Waste'},{col:ec,lbl:'Efluente/Effluent'}].map((l,i)=>(
-        <g key={i}><rect x={30+i*120} y={280} width={14} height={5} rx={1} fill={l.col} opacity={0.7}/><text x={48+i*120} y={286} fill={C.muted} fontSize={6} fontFamily=\\\\"monospace\\\\">{l.lbl}</text></g>
+        <g key={i}><rect x={30+i*120} y={280} width={14} height={5} rx={1} fill={l.col} opacity={0.7}/><text x={48+i*120} y={286} fill={C.muted} fontSize={6} fontFamily="monospace">{l.lbl}</text></g>
       ))}
     </svg>
   );
@@ -475,9 +483,8 @@ function PanelDecantador({p,C,t,set}){
 
   function exportarCSV(){
     const cab='Fecha,Hora,Lecho(m),%(ocup),Margen(m),IVF(mL/g),CHS(m3/m2h),Nota';
-    const filas=hist.map(h=>[h.fecha,h.hora,h.hlf,h.pct,h.margen,h.ivf,h.chs||'',`\\\\"${(h.nota||'').replace(/\\\\"/g,'\\\\"\\\\"')}\\\\"`].join(','));
-    const csv=[cab,...filas].join('\\\\
-');
+    const filas=hist.map(h=>[h.fecha,h.hora,h.hlf,h.pct,h.margen,h.ivf,h.chs||'',`"${(h.nota||'').replace(/"/g,'""')}"`].join(','));
+    const csv=[cab,...filas].join('\n');
     const a=document.createElement('a');
     a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
     a.download='historico_decantador.csv';
@@ -514,35 +521,35 @@ function PanelDecantador({p,C,t,set}){
     const xIdxs=[0, Math.floor((hist.length-1)/2), hist.length-1];
     return(
       <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'auto'}}>
-        <polygon points={area} fill={lCol} opacity=\\\\"0.08\\\\"/>
+        <polygon points={area} fill={lCol} opacity="0.08"/>
         {alerta70>=minV&&alerta70<=maxV&&(
           <>
-            <line x1={PL} y1={y70} x2={W-PR} y2={y70} stroke={C.danger} strokeWidth=\\\\"0.8\\\\" strokeDasharray=\\\\"3,2\\\\" opacity=\\\\"0.6\\\\"/>
-            <text x={PL+2} y={y70-2} fill={C.danger} fontSize=\\\\"5.5\\\\" opacity=\\\\"0.8\\\\">70%</text>
+            <line x1={PL} y1={y70} x2={W-PR} y2={y70} stroke={C.danger} strokeWidth="0.8" strokeDasharray="3,2" opacity="0.6"/>
+            <text x={PL+2} y={y70-2} fill={C.danger} fontSize="5.5" opacity="0.8">70%</text>
           </>
         )}
         {[0,0.5,1].map((f,i)=>(
           <line key={i} x1={PL} y1={PT+gH*f} x2={W-PR} y2={PT+gH*f}
-            stroke={C.border} strokeWidth=\\\\"0.5\\\\" opacity=\\\\"0.5\\\\"/>
+            stroke={C.border} strokeWidth="0.5" opacity="0.5"/>
         ))}
-        <polyline points={polyline} fill=\\\\"none\\\\" stroke={lCol} strokeWidth=\\\\"1.5\\\\" strokeLinejoin=\\\\"round\\\\" strokeLinecap=\\\\"round\\\\"/>
+        <polyline points={polyline} fill="none" stroke={lCol} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
         {pts.map((p,i)=>(
           p.interpolado
-            ? <circle key={i} cx={p.x} cy={p.y} r=\\\\"3\\\\" fill=\\\\"none\\\\" stroke={lCol} strokeWidth=\\\\"1.2\\\\" strokeDasharray=\\\\"2,1\\\\" opacity=\\\\"0.7\\\\"/>
-            : <circle key={i} cx={p.x} cy={p.y} r=\\\\"2.5\\\\"
-                fill={p.h.pct>70?C.danger:p.h.pct>50?C.warn:C.green} stroke={C.bg} strokeWidth=\\\\"1\\\\"/>
+            ? <circle key={i} cx={p.x} cy={p.y} r="3" fill="none" stroke={lCol} strokeWidth="1.2" strokeDasharray="2,1" opacity="0.7"/>
+            : <circle key={i} cx={p.x} cy={p.y} r="2.5"
+                fill={p.h.pct>70?C.danger:p.h.pct>50?C.warn:C.green} stroke={C.bg} strokeWidth="1"/>
         ))}
         {yLabels.map((v,i)=>(
-          <text key={i} x={PL-3} y={PT+gH*(1-i*0.5)+3} textAnchor=\\\\"end\\\\"
-            fill={C.muted} fontSize=\\\\"6\\\\" fontFamily=\\\\"monospace\\\\">{v.toFixed(2)}</text>
+          <text key={i} x={PL-3} y={PT+gH*(1-i*0.5)+3} textAnchor="end"
+            fill={C.muted} fontSize="6" fontFamily="monospace">{v.toFixed(2)}</text>
         ))}
         {xIdxs.filter(i=>i<hist.length).map(i=>(
-          <text key={i} x={PL+i/(hist.length-1)*gW} y={H-2} textAnchor=\\\\"middle\\\\"
-            fill={C.muted} fontSize=\\\\"5.5\\\\" fontFamily=\\\\"monospace\\\\">
+          <text key={i} x={PL+i/(hist.length-1)*gW} y={H-2} textAnchor="middle"
+            fill={C.muted} fontSize="5.5" fontFamily="monospace">
             {hist[i].fecha}
           </text>
         ))}
-        <text x={PL-3} y={PT-1} textAnchor=\\\\"end\\\\" fill={C.muted} fontSize=\\\\"5.5\\\\">m</text>
+        <text x={PL-3} y={PT-1} textAnchor="end" fill={C.muted} fontSize="5.5">m</text>
       </svg>
     );
   }
@@ -567,31 +574,31 @@ function PanelDecantador({p,C,t,set}){
         <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:10}}>\u25b8 Secci\u00f3n transversal</div>
         <div style={{display:'flex',gap:16,alignItems:'flex-start'}}>
           <div style={{flex:'0 0 150px'}}>
-            <svg viewBox=\\\\"0 0 160 200\\\\" style={{width:'100%',height:'auto'}}>
+            <svg viewBox="0 0 160 200" style={{width:'100%',height:'auto'}}>
               <defs>
-                <linearGradient id=\\\\"gA\\\\" x1=\\\\"0\\\\" y1=\\\\"0\\\\" x2=\\\\"0\\\\" y2=\\\\"1\\\\">
-                  <stop offset=\\\\"0%\\\\" stopColor={C.accent} stopOpacity=\\\\"0.05\\\\"/>
-                  <stop offset=\\\\"100%\\\\" stopColor={C.accent} stopOpacity=\\\\"0.18\\\\"/>
+                <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={C.accent} stopOpacity="0.05"/>
+                  <stop offset="100%" stopColor={C.accent} stopOpacity="0.18"/>
                 </linearGradient>
-                <linearGradient id=\\\\"gL\\\\" x1=\\\\"0\\\\" y1=\\\\"0\\\\" x2=\\\\"0\\\\" y2=\\\\"1\\\\">
-                  <stop offset=\\\\"0%\\\\" stopColor={lCol} stopOpacity=\\\\"0.4\\\\"/>
-                  <stop offset=\\\\"100%\\\\" stopColor={lCol} stopOpacity=\\\\"0.9\\\\"/>
+                <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={lCol} stopOpacity="0.4"/>
+                  <stop offset="100%" stopColor={lCol} stopOpacity="0.9"/>
                 </linearGradient>
-                <clipPath id=\\\\"cD\\\\"><path d=\\\\"M20,10 L140,10 L140,160 L110,185 L50,185 L20,160 Z\\\\"/></clipPath>
+                <clipPath id="cD"><path d="M20,10 L140,10 L140,160 L110,185 L50,185 L20,160 Z"/></clipPath>
               </defs>
-              <path d=\\\\"M20,10 L140,10 L140,160 L110,185 L50,185 L20,160 Z\\\\" fill={C.bg} stroke={C.border} strokeWidth=\\\\"2\\\\"/>
-              <rect x=\\\\"20\\\\" y=\\\\"10\\\\" width=\\\\"120\\\\" height={150*(1-pct/100)} fill=\\\\"url(#gA)\\\\" clipPath=\\\\"url(#cD)\\\\"/>
-              <rect x=\\\\"20\\\\" y={10+150*(1-pct/100)} width=\\\\"120\\\\" height={150*pct/100+28} fill=\\\\"url(#gL)\\\\" clipPath=\\\\"url(#cD)\\\\"/>
-              <line x1=\\\\"20\\\\" y1={10+150*(1-pct/100)} x2=\\\\"140\\\\" y2={10+150*(1-pct/100)} stroke={lCol} strokeWidth=\\\\"1.5\\\\" strokeDasharray=\\\\"4,2\\\\"/>
-              <line x1=\\\\"20\\\\" y1={10+150*0.3} x2=\\\\"140\\\\" y2={10+150*0.3} stroke={C.danger} strokeWidth=\\\\"0.8\\\\" strokeDasharray=\\\\"2,3\\\\" opacity=\\\\"0.5\\\\"/>
-              <rect x=\\\\"60\\\\" y=\\\\"2\\\\" width=\\\\"40\\\\" height=\\\\"10\\\\" rx=\\\\"2\\\\" fill={C.accent} opacity=\\\\"0.25\\\\"/>
-              <text x=\\\\"80\\\\" y=\\\\"10\\\\" textAnchor=\\\\"middle\\\\" fill={C.accent} fontSize=\\\\"6\\\\" fontFamily=\\\\"monospace\\\\">entrada</text>
-              <rect x=\\\\"72\\\\" y=\\\\"185\\\\" width=\\\\"16\\\\" height=\\\\"10\\\\" rx=\\\\"2\\\\" fill={C.orange} opacity=\\\\"0.5\\\\"/>
-              <text x=\\\\"80\\\\" y=\\\\"199\\\\" textAnchor=\\\\"middle\\\\" fill={C.orange} fontSize=\\\\"6\\\\" fontFamily=\\\\"monospace\\\\">purga</text>
-              {pct>12&&<text x=\\\\"80\\\\" y={10+150*(1-pct/100)+150*pct/100*0.5} textAnchor=\\\\"middle\\\\" fill=\\\\"#fff\\\\" fontSize=\\\\"12\\\\" fontWeight=\\\\"700\\\\" fontFamily=\\\\"monospace\\\\">{d.pct.toFixed(0)}%</text>}
-              <text x=\\\\"17\\\\" y={10+150*0.3-2} textAnchor=\\\\"end\\\\" fill={C.danger} fontSize=\\\\"5.5\\\\" opacity=\\\\"0.7\\\\">70%</text>
-              <line x1=\\\\"148\\\\" y1=\\\\"10\\\\" x2=\\\\"148\\\\" y2={10+150*(1-pct/100)} stroke={C.green} strokeWidth=\\\\"1\\\\" opacity=\\\\"0.6\\\\"/>
-              {(1-pct/100)>0.15&&<text x=\\\\"156\\\\" y={10+75*(1-pct/100)} textAnchor=\\\\"middle\\\\" fill={C.green} fontSize=\\\\"5.5\\\\" fontFamily=\\\\"monospace\\\\"
+              <path d="M20,10 L140,10 L140,160 L110,185 L50,185 L20,160 Z" fill={C.bg} stroke={C.border} strokeWidth="2"/>
+              <rect x="20" y="10" width="120" height={150*(1-pct/100)} fill="url(#gA)" clipPath="url(#cD)"/>
+              <rect x="20" y={10+150*(1-pct/100)} width="120" height={150*pct/100+28} fill="url(#gL)" clipPath="url(#cD)"/>
+              <line x1="20" y1={10+150*(1-pct/100)} x2="140" y2={10+150*(1-pct/100)} stroke={lCol} strokeWidth="1.5" strokeDasharray="4,2"/>
+              <line x1="20" y1={10+150*0.3} x2="140" y2={10+150*0.3} stroke={C.danger} strokeWidth="0.8" strokeDasharray="2,3" opacity="0.5"/>
+              <rect x="60" y="2" width="40" height="10" rx="2" fill={C.accent} opacity="0.25"/>
+              <text x="80" y="10" textAnchor="middle" fill={C.accent} fontSize="6" fontFamily="monospace">entrada</text>
+              <rect x="72" y="185" width="16" height="10" rx="2" fill={C.orange} opacity="0.5"/>
+              <text x="80" y="199" textAnchor="middle" fill={C.orange} fontSize="6" fontFamily="monospace">purga</text>
+              {pct>12&&<text x="80" y={10+150*(1-pct/100)+150*pct/100*0.5} textAnchor="middle" fill="#fff" fontSize="12" fontWeight="700" fontFamily="monospace">{d.pct.toFixed(0)}%</text>}
+              <text x="17" y={10+150*0.3-2} textAnchor="end" fill={C.danger} fontSize="5.5" opacity="0.7">70%</text>
+              <line x1="148" y1="10" x2="148" y2={10+150*(1-pct/100)} stroke={C.green} strokeWidth="1" opacity="0.6"/>
+              {(1-pct/100)>0.15&&<text x="156" y={10+75*(1-pct/100)} textAnchor="middle" fill={C.green} fontSize="5.5" fontFamily="monospace"
                 transform={`rotate(-90,156,${10+75*(1-pct/100)})`}>{d.margen.toFixed(2)}m</text>}
             </svg>
           </div>
@@ -626,8 +633,8 @@ function PanelDecantador({p,C,t,set}){
       {/* Col izq: par\u00e1metros */}
       <div style={{width:195,flexShrink:0,overflowY:'auto'}}>
         <SecHdr label={t.instFijos} color={C.orange} C={C}/>
-        <NumInput label={t.supDecantador} unit=\\\\"m\u00b2\\\\" value={p.s_decantador} onChange={set('s_decantador')} color={C.muted}   C={C} compact={true}/>
-        <NumInput label={t.altDecantador} unit=\\\\"m\\\\"  value={p.h_decantador} onChange={set('h_decantador')} color={C.muted}   C={C} compact={true}/>
+        <NumInput label={t.supDecantador} unit="m\u00b2" value={p.s_decantador} onChange={set('s_decantador')} color={C.muted}   C={C} compact={true}/>
+        <NumInput label={t.altDecantador} unit="m"  value={p.h_decantador} onChange={set('h_decantador')} color={C.muted}   C={C} compact={true}/>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
           background:C.inputBg,border:`1px solid ${C.muted}20`,borderRadius:5,padding:'5px 8px',marginBottom:12}}>
           <span style={{fontSize:9,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.volDecantador}</span>
@@ -636,10 +643,10 @@ function PanelDecantador({p,C,t,set}){
           </span>
         </div>
         <SecHdr label={t.datosCampo} color={C.accent} C={C} mt/>
-        <NumInput label={t.lechoFangos}  unit=\\\\"m\\\\"    value={p.hlf}                  onChange={set('hlf')}                  color={C.orange} C={C} compact={true}/>
-        <NumInput label={t.sstReactor}   unit=\\\\"mg/L\\\\" value={p.sst_reactor}          onChange={set('sst_reactor')}          color={C.purple} C={C} compact={true}/>
-        <NumInput label={t.caudalRecirc} unit=\\\\"m\u00b3/d\\\\" value={p.caudal_recirculacion} onChange={set('caudal_recirculacion')} color={C.warn}   C={C} compact={true}/>
-        <NumInput label={t.caudalBio}    unit=\\\\"m\u00b3/d\\\\" value={p.caudal}               onChange={set('caudal')}               color={C.accent} C={C} compact={true}/>
+        <NumInput label={t.lechoFangos}  unit="m"    value={p.hlf}                  onChange={set('hlf')}                  color={C.orange} C={C} compact={true}/>
+        <NumInput label={t.sstReactor}   unit="mg/L" value={p.sst_reactor}          onChange={set('sst_reactor')}          color={C.purple} C={C} compact={true}/>
+        <NumInput label={t.caudalRecirc} unit="m\u00b3/d" value={p.caudal_recirculacion} onChange={set('caudal_recirculacion')} color={C.warn}   C={C} compact={true}/>
+        <NumInput label={t.caudalBio}    unit="m\u00b3/d" value={p.caudal}               onChange={set('caudal')}               color={C.accent} C={C} compact={true}/>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
           background:C.inputBg,border:`1px solid ${C.accent}30`,borderRadius:5,padding:'5px 8px',marginBottom:7}}>
           <span style={{fontSize:9,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.caudalDecantador}</span>
@@ -650,13 +657,13 @@ function PanelDecantador({p,C,t,set}){
         <div style={{height:1,background:C.border,margin:'4px 0 10px'}}/>
         <div style={{marginBottom:6}}>
           <div style={{fontSize:7,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:3}}>Fecha lectura</div>
-          <input type=\\\\"date\\\\" value={fechaManual} onChange={e=>setFechaManual(e.target.value)}
+          <input type="date" value={fechaManual} onChange={e=>setFechaManual(e.target.value)}
             style={{width:'100%',background:C.inputBg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
               padding:'4px 7px',fontSize:9,color:C.text,outline:'none',fontFamily:'monospace',
               colorScheme:'dark'}}/>
         </div>
         <input value={nota} onChange={e=>setNota(e.target.value)}
-          placeholder=\\\\"Nota opcional...\\\\"
+          placeholder="Nota opcional..."
           style={{width:'100%',background:C.inputBg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
             padding:'5px 8px',fontSize:9,color:C.text,outline:'none',marginBottom:6,fontFamily:'inherit'}}/>
         <button onClick={guardarLectura}
@@ -706,10 +713,10 @@ function PanelDecantador({p,C,t,set}){
         <div>
           <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:8}}>\u25b8 {t.calculados}</div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-            <KPI label={t.chsLabel} value={d.CHS.toFixed(2)}     unit=\\\\"m\u00b3/m\u00b2\u00b7h\\\\"   color={C.accent} ok={d.CHS>=0.5&&d.CHS<=1.5}       rng={t.chsRng} alert={d.alerta_chs?t.chsAlerta:null}/>
-            <KPI label={t.cssLabel} value={d.CSS.toFixed(2)}     unit=\\\\"kgSS/m\u00b2\u00b7h\\\\" color={C.purple} ok={d.CSS<=6}                      rng={t.cssRng} alert={d.alerta_css?t.cssAlerta:null}/>
-            <KPI label={t.trhDec}   value={d.TRH_dec.toFixed(2)} unit=\\\\"h\\\\"          color={C.green}  ok={d.TRH_dec>=1.5&&d.TRH_dec<=3} rng={t.trhRng}/>
-            <KPI label={t.velSed}   value={d.vel_sed.toFixed(2)} unit=\\\\"m/h\\\\"        color={C.warn}   ok={d.vel_sed>=1.5}                rng={t.velSedRng}/>
+            <KPI label={t.chsLabel} value={d.CHS.toFixed(2)}     unit="m\u00b3/m\u00b2\u00b7h"   color={C.accent} ok={d.CHS>=0.5&&d.CHS<=1.5}       rng={t.chsRng} alert={d.alerta_chs?t.chsAlerta:null}/>
+            <KPI label={t.cssLabel} value={d.CSS.toFixed(2)}     unit="kgSS/m\u00b2\u00b7h" color={C.purple} ok={d.CSS<=6}                      rng={t.cssRng} alert={d.alerta_css?t.cssAlerta:null}/>
+            <KPI label={t.trhDec}   value={d.TRH_dec.toFixed(2)} unit="h"          color={C.green}  ok={d.TRH_dec>=1.5&&d.TRH_dec<=3} rng={t.trhRng}/>
+            <KPI label={t.velSed}   value={d.vel_sed.toFixed(2)} unit="m/h"        color={C.warn}   ok={d.vel_sed>=1.5}                rng={t.velSedRng}/>
           </div>
         </div>
         <div style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:7,overflow:'hidden'}}>
@@ -829,9 +836,8 @@ function PanelHistoricoReactor({p,res,C,t}){
 
   function exportarCSV(){
     const cab='Fecha,Hora,EdadFango(d),F/M,Rend.DBO%,Rend.Nt%,Rend.Pt%,SST(mg/L),Purga(m3/d),Nota';
-    const filas=hist.map(h=>[h.fecha,h.hora,h.tc,h.fm,h.rend_dbo,h.rend_nh4,h.rend_pt||0,h.sst,h.purga,`\\\\"${(h.nota||'').replace(/\\\\"/g,'\\\\"\\\\"')}\\\\"`].join(','));
-    const csv=[cab,...filas].join('\\\\
-');
+    const filas=hist.map(h=>[h.fecha,h.hora,h.tc,h.fm,h.rend_dbo,h.rend_nh4,h.rend_pt||0,h.sst,h.purga,`"${(h.nota||'').replace(/"/g,'""')}"`].join(','));
+    const csv=[cab,...filas].join('\n');
     const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
     a.download='historico_reactor.csv'; a.click();
   }
@@ -858,25 +864,25 @@ function PanelHistoricoReactor({p,res,C,t}){
     const areaTc=[`${ptsTc[0].x},${PT+gH}`,...ptsTc.map(p=>`${p.x},${p.y}`),`${ptsTc[ptsTc.length-1].x},${PT+gH}`].join(' ');
     return(
       <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'auto'}}>
-        <polygon points={areaTc} fill={C.warn} opacity=\\\\"0.07\\\\"/>
+        <polygon points={areaTc} fill={C.warn} opacity="0.07"/>
         {[0,0.5,1].map((f,i)=>(
-          <line key={i} x1={PL} y1={PT+gH*f} x2={W-PR} y2={PT+gH*f} stroke={C.border} strokeWidth=\\\\"0.5\\\\" opacity=\\\\"0.5\\\\"/>
+          <line key={i} x1={PL} y1={PT+gH*f} x2={W-PR} y2={PT+gH*f} stroke={C.border} strokeWidth="0.5" opacity="0.5"/>
         ))}
-        <polyline points={polyTc} fill=\\\\"none\\\\" stroke={C.warn} strokeWidth=\\\\"1.5\\\\" strokeLinejoin=\\\\"round\\\\"/>
+        <polyline points={polyTc} fill="none" stroke={C.warn} strokeWidth="1.5" strokeLinejoin="round"/>
         {ptsTc.map((p,i)=>(
           p.interpolado
-            ? <circle key={i} cx={p.x} cy={p.y} r=\\\\"3\\\\" fill=\\\\"none\\\\" stroke={C.warn} strokeWidth=\\\\"1.2\\\\" strokeDasharray=\\\\"2,1\\\\" opacity=\\\\"0.7\\\\"/>
-            : <circle key={i} cx={p.x} cy={p.y} r=\\\\"2.5\\\\" fill={C.warn} stroke={C.bg} strokeWidth=\\\\"1\\\\"/>
+            ? <circle key={i} cx={p.x} cy={p.y} r="3" fill="none" stroke={C.warn} strokeWidth="1.2" strokeDasharray="2,1" opacity="0.7"/>
+            : <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={C.warn} stroke={C.bg} strokeWidth="1"/>
         ))}
         {[minT,(minT+maxT)/2,maxT].map((v,i)=>(
-          <text key={i} x={PL-3} y={PT+gH*(1-i*0.5)+3} textAnchor=\\\\"end\\\\" fill={C.muted} fontSize=\\\\"6\\\\" fontFamily=\\\\"monospace\\\\">{v.toFixed(1)}</text>
+          <text key={i} x={PL-3} y={PT+gH*(1-i*0.5)+3} textAnchor="end" fill={C.muted} fontSize="6" fontFamily="monospace">{v.toFixed(1)}</text>
         ))}
         {xIdxs.filter(i=>i<vals.length).map(i=>(
-          <text key={i} x={PL+i/(vals.length-1)*gW} y={H-2} textAnchor=\\\\"middle\\\\" fill={C.muted} fontSize=\\\\"5.5\\\\" fontFamily=\\\\"monospace\\\\">
+          <text key={i} x={PL+i/(vals.length-1)*gW} y={H-2} textAnchor="middle" fill={C.muted} fontSize="5.5" fontFamily="monospace">
             {hist[i].fecha}
           </text>
         ))}
-        <text x={PL-3} y={PT-1} textAnchor=\\\\"end\\\\" fill={C.muted} fontSize=\\\\"5.5\\\\">d</text>
+        <text x={PL-3} y={PT-1} textAnchor="end" fill={C.muted} fontSize="5.5">d</text>
       </svg>
     );
   }
@@ -887,13 +893,13 @@ function PanelHistoricoReactor({p,res,C,t}){
       <div style={{display:'flex',gap:8,marginBottom:10,alignItems:'flex-end',flexWrap:'wrap'}}>
         <div style={{display:'flex',flexDirection:'column',gap:2}}>
           <span style={{fontSize:7,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>Fecha</span>
-          <input type=\\\\"date\\\\" value={fechaManual} onChange={e=>setFechaManual(e.target.value)}
+          <input type="date" value={fechaManual} onChange={e=>setFechaManual(e.target.value)}
             style={{background:C.bg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
               padding:'4px 7px',fontSize:9,color:C.text,outline:'none',fontFamily:'monospace',
               colorScheme:'dark'}}/>
         </div>
         <input value={nota} onChange={e=>setNota(e.target.value)}
-          placeholder=\\\\"Nota opcional (turno, incidencia...)\\\\"
+          placeholder="Nota opcional (turno, incidencia...)"
           style={{flex:1,minWidth:120,background:C.bg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
             padding:'5px 8px',fontSize:9,color:C.text,outline:'none',fontFamily:'inherit'}}/>
         <button onClick={guardar}
@@ -994,7 +1000,7 @@ function interpolarCeros(arr){
 
 // \u2500\u2500\u2500 Helpers gr\u00e1fica SVG para PDF \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function svgLineaPDF(hist, key, color, labelY, W=520, H=110){
-  if(!hist||hist.length<2) return '<p style=\\\\"color:#999;font-size:11px\\\\">Sin datos suficientes (m\u00ednimo 2 lecturas)</p>';
+  if(!hist||hist.length<2) return '<p style="color:#999;font-size:11px">Sin datos suficientes (m\u00ednimo 2 lecturas)</p>';
   const PL=44,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
   const valsRaw=hist.map(h=>h[key]);
   const vals=interpolarCeros(valsRaw);
@@ -1011,36 +1017,36 @@ function svgLineaPDF(hist, key, color, labelY, W=520, H=110){
   let svgLines='', svgPts='', svgYL='', svgXL='', svgGrid='';
   [0,0.5,1].forEach(f=>{
     const y=(PT+gH*f).toFixed(1);
-    svgGrid+=`<line x1=\\\\"${PL}\\\\" y1=\\\\"${y}\\\\" x2=\\\\"${W-PR}\\\\" y2=\\\\"${y}\\\\" stroke=\\\\"#d0dce8\\\\" stroke-width=\\\\"0.5\\\\"/>`;
+    svgGrid+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#d0dce8" stroke-width="0.5"/>`;
   });
   yLabels.forEach((v,i)=>{
     const y=(PT+gH*(1-i*0.5)+3).toFixed(1);
-    svgYL+=`<text x=\\\\"${PL-4}\\\\" y=\\\\"${y}\\\\" text-anchor=\\\\"end\\\\" fill=\\\\"#7a8fa8\\\\" font-size=\\\\"7\\\\" font-family=\\\\"monospace\\\\">${typeof v==='number'?v.toFixed(1):v}</text>`;
+    svgYL+=`<text x="${PL-4}" y="${y}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${typeof v==='number'?v.toFixed(1):v}</text>`;
   });
   xIdxs.forEach(i=>{
     const x=(PL+i/(hist.length-1)*gW).toFixed(1);
-    svgXL+=`<text x=\\\\"${x}\\\\" y=\\\\"${H-4}\\\\" text-anchor=\\\\"middle\\\\" fill=\\\\"#7a8fa8\\\\" font-size=\\\\"6.5\\\\" font-family=\\\\"monospace\\\\">${pts[i].f}</text>`;
+    svgXL+=`<text x="${x}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${pts[i].f}</text>`;
   });
   pts.forEach(p=>{
     if(p.interpolado){
-      svgPts+=`<circle cx=\\\\"${p.x.toFixed(1)}\\\\" cy=\\\\"${p.y.toFixed(1)}\\\\" r=\\\\"3.5\\\\" fill=\\\\"none\\\\" stroke=\\\\"${color}\\\\" stroke-width=\\\\"1.2\\\\" stroke-dasharray=\\\\"2,1\\\\" opacity=\\\\"0.7\\\\"/>`;
+      svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="none" stroke="${color}" stroke-width="1.2" stroke-dasharray="2,1" opacity="0.7"/>`;
     } else {
-      svgPts+=`<circle cx=\\\\"${p.x.toFixed(1)}\\\\" cy=\\\\"${p.y.toFixed(1)}\\\\" r=\\\\"3\\\\" fill=\\\\"${color}\\\\" stroke=\\\\"#fff\\\\" stroke-width=\\\\"1\\\\"/>`;
+      svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${color}" stroke="#fff" stroke-width="1"/>`;
     }
   });
-  return `<svg viewBox=\\\\"0 0 ${W} ${H}\\\\" width=\\\\"${W}\\\\" height=\\\\"${H}\\\\" xmlns=\\\\"http://www.w3.org/2000/svg\\\\">
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
     ${svgGrid}
-    <polygon points=\\\\"${area}\\\\" fill=\\\\"${color}\\\\" opacity=\\\\"0.08\\\\"/>
-    <polyline points=\\\\"${poly}\\\\" fill=\\\\"none\\\\" stroke=\\\\"${color}\\\\" stroke-width=\\\\"1.8\\\\" stroke-linejoin=\\\\"round\\\\" stroke-linecap=\\\\"round\\\\"/>
+    <polygon points="${area}" fill="${color}" opacity="0.08"/>
+    <polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
     ${svgPts}
     ${svgYL}
     ${svgXL}
-    <text x=\\\\"${PL-4}\\\\" y=\\\\"${PT-1}\\\\" text-anchor=\\\\"end\\\\" fill=\\\\"#7a8fa8\\\\" font-size=\\\\"6.5\\\\">${labelY}</text>
+    <text x="${PL-4}" y="${PT-1}" text-anchor="end" fill="#7a8fa8" font-size="6.5">${labelY}</text>
   </svg>`;
 }
 
 function svgLechoPDF(hist, W=520, H=110){
-  if(!hist||hist.length<2) return '<p style=\\\\"color:#999;font-size:11px\\\\">Sin datos suficientes (m\u00ednimo 2 lecturas)</p>';
+  if(!hist||hist.length<2) return '<p style="color:#999;font-size:11px">Sin datos suficientes (m\u00ednimo 2 lecturas)</p>';
   const PL=44,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
   const valsRaw=hist.map(h=>h.hlf);
   const vals=interpolarCeros(valsRaw);
@@ -1050,17 +1056,17 @@ function svgLechoPDF(hist, W=520, H=110){
   const area=[`${pts[0].x.toFixed(1)},${(PT+gH).toFixed(1)}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${(PT+gH).toFixed(1)}`].join(' ');
   const xIdxs=[0,Math.floor((hist.length-1)/2),hist.length-1].filter((v,i,a)=>a.indexOf(v)===i);
   let svgGrid='',svgPts='',svgYL='',svgXL='';
-  [0,0.5,1].forEach(f=>{ svgGrid+=`<line x1=\\\\"${PL}\\\\" y1=\\\\"${(PT+gH*f).toFixed(1)}\\\\" x2=\\\\"${W-PR}\\\\" y2=\\\\"${(PT+gH*f).toFixed(1)}\\\\" stroke=\\\\"#d0dce8\\\\" stroke-width=\\\\"0.5\\\\"/>`; });
-  [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svgYL+=`<text x=\\\\"${PL-4}\\\\" y=\\\\"${(PT+gH*(1-i*0.5)+3).toFixed(1)}\\\\" text-anchor=\\\\"end\\\\" fill=\\\\"#7a8fa8\\\\" font-size=\\\\"7\\\\" font-family=\\\\"monospace\\\\">${v.toFixed(2)}</text>`; });
-  xIdxs.forEach(i=>{ svgXL+=`<text x=\\\\"${(PL+i/(hist.length-1)*gW).toFixed(1)}\\\\" y=\\\\"${H-4}\\\\" text-anchor=\\\\"middle\\\\" fill=\\\\"#7a8fa8\\\\" font-size=\\\\"6.5\\\\" font-family=\\\\"monospace\\\\">${pts[i].h.fecha}</text>`; });
-  pts.forEach(p=>{ const col=p.h.pct>70?'#cc1122':p.h.pct>50?'#cc7700':'#008855'; if(p.interpolado){ svgPts+=`<circle cx=\\\\"${p.x.toFixed(1)}\\\\" cy=\\\\"${p.y.toFixed(1)}\\\\" r=\\\\"3.5\\\\" fill=\\\\"none\\\\" stroke=\\\\"${col}\\\\" stroke-width=\\\\"1.2\\\\" stroke-dasharray=\\\\"2,1\\\\" opacity=\\\\"0.7\\\\"/>`; } else { svgPts+=`<circle cx=\\\\"${p.x.toFixed(1)}\\\\" cy=\\\\"${p.y.toFixed(1)}\\\\" r=\\\\"3\\\\" fill=\\\\"${col}\\\\" stroke=\\\\"#fff\\\\" stroke-width=\\\\"1\\\\"/>`; } });
-  return `<svg viewBox=\\\\"0 0 ${W} ${H}\\\\" width=\\\\"${W}\\\\" height=\\\\"${H}\\\\" xmlns=\\\\"http://www.w3.org/2000/svg\\\\">
+  [0,0.5,1].forEach(f=>{ svgGrid+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.5"/>`; });
+  [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svgYL+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${v.toFixed(2)}</text>`; });
+  xIdxs.forEach(i=>{ svgXL+=`<text x="${(PL+i/(hist.length-1)*gW).toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${pts[i].h.fecha}</text>`; });
+  pts.forEach(p=>{ const col=p.h.pct>70?'#cc1122':p.h.pct>50?'#cc7700':'#008855'; if(p.interpolado){ svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="none" stroke="${col}" stroke-width="1.2" stroke-dasharray="2,1" opacity="0.7"/>`; } else { svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${col}" stroke="#fff" stroke-width="1"/>`; } });
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
     ${svgGrid}
-    <polygon points=\\\\"${area}\\\\" fill=\\\\"#ff8c42\\\\" opacity=\\\\"0.08\\\\"/>
-    <polyline points=\\\\"${poly}\\\\" fill=\\\\"none\\\\" stroke=\\\\"#ff8c42\\\\" stroke-width=\\\\"1.8\\\\" stroke-linejoin=\\\\"round\\\\" stroke-linecap=\\\\"round\\\\"/>
+    <polygon points="${area}" fill="#ff8c42" opacity="0.08"/>
+    <polyline points="${poly}" fill="none" stroke="#ff8c42" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
     ${svgPts}
     ${svgYL}${svgXL}
-    <text x=\\\\"${PL-4}\\\\" y=\\\\"${PT-1}\\\\" text-anchor=\\\\"end\\\\" fill=\\\\"#7a8fa8\\\\" font-size=\\\\"6.5\\\\">m</text>
+    <text x="${PL-4}" y="${PT-1}" text-anchor="end" fill="#7a8fa8" font-size="6.5">m</text>
   </svg>`;
 }
 
@@ -1086,7 +1092,7 @@ function generarInformePDF(p, res, tipo, d, histR, histD){
     const gFM   = svgLineaPDF(histR,'fm',  '#6633cc','kg/kg');
     const gDBO  = svgLineaPDF(histR,'rend_dbo','#008855','%');
     const gNH4  = svgLineaPDF(histR,'rend_nh4','#0077aa','%');
-    html=`<!DOCTYPE html><html><head><meta charset=\\\\"UTF-8\\\\"/>
+    html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
     <style>${estiloBase}h1{border-bottom:2px solid #00c8ff}</style></head><body>
     <h1>\ud83d\udccb Informe Reactor Biol\u00f3gico EDAR &mdash; ${fecha} ${hora}</h1>
     <h2>Par\u00e1metros de entrada</h2>
@@ -1107,33 +1113,33 @@ function generarInformePDF(p, res, tipo, d, histR, histD){
     </table>
     <h2>Resultados calculados</h2>
     <table><tr><th>Par\u00e1metro</th><th>Valor</th><th>Unidad</th><th>Estado</th></tr>
-    <tr><td>Edad fango real</td><td>${res.tc.toFixed(1)}</td><td>d\u00edas</td><td class=\\\\"${res.tc>=5&&res.tc<=30?'ok':'warn'}\\\\">${res.tc>=5&&res.tc<=30?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>Edad fango real</td><td>${res.tc.toFixed(1)}</td><td>d\u00edas</td><td class="${res.tc>=5&&res.tc<=30?'ok':'warn'}">${res.tc>=5&&res.tc<=30?'\u2713':'\u26a0'}</td></tr>
     <tr><td>TRH</td><td>${res.TRH.toFixed(1)}</td><td>h</td><td></td></tr>
-    <tr><td>F/M</td><td>${res.FM.toFixed(3)}</td><td>kgDBO/kgSS\u00b7d</td><td class=\\\\"${res.FM>=0.1&&res.FM<=0.4?'ok':'warn'}\\\\">${res.FM>=0.1&&res.FM<=0.4?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>F/M</td><td>${res.FM.toFixed(3)}</td><td>kgDBO/kgSS\u00b7d</td><td class="${res.FM>=0.1&&res.FM<=0.4?'ok':'warn'}">${res.FM>=0.1&&res.FM<=0.4?'\u2713':'\u26a0'}</td></tr>
     <tr><td>Carga vol.</td><td>${res.Cv.toFixed(3)}</td><td>kgDBO/m\u00b3\u00b7d</td><td></td></tr>
-    <tr><td>Rend. DBO\u2085</td><td>${res.rend_dbo.toFixed(1)}</td><td>%</td><td class=\\\\"${res.rend_dbo>=80?'ok':'bad'}\\\\">${res.rend_dbo>=80?'\u2713':'\u2717'}</td></tr>
-    <tr><td>Rend. DQO</td><td>${res.rend_dqo.toFixed(1)}</td><td>%</td><td class=\\\\"${res.rend_dqo>=75?'ok':'bad'}\\\\">${res.rend_dqo>=75?'\u2713':'\u2717'}</td></tr>
-    <tr><td>Rend. Nt</td><td>${res.rend_nh4.toFixed(1)}</td><td>%</td><td class=\\\\"${res.rend_nh4>=70?'ok':'bad'}\\\\">${res.rend_nh4>=70?'\u2713':'\u2717'}</td></tr>
-    <tr><td>Rend. Pt</td><td>${res.rend_pt.toFixed(1)}</td><td>%</td><td class=\\\\"${res.rend_pt>=70?'ok':'bad'}\\\\">${res.rend_pt>=70?'\u2713':'\u2717'}</td></tr>
+    <tr><td>Rend. DBO\u2085</td><td>${res.rend_dbo.toFixed(1)}</td><td>%</td><td class="${res.rend_dbo>=80?'ok':'bad'}">${res.rend_dbo>=80?'\u2713':'\u2717'}</td></tr>
+    <tr><td>Rend. DQO</td><td>${res.rend_dqo.toFixed(1)}</td><td>%</td><td class="${res.rend_dqo>=75?'ok':'bad'}">${res.rend_dqo>=75?'\u2713':'\u2717'}</td></tr>
+    <tr><td>Rend. Nt</td><td>${res.rend_nh4.toFixed(1)}</td><td>%</td><td class="${res.rend_nh4>=70?'ok':'bad'}">${res.rend_nh4>=70?'\u2713':'\u2717'}</td></tr>
+    <tr><td>Rend. Pt</td><td>${res.rend_pt.toFixed(1)}</td><td>%</td><td class="${res.rend_pt>=70?'ok':'bad'}">${res.rend_pt>=70?'\u2713':'\u2717'}</td></tr>
     <tr><td>Masa reactor</td><td>${res.M.toFixed(1)}</td><td>kgSS</td><td></td></tr>
     <tr><td>Producci\u00f3n Px</td><td>${res.Px.toFixed(1)}</td><td>kgSS/d</td><td></td></tr>
-    <tr><td>Acumulaci\u00f3n neta</td><td>${res.acum.toFixed(1)}</td><td>kgSS/d</td><td class=\\\\"${Math.abs(res.acum)<20?'ok':'warn'}\\\\">${Math.abs(res.acum)<20?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>Acumulaci\u00f3n neta</td><td>${res.acum.toFixed(1)}</td><td>kgSS/d</td><td class="${Math.abs(res.acum)<20?'ok':'warn'}">${Math.abs(res.acum)<20?'\u2713':'\u26a0'}</td></tr>
     <tr><td>Purga actual</td><td>${p.caudal_purga_d}</td><td>m\u00b3/d</td><td></td></tr>
-    <tr><td>Purga necesaria</td><td>${res.Qw_nec.toFixed(0)}</td><td>m\u00b3/d</td><td class=\\\\"${Math.abs(p.caudal_purga_d-res.Qw_nec)<5?'ok':'warn'}\\\\">${Math.abs(p.caudal_purga_d-res.Qw_nec)<5?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>Purga necesaria</td><td>${res.Qw_nec.toFixed(0)}</td><td>m\u00b3/d</td><td class="${Math.abs(p.caudal_purga_d-res.Qw_nec)<5?'ok':'warn'}">${Math.abs(p.caudal_purga_d-res.Qw_nec)<5?'\u2713':'\u26a0'}</td></tr>
     </table>
     <h2>Evoluci\u00f3n hist\u00f3rica (${histR?histR.length:0} registros)</h2>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">Edad de fango (d\u00edas)</div>${gTc}</div>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">F/M (kgDBO/kgSS\u00b7d)</div>${gFM}</div>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">Rendimiento DBO\u2085 (%)</div>${gDBO}</div>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">Rendimiento Nt (%)</div>${gNH4}</div>
-    <div class=\\\\"footer\\\\">Simulador Reactor Biol\u00f3gico EDAR &middot; C\u00e1lculos basados en datos reales de laboratorio &middot; L\u00edmites RD 509/1996 &middot; <strong>H\u00e9ctor Hern\u00e1ndez Hern\u00e1ndez</strong></div>
+    <div class="grafica"><div class="grafica-title">Edad de fango (d\u00edas)</div>${gTc}</div>
+    <div class="grafica"><div class="grafica-title">F/M (kgDBO/kgSS\u00b7d)</div>${gFM}</div>
+    <div class="grafica"><div class="grafica-title">Rendimiento DBO\u2085 (%)</div>${gDBO}</div>
+    <div class="grafica"><div class="grafica-title">Rendimiento Nt (%)</div>${gNH4}</div>
+    <div class="footer">Simulador Reactor Biol\u00f3gico EDAR &middot; C\u00e1lculos basados en datos reales de laboratorio &middot; L\u00edmites RD 509/1996 &middot; <strong>H\u00e9ctor Hern\u00e1ndez Hern\u00e1ndez</strong></div>
     </body></html>`;
   } else {
     const gHLF  = svgLechoPDF(histD);
     const gPct  = svgLineaPDF(histD,'pct',  '#cc7700','%');
     const gIVF  = svgLineaPDF(histD,'ivf',  '#6633cc','mL/g');
     const gMarg = svgLineaPDF(histD,'margen','#008855','m');
-    html=`<!DOCTYPE html><html><head><meta charset=\\\\"UTF-8\\\\"/>
+    html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
     <style>${estiloBase}h1{border-bottom:2px solid #ff8c42}</style></head><body>
     <h1>\ud83d\udccb Informe Decantador Secundario EDAR &mdash; ${fecha} ${hora}</h1>
     <h2>Par\u00e1metros instalaci\u00f3n</h2>
@@ -1154,18 +1160,18 @@ function generarInformePDF(p, res, tipo, d, histR, histD){
     </table>
     <h2>Resultados calculados</h2>
     <table><tr><th>Par\u00e1metro</th><th>Valor</th><th>Unidad</th><th>Estado</th></tr>
-    <tr><td>Carga hidr. superficial</td><td>${d.CHS.toFixed(3)}</td><td>m\u00b3/m\u00b2\u00b7h</td><td class=\\\\"${d.CHS>=0.5&&d.CHS<=1.5?'ok':'bad'}\\\\">${d.CHS>=0.5&&d.CHS<=1.5?'\u2713':'\u26a0'}</td></tr>
-    <tr><td>Carga s\u00f3lidos superficial</td><td>${d.CSS.toFixed(3)}</td><td>kgSS/m\u00b2\u00b7h</td><td class=\\\\"${d.CSS<=6?'ok':'bad'}\\\\">${d.CSS<=6?'\u2713':'\u26a0'}</td></tr>
-    <tr><td>TRH decantador</td><td>${d.TRH_dec.toFixed(2)}</td><td>h</td><td class=\\\\"${d.TRH_dec>=1.5&&d.TRH_dec<=3?'ok':'warn'}\\\\">${d.TRH_dec>=1.5&&d.TRH_dec<=3?'\u2713':'\u26a0'}</td></tr>
-    <tr><td>Vel. sedimentaci\u00f3n aparente</td><td>${d.vel_sed.toFixed(2)}</td><td>m/h</td><td class=\\\\"${d.vel_sed>=1.5?'ok':'warn'}\\\\">${d.vel_sed>=1.5?'\u2713':'\u26a0'}</td></tr>
-    <tr><td>IVF real</td><td>${d.ivf.toFixed(0)}</td><td>mL/g</td><td class=\\\\"${d.ivf<120?'ok':d.ivf<180?'warn':'bad'}\\\\">${d.ivf<120?'\u2713':d.ivf<180?'\u26a0':'\u2717'}</td></tr>
+    <tr><td>Carga hidr. superficial</td><td>${d.CHS.toFixed(3)}</td><td>m\u00b3/m\u00b2\u00b7h</td><td class="${d.CHS>=0.5&&d.CHS<=1.5?'ok':'bad'}">${d.CHS>=0.5&&d.CHS<=1.5?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>Carga s\u00f3lidos superficial</td><td>${d.CSS.toFixed(3)}</td><td>kgSS/m\u00b2\u00b7h</td><td class="${d.CSS<=6?'ok':'bad'}">${d.CSS<=6?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>TRH decantador</td><td>${d.TRH_dec.toFixed(2)}</td><td>h</td><td class="${d.TRH_dec>=1.5&&d.TRH_dec<=3?'ok':'warn'}">${d.TRH_dec>=1.5&&d.TRH_dec<=3?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>Vel. sedimentaci\u00f3n aparente</td><td>${d.vel_sed.toFixed(2)}</td><td>m/h</td><td class="${d.vel_sed>=1.5?'ok':'warn'}">${d.vel_sed>=1.5?'\u2713':'\u26a0'}</td></tr>
+    <tr><td>IVF real</td><td>${d.ivf.toFixed(0)}</td><td>mL/g</td><td class="${d.ivf<120?'ok':d.ivf<180?'warn':'bad'}">${d.ivf<120?'\u2713':d.ivf<180?'\u26a0':'\u2717'}</td></tr>
     </table>
     <h2>Evoluci\u00f3n hist\u00f3rica (${histD?histD.length:0} registros)</h2>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">Altura lecho de fangos (m)</div>${gHLF}</div>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">% lecho ocupado</div>${gPct}</div>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">IVF real (mL/g)</div>${gIVF}</div>
-    <div class=\\\\"grafica\\\\"><div class=\\\\"grafica-title\\\\">Margen libre (m)</div>${gMarg}</div>
-    <div class=\\\\"footer\\\\">Simulador Reactor Biol\u00f3gico EDAR &middot; C\u00e1lculos basados en datos reales de laboratorio &middot; <strong>H\u00e9ctor Hern\u00e1ndez Hern\u00e1ndez</strong></div>
+    <div class="grafica"><div class="grafica-title">Altura lecho de fangos (m)</div>${gHLF}</div>
+    <div class="grafica"><div class="grafica-title">% lecho ocupado</div>${gPct}</div>
+    <div class="grafica"><div class="grafica-title">IVF real (mL/g)</div>${gIVF}</div>
+    <div class="grafica"><div class="grafica-title">Margen libre (m)</div>${gMarg}</div>
+    <div class="footer">Simulador Reactor Biol\u00f3gico EDAR &middot; C\u00e1lculos basados en datos reales de laboratorio &middot; <strong>H\u00e9ctor Hern\u00e1ndez Hern\u00e1ndez</strong></div>
     </body></html>`;
   }
   const w=window.open('','_blank');
@@ -1226,7 +1232,7 @@ function App(){
           let fechaISO='';
           if(fk){
             const fv=r[fk];
-            if(typeof fv==='string'&&fv.match(/^\\\\\\\\d{4}-\\\\\\\\d{2}-\\\\\\\\d{2}/)){
+            if(typeof fv==='string'&&fv.match(/^\d{4}-\d{2}-\d{2}/)){
               fechaISO=fv.slice(0,10);
             } else if(fv instanceof Date){
               fechaISO=fv.toISOString().slice(0,10);
@@ -1316,24 +1322,24 @@ function App(){
   const sc=`background:${C.bg};color:${C.text}`;
 
   function PP({compact=true}){return(<>
-    <Slider label={t.caudalBio}     unit=\\\\"m\u00b3/d\\\\" min={200} max={2000} step={10}  value={p.caudal}        onChange={set('caudal')}        color={C.accent} C={C} compact={compact}/>
-    <Slider label={t.od}            unit=\\\\"mg/L\\\\"  min={0.3} max={6}   step={0.1} value={p.od}            onChange={set('od')}            color={C.green}  C={C} compact={compact}/>
-    <Slider label={t.recirculacion} unit=\\\\"%\\\\"     min={20}  max={150} step={5}   value={p.recirculacion} onChange={set('recirculacion')} color={C.warn}   C={C} compact={compact}/>
-    <NumInput label={t.volReactor}   unit=\\\\"m\u00b3\\\\"    value={p.vol_reactor}   onChange={set('vol_reactor')}   color={C.text}   C={C} compact={compact}/>
-    <NumInput label={t.edadObjetivo} unit=\\\\"d\u00edas\\\\"  value={p.edad_objetivo} onChange={set('edad_objetivo')} color={C.text}   C={C} compact={compact}/>
+    <Slider label={t.caudalBio}     unit="m\u00b3/d" min={200} max={2000} step={10}  value={p.caudal}        onChange={set('caudal')}        color={C.accent} C={C} compact={compact}/>
+    <Slider label={t.od}            unit="mg/L"  min={0.3} max={6}   step={0.1} value={p.od}            onChange={set('od')}            color={C.green}  C={C} compact={compact}/>
+    <Slider label={t.recirculacion} unit="%"     min={20}  max={150} step={5}   value={p.recirculacion} onChange={set('recirculacion')} color={C.warn}   C={C} compact={compact}/>
+    <NumInput label={t.volReactor}   unit="m\u00b3"    value={p.vol_reactor}   onChange={set('vol_reactor')}   color={C.text}   C={C} compact={compact}/>
+    <NumInput label={t.edadObjetivo} unit="d\u00edas"  value={p.edad_objetivo} onChange={set('edad_objetivo')} color={C.text}   C={C} compact={compact}/>
   </>);}
   function PLE({compact=true}){return(<>
-    <NumInput label={t.dboEntrada} unit=\\\\"mg/L\\\\" value={p.dbo_entrada} onChange={set('dbo_entrada')} color={C.accent} C={C} compact={compact}/>
-    <NumInput label={t.dqoEntrada} unit=\\\\"mg/L\\\\" value={p.dqo_entrada} onChange={set('dqo_entrada')} color={C.accent} C={C} compact={compact}/>
-    <NumInput label={t.nh4Entrada} unit=\\\\"mg/L\\\\" value={p.nh4_entrada} onChange={set('nh4_entrada')} color={C.accent} C={C} compact={compact}/>
-    <NumInput label={t.pt_entrada} unit=\\\\"mg/L\\\\" value={p.pt_entrada} onChange={set('pt_entrada')} color={C.accent} C={C} compact={compact}/>
+    <NumInput label={t.dboEntrada} unit="mg/L" value={p.dbo_entrada} onChange={set('dbo_entrada')} color={C.accent} C={C} compact={compact}/>
+    <NumInput label={t.dqoEntrada} unit="mg/L" value={p.dqo_entrada} onChange={set('dqo_entrada')} color={C.accent} C={C} compact={compact}/>
+    <NumInput label={t.nh4Entrada} unit="mg/L" value={p.nh4_entrada} onChange={set('nh4_entrada')} color={C.accent} C={C} compact={compact}/>
+    <NumInput label={t.pt_entrada} unit="mg/L" value={p.pt_entrada} onChange={set('pt_entrada')} color={C.accent} C={C} compact={compact}/>
   </>);}
   function PLR({compact=true}){return(<>
-    <NumInput label={t.sstReactor}  unit=\\\\"mg/L\\\\" value={p.sst_reactor}         onChange={set('sst_reactor')}         color={C.purple} C={C} compact={compact}/>
-    <NumInput label={t.sstRecirc}   unit=\\\\"mg/L\\\\" value={p.sst_recirculacion}    onChange={set('sst_recirculacion')}   color={C.warn}   C={C} compact={compact}/>
-    <NumInput label={t.sstEfluente} unit=\\\\"mg/L\\\\" value={p.sst_efluente}         onChange={set('sst_efluente')}        color={C.purple} C={C} compact={compact}/>
-    <NumInput label={t.caudalPurga} unit=\\\\"m\u00b3/d\\\\" value={p.caudal_purga_d}       onChange={set('caudal_purga_d')}      color={C.orange} C={C} compact={compact}/>
-    <NumInput label={t.caudalRecirc} unit=\\\\"m\u00b3/d\\\\" value={p.caudal_recirculacion} onChange={set('caudal_recirculacion')} color={C.warn} C={C} compact={compact}/>
+    <NumInput label={t.sstReactor}  unit="mg/L" value={p.sst_reactor}         onChange={set('sst_reactor')}         color={C.purple} C={C} compact={compact}/>
+    <NumInput label={t.sstRecirc}   unit="mg/L" value={p.sst_recirculacion}    onChange={set('sst_recirculacion')}   color={C.warn}   C={C} compact={compact}/>
+    <NumInput label={t.sstEfluente} unit="mg/L" value={p.sst_efluente}         onChange={set('sst_efluente')}        color={C.purple} C={C} compact={compact}/>
+    <NumInput label={t.caudalPurga} unit="m\u00b3/d" value={p.caudal_purga_d}       onChange={set('caudal_purga_d')}      color={C.orange} C={C} compact={compact}/>
+    <NumInput label={t.caudalRecirc} unit="m\u00b3/d" value={p.caudal_recirculacion} onChange={set('caudal_recirculacion')} color={C.warn} C={C} compact={compact}/>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
       background:C.inputBg,border:`1px solid ${C.warn}40`,borderRadius:5,padding:'5px 8px',marginBottom:compact?7:12}}>
       <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.irCalculado}</span>
@@ -1343,10 +1349,10 @@ function App(){
     </div>
   </>);}
   function PLEf({compact=true}){return(<>
-    <NumInput label={t.dboEfluente} unit=\\\\"mg/L\\\\" value={p.dbo_efluente} onChange={set('dbo_efluente')} color={C.green} C={C} compact={compact}/>
-    <NumInput label={t.dqoEfluente} unit=\\\\"mg/L\\\\" value={p.dqo_efluente} onChange={set('dqo_efluente')} color={C.green} C={C} compact={compact}/>
-    <NumInput label={t.nh4Efluente} unit=\\\\"mg/L\\\\" value={p.nh4_efluente} onChange={set('nh4_efluente')} color={C.green} C={C} compact={compact}/>
-    <NumInput label={t.pt_efluente} unit=\\\\"mg/L\\\\" value={p.pt_efluente} onChange={set('pt_efluente')} color={C.green} C={C} compact={compact}/>
+    <NumInput label={t.dboEfluente} unit="mg/L" value={p.dbo_efluente} onChange={set('dbo_efluente')} color={C.green} C={C} compact={compact}/>
+    <NumInput label={t.dqoEfluente} unit="mg/L" value={p.dqo_efluente} onChange={set('dqo_efluente')} color={C.green} C={C} compact={compact}/>
+    <NumInput label={t.nh4Efluente} unit="mg/L" value={p.nh4_efluente} onChange={set('nh4_efluente')} color={C.green} C={C} compact={compact}/>
+    <NumInput label={t.pt_efluente} unit="mg/L" value={p.pt_efluente} onChange={set('pt_efluente')} color={C.green} C={C} compact={compact}/>
   </>);}
 
   const Topbar=()=>(
@@ -1370,7 +1376,7 @@ function App(){
       <div style={{display:'flex',alignItems:'center',gap:6,background:C.inputBg,
         border:`1px solid ${excelData.length?C.green+'60':C.border}`,
         borderRadius:7,padding:'4px 10px',gap:8}}>
-        <input ref={fileInputRef} type=\\\\"file\\\\" accept=\\\\".xlsx,.xls\\\\"
+        <input ref={fileInputRef} type="file" accept=".xlsx,.xls"
           style={{display:'none'}} onChange={handleExcelLoad}/>
         <button onClick={()=>fileInputRef.current&&fileInputRef.current.click()}
           style={{padding:'3px 10px',border:`1px solid ${C.accent}`,borderRadius:5,
@@ -1385,7 +1391,7 @@ function App(){
               style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
                 color:C.accent,fontSize:10,fontWeight:700,fontFamily:'monospace',
                 padding:'2px 6px',cursor:'pointer',outline:'none'}}>
-              <option value=\\\\"\\\\">\u2014 elige fecha \u2014</option>
+              <option value="">\u2014 elige fecha \u2014</option>
               {fechasDisponibles.map(f=>(
                 <option key={f} value={f}>{f}</option>
               ))}
@@ -1430,7 +1436,7 @@ function App(){
   const gauges=[{l:'DBO\u2085',v:res.dbo_ef,lm:res.limites.dbo},{l:'DQO',v:res.dqo_ef,lm:res.limites.dqo},{l:'SS',v:res.ss_ef,lm:res.limites.ss},{l:'Nt',v:res.nh4_ef,lm:res.limites.nh4},{l:'Pt',v:res.pt_ef,lm:res.limites.pt}];
 
   if(mob) return(
-    <div style={{minHeight:'100vh',background:C.bg,color:C.text,fontFamily:\\\\"'IBM Plex Sans',sans-serif\\\\",paddingBottom:24}}>
+    <div style={{minHeight:'100vh',background:C.bg,color:C.text,fontFamily:"'IBM Plex Sans',sans-serif",paddingBottom:24}}>
       <Topbar/>
       <div style={{padding:'12px 14px',display:'flex',flexDirection:'column',gap:10}}>
         <div style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:8,padding:'8px 10px',overflowX:'auto'}}>
@@ -1456,7 +1462,7 @@ function App(){
           </div>
         </div>
         <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-          {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit=\\\\"mg/L\\\\" C={C} compact/>))}
+          {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit="mg/L" C={C} compact/>))}
         </div>
         <PanelFormulas p={p} res={res} t={t} C={C}/>
         <div style={{fontSize:7.5,color:C.muted,textAlign:'center',opacity:0.65}}>{t.footer} \u00b7 {t.autor}</div>
@@ -1465,7 +1471,7 @@ function App(){
   );
 
   return(
-    <div style={{height:'100vh',background:C.bg,color:C.text,fontFamily:\\\\"'IBM Plex Sans',sans-serif\\\\",display:'flex',flexDirection:'column',overflow:'hidden'}}>
+    <div style={{height:'100vh',background:C.bg,color:C.text,fontFamily:"'IBM Plex Sans',sans-serif",display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <Topbar/>
       <div style={{flex:1,display:'flex',overflow:'hidden'}}>
         {mainTab==='decantador'?(
@@ -1482,7 +1488,7 @@ function App(){
           <SecHdr label={t.labEfluente}     color={C.green}  C={C} mt/> <PLEf/>
           <SecHdr label={t.calidadEfluente} color={C.green}  C={C} mt/>
           <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
-            {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit=\\\\"mg/L\\\\" C={C} compact/>))}
+            {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit="mg/L" C={C} compact/>))}
           </div>
           {res.alertas.length>0&&(
             <div style={{background:'#120508',border:`1px solid ${C.danger}40`,borderRadius:6,padding:'6px 9px',marginTop:4}}>
@@ -1593,6 +1599,29 @@ function App(){
 const _rootEl = document.getElementById('sim-proceso-root') || document.getElementById('app-root');
 ReactDOM.createRoot(_rootEl).render(<App/>);
 
+
+</script>
+<!-- Babel loaded LAST so the DOM (including sim-jsx-src) is ready -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script>
+// Manual compilation — guaranteed to run after DOM is ready
+(function() {
+  var src = document.getElementById('sim-jsx-src').textContent;
+  try {
+    var compiled = Babel.transform(src, { presets: ['react'] }).code;
+    var el = document.getElementById('app-root');
+    var loading = document.getElementById('sim-loading');
+    el.style.display = 'block';
+    if(loading) loading.style.display = 'none';
+    eval(compiled);
+  } catch(err) {
+    document.getElementById('sim-loading').innerHTML =
+      '<div style="color:#ff4455;padding:2rem;font-family:monospace;font-size:.82rem;max-width:600px;">' +
+      '<strong>Error al compilar el simulador:</strong><br><br>' +
+      err.message.replace(/</g,'&lt;').replace(/>/g,'&gt;') +
+      '</div>';
+  }
+})();
 </script>
 </body>
 </html>
