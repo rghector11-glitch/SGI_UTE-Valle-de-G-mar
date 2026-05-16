@@ -2533,7 +2533,11 @@ async function runDiag() {
     let fbWrite = false;
     if(fbReady) {
       try {
-        await window._fb.set(window._fb.ref(window._fb.db, '_diag_ping'), Date.now());
+        const _fbTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+        await Promise.race([
+          window._fb.set(window._fb.ref(window._fb.db, '_diag_ping'), Date.now()),
+          _fbTimeout
+        ]);
         fbWrite = true;
       } catch(e) { fbWrite = false; }
     }
@@ -2625,8 +2629,15 @@ async function runDiag() {
       fix: ok ? null : 'Verifica tu conexión a internet y recarga la página. Las librerías se cargan desde CDN externo.' };
   })());
 
-  // ── Resolver todos y renderizar ────────────────────────────────────────────
-  const resolved = await Promise.all(checks);
+  // ── Resolver todos y renderizar (con timeout global de 8s) ──────────────────
+  const _globalTimeout = new Promise(resolve =>
+    setTimeout(() => resolve(checks.map(() => ({
+      id:'timeout', title:'Comprobación', ok:'warn', icon:'⏱️',
+      desc:'La comprobación tardó demasiado. Puede haber un problema de red.',
+      fix:'Recarga la página e inténtalo de nuevo.'
+    }))), 8000)
+  );
+  const resolved = await Promise.race([Promise.all(checks), _globalTimeout]);
 
   const globalOk = resolved.every(r => r.ok === 'ok') ? 'ok'
                  : resolved.some(r => r.ok === 'error') ? 'error' : 'warn';
