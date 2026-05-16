@@ -1074,26 +1074,52 @@ function sk(t) { return `ute-guimar-${plant}-${t}`; }
 let _fbCalUnsubscribe = null;
 function loadData() {
   instruments = []; records = [];
-  try { const d = localStorage.getItem(sk('instruments')); if(d) instruments = JSON.parse(d); } catch(e){}
-  try { const d = localStorage.getItem(sk('records'));     if(d) records    = JSON.parse(d); } catch(e){}
-  try { const d = localStorage.getItem('ute-guimar-global-thresholds'); if(d){ const t=JSON.parse(d); globalOk=t.ok; globalWarn=t.warn; } } catch(e){}
-  if(!instruments.length) seedDemo();
-  // Unsubscribe previous listener before subscribing new one
+  // Unsubscribe previous listener
   if(_fbCalUnsubscribe) { try { _fbCalUnsubscribe(); } catch(e){} _fbCalUnsubscribe = null; }
+
+  const applyData = (d) => {
+    if(d && d.instruments && d.instruments.length) {
+      instruments = d.instruments;
+      records     = d.records     || [];
+      if(d.thresholds) { globalOk = d.thresholds.ok; globalWarn = d.thresholds.warn; }
+    } else {
+      // Fall back to localStorage, then seedDemo
+      try { const ls = localStorage.getItem(sk('instruments')); if(ls) instruments = JSON.parse(ls); } catch(e){}
+      try { const ls = localStorage.getItem(sk('records'));     if(ls) records    = JSON.parse(ls); } catch(e){}
+      try { const ls = localStorage.getItem('ute-guimar-global-thresholds'); if(ls){ const t=JSON.parse(ls); globalOk=t.ok; globalWarn=t.warn; } } catch(e){}
+      if(!instruments.length) seedDemo();
+    }
+    // Cache in localStorage
+    try { localStorage.setItem(sk('instruments'), JSON.stringify(instruments)); } catch(e){}
+    try { localStorage.setItem(sk('records'),     JSON.stringify(records)); } catch(e){}
+    renderAll();
+    if(document.getElementById('tab-criteria') && document.getElementById('tab-criteria').classList.contains('active')) renderCriteria();
+  };
+
   if(window._fb) {
     const fbPath = 'calibraciones/' + plant;
+    // First do a one-time GET to load immediately
+    window._fb.get(window._fb.ref(window._fb.db, fbPath)).then(snap => {
+      applyData(snap.val());
+    }).catch(() => {
+      // Firebase get failed - use localStorage fallback
+      applyData(null);
+    });
+    // Then subscribe for real-time updates
     _fbCalUnsubscribe = window._fb.onValue(window._fb.ref(window._fb.db, fbPath), snap => {
       const d = snap.val();
-      if(d) {
-        if(d.instruments) instruments = d.instruments;
-        if(d.records)     records     = d.records;
-        if(d.thresholds)  { globalOk = d.thresholds.ok; globalWarn = d.thresholds.warn; }
-        localStorage.setItem(sk('instruments'), JSON.stringify(instruments));
-        localStorage.setItem(sk('records'),     JSON.stringify(records));
+      if(d && d.instruments && d.instruments.length) {
+        instruments = d.instruments;
+        records     = d.records || [];
+        if(d.thresholds) { globalOk = d.thresholds.ok; globalWarn = d.thresholds.warn; }
+        try { localStorage.setItem(sk('instruments'), JSON.stringify(instruments)); } catch(e){}
+        try { localStorage.setItem(sk('records'),     JSON.stringify(records)); } catch(e){}
         renderAll();
         if(document.getElementById('tab-criteria') && document.getElementById('tab-criteria').classList.contains('active')) renderCriteria();
       }
     });
+  } else {
+    applyData(null);
   }
 }
 function saveAll() {

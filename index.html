@@ -2562,7 +2562,7 @@ function updateClock(){
 updateClock(); setInterval(updateClock,1000);
 
 // ── App viewer ──
-const INLINE_APPS = {'simulador-edari.html': 'app-simulador', 'simulador-proceso-edari.html': 'app-simulador-proceso'};
+const INLINE_APPS = {'simulador-edari.html': 'app-simulador'};
 
 function openApp(url, title, module){
   document.getElementById('splash').style.display = 'none';
@@ -3467,13 +3467,7 @@ window.toggleFS   = toggleFS;
 })();
 
 // ── Intercept openApp to lazy-mount Simulador Proceso ────────────────────────
-const _openAppBase = openApp;
-window.openApp = function(url, title, module) {
-  _openAppBase(url, title, module);
-  if(url === 'simulador-proceso-edari.html') {
-    setTimeout(mountSimuladorProceso, 200);
-  }
-};
+// simulador-proceso-edari.html loads in iframe (standalone file)
 
 // ── Lazy mount del simulador proceso (compila JSX con Babel la primera vez) ──
 let _simProcMounted = false;
