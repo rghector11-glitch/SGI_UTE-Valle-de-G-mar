@@ -680,7 +680,8 @@ body::before {
   <div class="diag-header">
     <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;stroke:white;stroke-width:1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
     <h3>Diagnóstico del portal</h3>
-    <button class="diag-close" onclick="toggleDiag()">✕</button>
+    <div id="diag-global-dot" class="diag-dot checking" style="margin-left:auto;margin-right:8px;"></div>
+    <button class="diag-close" id="diag-btn" onclick="toggleDiag()">✕</button>
   </div>
   <div class="diag-body" id="diag-body">
     <div style="text-align:center;padding:1.5rem;color:#94a3b8;font-size:.82rem;">Comprobando...</div>
@@ -2644,7 +2645,7 @@ async function runDiag() {
 
   // Update global dot
   const dot = document.getElementById('diag-global-dot');
-  dot.className = 'diag-dot ' + globalOk;
+  if(dot) dot.className = 'diag-dot ' + globalOk;
 
   // Render
   const now = new Date();
@@ -2678,9 +2679,9 @@ setTimeout(() => {
     ]).then(([online, fb]) => {
       const dot = document.getElementById('diag-global-dot');
       if(!dot) return;
-      if(!online) { dot.className = 'diag-dot error'; return; }
-      if(!fb)     { dot.className = 'diag-dot warn'; return; }
-      dot.className = 'diag-dot ok';
+      if(!online) { if(dot) dot.className = 'diag-dot error'; return; }
+      if(!fb)     { if(dot) dot.className = 'diag-dot warn'; return; }
+      if(dot) dot.className = 'diag-dot ok';
     });
   }
 }, 3000);
