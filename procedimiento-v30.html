@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V30 — UTE Valle de Güímar</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#0e7490;--brand-dark:#0c4a6e;--brand-light:#e0f2fe;
+  --accent:#38bdf8;--amber:#f0a500;--green:#16a34a;--red:#dc2626;
+  --bg:#f0f4f8;--surface:#fff;--border:#dde3ec;
+  --text:#0f1923;--text2:#3d5166;--text3:#7a90a4;
+  --sans:'Barlow',sans-serif;--cond:'Barlow Condensed',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{min-height:100%;background:var(--bg);font-family:var(--sans);color:var(--text);}
+.back-bar{background:linear-gradient(135deg,var(--brand-dark),var(--brand));display:flex;align-items:center;gap:.8rem;padding:.6rem 1.2rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.22);}
+.back-btn{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.23);border-radius:8px;color:white;cursor:pointer;padding:5px 11px;font-size:.76rem;font-family:var(--sans);display:flex;align-items:center;gap:4px;font-weight:600;}
+.back-btn:hover{background:rgba(255,255,255,.22);}
+.back-btn svg{width:13px;height:13px;stroke:currentColor;}
+.bar-title{font-family:var(--cond);font-weight:700;color:white;font-size:.95rem;}
+.bar-sub{font-size:.68rem;color:rgba(255,255,255,.6);}
+.hero{background:linear-gradient(135deg,var(--brand-dark) 0%,var(--brand) 60%,#0284c7 100%);padding:2.5rem 1.5rem 3rem;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(56,189,248,.2) 0%,transparent 65%);}
+.hero-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:99px;padding:.3rem .9rem;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.9);letter-spacing:.05em;text-transform:uppercase;margin-bottom:1.2rem;}
+.hero-icon{width:88px;height:88px;margin:0 auto 1.2rem;position:relative;z-index:1;}
+.hero h1{font-family:var(--cond);font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;color:white;line-height:1.05;margin-bottom:.5rem;position:relative;z-index:1;}
+.hero-sub{font-size:.88rem;color:rgba(255,255,255,.65);position:relative;z-index:1;max-width:440px;margin:0 auto;}
+.hero-tags{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1.1rem;position:relative;z-index:1;}
+.hero-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:.25rem .75rem;font-size:.72rem;color:white;font-weight:500;}
+.page{max-width:860px;margin:0 auto;padding:2rem 1.2rem 4rem;}
+.section-title{display:flex;align-items:center;gap:.6rem;font-family:var(--cond);font-size:1.1rem;font-weight:700;color:var(--brand-dark);margin:2rem 0 1rem;}
+.section-title svg{width:18px;height:18px;stroke:var(--brand);}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);margin-left:.4rem;}
+.info-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem;margin-bottom:.5rem;}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;display:flex;align-items:center;gap:.65rem;}
+.info-card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-card-icon svg{width:18px;height:18px;stroke:white;}
+.info-card-label{font-size:.68rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
+.info-card-value{font-size:.88rem;font-weight:600;color:var(--text);margin-top:1px;}
+.materials-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.7rem;}
+.material-chip{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem;display:flex;align-items:center;gap:.6rem;font-size:.83rem;font-weight:500;color:var(--text);}
+.material-chip svg{width:20px;height:20px;stroke:var(--brand);flex-shrink:0;}
+.steps{display:flex;flex-direction:column;gap:1rem;}
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;align-items:stretch;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.step-num-col{width:62px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:1.2rem;background:linear-gradient(180deg,var(--brand-dark),var(--brand));}
+.step-num{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:1rem;font-weight:800;color:white;}
+.step-icon-wrap{margin-top:auto;padding:.8rem .4rem;opacity:.35;}
+.step-icon-wrap svg{width:28px;height:28px;stroke:white;}
+.step-body{flex:1;padding:1.1rem 1.3rem;}
+.step-phase{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem;}
+.step-title{font-family:var(--cond);font-size:1.15rem;font-weight:700;color:var(--brand-dark);margin-bottom:.5rem;}
+.step-desc{font-size:.85rem;color:var(--text2);line-height:1.6;}
+.step-detail{margin-top:.8rem;background:var(--brand-light);border-left:3px solid var(--brand);border-radius:0 8px 8px 0;padding:.6rem .85rem;font-size:.8rem;color:var(--brand-dark);line-height:1.55;}
+.step-detail strong{display:block;font-weight:700;margin-bottom:.2rem;}
+.step-ilu{width:110px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg);border-left:1px solid var(--border);padding:.8rem;}
+.step-ilu svg{width:74px;height:74px;}
+@media(max-width:540px){.step-ilu{display:none;}.step-num-col{width:48px;}}
+.formula-box{background:var(--brand-dark);border:1px solid var(--accent);border-radius:12px;padding:1.1rem 1.4rem;margin-top:1rem;}
+.formula-title{font-size:.75rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;}
+.formula{font-family:var(--mono);font-size:.88rem;color:white;line-height:2.2;}
+.formula span{color:var(--accent);}
+.dilution-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-top:.5rem;}
+.dil-card{border-radius:12px;padding:.85rem 1rem;}
+.dil-card.ok{background:#052e16;border:1px solid #166534;}
+.dil-card.warn{background:#1c1007;border:1px solid #92400e;}
+.dil-title{font-size:.8rem;font-weight:700;margin-bottom:.35rem;}
+.dil-title.ok{color:#4ade80;}
+.dil-title.warn{color:#fcd34d;}
+.dil-text{font-size:.78rem;line-height:1.5;color:rgba(255,255,255,.65);}
+.qc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;}
+.qc-card{background:var(--surface);border:1px solid #fcd34d;border-radius:12px;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.65rem;}
+.qc-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;margin-top:5px;}
+.qc-text{font-size:.82rem;color:var(--text);line-height:1.5;}
+.result-box{background:linear-gradient(135deg,#0c4a6e,#0e7490);border:1px solid #0284c7;border-radius:14px;padding:1.3rem 1.5rem;display:flex;align-items:center;gap:1.2rem;}
+.result-icon{width:52px;height:52px;background:rgba(56,189,248,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.result-icon svg{width:28px;height:28px;stroke:#38bdf8;}
+.result-title{font-family:var(--cond);font-size:1.1rem;font-weight:700;color:#38bdf8;margin-bottom:.2rem;}
+.result-desc{font-size:.82rem;color:rgba(255,255,255,.65);line-height:1.5;}
+.result-unit{margin-left:auto;text-align:center;flex-shrink:0;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);border-radius:10px;padding:.6rem 1rem;}
+.result-unit .val{font-family:var(--mono);font-size:1.4rem;font-weight:600;color:#38bdf8;}
+.result-unit .lbl{font-size:.68rem;color:rgba(255,255,255,.5);margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="back-bar">
+  <button class="back-btn" onclick="history.back()"><svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Volver</button>
+  <div><div class="bar-title">V30 — Sólidos Sedimentables</div><div class="bar-sub">UTE Valle de Güímar · Procedimientos de Laboratorio</div></div>
+</div>
+
+<div class="hero">
+  <div class="hero-badge">⏱ 30 min · Probeta 1 L</div>
+  <div class="hero-icon">
+    <svg viewBox="0 0 88 88" fill="none">
+      <rect x="28" y="10" width="32" height="62" rx="5" fill="rgba(56,189,248,.1)" stroke="rgba(56,189,248,.6)" stroke-width="1.8"/>
+      <!-- Water column -->
+      <rect x="30" y="12" width="28" height="38" rx="3" fill="rgba(56,189,248,.2)"/>
+      <!-- Settled solids -->
+      <rect x="30" y="50" width="28" height="20" rx="3" fill="rgba(180,83,9,.45)"/>
+      <!-- Scale marks -->
+      <line x1="58" y1="50" x2="64" y2="50" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>
+      <text x="67" y="53" font-size="7" fill="rgba(255,255,255,.6)">V30</text>
+      <line x1="58" y1="12" x2="62" y2="12" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+      <line x1="58" y1="30" x2="61" y2="30" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+      <!-- Timer -->
+      <text x="44" y="78" text-anchor="middle" font-size="6.5" fill="rgba(255,255,255,.4)">1 L · 30 min</text>
+    </svg>
+  </div>
+  <h1>Volumen de Sólidos<br>Sedimentables V30</h1>
+  <p class="hero-sub">Determinación del volumen sedimentado en 30 minutos en probeta de 1 L. Indicador de decantabilidad del fango</p>
+  <div class="hero-tags">
+    <span class="hero-tag">🧪 Licor mezcla</span>
+    <span class="hero-tag">⏱ 30 minutos</span>
+    <span class="hero-tag">📏 mL/L</span>
+  </div>
+</div>
+
+<div class="page">
+  <div class="info-strip">
+    <div class="info-card"><div class="info-card-icon" style="background:#0e7490;"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round" stroke-width="1.4"/></svg></div><div><div class="info-card-label">Tiempo</div><div class="info-card-value">30 min</div></div></div>
+    <div class="info-card"><div class="info-card-icon" style="background:#0077b6;"><svg viewBox="0 0 16 16" fill="none"><path d="M4 13V8L8 2l4 6v5H4z" stroke-width="1.3" stroke-linejoin="round"/></svg></div><div><div class="info-card-label">Volumen</div><div class="info-card-value">1 L</div></div></div>
+    <div class="info-card"><div class="info-card-icon" style="background:#0f6e56;"><svg viewBox="0 0 16 16" fill="none"><path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg></div><div><div class="info-card-label">Unidad</div><div class="info-card-value">mL/L</div></div></div>
+    <div class="info-card"><div class="info-card-icon" style="background:#b45309;"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2C8 2 4 7 4 10a4 4 0 008 0c0-3-4-8-4-8z" stroke-width="1.4"/></svg></div><div><div class="info-card-label">Muestra</div><div class="info-card-value">Licor mezcla</div></div></div>
+  </div>
+
+  <div class="section-title"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6M8 5v6" stroke-linecap="round" stroke-width="1.4"/></svg>Materiales</div>
+  <div class="materials-grid">
+    <div class="material-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M4 13V8L8 2l4 6v5H4z" stroke-width="1.3" stroke-linejoin="round"/></svg>Probeta graduada 1 L</div>
+    <div class="material-chip"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round" stroke-width="1.3"/></svg>Cronómetro</div>
+    <div class="material-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2C8 2 4 7 4 10a4 4 0 008 0c0-3-4-8-4-8z" stroke-width="1.4"/></svg>Muestra licor mezcla</div>
+    <div class="material-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2C8 2 4 7 4 10a4 4 0 008 0c0-3-4-8-4-8z" stroke-width="1.4" stroke="rgba(100,200,255,.8)"/></svg>Agua de efluente (dilución)</div>
+  </div>
+
+  <div class="section-title"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2" stroke-linecap="round" stroke-width="1.4"/></svg>Procedimiento paso a paso</div>
+  <div class="steps">
+    <div class="step-card">
+      <div class="step-num-col"><div class="step-num">1</div><div class="step-icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M9 3v12a3 3 0 006 0V3" stroke-width="1.8" stroke-linecap="round"/></svg></div></div>
+      <div class="step-body">
+        <div class="step-phase">Medición directa</div>
+        <div class="step-title">Homogeneizar y verter 1 L en probeta</div>
+        <div class="step-desc">Homogeneizar bien la muestra de licor mezcla. Verter exactamente <strong>1 L</strong> en la probeta graduada.</div>
+      </div>
+      <div class="step-ilu">
+        <svg viewBox="0 0 74 74" fill="none">
+          <rect x="26" y="10" width="22" height="54" rx="5" fill="rgba(56,189,248,.1)" stroke="rgba(56,189,248,.5)" stroke-width="1.8"/>
+          <rect x="28" y="12" width="18" height="35" rx="3" fill="rgba(56,189,248,.2)"/>
+          <line x1="46" y1="12" x2="50" y2="12" stroke="rgba(255,255,255,.5)" stroke-width="1"/>
+          <line x1="46" y1="24" x2="49" y2="24" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          <line x1="46" y1="36" x2="49" y2="36" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          <text x="37" y="24" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,.5)">1000</text>
+          <text x="37" y="32" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,.4)">mL</text>
+          <text x="37" y="70" text-anchor="middle" font-size="6.5" fill="#7a90a4">Licor mezcla</text>
+        </svg>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num-col"><div class="step-num">2</div><div class="step-icon-wrap"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5" stroke-width="1.8" stroke-linecap="round"/></svg></div></div>
+      <div class="step-body">
+        <div class="step-phase">Sedimentación</div>
+        <div class="step-title">Sedimentar 30 minutos sin perturbaciones</div>
+        <div class="step-desc">Dejar la probeta <strong>sin moverla ni vibrarla</strong> durante exactamente <strong>30 minutos</strong>. Registrar el volumen de sólidos sedimentados.</div>
+      </div>
+      <div class="step-ilu">
+        <svg viewBox="0 0 74 74" fill="none">
+          <rect x="26" y="10" width="22" height="54" rx="5" fill="rgba(56,189,248,.1)" stroke="rgba(56,189,248,.5)" stroke-width="1.8"/>
+          <rect x="28" y="12" width="18" height="28" rx="2" fill="rgba(56,189,248,.18)"/>
+          <rect x="28" y="40" width="18" height="22" rx="2" fill="rgba(180,83,9,.4)"/>
+          <line x1="46" y1="40" x2="51" y2="40" stroke="rgba(56,189,248,.8)" stroke-width="1.5"/>
+          <text x="54" y="43" font-size="5.5" fill="#38bdf8" font-weight="700">V30</text>
+          <circle cx="58" cy="22" r="8" fill="#0c4a6e" stroke="rgba(56,189,248,.5)" stroke-width="1.2"/>
+          <text x="58" y="25" text-anchor="middle" font-size="5.5" fill="#38bdf8" font-weight="700">30'</text>
+          <text x="37" y="70" text-anchor="middle" font-size="6.5" fill="#7a90a4">30 min · sin vibración</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2C8 2 4 7 4 10a4 4 0 008 0c0-3-4-8-4-8z" stroke-width="1.4"/></svg>Diluciones (si V30 > 800 mL/L)</div>
+  <div class="dilution-grid">
+    <div class="dil-card warn"><div class="dil-title warn">⚠ V30 entre 800–900 mL/L</div><div class="dil-text">Realizar una dilución al 50% con agua de efluente (mezcla 1:1).<br>Repetir la sedimentación 30 min.<br><br>Si resultado &lt; 400 mL/L → válido<br>Si sigue alto → 2ª dilución al 50%</div></div>
+    <div class="dil-card ok"><div class="dil-title ok">✓ Criterio de aceptación</div><div class="dil-text">Resultado tras dilución debe ser &lt; 400 mL/L para considerarse válido.<br><br>Con 1 dilución: V30 final = V30 medido × 2<br>Con 2 diluciones: V30 final = V30 medido × 4</div></div>
+  </div>
+
+  <div class="formula-box" style="margin-top:1rem;">
+    <div class="formula-title">📐 Corrección del resultado</div>
+    <div class="formula">
+      <div><span>Sin dilución:</span> V30 = valor leído en mL/L</div>
+      <div><span>1 dilución 1:1:</span> V30 final = V30 medido × 2</div>
+      <div><span>2 diluciones 1:1:</span> V30 final = V30 medido × 4</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:1.5rem;"><svg viewBox="0 0 16 16" fill="none"><path d="M2 12l4-4 3 3 5-6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg>Resultado</div>
+  <div class="result-box">
+    <div class="result-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 13V8L8 2l4 6v5H4z" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+    <div><div class="result-title">Volumen sedimentado a 30 minutos</div><div class="result-desc">Lectura directa en la escala de la probeta. Aplicar factor de corrección si se realizaron diluciones.</div></div>
+    <div class="result-unit"><div class="val">XXX</div><div class="lbl">mL/L<br>V30</div></div>
+  </div>
+
+  <div class="section-title" style="margin-top:1.5rem;"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 4h4.5l-3.5 2.5 1.5 4L8 10 4 12.5l1.5-4L2 6h4.5z" stroke-linejoin="round" stroke-width="1.4"/></svg>Control de calidad</div>
+  <div class="qc-grid">
+    <div class="qc-card"><div class="qc-dot"></div><div class="qc-text">Realizar la medición inmediatamente tras la toma de muestra.</div></div>
+    <div class="qc-card"><div class="qc-dot"></div><div class="qc-text">Evitar vibraciones o movimientos durante la sedimentación.</div></div>
+    <div class="qc-card"><div class="qc-dot"></div><div class="qc-text">Asegurar correcta homogenización previa de la muestra.</div></div>
+    <div class="qc-card"><div class="qc-dot"></div><div class="qc-text">Registrar siempre si se han realizado diluciones y el factor aplicado.</div></div>
+  </div>
+</div>
+</body>
+</html>
