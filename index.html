@@ -852,6 +852,19 @@ body::before {
           <div class="sb-tip">DESCARGAS</div>
           <span class="sb-badge" id="dl-badge" style="display:none">0</span>
         </button>
+        <div class="sb-sep"></div>
+        <button class="sb-btn" id="sb-tendencias" onclick="sbNav('tendencias')" aria-label="Tendencias">
+          <i class="ti ti-trending-up" aria-hidden="true"></i>
+          <div class="sb-tip">TENDENCIAS</div>
+        </button>
+        <button class="sb-btn" id="sb-gestion" onclick="sbNav('gestion')" aria-label="Gestión Supervisor">
+          <i class="ti ti-shield-check" aria-hidden="true"></i>
+          <div class="sb-tip">GESTIÓN SUP.</div>
+        </button>
+        <button class="sb-btn" id="sb-cuaderno" onclick="sbNav('cuaderno')" aria-label="Cuaderno Diario">
+          <i class="ti ti-notebook" aria-hidden="true"></i>
+          <div class="sb-tip">CUADERNO</div>
+        </button>
       </div>
       <div class="sb-bottom">
         <div class="sb-sep"></div>
@@ -1199,6 +1212,34 @@ body::before {
           </div>
         </div>
 
+
+        <!-- ── PANEL: TENDENCIAS ── -->
+        <div class="p-panel" id="panel-tendencias">
+          <div class="p-panel-header"><i class="ti ti-trending-up" aria-hidden="true"></i>Tendencias</div>
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;flex:1;padding:2rem;">
+            <i class="ti ti-tools" style="font-size:48px;color:var(--muted);opacity:.4;"></i>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Gráficas históricas de KPIs · Caudal · SST · DQO · Edad fango</span></div>
+          </div>
+        </div>
+
+        <!-- ── PANEL: GESTIÓN SUPERVISOR ── -->
+        <div class="p-panel" id="panel-gestion">
+          <div class="p-panel-header"><i class="ti ti-shield-check" aria-hidden="true"></i>Gestión Supervisor</div>
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;flex:1;padding:2rem;">
+            <i class="ti ti-tools" style="font-size:48px;color:var(--muted);opacity:.4;"></i>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Panel consolidado · Histórico de turnos · Auditoría de acceso</span></div>
+          </div>
+        </div>
+
+        <!-- ── PANEL: CUADERNO DIARIO ── -->
+        <div class="p-panel" id="panel-cuaderno">
+          <div class="p-panel-header"><i class="ti ti-notebook" aria-hidden="true"></i>Cuaderno Diario</div>
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;flex:1;padding:2rem;">
+            <i class="ti ti-tools" style="font-size:48px;color:var(--muted);opacity:.4;"></i>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Registro de turno · Checklist diario · Firma del operario</span></div>
+          </div>
+        </div>
+
       </div><!-- /.p-content -->
     </div><!-- /.p-main -->
   </div><!-- /.p-layout -->
@@ -1460,29 +1501,21 @@ function buildHome() {
     </div>`).join('');
 }
 
-function openProc(id) {
-  const urls = {
-    cloro:    'procedimiento-cloro-libre.html',
-    dbo5:     'procedimiento-dbo5.html',
-    micro:    'procedimiento-microbiologia.html',
-    sequedad: 'procedimiento-sequedad.html',
-    solidos:  'procedimiento-solidos.html',
-    v30:      'procedimiento-v30.html',
-    turbidez: 'procedimiento-turbidez.html',
-  };
-  const titles = {
-    cloro:    'Cloro Libre',
-    dbo5:     'DBO₅',
-    micro:    'Microbiología',
-    sequedad: 'Sequedad y Materia Volátil',
-    solidos:  'Sólidos SS / SD / SSV',
-    v30:      'V30 — Sedimentables',
-    turbidez: 'Turbidez',
-  };
-  if(urls[id]) {
-    openApp(urls[id], titles[id], 'Módulo 02');
-  }
+function openProcInline(id) {
+  // Cerrar modal si está abierto
+  const modal = document.getElementById('modal-procedimientos');
+  if(modal) modal.classList.remove('open');
+  // Mostrar el contenedor inline (app-simulador) que tiene las pantallas de procedimientos
+  openApp('simulador-edari.html', 'Procedimientos', 'Módulo 02');
+  // Navegar a la pantalla específica
+  const screens = document.querySelectorAll('.proc-screen');
+  const home = document.getElementById('screen-home');
+  if(home) home.classList.remove('active');
+  screens.forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('ps-' + id);
+  if(target) target.classList.add('active');
 }
+function openProc(id) { openProcInline(id); }
 
 function _openProcOld(id) {
   document.getElementById('screen-home').classList.remove('active');
@@ -3097,29 +3130,21 @@ function buildHome() {
     </div>`).join('');
 }
 
-function openProc(id) {
-  const urls = {
-    cloro:    'procedimiento-cloro-libre.html',
-    dbo5:     'procedimiento-dbo5.html',
-    micro:    'procedimiento-microbiologia.html',
-    sequedad: 'procedimiento-sequedad.html',
-    solidos:  'procedimiento-solidos.html',
-    v30:      'procedimiento-v30.html',
-    turbidez: 'procedimiento-turbidez.html',
-  };
-  const titles = {
-    cloro:    'Cloro Libre',
-    dbo5:     'DBO₅',
-    micro:    'Microbiología',
-    sequedad: 'Sequedad y Materia Volátil',
-    solidos:  'Sólidos SS / SD / SSV',
-    v30:      'V30 — Sedimentables',
-    turbidez: 'Turbidez',
-  };
-  if(urls[id]) {
-    openApp(urls[id], titles[id], 'Módulo 02');
-  }
+function openProcInline(id) {
+  // Cerrar modal si está abierto
+  const modal = document.getElementById('modal-procedimientos');
+  if(modal) modal.classList.remove('open');
+  // Mostrar el contenedor inline (app-simulador) que tiene las pantallas de procedimientos
+  openApp('simulador-edari.html', 'Procedimientos', 'Módulo 02');
+  // Navegar a la pantalla específica
+  const screens = document.querySelectorAll('.proc-screen');
+  const home = document.getElementById('screen-home');
+  if(home) home.classList.remove('active');
+  screens.forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('ps-' + id);
+  if(target) target.classList.add('active');
 }
+function openProc(id) { openProcInline(id); }
 
 function _openProcOld2(id) {
   document.getElementById('screen-home').classList.remove('active');
@@ -3888,6 +3913,7 @@ if ('serviceWorker' in navigator) {
 buildHome();
 // Expose sim functions needed by HTML onclick attributes
 window.openProc   = openProc;
+window.openProcInline = openProcInline;
 window.goHome     = typeof goHome !== 'undefined' ? goHome : window.goHome;
 window.switchTab  = typeof switchTab !== 'undefined' ? switchTab : window.switchTab;
 window.startTimer = startTimer;
@@ -3981,7 +4007,7 @@ window.__SIM_PROCESO_SRC__ = "const { useState, useEffect, useCallback, useRef }
 
 <script>
 // ══ SIDEBAR NAVIGATION ════════════════════════════════════════════════════════
-const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes'];
+const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes','tendencias','gestion','cuaderno'];
 
 function sbNav(id) {
   // Hide all panels
@@ -3998,7 +4024,8 @@ function sbNav(id) {
   if(btn) btn.classList.add('active');
   // Update breadcrumb
   const labels = {portal:'Portal',proceso:'Simulador',analitica:'Analítica',
-                  informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes'};
+                  informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
+                  tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario'};
   const bc = document.getElementById('p-bc-section');
   if(bc) bc.textContent = labels[id] || id;
   // Side effects
@@ -4450,13 +4477,13 @@ initAuth();
     </div>
     <div style="padding:1.2rem 1.4rem;">
       <div class="proc-grid">
-        <div class="proc-item" onclick="cerrarModalProcedimientos();openApp('procedimiento-cloro-libre.html','Cloro Libre','Módulo 02')"><div class="proc-dot" style="background:#005b99;"></div><div><div class="proc-lbl">Cloro Libre</div><div class="proc-sub">Fotómetro · Colorimétrico</div></div></div>
-        <div class="proc-item" onclick="cerrarModalProcedimientos();openApp('procedimiento-dbo5.html','DBO₅','Módulo 02')"><div class="proc-dot" style="background:#0f6e56;"></div><div><div class="proc-lbl">DBO₅</div><div class="proc-sub">Respirométrico · 5 días · 20 °C</div></div></div>
-        <div class="proc-item" onclick="cerrarModalProcedimientos();openApp('procedimiento-microbiologia.html','Microbiología','Módulo 02')"><div class="proc-dot" style="background:#7c2d9e;"></div><div><div class="proc-lbl">Microbiología</div><div class="proc-sub">E. coli · Enterococos</div></div></div>
-        <div class="proc-item" onclick="cerrarModalProcedimientos();openApp('procedimiento-sequedad.html','Sequedad y M. Volátil','Módulo 02')"><div class="proc-dot" style="background:#b45309;"></div><div><div class="proc-lbl">Sequedad y M. Volátil</div><div class="proc-sub">105 °C estufa · 550 °C mufla</div></div></div>
-        <div class="proc-item" onclick="cerrarModalProcedimientos();openApp('procedimiento-solidos.html','Sólidos SS/SD/SSV','Módulo 02')"><div class="proc-dot" style="background:#1565c0;"></div><div><div class="proc-lbl">Sólidos SS / SD / SSV</div><div class="proc-sub">Filtración gravimétrica</div></div></div>
-        <div class="proc-item" onclick="cerrarModalProcedimientos();openApp('procedimiento-v30.html','V30 Sedimentables','Módulo 02')"><div class="proc-dot" style="background:#0e7490;"></div><div><div class="proc-lbl">V30 — Sedimentables</div><div class="proc-sub">Probeta 1 L · 30 minutos</div></div></div>
-        <div class="proc-item" onclick="cerrarModalProcedimientos();openApp('procedimiento-turbidez.html','Turbidez','Módulo 02')"><div class="proc-dot" style="background:#5b21b6;"></div><div><div class="proc-lbl">Turbidez</div><div class="proc-sub">Nefelométrico · NTU</div></div></div>
+        <div class="proc-item" onclick="openProcInline('cloro')"><div class="proc-dot" style="background:#005b99;"></div><div><div class="proc-lbl">Cloro Libre</div><div class="proc-sub">Fotómetro · Colorimétrico</div></div></div>
+        <div class="proc-item" onclick="openProcInline('dbo5')"><div class="proc-dot" style="background:#0f6e56;"></div><div><div class="proc-lbl">DBO₅</div><div class="proc-sub">Respirométrico · 5 días · 20 °C</div></div></div>
+        <div class="proc-item" onclick="openProcInline('micro')"><div class="proc-dot" style="background:#7c2d9e;"></div><div><div class="proc-lbl">Microbiología</div><div class="proc-sub">E. coli · Enterococos</div></div></div>
+        <div class="proc-item" onclick="openProcInline('sequedad')"><div class="proc-dot" style="background:#b45309;"></div><div><div class="proc-lbl">Sequedad y M. Volátil</div><div class="proc-sub">105 °C estufa · 550 °C mufla</div></div></div>
+        <div class="proc-item" onclick="openProcInline('solidos')"><div class="proc-dot" style="background:#1565c0;"></div><div><div class="proc-lbl">Sólidos SS / SD / SSV</div><div class="proc-sub">Filtración gravimétrica</div></div></div>
+        <div class="proc-item" onclick="openProcInline('v30')"><div class="proc-dot" style="background:#0e7490;"></div><div><div class="proc-lbl">V30 — Sedimentables</div><div class="proc-sub">Probeta 1 L · 30 minutos</div></div></div>
+        <div class="proc-item" onclick="openProcInline('turbidez')"><div class="proc-dot" style="background:#5b21b6;"></div><div><div class="proc-lbl">Turbidez</div><div class="proc-sub">Nefelométrico · NTU</div></div></div>
       </div>
     </div>
   </div>
