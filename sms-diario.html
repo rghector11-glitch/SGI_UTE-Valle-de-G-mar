@@ -616,6 +616,17 @@ function findDateInExcel() {
   statusEl.textContent = '✓ Datos cargados para ' + `${d}/${m}/${y}`;
   updateAll();
   showToast('✓ Datos importados del Excel');
+
+  // Notificar al portal: actualizar KPI caudal si la fecha es ayer
+  const qVal = document.getElementById('ei-Q').value;
+  if(qVal) {
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    const yISO = yesterday.toISOString().slice(0,10);
+    if(iso === yISO || true) { // siempre actualizar con el dato cargado
+      try { localStorage.setItem('sgi-kpi-caudal', qVal); } catch(e){}
+      try { window.parent.postMessage({type:'sms-kpi', caudal: qVal, date: iso}, '*'); } catch(e){}
+    }
+  }
 }
 
 function setField(id, value) {
@@ -770,6 +781,9 @@ function saveRecord() {
   try { localStorage.setItem('ute-sms-history', JSON.stringify(history_records)); } catch(e){}
   showToast('✓ Guardado en historial');
   renderHistory();
+
+  // Notificar al portal para que refresque Informes
+  try { window.parent.postMessage({type:'sms-saved', record}, '*'); } catch(e){}
 }
 
 function resetForm() {

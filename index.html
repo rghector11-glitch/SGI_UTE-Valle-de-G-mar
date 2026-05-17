@@ -4028,6 +4028,36 @@ function loadAlertas() {
     </div>`).join('');
 }
 
+
+// ── Mensajes desde iframe SMS Diario ─────────────────────────────────────────
+window.addEventListener('message', function(e) {
+  if(!e.data || !e.data.type) return;
+
+  if(e.data.type === 'sms-kpi') {
+    // Actualizar KPI Q Entrada EDARi
+    try { localStorage.setItem('sgi-kpi-caudal', e.data.caudal); } catch(err){}
+    const el = document.getElementById('kpi-caudal');
+    if(el) el.innerHTML = e.data.caudal + ' <span class="ku">m³/d</span>';
+    // También actualizar la tarjeta M04
+    const stat = document.getElementById('mc-sms-stat');
+    if(stat) stat.textContent = e.data.caudal + ' m³/d';
+  }
+
+  if(e.data.type === 'sms-saved') {
+    // Refrescar panel Informes si está activo
+    const panel = document.getElementById('panel-informes');
+    if(panel && panel.classList.contains('active')) {
+      loadInformes();
+    }
+    // Actualizar badge de la tarjeta M04 con la fecha guardada
+    const stat = document.getElementById('mc-sms-stat');
+    if(stat && e.data.record && e.data.record.date) {
+      const d = new Date(e.data.record.date + 'T12:00:00');
+      stat.textContent = d.toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit'});
+    }
+  }
+});
+
 // ══ KPI UPDATES ════════════════════════════════════════════════════════════════
 // SMS caudal from localStorage (set by sms-diario.html after excel load)
 function refreshKPIs() {
