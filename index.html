@@ -2872,6 +2872,9 @@ function openBuzonInteligente() {
   }
 }
 window.openBuzonInteligente = openBuzonInteligente;
+
+// Iniciar polling cada 30s si es supervisor
+function initBadgeBuzon() {
   const session = getSession();
   if(!session || session.role !== 'supervisor') return;
   actualizarBadgeBuzon();
