@@ -978,7 +978,7 @@ body::before {
             </div></div>
 
             <!-- M03 Ruta -->
-            <div class="mc m03" onclick="openApp('ruta-colector-edaru.html','Ruta Colector EDARu','Módulo 03')" role="button" tabindex="0">
+            <div class="mc m03" onclick="openRutaColector()" role="button" tabindex="0">
               <div class="mc-ilu">
                 <div class="mc-num">M·03</div>
                 <div class="mc-badge ok">ACTIVO</div>
@@ -1033,7 +1033,7 @@ body::before {
             </div></div>
 
             <!-- M05 Inventarios -->
-            <div class="mc m05" onclick="openApp('inventarios.html','Inventarios','Módulo 05')" role="button" tabindex="0">
+            <div class="mc m05" onclick="openInventarios()" role="button" tabindex="0">
               <div class="mc-ilu">
                 <div class="mc-num">M·05</div>
                 <div class="mc-badge ok">ACTIVO</div>
@@ -2507,6 +2507,78 @@ document.addEventListener('fullscreenchange', () => {
 // ══════════════════════════════════════════════════════════════
 // DIAGNÓSTICO DEL PORTAL
 
+
+
+// ── RUTA COLECTOR VIEWER (M03) ───────────────────────────────────────────────
+function openRutaColector() {
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'none';
+  let viewer = document.getElementById('ruta-viewer');
+  if(!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'ruta-viewer';
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#f4f6f9;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
+    bar.innerHTML = '<button onclick="closeRutaColector()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Inicio</button>'
+      + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">🗺️ Ruta Colector EDARu</div>';
+    const frame = document.createElement('iframe');
+    frame.id = 'ruta-frame';
+    frame.src = 'ruta-colector-edaru.html';
+    frame.style.cssText = 'flex:1;border:none;width:100%;background:#f4f6f9;';
+    frame.allowFullscreen = true;
+    viewer.appendChild(bar);
+    viewer.appendChild(frame);
+    document.body.appendChild(viewer);
+  } else {
+    viewer.style.display = 'flex';
+  }
+}
+function closeRutaColector() {
+  const viewer = document.getElementById('ruta-viewer');
+  if(viewer) viewer.style.display = 'none';
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'block';
+  sbNav('portal');
+}
+window.openRutaColector  = openRutaColector;
+window.closeRutaColector = closeRutaColector;
+
+// ── INVENTARIOS VIEWER (M05) ─────────────────────────────────────────────────
+function openInventarios() {
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'none';
+  let viewer = document.getElementById('inv-viewer');
+  if(!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'inv-viewer';
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#f4f6f9;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
+    bar.innerHTML = '<button onclick="closeInventarios()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Inicio</button>'
+      + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">📦 Inventarios</div>';
+    const frame = document.createElement('iframe');
+    frame.id = 'inv-frame';
+    frame.src = 'inventarios.html';
+    frame.style.cssText = 'flex:1;border:none;width:100%;background:#f4f6f9;';
+    frame.allowFullscreen = true;
+    viewer.appendChild(bar);
+    viewer.appendChild(frame);
+    document.body.appendChild(viewer);
+  } else {
+    viewer.style.display = 'flex';
+  }
+}
+function closeInventarios() {
+  const viewer = document.getElementById('inv-viewer');
+  if(viewer) viewer.style.display = 'none';
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'block';
+  sbNav('portal');
+}
+window.openInventarios  = openInventarios;
+window.closeInventarios = closeInventarios;
+
 // ── SMS DIARIO VIEWER ──────────────────────────────────────────
 function openSmsViewer() {
   const shell = document.getElementById('portal-shell');
@@ -2949,7 +3021,7 @@ window.addEventListener('popstate', e => {
 window.addEventListener('DOMContentLoaded', () => {
   const h = window.location.hash.replace('#','');
   if(h === 'ruta-colector-edaru'){
-    openApp('ruta-colector-edaru.html', 'Ruta Colector EDARu', 'Módulo 03');
+    openRutaColector();
   } else if(h === 'simulador-edari'){
     openBuzonProcedimientos();
   } else if(h === 'simulador-proceso-edari'){
