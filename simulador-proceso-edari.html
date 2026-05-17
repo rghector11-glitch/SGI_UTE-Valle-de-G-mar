@@ -1506,14 +1506,22 @@ function App(){
   // Enviar KPIs al portal padre cada vez que cambian los resultados
   useEffect(()=>{
     try{
-      window.parent.postMessage({
-        type: 'sim-kpi',
-        edad: res.tc.toFixed(1),
-        sst:  p.sst_reactor,
-        dqo:  res.rend_dqo.toFixed(1)
-      }, '*');
+      // En modo semana: usar datos del último día; en modo día: usar params actuales
+      let edad=res.tc.toFixed(1), sst=p.sst_reactor, dqo=res.rend_dqo.toFixed(1);
+      if(weekMode && weekCalc.length){
+        const last=weekCalc[weekCalc.length-1];
+        edad=String(last.tc);
+        dqo=String(last.rend_dqo);
+        // SST del último día desde weekSummary (clave ya normalizada por normalizarClave)
+        if(weekSummary && weekSummary.days.length){
+          const lastRow=weekSummary.days[weekSummary.days.length-1].row;
+          const sstVal=parseFloat(lastRow['SS REACTOR']||0);
+          if(sstVal) sst=Math.round(sstVal*1000);
+        }
+      }
+      window.parent.postMessage({type:'sim-kpi', edad, sst, dqo}, '*');
     }catch(_){}
-  },[p]);
+  },[p, weekCalc]);
   const acumCol=Math.abs(res.acum)<20?C.green:res.acum>0?C.warn:C.danger;
   const diff=p.caudal_purga_d-res.Qw_nec, pOk=Math.abs(diff)<5;
 

@@ -624,7 +624,9 @@ function findDateInExcel() {
     const yISO = yesterday.toISOString().slice(0,10);
     if(iso === yISO || true) { // siempre actualizar con el dato cargado
       try { localStorage.setItem('sgi-kpi-caudal', qVal); } catch(e){}
-      try { window.parent.postMessage({type:'sms-kpi', caudal: qVal, date: iso}, '*'); } catch(e){}
+      const qUVal = document.getElementById('ui-Q').value;
+      try { localStorage.setItem('sgi-kpi-caudal-u', qUVal || ''); } catch(e2){}
+      try { window.parent.postMessage({type:'sms-kpi', caudal: qVal, caudal_u: qUVal, date: iso}, '*'); } catch(e){}
     }
   }
 }

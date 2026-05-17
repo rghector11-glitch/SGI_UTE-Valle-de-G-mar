@@ -889,6 +889,7 @@ body::before {
 
         <button class="p-user-btn" id="p-user-btn" onclick="toggleUserPop()">—</button>
         <div class="p-cl" id="p-clock">--/-- · --:--</div>
+        <div style="font-family:var(--mono);font-size:7.5px;color:var(--muted);opacity:.45;letter-spacing:.04em;line-height:1.3;text-align:right;flex-shrink:0;">v1.0.0<br>H.Hernández</div>
       </div>
 
       <!-- Content -->
@@ -901,7 +902,12 @@ body::before {
             <div class="kpi cb">
               <div class="kpi-lbl">Q Entrada EDARi</div>
               <div class="kpi-v" id="kpi-caudal">— <span class="ku">m³/d</span></div>
-              <div class="kpi-s">Cargar Excel SMS</div>
+              <div class="kpi-s">SMS Diario</div>
+            </div>
+            <div class="kpi cb">
+              <div class="kpi-lbl">Q Entrada EDARu</div>
+              <div class="kpi-v" id="kpi-caudal-u">— <span class="ku">m³/d</span></div>
+              <div class="kpi-s">SMS Diario</div>
             </div>
             <div class="kpi cg">
               <div class="kpi-lbl">Edad Fango EDARi</div>
@@ -4515,13 +4521,20 @@ window.addEventListener('message', function(e) {
   }
 
   if(e.data.type === 'sms-kpi') {
-    // Actualizar KPI Q Entrada EDARi
-    try { localStorage.setItem('sgi-kpi-caudal', e.data.caudal); } catch(err){}
-    const el = document.getElementById('kpi-caudal');
-    if(el) el.innerHTML = e.data.caudal + ' <span class="ku">m³/d</span>';
-    // También actualizar la tarjeta M04
-    const stat = document.getElementById('mc-sms-stat');
-    if(stat) stat.textContent = e.data.caudal + ' m³/d';
+    // KPI Q Entrada EDARi
+    if(e.data.caudal) {
+      try { localStorage.setItem('sgi-kpi-caudal', e.data.caudal); } catch(err){}
+      const el = document.getElementById('kpi-caudal');
+      if(el) el.innerHTML = e.data.caudal + ' <span class="ku">m³/d</span>';
+      const stat = document.getElementById('mc-sms-stat');
+      if(stat) stat.textContent = e.data.caudal + ' m³/d';
+    }
+    // KPI Q Entrada EDARu
+    if(e.data.caudal_u) {
+      try { localStorage.setItem('sgi-kpi-caudal-u', e.data.caudal_u); } catch(err){}
+      const elU = document.getElementById('kpi-caudal-u');
+      if(elU) elU.innerHTML = e.data.caudal_u + ' <span class="ku">m³/d</span>';
+    }
   }
 
   if(e.data.type === 'sms-saved') {
@@ -4595,6 +4608,11 @@ function refreshKPIs() {
   if(caudal) {
     const el = document.getElementById('kpi-caudal');
     if(el) el.innerHTML = caudal + ' <span class="ku">m³/d</span>';
+  }
+  const caudalU = localStorage.getItem('sgi-kpi-caudal-u');
+  if(caudalU) {
+    const elU = document.getElementById('kpi-caudal-u');
+    if(elU) elU.innerHTML = caudalU + ' <span class="ku">m³/d</span>';
   }
   // Sim data from localStorage
   const simData = localStorage.getItem('sgi-kpi-sim');
