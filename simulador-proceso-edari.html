@@ -1213,6 +1213,7 @@ function App(){
   const [weekMode,setWeekMode]=useState(false);
   const [weekStart,setWeekStart]=useState('');
   const [weekSummary,setWeekSummary]=useState(null); // {days, avg}
+  const [weekCalc,setWeekCalc]=useState([]); // [{iso, tc, rend_dqo, ...}] per day
   const fileInputRef=useRef(null);
 
   // Convierte número serial Excel a cadena YYYY-MM-DD
@@ -1360,38 +1361,121 @@ function App(){
     });
     setWeekSummary({days,avg});
     applyRow(avg);
+
+    // Calcular resultados individuales por día para gráficas
+    const calc=days.map(d=>{
+      // Construir params del día usando el mapping de applyRow
+      const rkeys=Object.keys(d.row);
+      const nv=(search,mult=1)=>{
+        const sl=search.toLowerCase();
+        const fk=rkeys.find(k=>k.trim().toLowerCase().startsWith(sl))||rkeys.find(k=>k.trim().toLowerCase().includes(sl));
+        const v=parseFloat(fk?d.row[fk]:undefined);
+        return isNaN(v)?0:v*mult;
+      };
+      const dp={
+        ...p,
+        caudal:           nv('Caudal entrada Biologico') || p.caudal,
+        dbo_entrada:      nv('DBO5 ENTRADA')             || p.dbo_entrada,
+        dqo_entrada:      nv('DQO ENTRADA')              || p.dqo_entrada,
+        nh4_entrada:      nv('NT ENTRADA')               || p.nh4_entrada,
+        sst_reactor:      nv('SS REACTOR',1000)          || p.sst_reactor,
+        sst_recirculacion:nv('SS RECIRULACI',1000)       || p.sst_recirculacion,
+        sst_efluente:     nv('SS EFLUENTE')              || p.sst_efluente,
+        caudal_purga_d:   nv('CAUDAL PURGA')             || p.caudal_purga_d,
+        caudal_recirculacion:nv('CAUDAL RECIR')          || p.caudal_recirculacion,
+        dbo_efluente:     nv('DBO EFLUENTE')             || p.dbo_efluente,
+        dqo_efluente:     nv('DQO EFLUENTE')             || p.dqo_efluente,
+        nh4_efluente:     nv('NT FLUENTE')               || p.nh4_efluente,
+        pt_entrada:       nv('PT ENTRADA')               || p.pt_entrada,
+        pt_efluente:      nv('PT EFLUENTE')              || p.pt_efluente,
+      };
+      const dr=calcular(dp);
+      return {
+        iso:d.iso,
+        tc:Number(dr.tc.toFixed(1)),
+        rend_dqo:Number(dr.rend_dqo.toFixed(1)),
+        rend_dbo:Number(dr.rend_dbo.toFixed(1)),
+        rend_nh4:Number(dr.rend_nh4.toFixed(1)),
+        rend_pt:Number(dr.rend_pt.toFixed(1)),
+        fecha:d.iso.slice(5), // MM-DD
+      };
+    });
+    setWeekCalc(calc);
+    // Notificar al portal con los datos calculados de la semana
+    try{
+      window.parent.postMessage({type:'sim-week', days:calc, start:startISO}, '*');
+      localStorage.setItem('sgi-tendencias-semana', JSON.stringify({days:calc, start:startISO, ts:Date.now()}));
+    }catch(e){}
+
     setXlsxMsg('\u2713 '+days.length+'/7 d\u00edas \u00b7 media semanal aplicada al simulador');
   }
 
   function exportWeekPDF(){
     if(!weekSummary) return;
     const {days}=weekSummary;
+    const calc=weekCalc.length?weekCalc:days.map(d=>({iso:d.iso,tc:0,rend_dqo:0,rend_dbo:0,rend_nh4:0,rend_pt:0,fecha:d.iso.slice(5)}));
     const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
-    const cols=['Q bio (m\u00b3/d)','DBO\u2085 E','DQO E','SST R (g/L)','SST RC (g/L)','SST Ef','NT E','Caudal RC','PT E','Caudal Purga','DBO Ef','DQO Ef','NT Ef','PT Ef'];
-    const keys=['Caudal entrada Biologico','DBO5 ENTRADA','DQO ENTRADA','SS REACTOR','SS RECIRCULACI\u00d3N','SS EFLUENTE','NT ENTRADA','CAUDAL RECIRCULACI\u00d3N','PT ENTRADA','CAUDAL PURGA','DBO EFLUENTE','DQO EFLUENTE','NT FLUENTE','PT EFLUENTE'];
-    const rows=days.map(d=>`<tr><td>${d.iso}</td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==0?d.row[k]:'\u2014'}</td>`).join('')}</tr>`).join('');
-    const res7=days.map(d=>{const r2=d.row; const dq=Number(r2['DQO ENTRADA'])||0, dqe=Number(r2['DQO EFLUENTE'])||0, db=Number(r2['DBO5 ENTRADA'])||0, dbe=Number(r2['DBO EFLUENTE'])||0, nt=Number(r2['NT ENTRADA'])||0, nte=Number(r2['NT FLUENTE'])||0, pt=Number(r2['PT ENTRADA'])||0, pte=Number(r2['PT EFLUENTE'])||0; return {iso:d.iso, rDQO:dq>0?((dq-dqe)/dq*100).toFixed(1):'\u2014', rDBO:db>0?((db-dbe)/db*100).toFixed(1):'\u2014', rNT:nt>0?((nt-nte)/nt*100).toFixed(1):'\u2014', rPT:pt>0?((pt-pte)/pt*100).toFixed(1):'\u2014'};});
-    const rowsRend=res7.map(r=>`<tr><td>${r.iso}</td><td>${r.rDQO}%</td><td>${r.rDBO}%</td><td>${r.rNT}%</td><td>${r.rPT}%</td></tr>`).join('');
+
+    // ── SVG chart helper ──────────────────────────────────────────────────────
+    function svgLine(data, key, color, label, refV, unit){
+      const vals=data.map(d=>Number(d[key])||0);
+      const W=480,H=110,PL=42,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
+      const minV=Math.max(0,Math.min(...vals)*0.85), maxV=Math.max(...vals)*1.1||1, rng=maxV-minV||1;
+      const pts=data.map((d,i)=>({x:PL+i/(data.length-1||1)*gW, y:PT+gH-(vals[i]-minV)/rng*gH, v:vals[i]}));
+      const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      const area=[`${pts[0].x.toFixed(1)},${PT+gH}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
+      const refY=PT+gH-(refV-minV)/rng*gH;
+      let svg=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+      svg+=`<polygon points="${area}" fill="${color}" opacity="0.1"/>`;
+      if(refV>minV&&refV<maxV) svg+=`<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
+      [0,0.5,1].forEach(f=>{ svg+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.5"/>`; });
+      svg+=`<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      pts.forEach((p,i)=>{ svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" stroke="#fff" stroke-width="1.2"/><text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="7" font-family="Arial" font-weight="700">${p.v.toFixed(1)}</text>`; });
+      [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svg+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${v.toFixed(1)}</text>`; });
+      data.forEach((d,i)=>{ const p=pts[i]; svg+=`<text x="${p.x.toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${d.fecha||d.iso.slice(5)||''}</text>`; });
+      svg+=`<text x="${PL-4}" y="${PT-2}" text-anchor="end" fill="#7a8fa8" font-size="6">${unit}</text>`;
+      svg+=`</svg>`;
+      return svg;
+    }
+
+    // ── Tabla datos crudos ────────────────────────────────────────────────────
+    const cols=['Q bio (m³/d)','DBO₅ E','DQO E','SST R (g/L)','NT E','Caudal Purga','DQO Ef','NT Ef','PT Ef'];
+    const keys=['Caudal entrada Biologico','DBO5 ENTRADA','DQO ENTRADA','SS REACTOR','NT ENTRADA','CAUDAL PURGA','DQO EFLUENTE','NT FLUENTE','PT EFLUENTE'];
+    const rowsRaw=days.map(d=>`<tr><td><b>${d.iso}</b></td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==0?d.row[k]:'—'}</td>`).join('')}</tr>`).join('');
+
     const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-      body{font-family:Arial,sans-serif;font-size:11px;color:#1a2540;padding:24px}
+      body{font-family:Arial,sans-serif;font-size:11px;color:#1a2540;padding:24px;max-width:780px;margin:0 auto}
       h1{font-size:16px;color:#003e6b;border-bottom:2px solid #005b99;padding-bottom:6px;margin-bottom:4px}
-      h2{font-size:11px;color:#5a7090;text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px;border-bottom:1px solid #e0e8f0;padding-bottom:3px}
-      table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9.5px}
-      td,th{padding:3px 6px;border:1px solid #d0dce8}
+      h2{font-size:10px;color:#5a7090;text-transform:uppercase;letter-spacing:1px;margin:14px 0 5px;border-bottom:1px solid #e0e8f0;padding-bottom:3px}
+      table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9px}
+      td,th{padding:3px 5px;border:1px solid #d0dce8;text-align:right}
       th{background:#f0f4f8;font-weight:600;text-align:center}
-      td:first-child{font-weight:600;color:#003e6b}
-      .ok{color:#008855;font-weight:700}.warn{color:#cc7700;font-weight:700}.bad{color:#cc1122;font-weight:700}
+      td:first-child{text-align:left;color:#003e6b;font-weight:600}
+      .chart-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}
+      .chart-box{flex:1 1 220px;border:1px solid #e0e8f0;border-radius:4px;padding:8px 10px;background:#fafcff}
+      .chart-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
       .footer{margin-top:20px;font-size:8px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:6px}
+      @media print{body{padding:12px}.chart-box{break-inside:avoid}}
     </style></head><body>
-    <h1>Informe Semanal EDAR \u2014 ${weekStart} al ${days[days.length-1].iso}</h1>
-    <p style="font-size:9px;color:#5a7090">Generado: ${dateStr} \u00b7 ${days.length} d\u00edas con datos</p>
-    <h2>Datos de entrada y proceso</h2>
-    <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rows}</table>
-    <h2>Rendimientos de eliminaci\u00f3n</h2>
-    <table><tr><th>Fecha</th><th>Rend. DQO %</th><th>Rend. DBO\u2085 %</th><th>Rend. NT %</th><th>Rend. PT %</th></tr>${rowsRend}</table>
-    <div class="footer">Simulador Reactor Biol\u00f3gico EDAR \u00b7 UTE Valle de G\u00fc\u00edmar \u00b7 L\u00edmites RD 509/1996</div>
+    <h1>Informe Semanal EDAR — ${weekStart} → ${days[days.length-1].iso}</h1>
+    <p style="font-size:9px;color:#5a7090">Generado: ${dateStr} · ${days.length} días con datos · Media aplicada al simulador</p>
+    <h2>Datos de proceso (valores originales del Excel)</h2>
+    <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rowsRaw}</table>
+    <h2>Tendencias calculadas por el simulador</h2>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-lbl" style="color:#ffb300">Edad de Fango (días)</div>${svgLine(calc,'tc','#ffb300','Edad fango',15,'d')}</div>
+      <div class="chart-box"><div class="chart-lbl" style="color:#00a8e8">Rendimiento DQO (%)</div>${svgLine(calc,'rend_dqo','#00a8e8','Rend DQO',75,'%')}</div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-lbl" style="color:#2ecc71">Rendimiento DBO₅ (%)</div>${svgLine(calc,'rend_dbo','#2ecc71','Rend DBO',80,'%')}</div>
+      <div class="chart-box"><div class="chart-lbl" style="color:#b388ff">Rendimiento NT (%)</div>${svgLine(calc,'rend_nh4','#b388ff','Rend NT',70,'%')}</div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-lbl" style="color:#ff8c42">Rendimiento PT (%)</div>${svgLine(calc,'rend_pt','#ff8c42','Rend PT',70,'%')}</div>
+    </div>
+    <div class="footer">Simulador Reactor Biológico EDAR · UTE Valle de Güímar · Límites RD 509/1996</div>
     </body></html>`;
-    const w=window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(()=>w.print(),300);
+    const w=window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(()=>w.print(),400);
   }
 
   // Fechas disponibles para el selector

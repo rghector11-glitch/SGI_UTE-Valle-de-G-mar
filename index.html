@@ -4295,79 +4295,78 @@ function loadInformes() {
 
 
 // ══ TENDENCIAS ═══════════════════════════════════════════════════════════════
-async function loadTendencias() {
+function loadTendencias() {
   const box = document.getElementById('tendencias-content');
   if(!box) return;
-  box.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando datos del simulador...</div>';
 
-  let hist = [];
-  // Try Firebase first
-  if(window._fb) {
-    try {
-      const snap = await window._fb.get(window._fb.ref(window._fb.db, 'reactor-history'));
-      if(snap.val()) hist = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
-    } catch(e){}
-  }
-  // Fallback localStorage
-  if(!hist.length) {
-    try { hist = JSON.parse(localStorage.getItem('edar_reactor_hist')||'[]'); } catch(e){}
-  }
+  // Leer datos de la semana desde localStorage (escritos por el simulador via postMessage)
+  let semana = null;
+  try { semana = JSON.parse(localStorage.getItem('sgi-tendencias-semana')||'null'); } catch(e){}
 
-  if(!hist.length) {
-    box.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:10px;"><i class=\"ti ti-chart-line\" style=\"font-size:36px;opacity:.3;\"></i>Sin datos aún.<br><span style=\"font-size:9px;opacity:.6;\">Guarda lecturas en el Simulador → pestaña Historial Reactor</span></div>';
+  if(!semana || !semana.days || !semana.days.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:10px;">'
+      + '<i class="ti ti-trending-up" style="font-size:36px;opacity:.3;"></i>'
+      + 'Sin datos semanales aún.<br>'
+      + '<span style="font-size:9px;opacity:.6;">Carga una semana en el Simulador (modo Semana) para ver las tendencias aquí.</span></div>';
     return;
   }
 
-  hist.sort((a,b) => new Date(a.ts)-new Date(b.ts));
-  const last30 = hist.slice(-60); // max 60 puntos
+  const days = semana.days; // [{iso, tc, rend_dqo, rend_dbo, rend_nh4, rend_pt, fecha}]
+  const start = semana.start || '';
 
   const charts = [
-    {key:'tc',    label:'Edad de Fango',      unit:'días', color:'#ffb300', rng:'Óptimo 5-30 d', min:0, ref:15},
-    {key:'rend_dqo', label:'Rendimiento DQO', unit:'%',   color:'#00c8ff', rng:'Objetivo >75%',  min:0, ref:75},
-    {key:'rend_dbo', label:'Rendimiento DBO₅',unit:'%',   color:'#2ecc71', rng:'Objetivo >80%',  min:0, ref:80},
-    {key:'rend_nh4', label:'Rendimiento NT',  unit:'%',   color:'#b388ff', rng:'Objetivo >70%',  min:0, ref:70},
-    {key:'rend_pt',  label:'Rendimiento PT',  unit:'%',   color:'#ff8c42', rng:'Objetivo >70%',  min:0, ref:70},
+    {key:'tc',       label:'Edad de Fango', unit:'días', color:'#ffb300', ref:15,  rng:'Óptimo 5-30 d'},
+    {key:'rend_dqo', label:'Rend. DQO',     unit:'%',   color:'#00c8ff', ref:75,  rng:'Objetivo >75%'},
+    {key:'rend_dbo', label:'Rend. DBO₅',    unit:'%',   color:'#2ecc71', ref:80,  rng:'Objetivo >80%'},
+    {key:'rend_nh4', label:'Rend. NT',       unit:'%',   color:'#b388ff', ref:70,  rng:'Objetivo >70%'},
+    {key:'rend_pt',  label:'Rend. PT',       unit:'%',   color:'#ff8c42', ref:70,  rng:'Objetivo >70%'},
   ];
 
   function svgChart(data, key, color, refLine) {
-    if(data.length < 2) return '<div style="color:var(--muted);font-size:9px;text-align:center;padding:8px;">Mínimo 2 lecturas para graficar</div>';
-    const W=420, H=80, PL=38, PR=8, PT=6, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+    const W=360, H=90, PL=36, PR=8, PT=10, PB=20, gW=W-PL-PR, gH=H-PT-PB;
     const vals = data.map(d => Number(d[key])||0);
-    const minV = Math.max(0, Math.min(...vals)*0.9);
-    const maxV = Math.max(...vals)*1.05 || 1;
+    if(!vals.some(v=>v>0)) return '<div style="color:var(--muted);font-size:9px;padding:6px;text-align:center;">Sin datos</div>';
+    const minV = Math.max(0, Math.min(...vals)*0.85);
+    const maxV = Math.max(...vals)*1.1 || 1;
     const rng = maxV - minV || 1;
     const pts = data.map((d,i) => ({
-      x: PL + i/(data.length-1)*gW,
+      x: PL + (data.length>1 ? i/(data.length-1) : 0.5)*gW,
       y: PT + gH - (vals[i]-minV)/rng*gH,
-      v: vals[i], f: d.fecha||''
+      v: vals[i], label: d.fecha||d.iso.slice(5)||''
     }));
     const poly = pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
     const area = [`${pts[0].x.toFixed(1)},${PT+gH}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
     const refY = refLine ? PT+gH-(refLine-minV)/rng*gH : null;
-    const yLabels = [minV, (minV+maxV)/2, maxV].map(v => v.toFixed(1));
-    const xIdxs = [0, Math.floor((data.length-1)/2), data.length-1];
-    let svgContent = `<polygon points="${area}" fill="${color}" opacity="0.08"/>`;
-    if(refY && refY>PT && refY<PT+gH) svgContent += `<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.7" stroke-dasharray="4,3" opacity="0.5"/>`;
-    [0,0.5,1].forEach(f=>{ svgContent+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="var(--border)" stroke-width="0.5" opacity="0.4"/>`; });
-    svgContent += `<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
-    pts.forEach(p=>{ svgContent+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${color}" stroke="var(--bg)" stroke-width="1"/>`; });
-    yLabels.forEach((v,i)=>{ svgContent+=`<text x="${PL-3}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="6" font-family="monospace">${v}</text>`; });
-    xIdxs.filter(i=>i<data.length).forEach(i=>{ const p=pts[i]; svgContent+=`<text x="${p.x.toFixed(1)}" y="${H-2}" text-anchor="middle" fill="var(--muted)" font-size="6" font-family="monospace">${data[i].fecha||''}</text>`; });
-    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">${svgContent}</svg>`;
+    let s = `<polygon points="${area}" fill="${color}" opacity="0.1"/>`;
+    [0,0.5,1].forEach(f=>{ s+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="var(--border)" stroke-width="0.5" opacity="0.4"/>`; });
+    if(refY && refY>PT && refY<PT+gH) s+=`<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
+    if(pts.length>1) s+=`<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    pts.forEach(p=>{ s+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${color}" stroke="var(--bg)" stroke-width="1.2"/>`;
+      s+=`<text x="${p.x.toFixed(1)}" y="${(p.y-5).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="7" font-family="monospace" font-weight="700">${p.v.toFixed(1)}</text>`;
+      s+=`<text x="${p.x.toFixed(1)}" y="${H-2}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="monospace">${p.label}</text>`;
+    });
+    [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ s+=`<text x="${PL-3}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="6" font-family="monospace">${v.toFixed(1)}</text>`; });
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">${s}</svg>`;
   }
 
-  box.innerHTML = charts.map(ch => {
-    const lastVal = last30.length ? Number(last30[last30.length-1][ch.key])||0 : 0;
-    const svg = svgChart(last30, ch.key, ch.color, ch.ref);
-    return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 12px;">
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
-        <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${ch.color};text-transform:uppercase;letter-spacing:.08em;">${ch.label}</span>
-        <span style="font-family:var(--mono);font-size:14px;font-weight:800;color:var(--light);">${lastVal.toFixed(1)}<span style="font-size:8px;color:var(--muted);margin-left:2px;">${ch.unit}</span></span>
-        <span style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-left:auto;">${ch.rng}</span>
-      </div>
-      ${svg}
-    </div>`;
-  }).join('') + `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;opacity:.6;">${last30.length} lecturas · actualizado al guardar en el Simulador</div>`;
+  const semanaLabel = start ? `Semana ${start} · ${days.length} días` : `${days.length} días`;
+
+  box.innerHTML = `<div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.06em;margin-bottom:4px;">📅 ${semanaLabel}</div>`
+    + charts.map(ch => {
+      const last = Number(days[days.length-1]?.[ch.key])||0;
+      const first = Number(days[0]?.[ch.key])||0;
+      const trend = last > first ? '▲' : last < first ? '▼' : '─';
+      const tColor = last > first ? 'var(--accent2)' : last < first ? 'var(--danger)' : 'var(--muted)';
+      return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${ch.color};text-transform:uppercase;letter-spacing:.08em;">${ch.label}</span>
+          <span style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--light);">${last.toFixed(1)}<span style="font-size:8px;color:var(--muted);margin-left:2px;">${ch.unit}</span></span>
+          <span style="color:${tColor};font-size:11px;font-weight:700;">${trend}</span>
+          <span style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-left:auto;">${ch.rng}</span>
+        </div>
+        ${svgChart(days, ch.key, ch.color, ch.ref)}
+      </div>`;
+    }).join('');
 }
 window.loadTendencias = loadTendencias;
 
@@ -4505,8 +4504,12 @@ window.addEventListener('message', function(e) {
     }
   }
 
+  if(e.data.type === 'sim-week') {
+    try { localStorage.setItem('sgi-tendencias-semana', JSON.stringify({days:e.data.days, start:e.data.start, ts:Date.now()})); } catch(e2){}
+    const panel = document.getElementById('panel-tendencias');
+    if(panel && panel.classList.contains('active')) loadTendencias();
+  }
   if(e.data.type === 'sim-history') {
-    // Refresh Tendencias panel if active
     const panel = document.getElementById('panel-tendencias');
     if(panel && panel.classList.contains('active')) loadTendencias();
   }
