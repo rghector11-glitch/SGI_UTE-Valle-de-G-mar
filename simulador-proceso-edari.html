@@ -1255,10 +1255,9 @@ function App(){
         const fechaKey=sampleKeys.find(k=>/^fecha$/i.test(k.trim()))
                     || sampleKeys.find(k=>/fecha|date|d[ií]a|jornada/i.test(k));
 
-        // Normalizar claves: quitar saltos de línea y texto entre paréntesis
-        // "DQO ENTRADA\n(mg/L)" → "DQO ENTRADA"
+        // Normalizar claves: quitar \r\n y texto de unidades
         function normalizarClave(k){
-          return k.replace(/\n.*/,'').replace(/\s*\(.*\)\s*$/,'').trim();
+          return k.split(/[\r\n]/)[0].replace(/\s*[\(\[].*$/,'').trim();
         }
 
         const parsed=rowsRaw.map((r,i)=>{
@@ -1285,9 +1284,18 @@ function App(){
   // Mapeo columnas Excel → campos app
   // SS REACTOR y SS RECIRCULACIÓN están en g/L en el Excel → ×1000 para mg/L
   function applyRow(row){
-    const n=(k,mult=1)=>{
-      const v=parseFloat(row[k]);
-      return isNaN(v)?undefined:v*mult;
+    const rowKeys=Object.keys(row);
+    // Búsqueda robusta: exacto → parcial (ignora mayús/acento/unidades)
+    const n=(search,mult=1)=>{
+      // 1. Exacto
+      let v=parseFloat(row[search]);
+      if(!isNaN(v)) return v*mult;
+      // 2. Clave que empieza por search (ignora mayúsculas)
+      const sl=search.toLowerCase();
+      const fk=rowKeys.find(k=>k.trim().toLowerCase().startsWith(sl))
+            ||rowKeys.find(k=>k.trim().toLowerCase().includes(sl));
+      if(fk){ v=parseFloat(row[fk]); if(!isNaN(v)) return v*mult; }
+      return undefined;
     };
     const updates={};
     const caudal=n('Caudal entrada Biologico');        if(caudal!==undefined)   updates.caudal=caudal;
