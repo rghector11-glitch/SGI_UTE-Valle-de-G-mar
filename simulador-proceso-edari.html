@@ -1401,13 +1401,26 @@ function App(){
       };
     });
     setWeekCalc(calc);
-    // Notificar al portal con los datos calculados de la semana
+    // Notificar al portal con datos de la semana
     try{
       window.parent.postMessage({type:'sim-week', days:calc, start:startISO}, '*');
       localStorage.setItem('sgi-tendencias-semana', JSON.stringify({days:calc, start:startISO, ts:Date.now()}));
     }catch(e){}
-
-    setXlsxMsg('\u2713 '+days.length+'/7 d\u00edas \u00b7 media semanal aplicada al simulador');
+    // Enviar KPIs del ÚLTIMO DÍA directamente (no el promedio)
+    if(calc.length){
+      const lastDay=calc[calc.length-1];
+      const lastRow=days[days.length-1].row;
+      const sstLast=parseFloat(lastRow['SS REACTOR']||0);
+      try{
+        window.parent.postMessage({
+          type:'sim-kpi',
+          edad:String(lastDay.tc),
+          sst: sstLast?Math.round(sstLast*1000):undefined,
+          dqo: String(lastDay.rend_dqo)
+        }, '*');
+      }catch(e){}
+    }
+    setXlsxMsg('\u2713 '+days.length+'/7 d\u00edas \u00b7 \u00faltimo d\u00eda aplicado a KPIs');
   }
 
   function exportWeekPDF(){
@@ -1505,23 +1518,18 @@ function App(){
 
   // Enviar KPIs al portal padre cada vez que cambian los resultados
   useEffect(()=>{
+    // Solo enviar KPIs automáticamente en modo DÍA
+    // En modo SEMANA los KPIs se envían directamente desde handleWeekLoad con el último día
+    if(weekMode) return;
     try{
-      // En modo semana: usar datos del último día; en modo día: usar params actuales
-      let edad=res.tc.toFixed(1), sst=p.sst_reactor, dqo=res.rend_dqo.toFixed(1);
-      if(weekMode && weekCalc.length){
-        const last=weekCalc[weekCalc.length-1];
-        edad=String(last.tc);
-        dqo=String(last.rend_dqo);
-        // SST del último día desde weekSummary (clave ya normalizada por normalizarClave)
-        if(weekSummary && weekSummary.days.length){
-          const lastRow=weekSummary.days[weekSummary.days.length-1].row;
-          const sstVal=parseFloat(lastRow['SS REACTOR']||0);
-          if(sstVal) sst=Math.round(sstVal*1000);
-        }
-      }
-      window.parent.postMessage({type:'sim-kpi', edad, sst, dqo}, '*');
+      window.parent.postMessage({
+        type:'sim-kpi',
+        edad:res.tc.toFixed(1),
+        sst: p.sst_reactor,
+        dqo: res.rend_dqo.toFixed(1)
+      }, '*');
     }catch(_){}
-  },[p, weekCalc]);
+  },[p]);
   const acumCol=Math.abs(res.acum)<20?C.green:res.acum>0?C.warn:C.danger;
   const diff=p.caudal_purga_d-res.Qw_nec, pOk=Math.abs(diff)<5;
 
