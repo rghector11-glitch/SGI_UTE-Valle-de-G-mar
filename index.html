@@ -2521,7 +2521,11 @@ function openRutaColector() {
     const bar = document.createElement('div');
     bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
     bar.innerHTML = '<button onclick="closeRutaColector()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Inicio</button>'
-      + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">🗺️ Ruta Colector EDARu</div>';
+      + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;flex:1;">\u{1F5FA}\uFE0F Ruta Colector EDARu</div>'
+      + '<button onclick="rutaExportXLS()" style="border:none;border-radius:7px;background:rgba(46,125,50,.85);color:white;cursor:pointer;padding:5px 11px;font-size:.75rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:4px;font-weight:700;">'
+      + '<svg viewBox="0 0 16 16" fill="none" style="width:13px;height:13px;stroke:currentColor"><path d="M8 10V3M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Excel</button>'
+      + '<button onclick="rutaExportPDF()" style="border:none;border-radius:7px;background:rgba(185,28,28,.8);color:white;cursor:pointer;padding:5px 11px;font-size:.75rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:4px;font-weight:700;">'
+      + '<svg viewBox="0 0 16 16" fill="none" style="width:13px;height:13px;stroke:currentColor"><path d="M4 2h6l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke-width="1.4"/><path d="M9 2v4h4M6 9h4M6 11h2" stroke-width="1.4" stroke-linecap="round"/></svg> PDF</button>';
     const frame = document.createElement('iframe');
     frame.id = 'ruta-frame';
     frame.src = 'ruta-colector-edaru.html';
@@ -2541,8 +2545,18 @@ function closeRutaColector() {
   if(shell) shell.style.display = 'block';
   sbNav('portal');
 }
+function rutaExportXLS() {
+  const f = document.getElementById('ruta-frame');
+  if(f && f.contentWindow && f.contentWindow.exportXLS) f.contentWindow.exportXLS();
+}
+function rutaExportPDF() {
+  const f = document.getElementById('ruta-frame');
+  if(f && f.contentWindow && f.contentWindow.exportPDF) f.contentWindow.exportPDF();
+}
 window.openRutaColector  = openRutaColector;
 window.closeRutaColector = closeRutaColector;
+window.rutaExportXLS = rutaExportXLS;
+window.rutaExportPDF = rutaExportPDF;
 
 // ── INVENTARIOS VIEWER (M05) ─────────────────────────────────────────────────
 function openInventarios() {
