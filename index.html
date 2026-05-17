@@ -2318,30 +2318,28 @@ async function initAuth() {
   const session = getSession();
   if(session && session.username) {
     showPortal(session);
-    // Seed admin in background (won't block)
     waitForFirebase().then(seedDefaultAdmin).catch(()=>{});
     return;
   }
   showLogin();
 
-  // Show connecting state on button
+  // Wait for Firebase in background — button stays clickable
+  // Show subtle connecting indicator without disabling button
   const btn = document.getElementById('login-btn');
-  btn.disabled = true;
-  btn.textContent = 'Conectando...';
+  const origText = btn.textContent;
 
-  // Wait for Firebase then seed admin and enable button
   waitForFirebase()
     .then(() => {
-      btn.disabled = false;
-      btn.textContent = 'Acceder';
+      btn.style.opacity = '';
       return seedDefaultAdmin();
     })
     .catch(() => {
-      btn.disabled = false;
-      btn.textContent = 'Acceder';
-      showLoginError('Sin conexión a la base de datos. Verifica tu red.');
+      btn.style.opacity = '';
+      showLoginError('Sin conexión con la base de datos. Verifica tu red e inténtalo de nuevo.');
     });
 }
+
+// Ensure doLogin is always globally accessible
 
 // Seed admin user on first run
 async function seedDefaultAdmin() {
@@ -2365,39 +2363,39 @@ async function doLogin() {
 
   if(!username || !pass) { showLoginError('Introduce usuario y contraseña.'); return; }
 
-  btn.disabled = true; btn.textContent = 'Accediendo...';
+  btn.disabled = true;
+  btn.textContent = 'Accediendo...';
   clearLoginError();
 
   try {
-    // Wait for Firebase if not ready yet
     await waitForFirebase();
-
     const snap = await window._fb.get(window._fb.ref(window._fb.db, 'usuarios/' + username));
     const user = snap.val();
     if(!user) {
-      showLoginError('Usuario no encontrado.');
-      btn.disabled=false; btn.textContent='Acceder';
+      showLoginError('Usuario no encontrado. Verifica el nombre de usuario.');
       return;
     }
     const h = await hashPass(pass);
     if(h !== user.hash) {
-      showLoginError('Contraseña incorrecta.');
-      btn.disabled=false; btn.textContent='Acceder';
+      showLoginError('Contraseña incorrecta. Inténtalo de nuevo.');
       return;
     }
     const session = { username: user.username, name: user.name, role: user.role, loginAt: Date.now() };
     setSession(session);
     showPortal(session);
   } catch(e) {
-    btn.disabled=false; btn.textContent='Acceder';
     if(e.message === 'Firebase timeout') {
       showLoginError('Sin conexión a la base de datos. Verifica tu red e inténtalo de nuevo.');
     } else {
-      showLoginError('Error al acceder. Inténtalo de nuevo.');
+      showLoginError('Error: ' + e.message);
     }
-    console.error(e);
+    console.error('doLogin error:', e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Acceder';
   }
 }
+window.doLogin = doLogin;
 
 function doLogout() {
   if(!confirm('¿Cerrar sesión?')) return;
