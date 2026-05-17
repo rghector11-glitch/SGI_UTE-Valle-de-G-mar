@@ -4205,6 +4205,25 @@ window.resolverAlerta = resolverAlerta;
 window.addEventListener('message', function(e) {
   if(!e.data || !e.data.type) return;
 
+  if(e.data.type === 'sim-kpi') {
+    // KPIs desde el simulador de proceso (M06)
+    const {edad, sst, dqo} = e.data;
+    if(edad) {
+      const elE = document.getElementById('kpi-edad');
+      if(elE) elE.innerHTML = edad + ' <span class="ku">d</span>';
+      // persist
+      try { localStorage.setItem('sgi-kpi-sim', JSON.stringify(e.data)); } catch(_){}
+    }
+    if(sst) {
+      const elS = document.getElementById('kpi-sst');
+      if(elS) elS.innerHTML = sst + ' <span class="ku">mg/L</span>';
+    }
+    if(dqo) {
+      const elD = document.getElementById('kpi-dqo');
+      if(elD) elD.innerHTML = dqo + ' <span class="ku">%</span>';
+    }
+  }
+
   if(e.data.type === 'sms-kpi') {
     // Actualizar KPI Q Entrada EDARi
     try { localStorage.setItem('sgi-kpi-caudal', e.data.caudal); } catch(err){}

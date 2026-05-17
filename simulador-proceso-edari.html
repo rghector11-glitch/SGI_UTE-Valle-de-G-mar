@@ -1352,6 +1352,18 @@ function App(){
 
   const set=useCallback(k=>v=>setP(prev=>({...prev,[k]:v})),[]);
   const res=calcular(p);
+
+  // Enviar KPIs al portal padre cada vez que cambian los resultados
+  useEffect(()=>{
+    try{
+      window.parent.postMessage({
+        type: 'sim-kpi',
+        edad: res.tc.toFixed(1),
+        sst:  p.sst_reactor,
+        dqo:  res.rend_dqo.toFixed(1)
+      }, '*');
+    }catch(_){}
+  },[p]);
   const acumCol=Math.abs(res.acum)<20?C.green:res.acum>0?C.warn:C.danger;
   const diff=p.caudal_purga_d-res.Qw_nec, pOk=Math.abs(diff)<5;
 
