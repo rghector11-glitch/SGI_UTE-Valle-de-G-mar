@@ -774,11 +774,28 @@ function saveRecord() {
     }
   };
 
-  // Remove existing entry for same date
+  // Add metadata needed by portal's loadInformes()
+  record.ts = Date.now();
+  const qEi = val('ei-Q'), qUi = val('ui-Q');
+  record.resumen = [
+    qEi ? `EDARi Q: ${qEi} m³/d` : '',
+    qUi ? `EDARu Q: ${qUi} m³/d` : ''
+  ].filter(Boolean).join(' · ') || 'Parte diario';
+  record.fecha = iso;
+
+  // Remove existing entry for same date and prepend
   history_records = history_records.filter(r => r.date !== iso);
   history_records.unshift(record);
 
+  // Save to localStorage
   try { localStorage.setItem('ute-sms-history', JSON.stringify(history_records)); } catch(e){}
+
+  // Save to Firebase (same path read by portal loadInformes)
+  if(window._fb) {
+    window._fb.set(window._fb.ref(window._fb.db, 'sms-history'), history_records)
+      .catch(err => console.warn('Firebase save error:', err));
+  }
+
   showToast('✓ Guardado en historial');
   renderHistory();
 
