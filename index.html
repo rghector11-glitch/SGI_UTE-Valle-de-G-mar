@@ -873,7 +873,7 @@ body::before {
         <div class="p-bc">SGI <em>/</em> <em>UTE Valle de Güímar</em> <em>/</em> <em id="p-bc-section">Portal</em></div>
         <div class="p-spacer"></div>
         <div class="p-stat"><div class="p-dot ok" id="p-dot-fb"></div><span id="p-fb-label" style="color:var(--muted);font-size:9px;font-family:var(--mono)">FIREBASE OK</span></div>
-        <div class="p-stat" style="margin-left:10px"><div class="p-dot warn" id="p-dot-cal"></div><span id="p-cal-label" style="color:var(--muted);font-size:9px;font-family:var(--mono)">CALIBRACIONES</span></div>
+
         <button class="p-user-btn" id="p-user-btn" onclick="toggleUserPop()">—</button>
         <div class="p-cl" id="p-clock">--/-- · --:--</div>
       </div>
@@ -906,9 +906,9 @@ body::before {
               <div class="kpi-s" id="kpi-dqo-s">Límite &gt;75%</div>
             </div>
             <div class="kpi cd">
-              <div class="kpi-lbl">Calibraciones</div>
-              <div class="kpi-v" id="kpi-cal">— <span class="ku">venc.</span></div>
-              <div class="kpi-s">Lab · acción req.</div>
+              <div class="kpi-lbl">Próximas calibr.</div>
+              <div class="kpi-v" id="kpi-cal">— <span class="ku">instr.</span></div>
+              <div class="kpi-s" id="kpi-cal-s">en ≤5 días · M01</div>
             </div>
           </div>
 
@@ -4335,6 +4335,55 @@ window.addEventListener('message', function(e) {
   }
 });
 
+// ══ KPI CALIBRACIONES ════════════════════════════════════════════════════════
+// Lee las 3 plantas de Firebase y cuenta instrumentos con calibración en ≤5 días
+async function refreshCalKPI() {
+  if(!window._fb) return;
+  const plants = ['lab', 'edari', 'edaru'];
+  const today = new Date(); today.setHours(0,0,0,0);
+  let proximas = 0, vencidas = 0, total = 0;
+
+  try {
+    await Promise.all(plants.map(async p => {
+      const snap = await window._fb.get(window._fb.ref(window._fb.db, 'calibraciones/' + p));
+      const data = snap.val();
+      if(!data || !data.instruments) return;
+      data.instruments.forEach(instr => {
+        const recs = (data.records || [])
+          .filter(r => r.instrId === instr.id)
+          .sort((a,b) => b.date.localeCompare(a.date));
+        if(!recs.length) return;
+        const next = new Date(recs[0].date);
+        next.setDate(next.getDate() + Number(instr.freq));
+        const days = Math.round((next - today) / 86400000);
+        total++;
+        if(days < 0) vencidas++;
+        else if(days <= 5) proximas++;
+      });
+    }));
+
+    const el = document.getElementById('kpi-cal');
+    const sub = document.getElementById('kpi-cal-s');
+    const count = vencidas + proximas;
+
+    if(el) {
+      el.innerHTML = count + ' <span class="ku">instr.</span>';
+      el.style.color = vencidas > 0 ? 'var(--danger)' : proximas > 0 ? 'var(--warn)' : 'var(--accent2)';
+    }
+    if(sub) {
+      if(vencidas > 0)
+        sub.innerHTML = `<span style="color:var(--danger)">${vencidas} vencida${vencidas!==1?'s':''}</span>${proximas>0?' · '+proximas+' en ≤5d':''}`;
+      else if(proximas > 0)
+        sub.textContent = proximas + ' en los próximos 5 días';
+      else
+        sub.textContent = total > 0 ? 'Todo al día ✓' : 'Sin datos · M01';
+    }
+  } catch(e) {
+    console.warn('refreshCalKPI error:', e);
+  }
+}
+window.refreshCalKPI = refreshCalKPI;
+
 // ══ KPI UPDATES ════════════════════════════════════════════════════════════════
 // SMS caudal from localStorage (set by sms-diario.html after excel load)
 function refreshKPIs() {
@@ -4353,6 +4402,8 @@ function refreshKPIs() {
       if(d.dqo)  document.getElementById('kpi-dqo').innerHTML  = d.dqo  + ' <span class="ku">%</span>';
     } catch(e){}
   }
+  // Calibraciones desde Firebase (async, no bloquea)
+  waitForFirebase().then(() => refreshCalKPI()).catch(()=>{});
 }
 refreshKPIs();
 setInterval(refreshKPIs, 30000);
