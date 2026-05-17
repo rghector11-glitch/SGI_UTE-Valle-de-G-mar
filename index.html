@@ -1501,21 +1501,66 @@ function buildHome() {
     </div>`).join('');
 }
 
+// ── PROCEDIMIENTOS VIEWER (M02) ─────────────────────────────────────────────
+const PROC_FILES = {
+  cloro:    'procedimiento-cloro-libre.html',
+  dbo5:     'procedimiento-dbo5.html',
+  micro:    'procedimiento-microbiologia.html',
+  sequedad: 'procedimiento-sequedad.html',
+  solidos:  'procedimiento-solidos.html',
+  v30:      'procedimiento-v30.html',
+  turbidez: 'procedimiento-turbidez.html',
+};
+const PROC_TITLES = {
+  cloro:'Cloro Libre', dbo5:'DBO₅', micro:'Microbiología',
+  sequedad:'Sequedad y M. Volátil', solidos:'Sólidos SS/SD/SSV',
+  v30:'V30 — Sedimentables', turbidez:'Turbidez',
+};
+
 function openProcInline(id) {
-  // Cerrar modal si está abierto
+  const url = PROC_FILES[id]; if(!url) return;
+  const title = PROC_TITLES[id] || id;
+  // Cerrar modal
   const modal = document.getElementById('modal-procedimientos');
   if(modal) modal.classList.remove('open');
-  // Mostrar el contenedor inline (app-simulador) que tiene las pantallas de procedimientos
-  openApp('simulador-edari.html', 'Procedimientos', 'Módulo 02');
-  // Navegar a la pantalla específica
-  const screens = document.querySelectorAll('.proc-screen');
-  const home = document.getElementById('screen-home');
-  if(home) home.classList.remove('active');
-  screens.forEach(s => s.classList.remove('active'));
-  const target = document.getElementById('ps-' + id);
-  if(target) target.classList.add('active');
+  // Ocultar portal
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'none';
+  // Crear o reutilizar viewer
+  let viewer = document.getElementById('proc-viewer');
+  if(!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'proc-viewer';
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#f8fafc;';
+    const bar = document.createElement('div');
+    bar.id = 'proc-viewer-bar';
+    bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
+    const frame = document.createElement('iframe');
+    frame.id = 'proc-frame';
+    frame.style.cssText = 'flex:1;border:none;width:100%;background:#f8fafc;';
+    frame.allowFullscreen = true;
+    viewer.appendChild(bar);
+    viewer.appendChild(frame);
+    document.body.appendChild(viewer);
+  }
+  // Actualizar barra y cargar archivo
+  const bar = document.getElementById('proc-viewer-bar');
+  bar.innerHTML = '<button onclick="closeProcViewer()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;flex-shrink:0;"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Inicio</button>'
+    + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">📋 ' + title + '</div>'
+    + '<button onclick="openBuzonProcedimientos()" style="margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:7px;color:white;cursor:pointer;padding:4px 10px;font-size:.72rem;font-family:Barlow,sans-serif;font-weight:600;">☰ Todos los procedimientos</button>';
+  document.getElementById('proc-frame').src = url;
+  viewer.style.display = 'flex';
+}
+function closeProcViewer() {
+  const viewer = document.getElementById('proc-viewer');
+  if(viewer) viewer.style.display = 'none';
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'block';
+  sbNav('portal');
 }
 function openProc(id) { openProcInline(id); }
+window.openProcInline  = openProcInline;
+window.closeProcViewer = closeProcViewer;
 
 function _openProcOld(id) {
   document.getElementById('screen-home').classList.remove('active');
@@ -3130,21 +3175,66 @@ function buildHome() {
     </div>`).join('');
 }
 
+// ── PROCEDIMIENTOS VIEWER (M02) ─────────────────────────────────────────────
+const PROC_FILES = {
+  cloro:    'procedimiento-cloro-libre.html',
+  dbo5:     'procedimiento-dbo5.html',
+  micro:    'procedimiento-microbiologia.html',
+  sequedad: 'procedimiento-sequedad.html',
+  solidos:  'procedimiento-solidos.html',
+  v30:      'procedimiento-v30.html',
+  turbidez: 'procedimiento-turbidez.html',
+};
+const PROC_TITLES = {
+  cloro:'Cloro Libre', dbo5:'DBO₅', micro:'Microbiología',
+  sequedad:'Sequedad y M. Volátil', solidos:'Sólidos SS/SD/SSV',
+  v30:'V30 — Sedimentables', turbidez:'Turbidez',
+};
+
 function openProcInline(id) {
-  // Cerrar modal si está abierto
+  const url = PROC_FILES[id]; if(!url) return;
+  const title = PROC_TITLES[id] || id;
+  // Cerrar modal
   const modal = document.getElementById('modal-procedimientos');
   if(modal) modal.classList.remove('open');
-  // Mostrar el contenedor inline (app-simulador) que tiene las pantallas de procedimientos
-  openApp('simulador-edari.html', 'Procedimientos', 'Módulo 02');
-  // Navegar a la pantalla específica
-  const screens = document.querySelectorAll('.proc-screen');
-  const home = document.getElementById('screen-home');
-  if(home) home.classList.remove('active');
-  screens.forEach(s => s.classList.remove('active'));
-  const target = document.getElementById('ps-' + id);
-  if(target) target.classList.add('active');
+  // Ocultar portal
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'none';
+  // Crear o reutilizar viewer
+  let viewer = document.getElementById('proc-viewer');
+  if(!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'proc-viewer';
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#f8fafc;';
+    const bar = document.createElement('div');
+    bar.id = 'proc-viewer-bar';
+    bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
+    const frame = document.createElement('iframe');
+    frame.id = 'proc-frame';
+    frame.style.cssText = 'flex:1;border:none;width:100%;background:#f8fafc;';
+    frame.allowFullscreen = true;
+    viewer.appendChild(bar);
+    viewer.appendChild(frame);
+    document.body.appendChild(viewer);
+  }
+  // Actualizar barra y cargar archivo
+  const bar = document.getElementById('proc-viewer-bar');
+  bar.innerHTML = '<button onclick="closeProcViewer()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;flex-shrink:0;"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Inicio</button>'
+    + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">📋 ' + title + '</div>'
+    + '<button onclick="openBuzonProcedimientos()" style="margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:7px;color:white;cursor:pointer;padding:4px 10px;font-size:.72rem;font-family:Barlow,sans-serif;font-weight:600;">☰ Todos los procedimientos</button>';
+  document.getElementById('proc-frame').src = url;
+  viewer.style.display = 'flex';
+}
+function closeProcViewer() {
+  const viewer = document.getElementById('proc-viewer');
+  if(viewer) viewer.style.display = 'none';
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'block';
+  sbNav('portal');
 }
 function openProc(id) { openProcInline(id); }
+window.openProcInline  = openProcInline;
+window.closeProcViewer = closeProcViewer;
 
 function _openProcOld2(id) {
   document.getElementById('screen-home').classList.remove('active');
@@ -3913,7 +4003,6 @@ if ('serviceWorker' in navigator) {
 buildHome();
 // Expose sim functions needed by HTML onclick attributes
 window.openProc   = openProc;
-window.openProcInline = openProcInline;
 window.goHome     = typeof goHome !== 'undefined' ? goHome : window.goHome;
 window.switchTab  = typeof switchTab !== 'undefined' ? switchTab : window.switchTab;
 window.startTimer = startTimer;
