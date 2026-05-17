@@ -845,6 +845,7 @@ body::before {
           <i class="ti ti-bell" aria-hidden="true"></i>
           <div class="sb-tip">ALERTAS</div>
           <span class="sb-badge" id="alertas-badge" style="display:none">0</span>
+          <span id="alertas-asterisk" style="display:none;position:absolute;top:3px;right:4px;font-size:14px;font-weight:900;color:#ef4444;line-height:1;pointer-events:none;text-shadow:0 0 6px #ef444488;">*</span>
         </button>
         <button class="sb-btn" id="sb-descargas" onclick="toggleDownloads()" aria-label="Descargas">
           <i class="ti ti-download" aria-hidden="true"></i>
@@ -1088,7 +1089,7 @@ body::before {
             </div></div>
 
             <!-- M07 Buzón -->
-            <div class="mc m07" onclick="openBuzon()" role="button" tabindex="0">
+            <div class="mc m07" onclick="openBuzonInteligente()" role="button" tabindex="0">
               <div class="mc-ilu">
                 <div class="mc-num">M·07</div>
                 <div class="mc-badge ok" id="mc-buzon-badge">ACTIVO</div>
@@ -1110,7 +1111,7 @@ body::before {
                 <div class="mc-desc">Consultas · propuestas mejora</div>
               </div>
               <div class="mc-foot">
-                <div class="mc-stat">Sin leer <b id="mc-buzon-count">0</b></div>
+                <div class="mc-stat" id="mc-buzon-stat-label">Sin leer <b id="mc-buzon-count">0</b></div>
                 <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
               </div>
             </div></div>
@@ -2773,6 +2774,27 @@ function actualizarBadgeBuzon() {
     const mcCount = document.getElementById('mc-buzon-count');
     if(mcCount) mcCount.textContent = activos.length;
 
+    // Cambiar label M07 según rol
+    const statLabel = document.getElementById('mc-buzon-stat-label');
+    if(statLabel) statLabel.innerHTML = activos.length > 0
+      ? `Pendientes <b id="mc-buzon-count">${activos.length}</b>`
+      : `Sin leer <b id="mc-buzon-count">0</b>`;
+
+    // Actualizar badge en sidebar de Alertas
+    const alertasBadge = document.getElementById('alertas-badge');
+    const alertasAsterisk = document.getElementById('alertas-asterisk');
+    if(alertasBadge) {
+      if(activos.length > 0) {
+        alertasBadge.textContent = activos.length;
+        alertasBadge.style.display = 'inline-flex';
+      } else {
+        alertasBadge.style.display = 'none';
+      }
+    }
+    if(alertasAsterisk) {
+      alertasAsterisk.style.display = activos.length > 0 ? 'block' : 'none';
+    }
+
     // Actualizar badge en topbar
     const badge = document.getElementById('buzon-badge-btn');
     const cnt   = document.getElementById('buzon-badge-count');
@@ -2843,8 +2865,15 @@ function cerrarPanelBuzon() {
   document.getElementById('buzon-panel').classList.remove('open');
 }
 
-// Iniciar polling cada 30s si es admin
-function initBadgeBuzon() {
+function openBuzonInteligente() {
+  const session = getSession();
+  if(session && session.role === 'supervisor') {
+    abrirPanelBuzon();
+  } else {
+    openBuzon();
+  }
+}
+window.openBuzonInteligente = openBuzonInteligente;
   const session = getSession();
   if(!session || session.role !== 'supervisor') return;
   actualizarBadgeBuzon();
