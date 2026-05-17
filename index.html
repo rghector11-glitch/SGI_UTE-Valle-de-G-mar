@@ -2470,10 +2470,6 @@ async function deleteUser(username) {
   } catch(e){ alert('Error al eliminar usuario.'); }
 }
 
-// Init on load
-initAuth();
-
-
 // ── FULLSCREEN ────────────────────────────────────────────────
 function toggleFullscreen() {
   if(!document.fullscreenElement) {
@@ -4029,6 +4025,9 @@ function showPortalShell() {
   if(ub && s) ub.textContent = s.username.toUpperCase();
 }
 window.showPortalShell = showPortalShell;
+
+// ── Arrancar la app una vez que TODOS los scripts han cargado ──
+initAuth();
 </script>
 
 
