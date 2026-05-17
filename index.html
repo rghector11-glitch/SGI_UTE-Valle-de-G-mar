@@ -3839,11 +3839,45 @@ window.mountSimuladorProceso = mountSimuladorProceso;
 function openSimuladorProceso() {
   const shell = document.getElementById('portal-shell');
   if(shell) shell.style.display = 'none';
-  const container = document.getElementById('app-simulador-proceso');
-  if(container) container.style.cssText = 'display:flex;flex-direction:column;position:fixed;inset:0;z-index:9100;background:#07090f;overflow:hidden;';
-  mountSimuladorProceso();
+
+  // Usar iframe dedicado (igual que SMS Diario) - más robusto que Babel inline
+  let viewer = document.getElementById('sim-proceso-viewer');
+  if(!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'sim-proceso-viewer';
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#07090f;';
+
+    const bar = document.createElement('div');
+    bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
+    bar.innerHTML = [
+      '<button onclick="closeSimuladorProceso()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;">',
+      '<svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      ' Inicio</button>',
+      '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">\u2697\uFE0F Simulador Proceso EDARi</div>'
+    ].join('');
+
+    const frame = document.createElement('iframe');
+    frame.id = 'sim-proceso-frame';
+    frame.src = 'simulador-proceso-edari.html';
+    frame.style.cssText = 'flex:1;border:none;width:100%;background:#07090f;';
+    frame.allowFullscreen = true;
+
+    viewer.appendChild(bar);
+    viewer.appendChild(frame);
+    document.body.appendChild(viewer);
+  } else {
+    viewer.style.display = 'flex';
+  }
+}
+function closeSimuladorProceso() {
+  const viewer = document.getElementById('sim-proceso-viewer');
+  if(viewer) viewer.style.display = 'none';
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'block';
+  sbNav('portal');
 }
 window.openSimuladorProceso = openSimuladorProceso;
+window.closeSimuladorProceso = closeSimuladorProceso;
 
 </script>
 
