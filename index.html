@@ -326,6 +326,31 @@ body::before {
 .logout-btn:hover { background: rgba(255,255,255,.22); }
 
 
+
+/* ── SMS DIARIO VIEWER ── */
+#sms-viewer-overlay {
+  display: none; position: fixed; inset: 0; z-index: 8998;
+}
+#sms-viewer-overlay.open { display: block; }
+#sms-viewer {
+  display: none; position: fixed; inset: 0; z-index: 8999;
+  flex-direction: column; background: #f4f6f9;
+}
+#sms-viewer.open { display: flex; }
+#sms-viewer-bar {
+  background: linear-gradient(135deg,#003e6b,#005b99);
+  display: flex; align-items: center; gap: .8rem;
+  padding: .5rem 1rem; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+#sms-viewer-bar button {
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 8px; color: white; cursor: pointer;
+  padding: 5px 12px; font-size: .78rem; font-family: 'Barlow',sans-serif;
+  display: flex; align-items: center; gap: 5px; font-weight: 600;
+}
+#sms-viewer-frame { flex: 1; border: none; width: 100%; background: #f4f6f9; }
+
 /* ── DIAGNÓSTICO M08 ── */
 #m08-overlay {
   display: none; position: fixed; inset: 0; z-index: 8999;
@@ -686,6 +711,20 @@ body::before {
 </div>
 
 <!-- ═══ PANEL DIAGNÓSTICO ═══ -->
+
+<!-- SMS DIARIO VIEWER (contenedor dedicado para M04) -->
+<div id="sms-viewer-overlay" onclick="closeSmsViewer()"></div>
+<div id="sms-viewer">
+  <div id="sms-viewer-bar">
+    <button onclick="closeSmsViewer()">
+      <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Inicio
+    </button>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;color:white;font-size:1rem;">📋 SMS Diario</div>
+  </div>
+  <iframe id="sms-viewer-frame" src="" allowfullscreen></iframe>
+</div>
+
 <!-- M08 DIAGNÓSTICO -->
 <div id="m08-overlay" onclick="m08Close()"></div>
 <div id="m08-panel">
@@ -988,7 +1027,7 @@ body::before {
             </div></div>
 
             <!-- M04 SMS -->
-            <div class="mc m04" onclick="openApp('sms-diario.html','SMS Diario','Módulo 04')" role="button" tabindex="0">
+            <div class="mc m04" onclick="openSmsViewer()" role="button" tabindex="0">
               <div class="mc-ilu">
                 <div class="mc-num">M·04</div>
                 <div class="mc-badge ok">ACTIVO</div>
@@ -2491,6 +2530,30 @@ document.addEventListener('fullscreenchange', () => {
 
 // ══════════════════════════════════════════════════════════════
 // DIAGNÓSTICO DEL PORTAL
+
+// ── SMS DIARIO VIEWER ──────────────────────────────────────────
+function openSmsViewer() {
+  // Hide portal shell
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'none';
+  // Load iframe and show
+  const frame = document.getElementById('sms-viewer-frame');
+  if(frame && !frame.src.includes('sms-diario.html')) {
+    frame.src = 'sms-diario.html';
+  }
+  document.getElementById('sms-viewer-overlay').classList.add('open');
+  document.getElementById('sms-viewer').classList.add('open');
+}
+function closeSmsViewer() {
+  document.getElementById('sms-viewer-overlay').classList.remove('open');
+  document.getElementById('sms-viewer').classList.remove('open');
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'block';
+  sbNav('portal');
+}
+window.openSmsViewer = openSmsViewer;
+window.closeSmsViewer = closeSmsViewer;
+
 // ══ M08 DIAGNÓSTICO (reescrito) ══
 (function() {
 
