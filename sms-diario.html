@@ -776,12 +776,14 @@ function saveRecord() {
 
   // Add metadata needed by portal's loadInformes()
   record.ts = Date.now();
+  record.fecha = iso;
+  record.sms_edari = buildSMS('edari', iso);
+  record.sms_edaru = buildSMS('edaru', iso);
   const qEi = val('ei-Q'), qUi = val('ui-Q');
   record.resumen = [
     qEi ? `EDARi Q: ${qEi} m³/d` : '',
     qUi ? `EDARu Q: ${qUi} m³/d` : ''
   ].filter(Boolean).join(' · ') || 'Parte diario';
-  record.fecha = iso;
 
   // Remove existing entry for same date and prepend
   history_records = history_records.filter(r => r.date !== iso);

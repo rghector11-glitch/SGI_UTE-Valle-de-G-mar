@@ -3983,20 +3983,48 @@ function loadInformes() {
     if(!data) { list.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">SIN INFORMES GUARDADOS</div>'; return; }
     const items = Object.values(data).sort((a,b) => (b.ts||0)-(a.ts||0));
     list.innerHTML = items.map(it => {
-      // Support both formats: {date, ts, resumen} and {fecha, ts}
       let fecha = '—';
       try {
         const d = it.date || it.fecha;
         if(d) fecha = new Date(d + 'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
         else if(it.ts) fecha = new Date(it.ts).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
       } catch(e){}
-      const resumen = it.resumen || (it.edari ? `EDARi Q: ${it.edari.ei?.Q||'—'} m³/d` : 'Parte diario');
-      return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:9px 12px;display:flex;align-items:center;gap:10px;">
-        <i class="ti ti-message-2" style="font-size:16px;color:var(--accent)" aria-hidden="true"></i>
-        <div style="flex:1;font-family:var(--mono);font-size:9px;">
-          <div style="color:var(--light);letter-spacing:.05em;">${fecha}</div>
-          <div style="color:var(--muted);margin-top:2px;">${resumen}</div>
+
+      // Build data rows from record fields
+      const ei = it.edari?.ei || {}, eo = it.edari?.eo || {};
+      const ui = it.edaru?.ui || {}, uo = it.edaru?.uo || {};
+
+      function row(label, val, unit) {
+        if(!val && val !== 0) return '';
+        return `<div style="display:flex;justify-content:space-between;padding:1px 0;">
+          <span style="color:var(--muted)">${label}</span>
+          <span style="color:var(--light);font-weight:600;">${val} <span style="color:var(--muted);font-weight:400">${unit}</span></span>
+        </div>`;
+      }
+      function section(title, color, fields) {
+        const rows = fields.filter(f=>f).join('');
+        if(!rows) return '';
+        return `<div style="margin-top:6px;">
+          <div style="font-size:8px;font-weight:700;color:${color};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;">${title}</div>
+          ${rows}
+        </div>`;
+      }
+
+      const hasData = ei.Q || eo.Q || ui.Q || uo.Q;
+
+      const body = hasData ? `
+        ${section('EDARi — Entrada', '#4da6e0', [row('Q',ei.Q,'m³/d'), row('DQO',ei.DQO,'mg/L'), row('SST',ei.SST,'mg/L')])}
+        ${section('EDARi — Salida', '#2ecc71', [row('Q',eo.Q,'m³/d'), row('DQO',eo.DQO,'mg/L'), row('SST',eo.SST,'mg/L'), row('NTU',eo.NTU,''), row('C.E',eo.CE,'µS/cm')])}
+        ${section('EDARu — Entrada', '#f0a500', [row('Q',ui.Q,'m³/d'), row('DQO',ui.DQO,'mg/L'), row('SST',ui.SST,'mg/L')])}
+        ${section('EDARu — Salida', '#e67e22', [row('Q',uo.Q,'m³/d'), row('DQO',uo.DQO,'mg/L'), row('SST',uo.SST,'mg/L'), row('NTU',uo.NTU,''), row('C.E',uo.CE,'µS/cm')])}
+      ` : `<div style="color:var(--muted);font-size:9px;margin-top:4px;">${it.resumen||'Parte diario'}</div>`;
+
+      return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <i class="ti ti-message-2" style="font-size:14px;color:var(--accent)" aria-hidden="true"></i>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--light);font-weight:600;letter-spacing:.05em;">${fecha}</span>
         </div>
+        <div style="font-family:var(--mono);font-size:9px;line-height:1.6;">${body}</div>
       </div>`;
     }).join('');
   }).catch(() => { list.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">ERROR CARGANDO INFORMES</div>'; });
