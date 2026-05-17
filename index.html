@@ -1060,7 +1060,7 @@ body::before {
             </div></div>
 
             <!-- M06 Simulador -->
-            <div class="mc m06" onclick="openApp('simulador-proceso-edari.html?v=6','Simulador Proceso EDARi','Módulo 06')" role="button" tabindex="0">
+            <div class="mc m06" onclick="openSimuladorProceso()" role="button" tabindex="0">
               <div class="mc-ilu">
                 <div class="mc-num">M·06</div>
                 <div class="mc-badge ok">ONLINE</div>
@@ -1218,9 +1218,9 @@ body::before {
 </div>
 
 <!-- ═══════════════════ SIMULADOR PROCESO EDARi (inline) ═══════════════════ -->
-<div id="app-simulador-proceso" style="display:none;position:fixed;inset:0;z-index:10;background:#07090f;overflow:hidden;flex-direction:column;">
+<div id="app-simulador-proceso" style="display:none;position:fixed;inset:0;z-index:9100;background:#07090f;overflow:hidden;flex-direction:column;">
   <div class="inline-back-bar">
-    <button class="inline-back-btn" onclick="closeApp()">
+    <button class="inline-back-btn" onclick="document.getElementById('app-simulador-proceso').style.display='none';const s=document.getElementById('portal-shell');if(s)s.style.display='block';sbNav('portal');">
       <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Inicio
     </button>
@@ -3836,6 +3836,15 @@ function mountSimuladorProceso() {
 }
 window.mountSimuladorProceso = mountSimuladorProceso;
 
+function openSimuladorProceso() {
+  const shell = document.getElementById('portal-shell');
+  if(shell) shell.style.display = 'none';
+  const container = document.getElementById('app-simulador-proceso');
+  if(container) container.style.cssText = 'display:flex;flex-direction:column;position:fixed;inset:0;z-index:9100;background:#07090f;overflow:hidden;';
+  mountSimuladorProceso();
+}
+window.openSimuladorProceso = openSimuladorProceso;
+
 </script>
 
 <!-- Simulador Proceso EDARi JSX source (compiled lazily on first open) -->
@@ -3874,7 +3883,7 @@ function sbNav(id) {
   if(bc) bc.textContent = labels[id] || id;
   // Side effects
   if(id === 'proceso') {
-    setTimeout(() => openApp('simulador-proceso-edari.html?v=6','Simulador Proceso EDARi','Módulo 06'), 100);
+    setTimeout(() => openSimuladorProceso(), 100);
   }
   if(id === 'informes') loadInformes();
   if(id === 'alertas')  loadAlertas();
