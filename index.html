@@ -2722,16 +2722,15 @@ async function enviarSugerencia() {
   };
 
   try {
-    if(window._fb) {
-      const newRef = window._fb.push(window._fb.ref(window._fb.db, 'buzon'));
-      await window._fb.set(newRef, entry);
-      // Trigger badge update
-      actualizarBadgeBuzon();
-    }
+    // Esperar a que Firebase esté listo (hasta 8 s)
+    await waitForFirebase();
+    const newRef = window._fb.push(window._fb.ref(window._fb.db, 'buzon'));
+    await window._fb.set(newRef, entry);
+    actualizarBadgeBuzon();
     document.getElementById('buzon-form-area').style.display = 'none';
     document.getElementById('buzon-success').classList.add('show');
   } catch(err) {
-    alert('Error al enviar: ' + err.message);
+    alert('Error al enviar. Comprueba la conexión e inténtalo de nuevo.\n\nDetalle: ' + err.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:white;stroke-width:1.5"><path d="M2 8h12M10 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg> Enviar';
@@ -2761,25 +2760,31 @@ let _buzonPanel  = false;
 function actualizarBadgeBuzon() {
   const session = getSession();
   if(!session || session.role !== 'supervisor') return;
-  if(!window._fb) return;
+  if(!window._fb) { setTimeout(actualizarBadgeBuzon, 1000); return; }
   window._fb.get(window._fb.ref(window._fb.db, 'buzon')).then(snap => {
     const data = snap.val() || {};
     const todos = Object.keys(data);
     const eliminados = JSON.parse(localStorage.getItem('buzon_eliminados')||'[]');
-    // Excluir eliminados Y resueltos del badge
+    // Excluir eliminados Y resueltos del badge y contador
     const activos = todos.filter(k => !eliminados.includes(k) && !data[k].resuelto);
     const noLeidos = activos.filter(k => !_buzonLeidos.includes(k));
-    const badge = document.getElementById('buzon-badge-btn');
-    const cnt   = document.getElementById('buzon-badge-count');
+
+    // Actualizar contador en tarjeta M07
     const mcCount = document.getElementById('mc-buzon-count');
     if(mcCount) mcCount.textContent = activos.length;
-    if(!badge) return;
-    if(noLeidos.length > 0) {
-      badge.style.display = 'inline-flex';
-      cnt.textContent = noLeidos.length;
-    } else {
-      badge.style.display = 'none';
+
+    // Actualizar badge en topbar
+    const badge = document.getElementById('buzon-badge-btn');
+    const cnt   = document.getElementById('buzon-badge-count');
+    if(badge) {
+      if(noLeidos.length > 0) {
+        badge.style.display = 'inline-flex';
+        if(cnt) cnt.textContent = noLeidos.length;
+      } else {
+        badge.style.display = 'none';
+      }
     }
+
     window._buzonData = data;
   }).catch(()=>{});
 }
@@ -4203,6 +4208,9 @@ function showPortalShell() {
   const s = getSession();
   const ub = document.getElementById('p-user-btn');
   if(ub && s) ub.textContent = s.username.toUpperCase();
+  // Init badge y KPIs tras login
+  refreshKPIs();
+  initBadgeBuzon();
 }
 window.showPortalShell = showPortalShell;
 
