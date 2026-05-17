@@ -1216,9 +1216,8 @@ body::before {
         <!-- ── PANEL: TENDENCIAS ── -->
         <div class="p-panel" id="panel-tendencias">
           <div class="p-panel-header"><i class="ti ti-trending-up" aria-hidden="true"></i>Tendencias</div>
-          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;flex:1;padding:2rem;">
-            <i class="ti ti-tools" style="font-size:48px;color:var(--muted);opacity:.4;"></i>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Gráficas históricas de KPIs · Caudal · SST · DQO · Edad fango</span></div>
+          <div id="tendencias-content" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;padding-bottom:8px;">
+            <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando datos...</div>
           </div>
         </div>
 
@@ -4121,7 +4120,8 @@ function sbNav(id) {
   if(id === 'proceso') {
     setTimeout(() => openSimuladorProceso(), 100);
   }
-  if(id === 'informes') loadInformes();
+  if(id === 'informes')    loadInformes();
+  if(id === 'tendencias')  loadTendencias();
   if(id === 'alertas')  loadAlertas();
 }
 
@@ -4293,6 +4293,85 @@ function loadInformes() {
   }).catch(() => { list.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">ERROR CARGANDO INFORMES</div>'; });
 }
 
+
+// ══ TENDENCIAS ═══════════════════════════════════════════════════════════════
+async function loadTendencias() {
+  const box = document.getElementById('tendencias-content');
+  if(!box) return;
+  box.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando datos del simulador...</div>';
+
+  let hist = [];
+  // Try Firebase first
+  if(window._fb) {
+    try {
+      const snap = await window._fb.get(window._fb.ref(window._fb.db, 'reactor-history'));
+      if(snap.val()) hist = Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val());
+    } catch(e){}
+  }
+  // Fallback localStorage
+  if(!hist.length) {
+    try { hist = JSON.parse(localStorage.getItem('edar_reactor_hist')||'[]'); } catch(e){}
+  }
+
+  if(!hist.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:10px;"><i class=\"ti ti-chart-line\" style=\"font-size:36px;opacity:.3;\"></i>Sin datos aún.<br><span style=\"font-size:9px;opacity:.6;\">Guarda lecturas en el Simulador → pestaña Historial Reactor</span></div>';
+    return;
+  }
+
+  hist.sort((a,b) => new Date(a.ts)-new Date(b.ts));
+  const last30 = hist.slice(-60); // max 60 puntos
+
+  const charts = [
+    {key:'tc',    label:'Edad de Fango',      unit:'días', color:'#ffb300', rng:'Óptimo 5-30 d', min:0, ref:15},
+    {key:'rend_dqo', label:'Rendimiento DQO', unit:'%',   color:'#00c8ff', rng:'Objetivo >75%',  min:0, ref:75},
+    {key:'rend_dbo', label:'Rendimiento DBO₅',unit:'%',   color:'#2ecc71', rng:'Objetivo >80%',  min:0, ref:80},
+    {key:'rend_nh4', label:'Rendimiento NT',  unit:'%',   color:'#b388ff', rng:'Objetivo >70%',  min:0, ref:70},
+    {key:'rend_pt',  label:'Rendimiento PT',  unit:'%',   color:'#ff8c42', rng:'Objetivo >70%',  min:0, ref:70},
+  ];
+
+  function svgChart(data, key, color, refLine) {
+    if(data.length < 2) return '<div style="color:var(--muted);font-size:9px;text-align:center;padding:8px;">Mínimo 2 lecturas para graficar</div>';
+    const W=420, H=80, PL=38, PR=8, PT=6, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+    const vals = data.map(d => Number(d[key])||0);
+    const minV = Math.max(0, Math.min(...vals)*0.9);
+    const maxV = Math.max(...vals)*1.05 || 1;
+    const rng = maxV - minV || 1;
+    const pts = data.map((d,i) => ({
+      x: PL + i/(data.length-1)*gW,
+      y: PT + gH - (vals[i]-minV)/rng*gH,
+      v: vals[i], f: d.fecha||''
+    }));
+    const poly = pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const area = [`${pts[0].x.toFixed(1)},${PT+gH}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
+    const refY = refLine ? PT+gH-(refLine-minV)/rng*gH : null;
+    const yLabels = [minV, (minV+maxV)/2, maxV].map(v => v.toFixed(1));
+    const xIdxs = [0, Math.floor((data.length-1)/2), data.length-1];
+    let svgContent = `<polygon points="${area}" fill="${color}" opacity="0.08"/>`;
+    if(refY && refY>PT && refY<PT+gH) svgContent += `<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.7" stroke-dasharray="4,3" opacity="0.5"/>`;
+    [0,0.5,1].forEach(f=>{ svgContent+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="var(--border)" stroke-width="0.5" opacity="0.4"/>`; });
+    svgContent += `<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+    pts.forEach(p=>{ svgContent+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${color}" stroke="var(--bg)" stroke-width="1"/>`; });
+    yLabels.forEach((v,i)=>{ svgContent+=`<text x="${PL-3}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="6" font-family="monospace">${v}</text>`; });
+    xIdxs.filter(i=>i<data.length).forEach(i=>{ const p=pts[i]; svgContent+=`<text x="${p.x.toFixed(1)}" y="${H-2}" text-anchor="middle" fill="var(--muted)" font-size="6" font-family="monospace">${data[i].fecha||''}</text>`; });
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">${svgContent}</svg>`;
+  }
+
+  box.innerHTML = charts.map(ch => {
+    const lastVal = last30.length ? Number(last30[last30.length-1][ch.key])||0 : 0;
+    const svg = svgChart(last30, ch.key, ch.color, ch.ref);
+    return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 12px;">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+        <span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${ch.color};text-transform:uppercase;letter-spacing:.08em;">${ch.label}</span>
+        <span style="font-family:var(--mono);font-size:14px;font-weight:800;color:var(--light);">${lastVal.toFixed(1)}<span style="font-size:8px;color:var(--muted);margin-left:2px;">${ch.unit}</span></span>
+        <span style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-left:auto;">${ch.rng}</span>
+      </div>
+      ${svg}
+    </div>`;
+  }).join('') + `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;opacity:.6;">${last30.length} lecturas · actualizado al guardar en el Simulador</div>`;
+}
+window.loadTendencias = loadTendencias;
+
+// Handle sim-history postMessage from simulator iframe
 // ══ ALERTAS ═══════════════════════════════════════════════════════════════════
 async function loadAlertas() {
   const list = document.getElementById('alertas-list');
@@ -4424,6 +4503,12 @@ window.addEventListener('message', function(e) {
       const elD = document.getElementById('kpi-dqo');
       if(elD) elD.innerHTML = dqo + ' <span class="ku">%</span>';
     }
+  }
+
+  if(e.data.type === 'sim-history') {
+    // Refresh Tendencias panel if active
+    const panel = document.getElementById('panel-tendencias');
+    if(panel && panel.classList.contains('active')) loadTendencias();
   }
 
   if(e.data.type === 'sms-kpi') {

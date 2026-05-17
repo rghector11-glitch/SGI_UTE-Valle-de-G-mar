@@ -830,6 +830,15 @@ function PanelHistoricoReactor({p,res,C,t}){
     const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-MAX);
     const nuevo=[...hist.filter(h=>new Date(h.ts)>cutoff),entry];
     setHist(nuevo); localStorage.setItem(HKEY,JSON.stringify(nuevo)); setNota('');
+    // Sync to Firebase reactor-history
+    if(window._fb){
+      try{
+        window._fb.set(window._fb.ref(window._fb.db,'reactor-history'), nuevo)
+          .catch(e=>console.warn('Firebase reactor-history error:',e));
+      }catch(e){}
+    }
+    // Notify portal to refresh Tendencias
+    try{ window.parent.postMessage({type:'sim-history', hist:nuevo}, '*'); }catch(e){}
   }
 
   function borrar(){setHist([]);localStorage.removeItem(HKEY);setConfirmBorrar(false);}
@@ -1198,9 +1207,12 @@ function App(){
   });
 
   // ── Excel / selector de fecha ──────────────────────────────────────────────
-  const [excelData,setExcelData]=useState([]); // [{fecha, ...campos}]
+  const [excelData,setExcelData]=useState([]);
   const [selectedDate,setSelectedDate]=useState('');
   const [xlsxMsg,setXlsxMsg]=useState('');
+  const [weekMode,setWeekMode]=useState(false);
+  const [weekStart,setWeekStart]=useState('');
+  const [weekSummary,setWeekSummary]=useState(null); // {days, avg}
   const fileInputRef=useRef(null);
 
   // Convierte número serial Excel a cadena YYYY-MM-DD
@@ -1328,6 +1340,60 @@ function App(){
     }
   }
 
+  function handleWeekLoad(startISO){
+    setWeekStart(startISO);
+    if(!startISO||!excelData.length){setWeekSummary(null);return;}
+    const days=[];
+    for(let i=0;i<7;i++){
+      const d=new Date(startISO+'T12:00:00'); d.setDate(d.getDate()+i);
+      const iso=d.toISOString().slice(0,10);
+      const row=excelData.find(r=>r._fechaISO===iso);
+      if(row) days.push({iso,row});
+    }
+    if(!days.length){setXlsxMsg('\u26a0 Sin datos para esa semana');setWeekSummary(null);return;}
+    // Promediar todos los campos numéricos
+    const sampleKeys=Object.keys(days[0].row).filter(k=>k!=='_fechaISO');
+    const avg={_fechaISO:startISO};
+    sampleKeys.forEach(k=>{
+      const vals=days.map(d=>d.row[k]).filter(v=>typeof v==='number'&&v!==0&&!isNaN(v));
+      avg[k]=vals.length?Math.round((vals.reduce((s,v)=>s+v,0)/vals.length)*100)/100:0;
+    });
+    setWeekSummary({days,avg});
+    applyRow(avg);
+    setXlsxMsg('\u2713 '+days.length+'/7 d\u00edas \u00b7 media semanal aplicada al simulador');
+  }
+
+  function exportWeekPDF(){
+    if(!weekSummary) return;
+    const {days}=weekSummary;
+    const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const cols=['Q bio (m\u00b3/d)','DBO\u2085 E','DQO E','SST R (g/L)','SST RC (g/L)','SST Ef','NT E','Caudal RC','PT E','Caudal Purga','DBO Ef','DQO Ef','NT Ef','PT Ef'];
+    const keys=['Caudal entrada Biologico','DBO5 ENTRADA','DQO ENTRADA','SS REACTOR','SS RECIRCULACI\u00d3N','SS EFLUENTE','NT ENTRADA','CAUDAL RECIRCULACI\u00d3N','PT ENTRADA','CAUDAL PURGA','DBO EFLUENTE','DQO EFLUENTE','NT FLUENTE','PT EFLUENTE'];
+    const rows=days.map(d=>`<tr><td>${d.iso}</td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==0?d.row[k]:'\u2014'}</td>`).join('')}</tr>`).join('');
+    const res7=days.map(d=>{const r2=d.row; const dq=Number(r2['DQO ENTRADA'])||0, dqe=Number(r2['DQO EFLUENTE'])||0, db=Number(r2['DBO5 ENTRADA'])||0, dbe=Number(r2['DBO EFLUENTE'])||0, nt=Number(r2['NT ENTRADA'])||0, nte=Number(r2['NT FLUENTE'])||0, pt=Number(r2['PT ENTRADA'])||0, pte=Number(r2['PT EFLUENTE'])||0; return {iso:d.iso, rDQO:dq>0?((dq-dqe)/dq*100).toFixed(1):'\u2014', rDBO:db>0?((db-dbe)/db*100).toFixed(1):'\u2014', rNT:nt>0?((nt-nte)/nt*100).toFixed(1):'\u2014', rPT:pt>0?((pt-pte)/pt*100).toFixed(1):'\u2014'};});
+    const rowsRend=res7.map(r=>`<tr><td>${r.iso}</td><td>${r.rDQO}%</td><td>${r.rDBO}%</td><td>${r.rNT}%</td><td>${r.rPT}%</td></tr>`).join('');
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+      body{font-family:Arial,sans-serif;font-size:11px;color:#1a2540;padding:24px}
+      h1{font-size:16px;color:#003e6b;border-bottom:2px solid #005b99;padding-bottom:6px;margin-bottom:4px}
+      h2{font-size:11px;color:#5a7090;text-transform:uppercase;letter-spacing:1px;margin:16px 0 6px;border-bottom:1px solid #e0e8f0;padding-bottom:3px}
+      table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9.5px}
+      td,th{padding:3px 6px;border:1px solid #d0dce8}
+      th{background:#f0f4f8;font-weight:600;text-align:center}
+      td:first-child{font-weight:600;color:#003e6b}
+      .ok{color:#008855;font-weight:700}.warn{color:#cc7700;font-weight:700}.bad{color:#cc1122;font-weight:700}
+      .footer{margin-top:20px;font-size:8px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:6px}
+    </style></head><body>
+    <h1>Informe Semanal EDAR \u2014 ${weekStart} al ${days[days.length-1].iso}</h1>
+    <p style="font-size:9px;color:#5a7090">Generado: ${dateStr} \u00b7 ${days.length} d\u00edas con datos</p>
+    <h2>Datos de entrada y proceso</h2>
+    <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rows}</table>
+    <h2>Rendimientos de eliminaci\u00f3n</h2>
+    <table><tr><th>Fecha</th><th>Rend. DQO %</th><th>Rend. DBO\u2085 %</th><th>Rend. NT %</th><th>Rend. PT %</th></tr>${rowsRend}</table>
+    <div class="footer">Simulador Reactor Biol\u00f3gico EDAR \u00b7 UTE Valle de G\u00fc\u00edmar \u00b7 L\u00edmites RD 509/1996</div>
+    </body></html>`;
+    const w=window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(()=>w.print(),300);
+  }
+
   // Fechas disponibles para el selector
   const fechasDisponibles=excelData.map(r=>r._fechaISO);
   const [tab,setTab]=useState('proceso');
@@ -1433,17 +1499,45 @@ function App(){
           📂 Cargar Excel
         </button>
         {excelData.length>0&&(
-          <div style={{display:'flex',alignItems:'center',gap:6}}>
-            <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Fecha:</span>
-            <select value={selectedDate} onChange={handleDateChange}
-              style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
-                color:C.accent,fontSize:10,fontWeight:700,fontFamily:'monospace',
-                padding:'2px 6px',cursor:'pointer',outline:'none'}}>
-              <option value="">— elige fecha —</option>
-              {fechasDisponibles.map(f=>(
-                <option key={f} value={f}>{f}</option>
+          <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+            {/* Toggle día/semana */}
+            <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:5,padding:2}}>
+              {['día','semana'].map(m=>(
+                <button key={m} onClick={()=>{setWeekMode(m==='semana');setWeekSummary(null);setWeekStart('');setSelectedDate('');}}
+                  style={{padding:'2px 8px',border:'none',borderRadius:3,cursor:'pointer',fontSize:9,fontWeight:700,
+                    background:(weekMode?m==='semana':m==='día')?C.accent:'transparent',
+                    color:(weekMode?m==='semana':m==='día')?C.bg:C.muted}}>
+                  {m.charAt(0).toUpperCase()+m.slice(1)}
+                </button>
               ))}
-            </select>
+            </div>
+            {!weekMode?(
+              <select value={selectedDate} onChange={handleDateChange}
+                style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                  color:C.accent,fontSize:10,fontWeight:700,fontFamily:'monospace',
+                  padding:'2px 6px',cursor:'pointer',outline:'none'}}>
+                <option value="">— elige fecha —</option>
+                {fechasDisponibles.map(f=>(<option key={f} value={f}>{f}</option>))}
+              </select>
+            ):(
+              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Inicio semana:</span>
+                <select value={weekStart} onChange={e=>handleWeekLoad(e.target.value)}
+                  style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                    color:C.accent,fontSize:10,fontWeight:700,fontFamily:'monospace',
+                    padding:'2px 6px',cursor:'pointer',outline:'none'}}>
+                  <option value="">— elige lunes —</option>
+                  {fechasDisponibles.map(f=>(<option key={f} value={f}>{f}</option>))}
+                </select>
+                {weekSummary&&(
+                  <button onClick={exportWeekPDF}
+                    style={{padding:'3px 8px',background:'rgba(185,28,28,.8)',border:'none',borderRadius:5,
+                      color:'white',fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                    📄 Informe semana
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
         {xlsxMsg&&(
