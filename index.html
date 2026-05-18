@@ -2327,7 +2327,7 @@ PROCS.forEach(p => {
 buildHome();
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/SGI_UTE-Valle-de-G-mar/sw.js').catch(()=>{}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
 </script>
   </div>
@@ -4002,7 +4002,7 @@ PROCS.forEach(p => {
 buildHome();
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/SGI_UTE-Valle-de-G-mar/sw.js').catch(()=>{}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
 
 buildHome();

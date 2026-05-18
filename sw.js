@@ -1,23 +1,35 @@
-const CACHE = 'ute-sgi-v8';
-const BASE = '/SGI_UTE-Valle-de-G-mar';
-const ASSETS = [
-  BASE + '/',
-  BASE + '/index.html',
-  BASE + '/calibraciones.html',
-  BASE + '/simulador-edari.html',
-  BASE + '/ruta-colector-edaru.html',
-  BASE + '/sms-diario.html',
-  BASE + '/inventarios.html',
-  BASE + '/icon-192.png',
-  BASE + '/icon-512.png',
+// ── SGI UTE Valle de Güímar — Service Worker v1.0.0 ──────────────────────────
+const CACHE = 'sgi-v1';
+
+// Archivos a cachear para funcionamiento offline
+const PRECACHE = [
+  './',
+  './index.html',
+  './sms-diario.html',
+  './inventarios.html',
+  './ruta-colector-edaru.html',
+  './simulador-proceso-edari.html',
+  './calibraciones.html',
+  './procedimiento-cloro-libre.html',
+  './procedimiento-dbo5.html',
+  './procedimiento-microbiologia.html',
+  './procedimiento-sequedad.html',
+  './procedimiento-solidos.html',
+  './procedimiento-turbidez.html',
+  './procedimiento-v30.html',
 ];
 
+// Instalación: cachear recursos esenciales
 self.addEventListener('install', e => {
+  self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(cache =>
+      Promise.allSettled(PRECACHE.map(url => cache.add(url).catch(() => {})))
+    )
   );
 });
 
+// Activación: limpiar cachés antiguas
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -26,20 +38,26 @@ self.addEventListener('activate', e => {
   );
 });
 
+// Fetch: network-first para HTML, cache-first para assets
 self.addEventListener('fetch', e => {
-  if(e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+
+  // Solo interceptar mismo origen
+  if(url.origin !== location.origin) return;
+
+  // Firebase y APIs externas: siempre red
   if(url.hostname.includes('firebase') || url.hostname.includes('googleapis')) return;
+
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      const network = fetch(e.request).then(res => {
-        if(res && res.status === 200 && res.type === 'basic') {
-          const toCache = res.clone(); // clone BEFORE returning
-          caches.open(CACHE).then(c => c.put(e.request, toCache));
+    fetch(e.request)
+      .then(res => {
+        // Guardar copia fresca en caché si es ok
+        if(res && res.status === 200 && e.request.method === 'GET') {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return res;
-      }).catch(() => cached);
-      return cached || network;
-    })
+      })
+      .catch(() => caches.match(e.request)) // fallback a caché si sin red
   );
 });
