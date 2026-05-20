@@ -1366,6 +1366,17 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div id="ajustes-api-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);flex:1;"></div>
                 <button onclick="verificarApiKey()" style="background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:8px;padding:3px 9px;white-space:nowrap;">Verificar clave</button>
               </div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+                <div class="bio-lbl" style="white-space:nowrap;">Modelo Gemini:</div>
+                <select id="ajustes-gemini-model" onchange="guardarModeloGemini(this.value)"
+                  style="background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:9px;padding:3px 6px;outline:none;cursor:pointer;flex:1;">
+                  <option value="gemini-1.5-flash-latest">gemini-1.5-flash-latest (recomendado)</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                  <option value="gemini-1.5-flash-8b">gemini-1.5-flash-8b (más ligero)</option>
+                  <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest</option>
+                  <option value="gemini-pro">gemini-pro</option>
+                </select>
+              </div>
             </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
               <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">DIAGNÓSTICO DEL PORTAL</div>
@@ -4662,6 +4673,21 @@ function getApiKey() {
   try { return (localStorage.getItem('sgi-gemini-key')||'').trim(); } catch(e){ return ''; }
 }
 
+function getGeminiModel() {
+  try { return localStorage.getItem('sgi-gemini-model')||'gemini-1.5-flash-latest'; } catch(e){ return 'gemini-1.5-flash-latest'; }
+}
+
+function guardarModeloGemini(val) {
+  try { localStorage.setItem('sgi-gemini-model', val); } catch(e){}
+}
+window.guardarModeloGemini = guardarModeloGemini;
+
+// Inicializar selector de modelo al cargar
+(function inicModeloSelector(){
+  const sel = document.getElementById('ajustes-gemini-model');
+  if(sel) { const m=getGeminiModel(); const opt=[...sel.options].find(o=>o.value===m); if(opt) sel.value=m; }
+})();
+
 function apiKeySt(msg, color) {
   const el = document.getElementById('ajustes-api-st');
   if(el) { el.style.color = color||'var(--muted)'; el.textContent = msg; }
@@ -4694,7 +4720,7 @@ async function verificarApiKey() {
   if(!key) { apiKeySt('No hay clave guardada','var(--danger)'); return; }
   apiKeySt('Verificando...','var(--warn)');
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${getGeminiModel()}:generateContent?key=${key}`;
     const res = await fetch(url, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -4767,7 +4793,7 @@ TEXTO DEL INFORME:
 ${_bioPdfText.slice(0, 8000)}`;
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${getGeminiModel()}:generateContent?key=${key}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
