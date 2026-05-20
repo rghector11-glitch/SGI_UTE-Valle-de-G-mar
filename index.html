@@ -4322,35 +4322,280 @@ function openSimuladorProceso() {
   const shell = document.getElementById('portal-shell');
   if(shell) shell.style.display = 'none';
 
-  // Usar iframe dedicado (igual que SMS Diario) - más robusto que Babel inline
   let viewer = document.getElementById('sim-proceso-viewer');
   if(!viewer) {
     viewer = document.createElement('div');
     viewer.id = 'sim-proceso-viewer';
     viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#07090f;';
 
+    // ── Barra superior ──
     const bar = document.createElement('div');
     bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
     bar.innerHTML = [
       '<button onclick="closeSimuladorProceso()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;">',
       '<svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       ' Inicio</button>',
-      '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">\u2697\uFE0F Simulador Proceso EDARi</div>'
+      '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">⚗️ Simulador Proceso EDARi</div>',
+      '<div style="margin-left:auto;display:flex;gap:4px;">',
+      '<button id="sim-tab-reactor" onclick="simTab(\'reactor\')" style="background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.35);border-radius:6px;color:white;cursor:pointer;padding:4px 14px;font-size:.75rem;font-family:Barlow,sans-serif;font-weight:600;transition:all .15s;">🔬 Reactor Biológico</button>',
+      '<button id="sim-tab-esp" onclick="simTab(\'esp\')" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:rgba(255,255,255,.7);cursor:pointer;padding:4px 14px;font-size:.75rem;font-family:Barlow,sans-serif;font-weight:600;transition:all .15s;">🪣 Espesador</button>',
+      '</div>'
     ].join('');
 
+    // ── Iframe reactor ──
     const frame = document.createElement('iframe');
     frame.id = 'sim-proceso-frame';
     frame.src = 'simulador-proceso-edari.html';
     frame.style.cssText = 'flex:1;border:none;width:100%;background:#07090f;';
     frame.allowFullscreen = true;
 
+    // ── Panel espesador ──
+    const espPanel = document.createElement('div');
+    espPanel.id = 'sim-esp-panel';
+    espPanel.style.cssText = 'display:none;flex:1;overflow-y:auto;background:#07090f;color:#cde0f0;font-family:Barlow,sans-serif;';
+    espPanel.innerHTML = buildEspesadorHTML();
+
     viewer.appendChild(bar);
     viewer.appendChild(frame);
+    viewer.appendChild(espPanel);
     document.body.appendChild(viewer);
   } else {
     viewer.style.display = 'flex';
   }
 }
+
+window.simTab = function(tab) {
+  const frame    = document.getElementById('sim-proceso-frame');
+  const espPanel = document.getElementById('sim-esp-panel');
+  const btnR     = document.getElementById('sim-tab-reactor');
+  const btnE     = document.getElementById('sim-tab-esp');
+  if(tab === 'reactor') {
+    if(frame)    frame.style.display    = '';
+    if(espPanel) espPanel.style.display = 'none';
+    if(btnR) { btnR.style.background='rgba(255,255,255,.25)'; btnR.style.borderColor='rgba(255,255,255,.35)'; btnR.style.color='white'; }
+    if(btnE) { btnE.style.background='rgba(255,255,255,.08)'; btnE.style.borderColor='rgba(255,255,255,.2)';  btnE.style.color='rgba(255,255,255,.7)'; }
+  } else {
+    if(frame)    frame.style.display    = 'none';
+    if(espPanel) { espPanel.style.display = 'flex'; espPanel.style.flexDirection = 'column'; }
+    if(btnE) { btnE.style.background='rgba(255,255,255,.25)'; btnE.style.borderColor='rgba(255,255,255,.35)'; btnE.style.color='white'; }
+    if(btnR) { btnR.style.background='rgba(255,255,255,.08)'; btnR.style.borderColor='rgba(255,255,255,.2)';  btnR.style.color='rgba(255,255,255,.7)'; }
+    calcEspesador();
+  }
+};
+
+function buildEspesadorHTML() {
+  return `
+<div style="max-width:1100px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;">
+
+  <!-- Título -->
+  <div style="display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e3347;padding-bottom:10px;">
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:700;color:#e8f4ff;letter-spacing:.04em;">🪣 ESPESADOR DE FANGOS</span>
+    <span style="font-family:monospace;font-size:.7rem;color:#5a8099;border:1px solid #1e3347;border-radius:3px;padding:2px 7px;">GRAVEDAD · FANGO SECUNDARIO</span>
+    <span style="margin-left:auto;font-family:monospace;font-size:.75rem;color:#5a8099;">Purga → Espesador → Centrifuga</span>
+  </div>
+
+  <!-- Grid principal: Entradas | Resultados -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;">
+
+    <!-- ENTRADAS -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#00c8f0;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">ALIMENTACIÓN AL ESPESADOR</div>
+        ${espRow('esp-q-purga',    'Caudal de purga',             'm³/d', 'step=0.1 min=0',          '— caudal de fango purgado del reactor')}
+        ${espRow('esp-sst-purga',  'SST en purga',                'g/L',  'step=0.01 min=0',         '— concentración de sólidos del licor mezcla')}
+        ${espRow('esp-temp',       'Temperatura',                 'ºC',   'step=0.1 min=0 max=40',   '— temperatura del fango')}
+      </div>
+
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#00e87a;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">SALIDA A CENTRIFUGA</div>
+        ${espRow('esp-q-centri',   'Caudal a centrifuga',         'm³/d', 'step=0.1 min=0',          '— fango espesado que va a deshidratación')}
+        ${espRow('esp-sst-esp',    'Sólidos del espesado',        'g/L',  'step=0.01 min=0',         '— concentración tras el espesamiento')}
+        ${espRow('esp-sequedad',   '% Sequedad del espesado',     '%',    'step=0.1 min=0 max=100',  '— materia seca en el fango espesado')}
+      </div>
+
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#ffb800;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">GEOMETRÍA DEL ESPESADOR</div>
+        ${espRow('esp-area',       'Superficie',                  'm²',   'step=0.1 min=0',          '— superficie útil del espesador')}
+        ${espRow('esp-volumen',    'Volumen útil',                'm³',   'step=0.1 min=0',          '— volumen del depósito espesador')}
+      </div>
+
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#a78bfa;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">POLÍMERO (opcional)</div>
+        ${espRow('esp-polimero',   'Dosis de polímero',           'g/m³', 'step=0.1 min=0',          '— dejar en 0 si no se dosifica')}
+        ${espRow('esp-pol-precio', 'Precio polímero',             '€/kg', 'step=0.01 min=0',         '— para cálculo de coste')}
+      </div>
+
+      <button onclick="calcEspesador()" style="background:linear-gradient(135deg,#00c8f0,#0099cc);border:none;border-radius:6px;color:#07090f;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.05em;padding:10px;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        ⚙️ CALCULAR
+      </button>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <!-- Balance de sólidos -->
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#00e87a;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">BALANCE DE SÓLIDOS</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          ${kpiBox('esp-r-ss-in',  'SS entrada',    'kg/d', '#00c8f0')}
+          ${kpiBox('esp-r-ss-out', 'SS a centrifuga','kg/d','#00e87a')}
+          ${kpiBox('esp-r-ss-sob', 'SS sobrenadante','kg/d','#ffb800')}
+          ${kpiBox('esp-r-captura','Captura',        '%',   '#00e87a')}
+        </div>
+      </div>
+
+      <!-- Caudales -->
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#00c8f0;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">CAUDALES Y CONCENTRACIÓN</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          ${kpiBox('esp-r-qsob',   'Q sobrenadante', 'm³/d', '#5a8099')}
+          ${kpiBox('esp-r-redvol', 'Reducción volumen','%',  '#00e87a')}
+          ${kpiBox('esp-r-factor', 'Factor concentración','×','#ffb800')}
+          ${kpiBox('esp-r-prodms', 'Prod. fango seco','kg MS/d','#a78bfa')}
+        </div>
+      </div>
+
+      <!-- Cargas del espesador -->
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#ffb800;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">CARGAS DEL ESPESADOR</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          ${kpiBox('esp-r-trh',    'TRH',            'h',       '#00c8f0')}
+          ${kpiBox('esp-r-qsup',   'C. hidráulica',  'm³/m²·d', '#00c8f0')}
+          ${kpiBox('esp-r-ssup',   'C. sólidos',     'kg/m²·d', '#ffb800')}
+          ${kpiBox('esp-r-pol',    'Consumo polím.',  'kg/d',    '#a78bfa')}
+        </div>
+      </div>
+
+      <!-- Semáforos -->
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;">
+        <div style="font-family:monospace;font-size:.65rem;color:#ff4560;letter-spacing:.08em;margin-bottom:10px;border-bottom:1px solid #1e3347;padding-bottom:6px;">INDICADORES DE ESTADO</div>
+        <div style="display:flex;flex-direction:column;gap:6px;" id="esp-semaforos">
+          <div style="font-size:.75rem;color:#5a8099;font-style:italic;">Introduce los datos y pulsa CALCULAR</div>
+        </div>
+      </div>
+
+      <!-- Coste polímero -->
+      <div style="background:#0d1f30;border:1px solid #1e3347;border-radius:6px;padding:12px 14px;" id="esp-coste-box">
+        <div style="font-family:monospace;font-size:.65rem;color:#a78bfa;letter-spacing:.08em;margin-bottom:6px;">COSTE ESTIMADO POLÍMERO</div>
+        <div id="esp-r-coste" style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:700;color:#a78bfa;">—</div>
+        <div style="font-size:.7rem;color:#5a8099;margin-top:2px;">€/día · basado en dosis y precio introducidos</div>
+      </div>
+
+    </div>
+  </div>
+</div>`;
+}
+
+function espRow(id, label, unit, attrs, hint) {
+  return `<div style="margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+      <span style="font-size:.75rem;color:#8ab0c8;">${label}</span>
+      <span style="font-size:.65rem;color:#5a8099;">${unit}</span>
+    </div>
+    <input type="number" id="${id}" ${attrs} oninput="calcEspesador()"
+      style="width:100%;background:#0a1929;border:1px solid #1e3347;border-radius:4px;color:#cde0f0;font-family:monospace;font-size:.85rem;padding:5px 8px;outline:none;box-sizing:border-box;"
+      onfocus="this.style.borderColor='#00c8f0'" onblur="this.style.borderColor='#1e3347'"
+      title="${hint}">
+  </div>`;
+}
+
+function kpiBox(id, label, unit, color) {
+  return `<div style="background:#07090f;border:1px solid #1e3347;border-radius:4px;padding:8px 10px;">
+    <div style="font-family:monospace;font-size:.6rem;color:#5a8099;letter-spacing:.05em;margin-bottom:2px;">${label.toUpperCase()}</div>
+    <div id="${id}" style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;color:${color};">—</div>
+    <div style="font-family:monospace;font-size:.6rem;color:#3a5a72;">${unit}</div>
+  </div>`;
+}
+
+window.calcEspesador = function() {
+  const g  = id => { const el=document.getElementById(id); return el&&el.value!==''?Number(el.value):null; };
+  const set = (id, val, dec=1) => { const el=document.getElementById(id); if(el) el.textContent = val!=null?val.toFixed(dec):'—'; };
+
+  const qPurga   = g('esp-q-purga');
+  const sstPurga = g('esp-sst-purga');
+  const qCentri  = g('esp-q-centri');
+  const sstEsp   = g('esp-sst-esp');
+  const sequedad = g('esp-sequedad');
+  const area     = g('esp-area');
+  const volumen  = g('esp-volumen');
+  const polimero = g('esp-polimero');
+  const polPrecio= g('esp-pol-precio');
+
+  // Balance de sólidos (1 g/L = 1 kg/m³ → SS kg/d = Q m³/d × SST g/L)
+  const ssIn  = qPurga   != null && sstPurga != null ? qPurga * sstPurga   : null;
+  const ssOut = qCentri  != null && sstEsp   != null ? qCentri * sstEsp    : null;
+  const ssSob = ssIn != null && ssOut != null         ? ssIn - ssOut        : null;
+  const capt  = ssIn != null && ssOut != null && ssIn > 0 ? ssOut/ssIn*100 : null;
+
+  // Caudales
+  const qSob   = qPurga != null && qCentri != null ? qPurga - qCentri   : null;
+  const redVol = qPurga != null && qSob != null && qPurga > 0 ? qSob/qPurga*100 : null;
+  const factor = sstEsp != null && sstPurga != null && sstPurga > 0 ? sstEsp/sstPurga : null;
+  const prodMS = ssOut; // kg MS/d = SS salida si SST está en base seca... usar sequedad
+  const prodMSseq = ssOut != null && sequedad != null && sequedad > 0 ? ssOut * (sequedad/100) / (sequedad/100) : ssOut; // simplificado: producción = SS salida
+
+  // Cargas del espesador
+  const trh   = volumen != null && qPurga != null && qPurga > 0 ? volumen/qPurga*24 : null;
+  const qSup  = area != null && qPurga != null && area > 0 ? qPurga/area : null;
+  const sSup  = area != null && ssIn != null && area > 0   ? ssIn/area  : null;
+  const polKg = polimero != null && qPurga != null ? polimero * qPurga / 1000 : null; // g/m³ × m³/d / 1000 = kg/d
+  const costePol = polKg != null && polPrecio != null ? polKg * polPrecio : null;
+
+  // Mostrar valores
+  set('esp-r-ss-in',  ssIn,    0);
+  set('esp-r-ss-out', ssOut,   0);
+  set('esp-r-ss-sob', ssSob,   0);
+  set('esp-r-captura',capt,    1);
+  set('esp-r-qsob',   qSob,    1);
+  set('esp-r-redvol', redVol,  1);
+  set('esp-r-factor', factor,  1);
+  set('esp-r-prodms', prodMSseq,0);
+  set('esp-r-trh',    trh,     1);
+  set('esp-r-qsup',   qSup,    1);
+  set('esp-r-ssup',   sSup,    1);
+  set('esp-r-pol',    polKg,   2);
+
+  const costeEl = document.getElementById('esp-r-coste');
+  if(costeEl) costeEl.textContent = costePol != null ? costePol.toFixed(2)+' €/día' : '—';
+
+  // Semáforos
+  const semEl = document.getElementById('esp-semaforos');
+  if(!semEl) return;
+  const checks = [];
+
+  const light = (label, val, unit, ok, warn, dir='up') => {
+    // dir='up': verde si val>ok, rojo si val<warn; dir='down': verde si val<ok, rojo si val>warn
+    if(val == null) return;
+    let color, icon, txt;
+    if(dir==='up') {
+      color = val>=ok?'#00e87a':val>=warn?'#ffb800':'#ff4560';
+      icon  = val>=ok?'✓':val>=warn?'⚠':'✗';
+      txt   = val>=ok?'Correcto':val>=warn?'Bajo':'Deficiente';
+    } else {
+      color = val<=ok?'#00e87a':val<=warn?'#ffb800':'#ff4560';
+      icon  = val<=ok?'✓':val<=warn?'⚠':'✗';
+      txt   = val<=ok?'Correcto':val<=warn?'Elevado':'Sobrecarga';
+    }
+    checks.push(`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:#07090f;border-radius:4px;border-left:3px solid ${color};">
+      <span style="font-size:.9rem;">${icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:.75rem;color:#8ab0c8;font-weight:600;">${label}</div>
+        <div style="font-size:.7rem;color:#5a8099;">${val.toFixed(dir==='up'?1:1)} ${unit} → <span style="color:${color};">${txt}</span></div>
+      </div>
+    </div>`);
+  };
+
+  light('Rendimiento de captura', capt,   '%',         90, 75, 'up');
+  light('Factor de concentración',factor, '×',          4,  2, 'up');
+  light('Reducción de volumen',   redVol, '%',          70, 50, 'up');
+  light('TRH espesador',          trh,    'h',          24, 12, 'up');
+  light('Carga hidráulica sup.',  qSup,   'm³/m²·d',   48, 72,'down');
+  light('Carga de sólidos sup.',  sSup,   'kg/m²·d',   25, 40,'down');
+
+  semEl.innerHTML = checks.length ? checks.join('') : '<div style="font-size:.75rem;color:#5a8099;font-style:italic;">Introduce los datos y pulsa CALCULAR</div>';
+};
+
 function closeSimuladorProceso() {
   const viewer = document.getElementById('sim-proceso-viewer');
   if(viewer) viewer.style.display = 'none';
