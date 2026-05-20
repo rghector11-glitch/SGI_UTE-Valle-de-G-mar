@@ -1402,13 +1402,32 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <!-- ── TENDENCIAS BIOLÓGICAS ── -->
           <div id="bio-ph" style="display:none;flex:1;overflow-y:auto;flex-direction:column;gap:8px;padding-bottom:6px;">
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex-shrink:0;">
-              <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">TENDENCIA SEMANAL — ÚLTIMAS 10 SEMANAS</div>
-              <div id="bio-chart-svg"></div>
-              <div style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap;">
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#00e87a;vertical-align:middle;"></span>IVF (ml/g)</span>
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#ffb800;vertical-align:middle;"></span>Filamentos ×60</span>
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#a78bfa;vertical-align:middle;"></span>OD ×30</span>
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#00c8f0;border-top:1px dashed #00c8f0;vertical-align:middle;"></span>Edad fango ×10</span>
+              <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:10px;">TENDENCIA SEMANAL — ÚLTIMAS 10 SEMANAS</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--accent2);letter-spacing:.06em;margin-bottom:2px;">IVF (ml/g)</div>
+                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">Normal &lt;150 · Bulking &gt;200</div>
+                  <div style="position:relative;height:130px;"><canvas id="bio-chart-ivf" role="img" aria-label="IVF semanal en ml/g">IVF en ml/g por semana</canvas></div>
+                </div>
+                <div>
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--warn);letter-spacing:.06em;margin-bottom:2px;">Filamentosos (grado 0–5)</div>
+                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">0=ninguno · 3=moderados · 5=excesivos</div>
+                  <div style="position:relative;height:130px;"><canvas id="bio-chart-fil" role="img" aria-label="Grado filamentosos semanal">Grado de filamentosos por semana</canvas></div>
+                </div>
+                <div>
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--purple);letter-spacing:.06em;margin-bottom:2px;">OD en reactor (mg/L)</div>
+                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">Objetivo: 2–4 mg/L</div>
+                  <div style="position:relative;height:130px;"><canvas id="bio-chart-od" role="img" aria-label="OD semanal en mg/L">OD en mg/L por semana</canvas></div>
+                </div>
+                <div>
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.06em;margin-bottom:2px;">Edad de fango (días)</div>
+                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">Simulador · edad alta → más filamentosos</div>
+                  <div style="position:relative;height:130px;"><canvas id="bio-chart-edad" role="img" aria-label="Edad de fango semanal en días">Edad de fango en días por semana</canvas></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:18px;height:2px;background:#888;"></span>Fin semana</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:18px;height:2px;background:#888;border-top:2px dashed #888;"></span>Inicio semana</span>
               </div>
             </div>
             <div id="bio-hist-list" style="display:flex;flex-direction:column;gap:6px;"></div>
@@ -5021,28 +5040,85 @@ ${_bioPdfText.slice(0, 10000)}`;
 }
 window.rellenarConIA = rellenarConIA;
 
-function bioBuildChart(semanas) {
-  const W=560,H=110,PL=32,PR=12,PT=10,PB=24,gW=W-PL-PR,gH=H-PT-PB;
-  const n=semanas.length;
-  // Normalizado a [0,300]: IVF÷1 (cap 300), filamentos×60, OD×30, edad_fango×10
-  const series=[
-    {fn:s=>s.fin?.licor?.ivf!=null?Math.min(s.fin.licor.ivf,300):null,
-     fnI:s=>s.inicio?.licor?.ivf!=null?Math.min(s.inicio.licor.ivf,300):null,   color:'#00e87a'},
-    {fn:s=>s.fin?.filamentosos?.grado!=null?s.fin.filamentosos.grado*60:null,
-     fnI:s=>s.inicio?.filamentosos?.grado!=null?s.inicio.filamentosos.grado*60:null, color:'#ffb800'},
-    {fn:s=>s.fin?.datos?.od!=null?s.fin.datos.od*30:null,
-     fnI:s=>s.inicio?.datos?.od!=null?s.inicio.datos.od*30:null,                color:'#a78bfa'},
-    {fn:s=>{const e=s.fin?.sim?.edad_fango??s.inicio?.sim?.edad_fango; return e!=null?e*10:null;},
-     color:'#00c8f0', dash:'4 3'},
-  ];
-  function pts(fn){ return semanas.map((s,i)=>{ const val=fn(s); if(val==null)return null; return{x:PL+(n>1?i/(n-1):0.5)*gW, y:PT+gH-Math.min(1,Math.max(0,val/300))*gH}; }); }
-  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">`;
-  for(let i=0;i<=3;i++){const y=PT+i*(gH/3);svg+=`<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="#3a5a72" stroke-width="0.5"/>`;}
-  semanas.forEach((s,i)=>{ const x=(PL+(n>1?i/(n-1):0.5)*gW).toFixed(1); svg+=`<text x="${x}" y="${H-6}" text-anchor="middle" font-size="7" font-family="'Share Tech Mono',monospace" fill="#5a8099">${s.key.slice(-3)}</text>`; });
-  series.forEach(s=>{ if(!s.fnI) return; const ip=pts(s.fnI).filter(Boolean); if(ip.length<2)return; const path=ip.map((p,j)=>(j===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' '); svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="0.8" stroke-dasharray="2 3" opacity="0.35" stroke-linecap="round"/>`; ip.forEach(p=>svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="1.8" fill="${s.color}" opacity="0.35"/>`); });
-  series.forEach(s=>{ const fp=pts(s.fn).filter(Boolean); if(fp.length<2)return; const path=fp.map((p,j)=>(j===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' '); const dd=s.dash?`stroke-dasharray="${s.dash}"`:''; svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="1.5" ${dd} stroke-linecap="round" stroke-linejoin="round"/>`; fp.forEach(p=>svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${s.color}" opacity="0.85"/>`); });
-  semanas.forEach((s,i)=>{ if(s.inicio?.licor?.ivf==null||s.fin?.licor?.ivf==null) return; const d=s.fin.licor.ivf-s.inicio.licor.ivf; if(Math.abs(d)<5) return; const x=(PL+(n>1?i/(n-1):0.5)*gW).toFixed(1); svg+=`<text x="${x}" y="${PT+2}" text-anchor="middle" font-size="7" fill="${d>0?'#00e87a':'#ff4560'}" opacity="0.8">${d>0?'\u25b2':'\u25bc'}</text>`; });
-  svg+='</svg>'; return svg;
+function bioBuildCharts(semanas) {
+  // Destruir instancias anteriores si existen
+  ['bio-chart-ivf','bio-chart-fil','bio-chart-od','bio-chart-edad'].forEach(id => {
+    const existing = Chart.getChart(id);
+    if(existing) existing.destroy();
+  });
+
+  const labels = semanas.map(s => s.key.slice(-3));
+  const gridC  = 'rgba(58,90,114,0.5)';
+  const textC  = '#5a8099';
+
+  function mkDatasets(fnFin, fnIni, color) {
+    return [
+      { label:'Fin',   data: semanas.map(fnFin),
+        borderColor: color, backgroundColor: color+'33',
+        borderWidth:2, pointRadius:4, pointBackgroundColor:color,
+        tension:0.3, fill:false },
+      { label:'Inicio', data: semanas.map(fnIni),
+        borderColor: color, borderDash:[5,4],
+        borderWidth:1.5, pointRadius:3,
+        pointBackgroundColor:'#1e3347', pointBorderColor:color,
+        tension:0.3, fill:false }
+    ];
+  }
+
+  function mkChart(id, datasets, yMin, yMax, unit) {
+    new Chart(document.getElementById(id), {
+      type:'line',
+      data:{ labels, datasets },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        animation:{ duration:400 },
+        plugins:{ legend:{ display:false }, tooltip:{
+          backgroundColor:'#243d55', titleColor:'#cde0f0', bodyColor:'#5a8099',
+          borderColor:'#3a5a72', borderWidth:1,
+          callbacks:{ label: ctx => ctx.dataset.label+': '+(ctx.parsed.y??'—')+(unit?' '+unit:'') }
+        }},
+        scales:{
+          x:{ ticks:{ font:{size:9}, color:textC, maxRotation:0 }, grid:{ color:gridC } },
+          y:{ min:yMin, max:yMax,
+              ticks:{ font:{size:9}, color:textC,
+                      callback: v => v+(unit?' '+unit:'') },
+              grid:{ color:gridC } }
+        }
+      }
+    });
+  }
+
+  // IVF (ml/g)
+  mkChart('bio-chart-ivf',
+    mkDatasets(
+      s => s.fin?.licor?.ivf ?? null,
+      s => s.inicio?.licor?.ivf ?? null,
+      '#00e87a'
+    ), 0, null, 'ml/g');
+
+  // Filamentosos grado 0-5
+  mkChart('bio-chart-fil',
+    mkDatasets(
+      s => s.fin?.filamentosos?.grado ?? null,
+      s => s.inicio?.filamentosos?.grado ?? null,
+      '#ffb800'
+    ), 0, 5, '');
+
+  // OD mg/L
+  mkChart('bio-chart-od',
+    mkDatasets(
+      s => s.fin?.datos?.od ?? null,
+      s => s.inicio?.datos?.od ?? null,
+      '#a78bfa'
+    ), 0, null, 'mg/L');
+
+  // Edad fango (simulador)
+  mkChart('bio-chart-edad',
+    mkDatasets(
+      s => s.fin?.sim?.edad_fango ?? s.inicio?.sim?.edad_fango ?? null,
+      s => s.inicio?.sim?.edad_fango ?? null,
+      '#00c8f0'
+    ), 0, null, 'd');
 }
 
 function bioBuildCard(semana) {
@@ -5109,25 +5185,43 @@ function bioBuildCard(semana) {
 
 async function loadBioHistory() {
   const listEl=document.getElementById('bio-hist-list');
-  const svgEl=document.getElementById('bio-chart-svg');
   if(!listEl||!window._fb) return;
   listEl.innerHTML='<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Cargando...</div>';
+
+  // Cargar Chart.js si no está disponible
+  if(!window.Chart) {
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+      s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
   try {
     const snap=await window._fb.get(window._fb.ref(window._fb.db,'informes_bio'));
     const data=snap.val();
     if(!data) {
       listEl.innerHTML='<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:8px;"><i class="ti ti-microscope" style="font-size:32px;opacity:.3;" aria-hidden="true"></i>SIN INFORMES AUN<br><span style="font-size:8px;opacity:.6;">Carga el primer informe en el formulario</span></div>';
-      if(svgEl) svgEl.innerHTML=''; return;
+      return;
     }
-    // Normalizar estructura: nueva {inicio,fin} y antigua (objeto plano)
     const semanas=Object.entries(data).map(([key,val])=>{
       if(val.inicio||val.fin) return{key,inicio:val.inicio||null,fin:val.fin||null};
-      return{key,inicio:null,fin:val}; // compat antigua estructura
-    }).sort((a,b)=>{ const ta=Math.max(a.fin?.ts||0,a.inicio?.ts||0); const tb=Math.max(b.fin?.ts||0,b.inicio?.ts||0); return tb-ta; }).slice(0,10);
+      return{key,inicio:null,fin:val};
+    }).sort((a,b)=>{
+      const ta=Math.max(a.fin?.ts||0,a.inicio?.ts||0);
+      const tb=Math.max(b.fin?.ts||0,b.inicio?.ts||0);
+      return tb-ta;
+    }).slice(0,10);
+
     const chartItems=[...semanas].reverse();
-    if(svgEl) svgEl.innerHTML=chartItems.length>0?bioBuildChart(chartItems):'';
+    // Pequeño delay para que los canvas estén en el DOM
+    setTimeout(()=>{ if(chartItems.length>0) bioBuildCharts(chartItems); }, 80);
+
     listEl.innerHTML=semanas.map(s=>bioBuildCard(s)).join('');
-  } catch(e) { listEl.innerHTML=`<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Error: ${e.message}</div>`; }
+  } catch(e) {
+    listEl.innerHTML=`<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Error: ${e.message}</div>`;
+  }
 }
 window.loadBioHistory = loadBioHistory;
 
