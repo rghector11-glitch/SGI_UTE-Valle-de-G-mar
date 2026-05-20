@@ -1352,6 +1352,18 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <button style="background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;padding:6px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;" onclick="showUsersModal()">GESTIONAR USUARIOS</button>
             </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:4px;">CLAVE API ANTHROPIC</div>
+              <div style="font-size:9px;color:var(--muted);margin-bottom:8px;">Necesaria para el relleno automático del informe biológico desde PDF. Se guarda solo en este navegador.</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="password" id="ajustes-api-key" placeholder="sk-ant-..." autocomplete="off"
+                  style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 8px;outline:none;"
+                  onfocus="this.type='text'" onblur="this.type='password'">
+                <button onclick="guardarApiKey()" style="background:rgba(0,200,240,.12);border:1px solid rgba(0,200,240,.35);border-radius:3px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:9px;padding:5px 12px;white-space:nowrap;">Guardar</button>
+                <button onclick="borrarApiKey()" style="background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:9px;padding:5px 10px;">Borrar</button>
+              </div>
+              <div id="ajustes-api-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:5px;"></div>
+            </div>
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
               <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">DIAGNÓSTICO DEL PORTAL</div>
               <button style="background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;padding:6px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;" onclick="m08Open()">EJECUTAR DIAGNÓSTICO</button>
             </div>
@@ -4587,21 +4599,27 @@ async function cargarPDFBio(input) {
 window.cargarPDFBio = cargarPDFBio;
 
 function openBioPdfPanel(text, nombre) {
+  _bioPdfText = text; // guardar para rellenarConIA
   const panel   = document.getElementById('bio-pdf-panel');
   const overlay = document.getElementById('bio-pdf-overlay');
   const ptext   = document.getElementById('bio-pdf-ptext');
   const pname   = document.getElementById('bio-pdf-pname');
+  const iaSt    = document.getElementById('bio-ia-st');
   if(!panel) return;
   if(pname) pname.textContent = nombre || 'Informe PDF';
+  if(iaSt)  { iaSt.style.color='var(--muted)'; iaSt.textContent=''; }
   if(ptext) {
-    // Resaltar números y palabras clave de interés
     const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const hl  = esc
       .replace(/(\d+[,.]?\d*\s*(mL\/[Lg]|mg\/L|mL\/L|%|g\/L|NTU))/g,'<span style="color:var(--accent);font-weight:700;">$1</span>')
       .replace(/\b(IVF|V30|SST|SSV|DQO|DBO|filament|Microthrix|bulking|espuma|floc|rotif|cilia|flagel|ameba|nematod|valoraci|pardo|turbid|color|olor|aspecto)\b/gi,'<span style="color:var(--warn);">$&</span>');
     ptext.innerHTML = hl;
   }
-  if(overlay) { overlay.style.display='block'; }
+  // Mostrar aviso si no hay clave API configurada
+  const iaSt2 = document.getElementById('bio-ia-st');
+  let key=''; try{key=localStorage.getItem('sgi-anthropic-key')||'';}catch(e){}
+  if(!key && iaSt2) { iaSt2.style.color='var(--muted)'; iaSt2.textContent='(configura tu clave API en Ajustes para usar IA)'; }
+  if(overlay) overlay.style.display='block';
   panel.style.transform='translateX(0)';
 }
 window.openBioPdfPanel = openBioPdfPanel;
@@ -4613,6 +4631,119 @@ function closeBioPdfPanel() {
   if(overlay) overlay.style.display='none';
 }
 window.closeBioPdfPanel = closeBioPdfPanel;
+
+// ── API Key Anthropic (localStorage) ─────────────────────────────────────────
+function guardarApiKey() {
+  const inp = document.getElementById('ajustes-api-key');
+  const st  = document.getElementById('ajustes-api-st');
+  if(!inp) return;
+  const key = inp.value.trim();
+  if(!key.startsWith('sk-ant-')) { if(st){ st.style.color='var(--danger)'; st.textContent='Clave no válida (debe empezar por sk-ant-)'; } return; }
+  try { localStorage.setItem('sgi-anthropic-key', key); } catch(e){}
+  inp.value = '';
+  if(st) { st.style.color='var(--accent2)'; st.textContent='Clave guardada ✓ (solo en este navegador)'; setTimeout(()=>{ if(st) st.textContent=''; },4000); }
+}
+window.guardarApiKey = guardarApiKey;
+
+function borrarApiKey() {
+  try { localStorage.removeItem('sgi-anthropic-key'); } catch(e){}
+  const inp = document.getElementById('ajustes-api-key');
+  const st  = document.getElementById('ajustes-api-st');
+  if(inp) inp.value='';
+  if(st)  { st.style.color='var(--muted)'; st.textContent='Clave eliminada.'; setTimeout(()=>{ if(st) st.textContent=''; },3000); }
+}
+window.borrarApiKey = borrarApiKey;
+
+// Inicializar indicador de clave en Ajustes al cargar
+(function inicApiKeyIndicator(){
+  window.addEventListener('firebase-ready', ()=>{
+    const st = document.getElementById('ajustes-api-st');
+    if(!st) return;
+    let key=''; try { key=localStorage.getItem('sgi-anthropic-key')||''; } catch(e){}
+    if(key) { st.style.color='var(--accent2)'; st.textContent='Clave configurada ✓'; }
+  });
+})();
+
+// ── Rellenar formulario con IA usando el texto ya extraído ────────────────────
+let _bioPdfText = ''; // guarda el texto del último PDF cargado
+
+async function rellenarConIA() {
+  const st  = document.getElementById('bio-ia-st');
+  const btn = document.getElementById('bio-ia-btn');
+  let key = ''; try { key=localStorage.getItem('sgi-anthropic-key')||''; } catch(e){}
+  if(!key) {
+    if(st) { st.style.color='var(--danger)'; st.textContent='Configura la clave API en Ajustes primero'; }
+    return;
+  }
+  if(!_bioPdfText) { if(st) { st.style.color='var(--danger)'; st.textContent='Carga un PDF primero'; } return; }
+  if(btn) btn.disabled=true;
+  if(st)  { st.style.color='var(--warn)'; st.textContent='Analizando con IA...'; }
+
+  const prompt = `Eres un sistema de extracción de datos de informes de macroscopia y microscopia de fangos activados en una EDAR española.
+Extrae los datos del siguiente texto y devuelve ÚNICAMENTE un objeto JSON válido, sin texto adicional, sin markdown, sin backticks.
+Usa null para campos no encontrados o no mencionados.
+
+Campos a extraer:
+- v30: número (mL/L) o null
+- ivf: número (mL/g) o null  
+- color: string (ej "Pardo", "Pardo oscuro", "Negro") o null
+- olor: string (ej "Normal", "Sulfhídrico", "Putrefacción") o null
+- espumas: string (ej "Ausentes", "Escasas", "Moderadas", "Abundantes") o null
+- esp_tipo: string (ej "Blancas", "Marrón-grasas") o null
+- turbidez: string (ej "Clara", "Ligeramente turbia", "Turbia") o null
+- aspecto: string (ej "Bueno", "Regular", "Malo") o null
+- floc: string (ej "Compacto", "Irregular", "Difuso", "Pinpoint") o null
+- filamentos: número 0-5 o null
+- fil_tipo: string con tipos de filamentos encontrados o null
+- flagelados: número 0-3 o null
+- amebas: número 0-3 o null
+- cil_libres: número 0-3 o null
+- cil_pedu: número 0-3 o null
+- rotiferos: número 0-3 o null
+- nematodos: número 0-3 o null
+- valoracion: número 1-5 o null
+- obs: string con observaciones relevantes o null
+
+TEXTO DEL INFORME:
+${_bioPdfText.slice(0, 8000)}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error?.message || 'Error ' + res.status);
+
+    const raw    = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('').trim();
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    const setV = (id,val) => { const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
+    setV('bf-v30',parsed.v30);      setV('bf-ivf',parsed.ivf);
+    setV('bf-color',parsed.color);  setV('bf-olor',parsed.olor);
+    setV('bf-espumas',parsed.espumas); setV('bf-esp-tipo',parsed.esp_tipo);
+    setV('bf-turb',parsed.turbidez); setV('bf-aspecto',parsed.aspecto);
+    setV('bf-floc',parsed.floc);    setV('bf-fil',parsed.filamentos);
+    setV('bf-fil-tipo',parsed.fil_tipo);
+    setV('bf-flag',parsed.flagelados); setV('bf-ame',parsed.amebas);
+    setV('bf-cil',parsed.cil_libres);  setV('bf-cilp',parsed.cil_pedu);
+    setV('bf-rot',parsed.rotiferos);   setV('bf-nem',parsed.nematodos);
+    setV('bf-val',parsed.valoracion);  setV('bf-obs',parsed.obs);
+
+    if(st) { st.style.color='var(--accent2)'; st.textContent='Formulario rellenado ✓ Revisa y guarda'; }
+    // Cerrar panel tras 1.5s para que el usuario vea la confirmación
+    setTimeout(()=>closeBioPdfPanel(), 1500);
+  } catch(e) {
+    if(st) { st.style.color='var(--danger)'; st.textContent='Error: '+e.message; }
+  }
+  if(btn) btn.disabled=false;
+}
+window.rellenarConIA = rellenarConIA;
 
 function bioBuildChart(semanas) {
   const W=560,H=110,PL=32,PR=12,PT=10,PB=24,gW=W-PL-PR,gH=H-PT-PB;
@@ -5127,9 +5258,16 @@ initAuth();
     <i class="ti ti-file-type-pdf" style="font-size:16px;color:var(--danger);flex-shrink:0;" aria-hidden="true"></i>
     <div style="flex:1;min-width:0;">
       <div id="bio-pdf-pname" style="font-family:var(--cond);font-size:12px;font-weight:700;color:var(--light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
-      <div style="font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.06em;margin-top:1px;">TEXTO EXTRAÍDO · rellena el formulario con estos datos</div>
+      <div style="font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.06em;margin-top:1px;">TEXTO EXTRAÍDO · usa los datos para rellenar el formulario</div>
     </div>
-    <button style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;padding:3px 9px;font-size:12px;font-family:var(--mono);transition:color .15s;" onclick="closeBioPdfPanel()">✕</button>
+    <button onclick="closeBioPdfPanel()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;padding:3px 9px;font-size:12px;font-family:var(--mono);transition:color .15s;">✕</button>
+  </div>
+  <!-- Botón Rellenar con IA -->
+  <div style="padding:8px 14px;border-bottom:1px solid var(--border);background:var(--ink);display:flex;align-items:center;gap:8px;flex-shrink:0;">
+    <button id="bio-ia-btn" onclick="rellenarConIA()" style="background:rgba(0,200,240,.12);border:1px solid rgba(0,200,240,.4);border-radius:3px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:5px 14px;transition:background .15s;display:flex;align-items:center;gap:5px;white-space:nowrap;">
+      <i class="ti ti-sparkles" aria-hidden="true"></i> Rellenar formulario con IA
+    </button>
+    <div id="bio-ia-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);flex:1;line-height:1.4;"></div>
   </div>
   <div id="bio-pdf-ptext" style="flex:1;overflow-y:auto;padding:12px 14px;font-family:var(--mono);font-size:10px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word;"></div>
 </div>
