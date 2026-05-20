@@ -1214,12 +1214,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <!-- ── FORMULARIO DE INFORME BIOLÓGICO ── -->
           <div id="bio-pf" style="display:flex;flex-direction:column;flex:1;overflow-y:auto;gap:8px;padding-bottom:6px;">
 
-            <!-- Carga PDF / IA -->
+            <!-- Carga PDF — Visor de texto -->
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:9px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
               <i class="ti ti-file-type-pdf" style="font-size:20px;color:var(--danger);flex-shrink:0;" aria-hidden="true"></i>
               <div style="flex:1;min-width:0;">
-                <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:1px;">EXTRACCIÓN IA · PDF SEMANAL</div>
-                <div style="font-size:9px;color:var(--muted);">Sube el informe y la IA extrae automáticamente los datos de macro y microscopia</div>
+                <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:1px;">VISOR PDF · LECTURA EN NAVEGADOR</div>
+                <div style="font-size:9px;color:var(--muted);">Sube el informe — el texto se extrae localmente y se muestra en un panel lateral para rellenar el formulario</div>
               </div>
               <input type="file" id="bio-pdf-input" accept=".pdf" style="display:none;" onchange="cargarPDFBio(this)">
               <button class="bio-btn-sec" onclick="document.getElementById('bio-pdf-input').click()"><i class="ti ti-upload" aria-hidden="true"></i> PDF</button>
@@ -4538,44 +4538,81 @@ async function cargarPDFBio(input) {
   const file = input.files[0];
   if(!file) return;
   const st = document.getElementById('bio-pdf-st');
-  if(st) { st.style.color='var(--warn)'; st.textContent='Leyendo PDF...'; }
-  let base64Data = '';
+  if(st) { st.style.color='var(--warn)'; st.textContent='Cargando PDF.js...'; }
+
+  // Carga PDF.js de forma perezosa (solo cuando se necesita)
+  if(!window.pdfjsLib) {
+    try {
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload=res; s.onerror=()=>rej(new Error('No se pudo cargar PDF.js'));
+        document.head.appendChild(s);
+      });
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    } catch(e) {
+      if(st) { st.style.color='var(--danger)'; st.textContent='Error cargando\nPDF.js'; }
+      return;
+    }
+  }
+
+  if(st) st.textContent='Extrayendo texto...';
   try {
-    base64Data = await new Promise((res,rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result.split(',')[1]);
-      r.onerror = () => rej(new Error('Error leyendo fichero'));
-      r.readAsDataURL(file);
-    });
-  } catch(e) { if(st) { st.style.color='var(--danger)'; st.textContent='Error leyendo PDF'; } return; }
-  if(st) st.textContent = 'Analizando con IA...';
-  const prompt = 'Extrae los datos de este informe de macroscopia y microscopia de fangos activados (EDAR). Responde UNICAMENTE con JSON valido, sin texto adicional, sin markdown, sin backticks. Usa null para campos no encontrados. Estructura exacta: {"v30":null,"ivf":null,"color":null,"olor":null,"espumas":null,"esp_tipo":null,"turbidez":null,"aspecto":null,"floc":null,"filamentos":null,"fil_tipo":null,"flagelados":null,"amebas":null,"cil_libres":null,"cil_pedu":null,"rotiferos":null,"nematodos":null,"valoracion":null,"obs":null}';
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000,
-        messages:[{role:'user',content:[
-          {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64Data}},
-          {type:'text',text:prompt}
-        ]}]
-      })
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error?.message||'Error API');
-    const text = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('').trim();
-    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
-    const setV = (id,val) => { const el=document.getElementById(id); if(el&&val!==null&&val!==undefined) el.value=val; };
-    setV('bf-v30',parsed.v30); setV('bf-ivf',parsed.ivf); setV('bf-color',parsed.color);
-    setV('bf-olor',parsed.olor); setV('bf-espumas',parsed.espumas); setV('bf-esp-tipo',parsed.esp_tipo);
-    setV('bf-turb',parsed.turbidez); setV('bf-aspecto',parsed.aspecto); setV('bf-floc',parsed.floc);
-    setV('bf-fil',parsed.filamentos); setV('bf-fil-tipo',parsed.fil_tipo); setV('bf-flag',parsed.flagelados);
-    setV('bf-ame',parsed.amebas); setV('bf-cil',parsed.cil_libres); setV('bf-cilp',parsed.cil_pedu);
-    setV('bf-rot',parsed.rotiferos); setV('bf-nem',parsed.nematodos); setV('bf-val',parsed.valoracion); setV('bf-obs',parsed.obs);
-    if(st) { st.style.color='var(--accent2)'; st.textContent='Extraido \u2713\nRevisa y guarda'; }
-  } catch(e) { if(st) { st.style.color='var(--danger)'; st.textContent='Error IA:\n'+e.message; } }
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    let fullText = '';
+    for(let i=1; i<=pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc   = await page.getTextContent();
+      // Reconstruir líneas respetando saltos de bloque
+      let lineY = null, lineText = '';
+      tc.items.forEach(item=>{
+        if(lineY !== null && Math.abs(item.transform[5]-lineY)>5) {
+          fullText += lineText.trim()+'\n';
+          lineText = '';
+        }
+        lineY = item.transform[5];
+        lineText += item.str + (item.hasEOL?'\n':' ');
+      });
+      if(lineText.trim()) fullText += lineText.trim()+'\n';
+      if(i < pdf.numPages) fullText += '\n─────────\n\n';
+    }
+    openBioPdfPanel(fullText.trim(), file.name);
+    if(st) { st.style.color='var(--accent2)'; st.textContent='Texto extraído ✓\nPanel abierto →'; }
+  } catch(e) {
+    if(st) { st.style.color='var(--danger)'; st.textContent='Error:\n'+e.message; }
+  }
   input.value='';
 }
 window.cargarPDFBio = cargarPDFBio;
+
+function openBioPdfPanel(text, nombre) {
+  const panel   = document.getElementById('bio-pdf-panel');
+  const overlay = document.getElementById('bio-pdf-overlay');
+  const ptext   = document.getElementById('bio-pdf-ptext');
+  const pname   = document.getElementById('bio-pdf-pname');
+  if(!panel) return;
+  if(pname) pname.textContent = nombre || 'Informe PDF';
+  if(ptext) {
+    // Resaltar números y palabras clave de interés
+    const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const hl  = esc
+      .replace(/(\d+[,.]?\d*\s*(mL\/[Lg]|mg\/L|mL\/L|%|g\/L|NTU))/g,'<span style="color:var(--accent);font-weight:700;">$1</span>')
+      .replace(/\b(IVF|V30|SST|SSV|DQO|DBO|filament|Microthrix|bulking|espuma|floc|rotif|cilia|flagel|ameba|nematod|valoraci|pardo|turbid|color|olor|aspecto)\b/gi,'<span style="color:var(--warn);">$&</span>');
+    ptext.innerHTML = hl;
+  }
+  if(overlay) { overlay.style.display='block'; }
+  panel.style.transform='translateX(0)';
+}
+window.openBioPdfPanel = openBioPdfPanel;
+
+function closeBioPdfPanel() {
+  const panel   = document.getElementById('bio-pdf-panel');
+  const overlay = document.getElementById('bio-pdf-overlay');
+  if(panel)   panel.style.transform='translateX(100%)';
+  if(overlay) overlay.style.display='none';
+}
+window.closeBioPdfPanel = closeBioPdfPanel;
 
 function bioBuildChart(semanas) {
   const W=560,H=110,PL=32,PR=12,PT=10,PB=24,gW=W-PL-PR,gH=H-PT-PB;
@@ -5084,6 +5121,19 @@ initAuth();
   </div>
 </div>
 
+<!-- ═══ PANEL VISOR PDF BIO ═══ -->
+<div id="bio-pdf-panel" style="position:fixed;top:0;right:0;width:min(420px,100vw);height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:9200;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-6px 0 28px rgba(0,0,0,.5);">
+  <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--panel);">
+    <i class="ti ti-file-type-pdf" style="font-size:16px;color:var(--danger);flex-shrink:0;" aria-hidden="true"></i>
+    <div style="flex:1;min-width:0;">
+      <div id="bio-pdf-pname" style="font-family:var(--cond);font-size:12px;font-weight:700;color:var(--light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+      <div style="font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.06em;margin-top:1px;">TEXTO EXTRAÍDO · rellena el formulario con estos datos</div>
+    </div>
+    <button style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;padding:3px 9px;font-size:12px;font-family:var(--mono);transition:color .15s;" onclick="closeBioPdfPanel()">✕</button>
+  </div>
+  <div id="bio-pdf-ptext" style="flex:1;overflow-y:auto;padding:12px 14px;font-family:var(--mono);font-size:10px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word;"></div>
+</div>
+<div id="bio-pdf-overlay" style="display:none;position:fixed;inset:0;z-index:9199;background:rgba(0,0,0,.35);" onclick="closeBioPdfPanel()"></div>
 
 
 </body>
