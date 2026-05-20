@@ -1426,8 +1426,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
               </div>
               <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:18px;height:2px;background:#888;"></span>Fin semana</span>
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:18px;height:2px;background:#888;border-top:2px dashed #888;"></span>Inicio semana</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;"></span>Fin de semana</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:transparent;border:2px solid #888;"></span>Inicio de semana</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">· Cada punto = un informe cargado · Eje X = fecha real del PDF</span>
               </div>
             </div>
             <div id="bio-hist-list" style="display:flex;flex-direction:column;gap:6px;"></div>
@@ -4632,8 +4633,19 @@ function loadAnalitica() {
   }
   const semEl   = document.getElementById('bf-semana');
   const fechaEl = document.getElementById('bf-fecha');
-  if(semEl   && !semEl.value)   semEl.value   = isoWeekLabel(new Date());
+  // Solo auto-rellenar si están vacíos
   if(fechaEl && !fechaEl.value) fechaEl.value = new Date().toISOString().slice(0,10);
+  if(semEl   && !semEl.value && fechaEl && fechaEl.value) {
+    semEl.value = isoWeekLabel(new Date(fechaEl.value + 'T12:00:00'));
+  }
+  // Al cambiar la fecha, recalcular la semana automáticamente
+  if(fechaEl && !fechaEl._bioListener) {
+    fechaEl._bioListener = true;
+    fechaEl.addEventListener('change', function() {
+      const s = document.getElementById('bf-semana');
+      if(s && this.value) s.value = isoWeekLabel(new Date(this.value + 'T12:00:00'));
+    });
+  }
 }
 window.loadAnalitica = loadAnalitica;
 
@@ -4705,8 +4717,8 @@ function limpiarFormBio() {
    'bf-bio-diatomea','bf-bio-nematodo','bf-bio-flagelado','bf-bio-vorticella','bf-bio-opercularia']
   .forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
   const semEl=document.getElementById('bf-semana'), fechaEl=document.getElementById('bf-fecha');
-  if(semEl)   semEl.value   = isoWeekLabel(new Date());
   if(fechaEl) fechaEl.value = new Date().toISOString().slice(0,10);
+  if(semEl)   semEl.value   = isoWeekLabel(new Date());
   setBioTipo('inicio');
   const st=document.getElementById('bio-save-st');
   if(st) { st.style.color='var(--muted)'; st.textContent='Formulario limpio \u2713'; setTimeout(()=>{ if(st) st.textContent=''; },2000); }
@@ -5046,32 +5058,30 @@ ${_bioPdfText.slice(0, 10000)}`;
 }
 window.rellenarConIA = rellenarConIA;
 
-function bioBuildCharts(semanas) {
-  // Destruir instancias anteriores si existen
+function bioBuildCharts(entries) {
+  // entries = lista plana de informes individuales, cada uno con _label (DD/MM)
   ['bio-chart-ivf','bio-chart-fil','bio-chart-od','bio-chart-edad'].forEach(id => {
     const existing = Chart.getChart(id);
     if(existing) existing.destroy();
   });
 
-  const labels = semanas.map(s => s.key.slice(-3));
+  const labels = entries.map(e => e._label || e.semana || '?');
   const gridC  = 'rgba(58,90,114,0.5)';
   const textC  = '#5a8099';
 
-  function mkDatasets(fnFin, fnIni, color) {
-    return [
-      { label:'Fin',   data: semanas.map(fnFin),
-        borderColor: color, backgroundColor: color+'33',
-        borderWidth:2, pointRadius:4, pointBackgroundColor:color,
-        tension:0.3, fill:false },
-      { label:'Inicio', data: semanas.map(fnIni),
-        borderColor: color, borderDash:[5,4],
-        borderWidth:1.5, pointRadius:3,
-        pointBackgroundColor:'#1e3347', pointBorderColor:color,
-        tension:0.3, fill:false }
-    ];
+  function mkDataset(fn, color, label) {
+    return [{
+      label, data: entries.map(fn),
+      borderColor: color, backgroundColor: color+'33',
+      borderWidth:2, pointRadius:5, pointBackgroundColor: entries.map(e=>
+        e.tipo==='inicio' ? '#1e3347' : color   // inicio=hueco, fin=relleno
+      ),
+      pointBorderColor: color, pointBorderWidth:2,
+      tension:0.3, fill:false, spanGaps:false
+    }];
   }
 
-  function mkChart(id, datasets, yMin, yMax, unit) {
+  function mkChart(id, datasets, unit) {
     new Chart(document.getElementById(id), {
       type:'line',
       data:{ labels, datasets },
@@ -5081,50 +5091,35 @@ function bioBuildCharts(semanas) {
         plugins:{ legend:{ display:false }, tooltip:{
           backgroundColor:'#243d55', titleColor:'#cde0f0', bodyColor:'#5a8099',
           borderColor:'#3a5a72', borderWidth:1,
-          callbacks:{ label: ctx => ctx.dataset.label+': '+(ctx.parsed.y??'—')+(unit?' '+unit:'') }
+          callbacks:{
+            title: ctx => labels[ctx[0].dataIndex],
+            label: ctx => {
+              const e = entries[ctx.dataIndex];
+              const tipo = e.tipo === 'inicio' ? '▶ Inicio' : '■ Fin';
+              return `${tipo}: ${ctx.parsed.y ?? '—'}${unit?' '+unit:''}`;
+            }
+          }
         }},
         scales:{
-          x:{ ticks:{ font:{size:9}, color:textC, maxRotation:0 }, grid:{ color:gridC } },
-          y:{ min:yMin, max:yMax,
-              ticks:{ font:{size:9}, color:textC,
-                      callback: v => v+(unit?' '+unit:'') },
+          x:{ ticks:{ font:{size:9}, color:textC, maxRotation:30 }, grid:{ color:gridC } },
+          y:{ ticks:{ font:{size:9}, color:textC, callback: v=>v+(unit?' '+unit:'') },
               grid:{ color:gridC } }
         }
       }
     });
   }
 
-  // IVF (ml/g)
   mkChart('bio-chart-ivf',
-    mkDatasets(
-      s => s.fin?.licor?.ivf ?? null,
-      s => s.inicio?.licor?.ivf ?? null,
-      '#00e87a'
-    ), 0, null, 'ml/g');
+    mkDataset(e=>e.licor?.ivf??null, '#00e87a', 'IVF'), 'ml/g');
 
-  // Filamentosos grado 0-5
   mkChart('bio-chart-fil',
-    mkDatasets(
-      s => s.fin?.filamentosos?.grado ?? null,
-      s => s.inicio?.filamentosos?.grado ?? null,
-      '#ffb800'
-    ), 0, 5, '');
+    mkDataset(e=>e.filamentosos?.grado??null, '#ffb800', 'Filamentos'), '');
 
-  // OD mg/L
   mkChart('bio-chart-od',
-    mkDatasets(
-      s => s.fin?.datos?.od ?? null,
-      s => s.inicio?.datos?.od ?? null,
-      '#a78bfa'
-    ), 0, null, 'mg/L');
+    mkDataset(e=>e.datos?.od??null, '#a78bfa', 'OD'), 'mg/L');
 
-  // Edad fango (simulador)
   mkChart('bio-chart-edad',
-    mkDatasets(
-      s => s.fin?.sim?.edad_fango ?? s.inicio?.sim?.edad_fango ?? null,
-      s => s.inicio?.sim?.edad_fango ?? null,
-      '#00c8f0'
-    ), 0, null, 'd');
+    mkDataset(e=>e.sim?.edad_fango??null, '#00c8f0', 'Edad fango'), 'd');
 }
 
 function bioBuildCard(semana) {
@@ -5211,6 +5206,8 @@ async function loadBioHistory() {
       listEl.innerHTML='<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:8px;"><i class="ti ti-microscope" style="font-size:32px;opacity:.3;" aria-hidden="true"></i>SIN INFORMES AUN<br><span style="font-size:8px;opacity:.6;">Carga el primer informe en el formulario</span></div>';
       return;
     }
+
+    // Estructura por semanas para las tarjetas
     const semanas=Object.entries(data).map(([key,val])=>{
       if(val.inicio||val.fin) return{key,inicio:val.inicio||null,fin:val.fin||null};
       return{key,inicio:null,fin:val};
@@ -5220,10 +5217,21 @@ async function loadBioHistory() {
       return tb-ta;
     }).slice(0,10);
 
-    const chartItems=[...semanas].reverse();
-    // Pequeño delay para que los canvas estén en el DOM
-    setTimeout(()=>{ if(chartItems.length>0) bioBuildCharts(chartItems); }, 80);
+    // Lista plana de informes individuales ordenados por fecha real → para las gráficas
+    const flatEntries = [];
+    Object.values(data).forEach(val => {
+      const entries = (val.inicio||val.fin) ? [val.inicio, val.fin].filter(Boolean) : [val];
+      entries.forEach(e => {
+        if(!e) return;
+        const fechaStr = e.fecha || '';
+        const fechaMs  = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : (e.ts||0);
+        flatEntries.push({ ...e, _fechaMs: fechaMs, _label: fechaStr ? fechaStr.slice(5).replace('-','/') : (e.semana||'?') });
+      });
+    });
+    flatEntries.sort((a,b) => a._fechaMs - b._fechaMs);
+    const chartEntries = flatEntries.slice(-10); // últimas 10 entradas individuales
 
+    setTimeout(()=>{ if(chartEntries.length>0) bioBuildCharts(chartEntries); }, 80);
     listEl.innerHTML=semanas.map(s=>bioBuildCard(s)).join('');
   } catch(e) {
     listEl.innerHTML=`<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Error: ${e.message}</div>`;
