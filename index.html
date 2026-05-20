@@ -608,6 +608,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 .bio-tipo-btn:hover{color:var(--text);}
 .bio-tipo-btn.active{border-color:rgba(0,200,240,.5);color:var(--accent);background:rgba(0,200,240,.1);}
 #bio-tipo-fin.active{border-color:rgba(0,232,122,.5);color:var(--accent2);background:rgba(0,232,122,.08);}
+.bio-check-lbl{display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 0;font-size:9px;color:var(--text);user-select:none;}
+.bio-check-lbl:hover{color:var(--light);}
+.bio-check{appearance:none;-webkit-appearance:none;width:13px;height:13px;background:var(--card);border:1px solid var(--border);border-radius:2px;cursor:pointer;flex-shrink:0;transition:all .15s;position:relative;}
+.bio-check:checked{background:var(--accent2);border-color:var(--accent2);}
+.bio-check:checked::after{content:'✓';position:absolute;top:-1px;left:1px;font-size:10px;color:#000;font-weight:700;line-height:1;}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -1226,60 +1231,143 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div id="bio-pdf-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);max-width:130px;text-align:right;line-height:1.3;white-space:pre-line;"></div>
             </div>
 
-            <!-- Grid: Macroscopia | Microscopia -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:300px;">
+            <!-- Grid: Licor Mezcla + Espumas | Flóculos + Filamentosos + Bioindicadores -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:360px;">
 
-              <!-- MACROSCOPIA -->
-              <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;">
-                <div style="font-family:var(--mono);font-size:8px;color:var(--accent2);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;flex-shrink:0;">MACROSCOPIA</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <div><div class="bio-lbl">V30 (mL/L)</div><input type="number" id="bf-v30" class="bio-input" placeholder="—" min="0" max="1000" step="1"></div>
-                  <div><div class="bio-lbl">IVF (mL/g)</div><input type="number" id="bf-ivf" class="bio-input" placeholder="—" min="0" max="500" step="0.1"></div>
+              <!-- COLUMNA IZQUIERDA: Licor Mezcla + Espumas -->
+              <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;">
+
+                <!-- LICOR MEZCLA -->
+                <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--accent2);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;flex-shrink:0;">LICOR MEZCLA</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Olor</div><input type="text" id="bf-olor" class="bio-input" placeholder="Habitual / Sulfhídrico..."></div>
+                    <div><div class="bio-lbl">Color</div><input type="text" id="bf-color" class="bio-input" placeholder="Marrón claro..."></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">pH</div><input type="number" id="bf-ph" class="bio-input" placeholder="7.87" step="0.01" min="0" max="14"></div>
+                    <div><div class="bio-lbl">Conductividad (μS/cm)</div><input type="number" id="bf-cond" class="bio-input" placeholder="1792" step="1"></div>
+                    <div><div class="bio-lbl">Dilución</div><input type="number" id="bf-dil" class="bio-input" placeholder="1" step="1" min="1"></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">V5 (ml)</div><input type="number" id="bf-v5" class="bio-input" placeholder="780" step="1"></div>
+                    <div><div class="bio-lbl">V30 (ml)</div><input type="number" id="bf-v30" class="bio-input" placeholder="720" step="1"></div>
+                    <div><div class="bio-lbl">IVF (ml/g)</div><input type="number" id="bf-ivf" class="bio-input" placeholder="339" step="0.1"></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Sedimentación</div>
+                    <select id="bf-sed" class="bio-select"><option value="">—</option><option>Lenta</option><option>Normal</option><option>Rápida</option></select></div>
+                    <div><div class="bio-lbl">Clarificado</div>
+                    <select id="bf-clar" class="bio-select"><option value="">—</option><option>Transparente</option><option>Ligeramente turbio</option><option>Turbio</option></select></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Grasas</div>
+                    <select id="bf-grasas" class="bio-select"><option value="">—</option><option>No se observan</option><option>Presentes</option></select></div>
+                    <div><div class="bio-lbl">Reflote</div>
+                    <select id="bf-reflote" class="bio-select"><option value="">—</option><option>No se observa</option><option>Presente</option></select></div>
+                  </div>
+                  <div><div class="bio-lbl">Bioagregación</div><input type="text" id="bf-bioag" class="bio-input" placeholder="Aspecto algodonoso..."></div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <div><div class="bio-lbl">Color del fango</div>
-                  <select id="bf-color" class="bio-select"><option value="">—</option><option>Pardo claro</option><option>Pardo</option><option>Pardo oscuro</option><option>Negro</option><option>Otro</option></select></div>
-                  <div><div class="bio-lbl">Olor</div>
-                  <select id="bf-olor" class="bio-select"><option value="">—</option><option>Normal</option><option>Sulfhídrico</option><option>Putrefacción</option><option>Otro</option></select></div>
+
+                <!-- ESPUMAS -->
+                <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--accent2);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;">ESPUMAS</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">En probeta</div>
+                    <select id="bf-esp-prob" class="bio-select"><option value="">—</option><option>No se observan</option><option>Presentes</option></select></div>
+                    <div><div class="bio-lbl">Grasas en probeta</div>
+                    <select id="bf-esp-gras" class="bio-select"><option value="">—</option><option>No presenta</option><option>Presentes</option></select></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Turbidez</div>
+                    <select id="bf-turb" class="bio-select"><option value="">—</option><option>Baja</option><option>Media</option><option>Alta</option></select></div>
+                    <div><div class="bio-lbl">En reactores</div>
+                    <select id="bf-esp-reac" class="bio-select"><option value="">—</option><option>No se observan</option><option>Presentes</option></select></div>
+                  </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <div><div class="bio-lbl">Espumas</div>
-                  <select id="bf-espumas" class="bio-select"><option value="">—</option><option>Ausentes</option><option>Escasas</option><option>Moderadas</option><option>Abundantes</option></select></div>
-                  <div><div class="bio-lbl">Tipo espumas</div>
-                  <select id="bf-esp-tipo" class="bio-select"><option value="">—</option><option>Blancas</option><option>Marrón-grasas</option><option>Chemical</option><option>Otra</option></select></div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <div><div class="bio-lbl">Turbidez sobrenadante</div>
-                  <select id="bf-turb" class="bio-select"><option value="">—</option><option>Clara</option><option>Ligeramente turbia</option><option>Turbia</option><option>Muy turbia</option></select></div>
-                  <div><div class="bio-lbl">Aspecto general</div>
-                  <select id="bf-aspecto" class="bio-select"><option value="">—</option><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Malo</option></select></div>
+
+                <!-- DATOS CUANTITATIVOS -->
+                <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--warn);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;">DATOS CUANTITATIVOS</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">OD (mg/L)</div><input type="number" id="bf-od" class="bio-input" placeholder="2.2" step="0.1"></div>
+                    <div><div class="bio-lbl">Temperatura (ºC)</div><input type="number" id="bf-temp" class="bio-input" placeholder="24.6" step="0.1"></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">SSLM (g/L)</div><input type="number" id="bf-sslm" class="bio-input" placeholder="2.12" step="0.01"></div>
+                    <div><div class="bio-lbl">% Vol. SSLM</div><input type="number" id="bf-sslm-v" class="bio-input" placeholder="76.4" step="0.1"></div>
+                    <div></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">SDLM (g/L)</div><input type="number" id="bf-sdlm" class="bio-input" placeholder="1.92" step="0.01"></div>
+                    <div><div class="bio-lbl">% Vol. SDLM</div><input type="number" id="bf-sdlm-v" class="bio-input" placeholder="45" step="0.1"></div>
+                    <div></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">SST (g/L)</div><input type="number" id="bf-sst" class="bio-input" placeholder="3.72" step="0.01"></div>
+                    <div><div class="bio-lbl">% Vol. SST</div><input type="number" id="bf-sst-v" class="bio-input" placeholder="62.9" step="0.1"></div>
+                    <div></div>
+                  </div>
                 </div>
               </div>
 
-              <!-- MICROSCOPIA -->
-              <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;">
-                <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;flex-shrink:0;">MICROSCOPIA</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <div><div class="bio-lbl">Morfología floc</div>
-                  <select id="bf-floc" class="bio-select"><option value="">—</option><option>Compacto</option><option>Irregular</option><option>Difuso</option><option>Pinpoint</option><option>Mixto</option></select></div>
-                  <div><div class="bio-lbl">Filamentos (0–5)</div>
-                  <select id="bf-fil" class="bio-select"><option value="">—</option><option value="0">0 – Ninguno</option><option value="1">1 – Escasos</option><option value="2">2 – Algunos</option><option value="3">3 – Moderados</option><option value="4">4 – Abundantes</option><option value="5">5 – Excesivos</option></select></div>
+              <!-- COLUMNA DERECHA: Flóculos + Filamentosos + Bioindicadores -->
+              <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;">
+
+                <!-- FLÓCULOS -->
+                <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;">FLÓCULOS</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Forma</div>
+                    <select id="bf-floc-forma" class="bio-select"><option value="">—</option><option>Irregular</option><option>Regular</option><option>Mixta</option></select></div>
+                    <div><div class="bio-lbl">Tamaño</div>
+                    <select id="bf-floc-tam" class="bio-select"><option value="">—</option><option>Pequeño</option><option>Mediano</option><option>Grande</option><option>Mixto</option></select></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Núcleos</div>
+                    <select id="bf-floc-nuc" class="bio-select"><option value="">—</option><option>Con núcleo</option><option>Sin núcleo</option><option>Mixto</option></select></div>
+                    <div><div class="bio-lbl">Color</div><input type="text" id="bf-floc-color" class="bio-input" placeholder="Marrón..."></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Estructura</div>
+                    <select id="bf-floc-est" class="bio-select"><option value="">—</option><option>Abierta y disgregada</option><option>Compacta</option><option>Mixta</option></select></div>
+                    <div><div class="bio-lbl">Dispersión</div>
+                    <select id="bf-disp" class="bio-select"><option value="">—</option><option>Baja</option><option>Media</option><option>Alta</option></select></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <div><div class="bio-lbl">Zoogloea</div>
+                    <select id="bf-zoogloea" class="bio-select"><option value="">—</option><option>Presente</option><option>Ausente</option></select></div>
+                    <div><div class="bio-lbl">Filamentosos (grado 0–5)</div>
+                    <select id="bf-fil" class="bio-select"><option value="">—</option><option value="0">0 – Ninguno</option><option value="1">1 – Escasos</option><option value="2">2 – Algunos</option><option value="3">3 – Moderados</option><option value="4">4 – Abundantes</option><option value="5">5 – Excesivos</option></select></div>
+                  </div>
+                  <div><div class="bio-lbl">Tipos de filamentosos observados</div>
+                  <input type="text" id="bf-fil-tipo" class="bio-input" placeholder="Microthrix parvicella, Tipo 021N..."></div>
                 </div>
-                <div><div class="bio-lbl">Tipo de filamentos</div>
-                <input type="text" id="bf-fil-tipo" class="bio-input" placeholder="ej. Microthrix parvicella, Tipo 021N..."></div>
-                <div style="font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.05em;padding-top:2px;">FAUNA · 0=ausente 1=escasa 2=presente 3=abundante</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Flagelados</span><select id="bf-flag" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Amebas</span><select id="bf-ame" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Cil. libres</span><select id="bf-cil" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Cil. pedunc.</span><select id="bf-cilp" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Rotíferos</span><select id="bf-rot" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Nematodos</span><select id="bf-nem" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+
+                <!-- BIOINDICADORES (presencia / ausencia) -->
+                <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex:1;display:flex;flex-direction:column;gap:6px;">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;">BIOINDICADORES · presencia esta semana</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;">
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-ameba" class="bio-check"><span>Ameba desnuda</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-aspidisca" class="bio-check"><span>Aspidisca cicada</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-deprano" class="bio-check"><span>Depranomonas revoluta</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-cineto" class="bio-check"><span>Cinetochillum m.</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-pseudo" class="bio-check"><span>Pseudochilonodopsis f.</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-rotaria" class="bio-check"><span>Rotaria</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-blepharisma" class="bio-check"><span>Blepharisma</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-baclibres" class="bio-check"><span>Bacterias libres</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-agregado" class="bio-check"><span>Agregado bacteriano</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-diatomea" class="bio-check"><span>Diatomea</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-nematodo" class="bio-check"><span>Nematodo</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-flagelado" class="bio-check"><span>Flagelado</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-vorticella" class="bio-check"><span>Vorticella</span></label>
+                    <label class="bio-check-lbl"><input type="checkbox" id="bf-bio-opercularia" class="bio-check"><span>Opercularia</span></label>
+                  </div>
+                  <div><div class="bio-lbl">Otros organismos</div>
+                  <input type="text" id="bf-bio-otros" class="bio-input" placeholder="Otros organismos observados..."></div>
+                  <div style="flex:1;"><div class="bio-lbl">Conclusiones / Recomendaciones</div>
+                  <textarea id="bf-obs" class="bio-input" placeholder="Indicaciones de la semana..." style="width:100%;min-height:70px;resize:vertical;line-height:1.5;"></textarea></div>
                 </div>
-                <div><div class="bio-lbl">Valoración global (1–5)</div>
-                <select id="bf-val" class="bio-select"><option value="">—</option><option value="1">1 – Muy malo</option><option value="2">2 – Malo</option><option value="3">3 – Regular</option><option value="4">4 – Bueno</option><option value="5">5 – Excelente</option></select></div>
-                <div style="flex:1;"><div class="bio-lbl">Observaciones</div>
-                <textarea id="bf-obs" class="bio-input" placeholder="Observaciones adicionales..." style="width:100%;min-height:55px;resize:vertical;line-height:1.5;"></textarea></div>
               </div>
             </div>
 
@@ -1317,9 +1405,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">TENDENCIA SEMANAL — ÚLTIMAS 10 SEMANAS</div>
               <div id="bio-chart-svg"></div>
               <div style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap;">
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#00e87a;vertical-align:middle;"></span>IVF (mL/g ÷3)</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#00e87a;vertical-align:middle;"></span>IVF (ml/g)</span>
                 <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#ffb800;vertical-align:middle;"></span>Filamentos ×60</span>
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#a78bfa;vertical-align:middle;"></span>Valoración ×60</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#a78bfa;vertical-align:middle;"></span>OD ×30</span>
                 <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#00c8f0;border-top:1px dashed #00c8f0;vertical-align:middle;"></span>Edad fango ×10</span>
               </div>
             </div>
@@ -4525,22 +4613,36 @@ function loadAnalitica() {
 window.loadAnalitica = loadAnalitica;
 
 function bioFormToObj() {
-  const v = id => { const el=document.getElementById(id); return el?(el.value||''):''; };
-  const n = id => { const val=v(id); return val===''?null:Number(val); };
-  const simE = document.getElementById('bio-sim-edad');
-  const simS = document.getElementById('bio-sim-sst');
-  const simD = document.getElementById('bio-sim-dqo');
-  const simParse = el => { if(!el) return null; const t=(el.textContent||'').trim(); return t&&t!=='—'?Number(t)||null:null; };
+  const v  = id => { const el=document.getElementById(id); return el?(el.value||''):''; };
+  const n  = id => { const val=v(id); return val===''?null:Number(val); };
+  const cb = id => { const el=document.getElementById(id); return el?el.checked:false; };
+  const simE=document.getElementById('bio-sim-edad'), simS=document.getElementById('bio-sim-sst'), simD=document.getElementById('bio-sim-dqo');
+  const sp = el => { if(!el) return null; const t=(el.textContent||'').trim(); return t&&t!=='—'?Number(t)||null:null; };
   return {
-    semana: v('bf-semana'), fecha: v('bf-fecha'), tipo: _bioTipo, ts: Date.now(),
-    macro: { v30:n('bf-v30'), ivf:n('bf-ivf'), color:v('bf-color'), olor:v('bf-olor'),
-             espumas:v('bf-espumas'), esp_tipo:v('bf-esp-tipo'), turbidez:v('bf-turb'), aspecto:v('bf-aspecto') },
-    micro: { floc:v('bf-floc'), filamentos:n('bf-fil'), fil_tipo:v('bf-fil-tipo'),
-             flagelados:n('bf-flag'), amebas:n('bf-ame'), cil_libres:n('bf-cil'), cil_pedu:n('bf-cilp'),
-             rotiferos:n('bf-rot'), nematodos:n('bf-nem'), valoracion:n('bf-val'), obs:v('bf-obs') },
-    sim: { edad_fango:simParse(simE), sst:simParse(simS), rend_dqo:simParse(simD) }
+    semana:v('bf-semana'), fecha:v('bf-fecha'), tipo:_bioTipo, ts:Date.now(),
+    licor:{ olor:v('bf-olor'), color:v('bf-color'), ph:n('bf-ph'), conductividad:n('bf-cond'),
+            dilucion:n('bf-dil'), v5:n('bf-v5'), v30:n('bf-v30'), ivf:n('bf-ivf'),
+            sedimentacion:v('bf-sed'), clarificado:v('bf-clar'), grasas:v('bf-grasas'),
+            reflote:v('bf-reflote'), bioagregacion:v('bf-bioag') },
+    espumas:{ probeta:v('bf-esp-prob'), grasas_probeta:v('bf-esp-gras'), turbidez:v('bf-turb'), reactores:v('bf-esp-reac') },
+    floculos:{ forma:v('bf-floc-forma'), tamanio:v('bf-floc-tam'), nucleos:v('bf-floc-nuc'),
+               color:v('bf-floc-color'), estructura:v('bf-floc-est'), dispersion:v('bf-disp'), zoogloea:v('bf-zoogloea') },
+    filamentosos:{ grado:n('bf-fil'), tipos:v('bf-fil-tipo') },
+    bio:{ ameba_desnuda:cb('bf-bio-ameba'), aspidisca_cicada:cb('bf-bio-aspidisca'),
+          depranomonas:cb('bf-bio-deprano'), cinetochillum:cb('bf-bio-cineto'),
+          pseudochilonodopsis:cb('bf-bio-pseudo'), rotaria:cb('bf-bio-rotaria'),
+          blepharisma:cb('bf-bio-blepharisma'), bacterias_libres:cb('bf-bio-baclibres'),
+          agregado_bacteriano:cb('bf-bio-agregado'), diatomea:cb('bf-bio-diatomea'),
+          nematodo:cb('bf-bio-nematodo'), flagelado:cb('bf-bio-flagelado'),
+          vorticella:cb('bf-bio-vorticella'), opercularia:cb('bf-bio-opercularia'),
+          otros:v('bf-bio-otros') },
+    datos:{ od:n('bf-od'), temperatura:n('bf-temp'), sslm:n('bf-sslm'), sslm_vols:n('bf-sslm-v'),
+            sdlm:n('bf-sdlm'), sdlm_vols:n('bf-sdlm-v'), sst:n('bf-sst'), sst_vols:n('bf-sst-v') },
+    obs:v('bf-obs'),
+    sim:{ edad_fango:sp(simE), sst:sp(simS), rend_dqo:sp(simD) }
   };
 }
+
 
 async function submitInformeBio() {
   if(!window._fb) { alert('Firebase no disponible'); return; }
@@ -4564,23 +4666,27 @@ async function submitInformeBio() {
 window.submitInformeBio = submitInformeBio;
 
 function limpiarFormBio() {
-  const ids = ['bf-v30','bf-ivf','bf-color','bf-olor','bf-espumas','bf-esp-tipo',
-                'bf-turb','bf-aspecto','bf-floc','bf-fil','bf-fil-tipo',
-                'bf-flag','bf-ame','bf-cil','bf-cilp','bf-rot','bf-nem','bf-val','bf-obs'];
+  const ids = ['bf-olor','bf-color','bf-ph','bf-cond','bf-dil','bf-v5','bf-v30','bf-ivf',
+               'bf-sed','bf-clar','bf-grasas','bf-reflote','bf-bioag',
+               'bf-esp-prob','bf-esp-gras','bf-turb','bf-esp-reac',
+               'bf-floc-forma','bf-floc-tam','bf-floc-nuc','bf-floc-color','bf-floc-est','bf-disp','bf-zoogloea',
+               'bf-fil','bf-fil-tipo',
+               'bf-od','bf-temp','bf-sslm','bf-sslm-v','bf-sdlm','bf-sdlm-v','bf-sst','bf-sst-v',
+               'bf-bio-otros','bf-obs'];
   ids.forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  // Actualizar semana y fecha al día de hoy
-  const semEl   = document.getElementById('bf-semana');
-  const fechaEl = document.getElementById('bf-fecha');
+  // Desmarcar checkboxes
+  ['bf-bio-ameba','bf-bio-aspidisca','bf-bio-deprano','bf-bio-cineto','bf-bio-pseudo',
+   'bf-bio-rotaria','bf-bio-blepharisma','bf-bio-baclibres','bf-bio-agregado',
+   'bf-bio-diatomea','bf-bio-nematodo','bf-bio-flagelado','bf-bio-vorticella','bf-bio-opercularia']
+  .forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
+  const semEl=document.getElementById('bf-semana'), fechaEl=document.getElementById('bf-fecha');
   if(semEl)   semEl.value   = isoWeekLabel(new Date());
   if(fechaEl) fechaEl.value = new Date().toISOString().slice(0,10);
-  // Resetear tipo a inicio
   setBioTipo('inicio');
-  // Limpiar estado guardado
-  const st = document.getElementById('bio-save-st');
-  if(st) { st.style.color='var(--muted)'; st.textContent='Formulario limpio ✓'; setTimeout(()=>{ if(st) st.textContent=''; },2000); }
-  // Limpiar texto PDF guardado
-  _bioPdfText = '';
-  const pdfSt = document.getElementById('bio-pdf-st');
+  const st=document.getElementById('bio-save-st');
+  if(st) { st.style.color='var(--muted)'; st.textContent='Formulario limpio \u2713'; setTimeout(()=>{ if(st) st.textContent=''; },2000); }
+  _bioPdfText='';
+  const pdfSt=document.getElementById('bio-pdf-st');
   if(pdfSt) pdfSt.textContent='';
 }
 window.limpiarFormBio = limpiarFormBio;
@@ -4798,33 +4904,64 @@ async function rellenarConIA() {
   if(btn) btn.disabled=true;
   if(st)  { st.style.color='var(--warn)'; st.textContent='Analizando con IA...'; }
 
-  const prompt = `Eres un sistema de extracción de datos de informes de macroscopia y microscopia de fangos activados en una EDAR española.
-Extrae los datos del siguiente texto y devuelve ÚNICAMENTE un objeto JSON válido, sin texto adicional, sin markdown, sin backticks.
-Usa null para campos no encontrados o no mencionados.
+  const prompt = `Eres un sistema de extracción de datos de informes de macroscopia y microscopia de fangos activados (EDAR).
+Extrae los datos del texto y devuelve ÚNICAMENTE JSON válido, sin texto adicional, sin markdown, sin backticks.
+Para los bioindicadores usa true si el organismo aparece mencionado como presente (aunque sea un ejemplar), false si no se menciona o se dice ausente. null solo si el informe no habla de bioindicadores.
 
-Campos a extraer:
-- v30: número (mL/L) o null
-- ivf: número (mL/g) o null
-- color: string (ej "Pardo", "Pardo oscuro", "Negro") o null
-- olor: string (ej "Normal", "Sulfhídrico", "Putrefacción") o null
-- espumas: string (ej "Ausentes", "Escasas", "Moderadas", "Abundantes") o null
-- esp_tipo: string (ej "Blancas", "Marrón-grasas") o null
-- turbidez: string (ej "Clara", "Ligeramente turbia", "Turbia") o null
-- aspecto: string (ej "Bueno", "Regular", "Malo") o null
-- floc: string (ej "Compacto", "Irregular", "Difuso", "Pinpoint") o null
-- filamentos: número 0-5 o null
-- fil_tipo: string con tipos de filamentos encontrados o null
-- flagelados: número 0-3 o null
-- amebas: número 0-3 o null
-- cil_libres: número 0-3 o null
-- cil_pedu: número 0-3 o null
-- rotiferos: número 0-3 o null
-- nematodos: número 0-3 o null
-- valoracion: número 1-5 o null
-- obs: string con observaciones relevantes o null
+JSON con esta estructura exacta:
+{
+  "olor": "texto o null",
+  "color": "texto o null",
+  "ph": número o null,
+  "conductividad": número o null,
+  "dilucion": número o null,
+  "v5": número o null,
+  "v30": número o null,
+  "ivf": número o null,
+  "sedimentacion": "Lenta|Normal|Rápida o null",
+  "clarificado": "Transparente|Ligeramente turbio|Turbio o null",
+  "grasas": "No se observan|Presentes o null",
+  "reflote": "No se observa|Presente o null",
+  "bioagregacion": "texto o null",
+  "esp_probeta": "No se observan|Presentes o null",
+  "esp_grasas_prob": "No presenta|Presentes o null",
+  "turbidez": "Baja|Media|Alta o null",
+  "esp_reactores": "No se observan|Presentes o null",
+  "floc_forma": "Irregular|Regular|Mixta o null",
+  "floc_tam": "Pequeño|Mediano|Grande|Mixto o null",
+  "floc_nuc": "Con núcleo|Sin núcleo|Mixto o null",
+  "floc_color": "texto o null",
+  "floc_est": "Abierta y disgregada|Compacta|Mixta o null",
+  "dispersion": "Alta|Media|Baja o null",
+  "zoogloea": "Presente|Ausente o null",
+  "fil_grado": número 0-5 o null,
+  "fil_tipos": "texto o null",
+  "bio_ameba_desnuda": true/false/null,
+  "bio_aspidisca_cicada": true/false/null,
+  "bio_depranomonas": true/false/null,
+  "bio_cinetochillum": true/false/null,
+  "bio_pseudochilonodopsis": true/false/null,
+  "bio_rotaria": true/false/null,
+  "bio_blepharisma": true/false/null,
+  "bio_bacterias_libres": true/false/null,
+  "bio_agregado_bacteriano": true/false/null,
+  "bio_diatomea": true/false/null,
+  "bio_nematodo": true/false/null,
+  "bio_flagelado": true/false/null,
+  "bio_otros": "otros organismos no listados o null",
+  "od": número o null,
+  "temperatura": número o null,
+  "sslm": número o null,
+  "sslm_vols": número o null,
+  "sdlm": número o null,
+  "sdlm_vols": número o null,
+  "sst": número o null,
+  "sst_vols": número o null,
+  "obs": "conclusiones y recomendaciones resumidas o null"
+}
 
 TEXTO DEL INFORME:
-${_bioPdfText.slice(0, 8000)}`;
+${_bioPdfText.slice(0, 10000)}`;
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${getGeminiModel()}:generateContent?key=${key}`;
@@ -4837,21 +4974,45 @@ ${_bioPdfText.slice(0, 8000)}`;
     if(!res.ok) throw new Error(data.error?.message || 'Error ' + res.status);
 
     const raw    = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const p = JSON.parse(raw.replace(/```json|```/g,'').trim());
 
     const setV = (id,val) => { const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
-    setV('bf-v30',parsed.v30);      setV('bf-ivf',parsed.ivf);
-    setV('bf-color',parsed.color);  setV('bf-olor',parsed.olor);
-    setV('bf-espumas',parsed.espumas); setV('bf-esp-tipo',parsed.esp_tipo);
-    setV('bf-turb',parsed.turbidez); setV('bf-aspecto',parsed.aspecto);
-    setV('bf-floc',parsed.floc);    setV('bf-fil',parsed.filamentos);
-    setV('bf-fil-tipo',parsed.fil_tipo);
-    setV('bf-flag',parsed.flagelados); setV('bf-ame',parsed.amebas);
-    setV('bf-cil',parsed.cil_libres);  setV('bf-cilp',parsed.cil_pedu);
-    setV('bf-rot',parsed.rotiferos);   setV('bf-nem',parsed.nematodos);
-    setV('bf-val',parsed.valoracion);  setV('bf-obs',parsed.obs);
+    const setCb = (id,val) => { const el=document.getElementById(id); if(el&&val!=null) el.checked=!!val; };
 
-    if(st) { st.style.color='var(--accent2)'; st.textContent='Formulario rellenado ✓ Revisa y guarda'; }
+    setV('bf-olor',p.olor);          setV('bf-color',p.color);
+    setV('bf-ph',p.ph);              setV('bf-cond',p.conductividad);
+    setV('bf-dil',p.dilucion);       setV('bf-v5',p.v5);
+    setV('bf-v30',p.v30);            setV('bf-ivf',p.ivf);
+    setV('bf-sed',p.sedimentacion);  setV('bf-clar',p.clarificado);
+    setV('bf-grasas',p.grasas);      setV('bf-reflote',p.reflote);
+    setV('bf-bioag',p.bioagregacion);
+    setV('bf-esp-prob',p.esp_probeta); setV('bf-esp-gras',p.esp_grasas_prob);
+    setV('bf-turb',p.turbidez);      setV('bf-esp-reac',p.esp_reactores);
+    setV('bf-floc-forma',p.floc_forma); setV('bf-floc-tam',p.floc_tam);
+    setV('bf-floc-nuc',p.floc_nuc);  setV('bf-floc-color',p.floc_color);
+    setV('bf-floc-est',p.floc_est);  setV('bf-disp',p.dispersion);
+    setV('bf-zoogloea',p.zoogloea);  setV('bf-fil',p.fil_grado);
+    setV('bf-fil-tipo',p.fil_tipos);
+    setCb('bf-bio-ameba',p.bio_ameba_desnuda);
+    setCb('bf-bio-aspidisca',p.bio_aspidisca_cicada);
+    setCb('bf-bio-deprano',p.bio_depranomonas);
+    setCb('bf-bio-cineto',p.bio_cinetochillum);
+    setCb('bf-bio-pseudo',p.bio_pseudochilonodopsis);
+    setCb('bf-bio-rotaria',p.bio_rotaria);
+    setCb('bf-bio-blepharisma',p.bio_blepharisma);
+    setCb('bf-bio-baclibres',p.bio_bacterias_libres);
+    setCb('bf-bio-agregado',p.bio_agregado_bacteriano);
+    setCb('bf-bio-diatomea',p.bio_diatomea);
+    setCb('bf-bio-nematodo',p.bio_nematodo);
+    setCb('bf-bio-flagelado',p.bio_flagelado);
+    setV('bf-bio-otros',p.bio_otros);
+    setV('bf-od',p.od);              setV('bf-temp',p.temperatura);
+    setV('bf-sslm',p.sslm);         setV('bf-sslm-v',p.sslm_vols);
+    setV('bf-sdlm',p.sdlm);         setV('bf-sdlm-v',p.sdlm_vols);
+    setV('bf-sst',p.sst);           setV('bf-sst-v',p.sst_vols);
+    setV('bf-obs',p.obs);
+
+    if(st) { st.style.color='var(--accent2)'; st.textContent='Formulario rellenado \u2713 Revisa y guarda'; }
     setTimeout(()=>closeBioPdfPanel(), 1500);
   } catch(e) {
     if(st) { st.style.color='var(--danger)'; st.textContent='Error: '+e.message; }
@@ -4863,22 +5024,24 @@ window.rellenarConIA = rellenarConIA;
 function bioBuildChart(semanas) {
   const W=560,H=110,PL=32,PR=12,PT=10,PB=24,gW=W-PL-PR,gH=H-PT-PB;
   const n=semanas.length;
+  // Normalizado a [0,300]: IVF÷1 (cap 300), filamentos×60, OD×30, edad_fango×10
   const series=[
-    {fn:s=>s.fin?.macro?.ivf!=null?Math.min(s.fin.macro.ivf,300):null, fnI:s=>s.inicio?.macro?.ivf!=null?Math.min(s.inicio.macro.ivf,300):null, color:'#00e87a'},
-    {fn:s=>s.fin?.micro?.filamentos!=null?s.fin.micro.filamentos*60:null, fnI:s=>s.inicio?.micro?.filamentos!=null?s.inicio.micro.filamentos*60:null, color:'#ffb800'},
-    {fn:s=>s.fin?.micro?.valoracion!=null?s.fin.micro.valoracion*60:null, fnI:s=>s.inicio?.micro?.valoracion!=null?s.inicio.micro.valoracion*60:null, color:'#a78bfa'},
-    {fn:s=>{const e=(s.fin?.sim?.edad_fango??s.inicio?.sim?.edad_fango); return e!=null?e*10:null;}, color:'#00c8f0', dash:'4 3'},
+    {fn:s=>s.fin?.licor?.ivf!=null?Math.min(s.fin.licor.ivf,300):null,
+     fnI:s=>s.inicio?.licor?.ivf!=null?Math.min(s.inicio.licor.ivf,300):null,   color:'#00e87a'},
+    {fn:s=>s.fin?.filamentosos?.grado!=null?s.fin.filamentosos.grado*60:null,
+     fnI:s=>s.inicio?.filamentosos?.grado!=null?s.inicio.filamentosos.grado*60:null, color:'#ffb800'},
+    {fn:s=>s.fin?.datos?.od!=null?s.fin.datos.od*30:null,
+     fnI:s=>s.inicio?.datos?.od!=null?s.inicio.datos.od*30:null,                color:'#a78bfa'},
+    {fn:s=>{const e=s.fin?.sim?.edad_fango??s.inicio?.sim?.edad_fango; return e!=null?e*10:null;},
+     color:'#00c8f0', dash:'4 3'},
   ];
   function pts(fn){ return semanas.map((s,i)=>{ const val=fn(s); if(val==null)return null; return{x:PL+(n>1?i/(n-1):0.5)*gW, y:PT+gH-Math.min(1,Math.max(0,val/300))*gH}; }); }
   let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">`;
   for(let i=0;i<=3;i++){const y=PT+i*(gH/3);svg+=`<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="#3a5a72" stroke-width="0.5"/>`;}
   semanas.forEach((s,i)=>{ const x=(PL+(n>1?i/(n-1):0.5)*gW).toFixed(1); svg+=`<text x="${x}" y="${H-6}" text-anchor="middle" font-size="7" font-family="'Share Tech Mono',monospace" fill="#5a8099">${s.key.slice(-3)}</text>`; });
-  // inicio lines (faint)
   series.forEach(s=>{ if(!s.fnI) return; const ip=pts(s.fnI).filter(Boolean); if(ip.length<2)return; const path=ip.map((p,j)=>(j===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' '); svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="0.8" stroke-dasharray="2 3" opacity="0.35" stroke-linecap="round"/>`; ip.forEach(p=>svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="1.8" fill="${s.color}" opacity="0.35"/>`); });
-  // fin lines (main)
   series.forEach(s=>{ const fp=pts(s.fn).filter(Boolean); if(fp.length<2)return; const path=fp.map((p,j)=>(j===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' '); const dd=s.dash?`stroke-dasharray="${s.dash}"`:''; svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="1.5" ${dd} stroke-linecap="round" stroke-linejoin="round"/>`; fp.forEach(p=>svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${s.color}" opacity="0.85"/>`); });
-  // delta arrows (IVF)
-  semanas.forEach((s,i)=>{ if(s.inicio?.macro?.ivf==null||s.fin?.macro?.ivf==null) return; const d=s.fin.macro.ivf-s.inicio.macro.ivf; if(Math.abs(d)<5) return; const x=(PL+(n>1?i/(n-1):0.5)*gW).toFixed(1); svg+=`<text x="${x}" y="${PT+2}" text-anchor="middle" font-size="7" fill="${d>0?'#00e87a':'#ff4560'}" opacity="0.8">${d>0?'\u25b2':'\u25bc'}</text>`; });
+  semanas.forEach((s,i)=>{ if(s.inicio?.licor?.ivf==null||s.fin?.licor?.ivf==null) return; const d=s.fin.licor.ivf-s.inicio.licor.ivf; if(Math.abs(d)<5) return; const x=(PL+(n>1?i/(n-1):0.5)*gW).toFixed(1); svg+=`<text x="${x}" y="${PT+2}" text-anchor="middle" font-size="7" fill="${d>0?'#00e87a':'#ff4560'}" opacity="0.8">${d>0?'\u25b2':'\u25bc'}</text>`; });
   svg+='</svg>'; return svg;
 }
 
@@ -4888,31 +5051,38 @@ function bioBuildCard(semana) {
   const sim = fin?.sim || inicio?.sim || {};
   const row=(lbl,val)=>val!=null&&val!==''?`<div style="display:flex;justify-content:space-between;font-size:9px;padding:1px 0;"><span style="color:var(--muted);">${lbl}</span><span style="color:var(--text);font-weight:600;">${val}</span></div>`:'';
   const delta=(a,b)=>{ if(a==null||b==null)return ''; const d=b-a; if(Math.abs(d)<0.05)return '<span style="color:var(--muted);">&#x2500;</span>'; return d>0?`<span style="color:var(--accent2);">\u25b2${Math.abs(d).toFixed(d<1?1:0)}</span>`:`<span style="color:var(--danger);">\u25bc${Math.abs(d).toFixed(d<1?1:0)}</span>`; };
+
   function halfCol(report, label, bc) {
     if(!report) return `<div style="background:var(--card);border:1px dashed var(--border);border-radius:3px;padding:6px 8px;display:flex;align-items:center;justify-content:center;min-height:80px;"><span style="font-family:var(--mono);font-size:8px;color:var(--muted);">SIN INFORME</span></div>`;
-    const m=report.macro||{}, mi=report.micro||{};
-    const valC=v=>v>=4?'var(--accent2)':v>=3?'var(--warn)':'var(--danger)';
+    const l=report.licor||{}, fl=report.floculos||{}, fi=report.filamentosos||{}, b=report.bio||{}, d=report.datos||{};
     const filC=v=>v<=1?'var(--accent2)':v<=3?'var(--warn)':'var(--danger)';
-    const f=report.fecha?new Date(report.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}):'';
+    const fecha=report.fecha?new Date(report.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}):'';
+    // Bioindicadores presentes como badges
+    const bioKeys={ameba_desnuda:'Ameba',aspidisca_cicada:'Aspidisca',depranomonas:'Deprano.',cinetochillum:'Cineto.',pseudochilonodopsis:'Pseudo.',rotaria:'Rotaria',blepharisma:'Blepharisma',bacterias_libres:'Bac.libres',agregado_bacteriano:'Agr.bact.',diatomea:'Diatomea',nematodo:'Nematodo',flagelado:'Flagelado'};
+    const bioBadges=Object.entries(bioKeys).filter(([k])=>b[k]).map(([,n])=>`<span style="background:rgba(0,200,240,.1);border:1px solid rgba(0,200,240,.25);border-radius:2px;padding:0 4px;font-size:7.5px;color:var(--accent);white-space:nowrap;">${n}</span>`).join('');
     return `<div style="background:var(--card);border:1px solid ${bc};border-radius:3px;padding:6px 8px;">
-      <div style="font-family:var(--mono);font-size:7px;color:${bc};letter-spacing:.07em;margin-bottom:4px;">${label}${f?' · '+f:''}</div>
-      ${m.ivf!=null?`<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--light);">${m.ivf}<span style="font-size:8px;color:var(--muted);"> mL/g</span></div>`:''}
-      ${row('V30',m.v30!=null?m.v30+' mL/L':null)} ${row('Color',m.color)} ${row('Espumas',m.espumas)}
+      <div style="font-family:var(--mono);font-size:7px;color:${bc};letter-spacing:.07em;margin-bottom:4px;">${label}${fecha?' · '+fecha:''}</div>
+      ${l.ivf!=null?`<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--light);">${l.ivf}<span style="font-size:8px;color:var(--muted);"> ml/g IVF</span></div>`:''}
+      ${row('V30', l.v30!=null?l.v30+' ml'+(l.dilucion?` (${l.dilucion}dil)`:''): null)}
+      ${row('Color', l.color)} ${row('Sedim.', l.sedimentacion)} ${row('Clarificado', l.clarificado)}
+      ${row('Espumas prob.', report.espumas?.probeta)} ${row('Turbidez', report.espumas?.turbidez)}
       <div style="height:3px;"></div>
-      ${row('Floc',mi.floc)}
-      ${mi.filamentos!=null?`<div style="font-size:9px;padding:1px 0;display:flex;justify-content:space-between;"><span style="color:var(--muted);">Filamentos</span><span style="color:${filC(mi.filamentos)};font-weight:700;">${mi.filamentos}/5</span></div>`:''}
-      ${mi.valoracion!=null?`<div style="font-size:9px;padding:1px 0;display:flex;justify-content:space-between;"><span style="color:var(--muted);">Valoracion</span><span style="color:${valC(mi.valoracion)};font-weight:700;">\u2605 ${mi.valoracion}/5</span></div>`:''}
-      ${mi.obs?`<div style="font-size:8px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.3;">"${mi.obs.slice(0,55)}${mi.obs.length>55?'\u2026':''}"</div>`:''}
+      ${row('Floc forma', fl.forma)} ${row('Estructura', fl.estructura)} ${row('Dispersión', fl.dispersion)}
+      ${row('Zoogloea', fl.zoogloea)}
+      ${fi.grado!=null?`<div style="font-size:9px;padding:1px 0;display:flex;justify-content:space-between;"><span style="color:var(--muted);">Filamentos</span><span style="color:${filC(fi.grado)};font-weight:700;">${fi.grado}/5</span></div>`:''}
+      ${d.od!=null?`<div style="font-size:9px;padding:1px 0;display:flex;justify-content:space-between;"><span style="color:var(--muted);">OD</span><span style="color:var(--text);font-weight:600;">${d.od} mg/L</span></div>`:''}
+      ${bioBadges?`<div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;">${bioBadges}</div>`:''}
+      ${report.obs?`<div style="font-size:8px;color:var(--muted);margin-top:4px;font-style:italic;line-height:1.3;">"${report.obs.slice(0,80)}${report.obs.length>80?'\u2026':''}"</div>`:''}
     </div>`;
   }
+
   let deltaCol='';
   if(hasAmbos) {
-    const im=inicio.macro||{},fm=fin.macro||{},imi=inicio.micro||{},fmi=fin.micro||{};
+    const il=inicio.licor||{}, fl=fin.licor||{}, ifi=inicio.filamentosos||{}, ffi=fin.filamentosos||{};
     deltaCol=`<div style="background:var(--ink);border:1px solid var(--border);border-radius:3px;padding:6px 8px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:44px;">
       <div style="font-family:var(--mono);font-size:6.5px;color:var(--muted);letter-spacing:.07em;text-align:center;">\u0394SEM</div>
-      ${im.ivf!=null&&fm.ivf!=null?`<div style="text-align:center;font-family:var(--mono);font-size:9px;"><div style="color:var(--muted);font-size:6.5px;">IVF</div>${delta(im.ivf,fm.ivf)}</div>`:''}
-      ${imi.filamentos!=null&&fmi.filamentos!=null?`<div style="text-align:center;font-family:var(--mono);font-size:9px;"><div style="color:var(--muted);font-size:6.5px;">Fil.</div>${delta(imi.filamentos,fmi.filamentos)}</div>`:''}
-      ${imi.valoracion!=null&&fmi.valoracion!=null?`<div style="text-align:center;font-family:var(--mono);font-size:9px;"><div style="color:var(--muted);font-size:6.5px;">Val.</div>${delta(imi.valoracion,fmi.valoracion)}</div>`:''}
+      ${il.ivf!=null&&fl.ivf!=null?`<div style="text-align:center;font-family:var(--mono);font-size:9px;"><div style="color:var(--muted);font-size:6.5px;">IVF</div>${delta(il.ivf,fl.ivf)}</div>`:''}
+      ${ifi.grado!=null&&ffi.grado!=null?`<div style="text-align:center;font-family:var(--mono);font-size:9px;"><div style="color:var(--muted);font-size:6.5px;">Fil.</div>${delta(ifi.grado,ffi.grado)}</div>`:''}
     </div>`;
   }
   const gcols=hasAmbos?'1fr auto 1fr auto':'1fr 1fr';
