@@ -1371,21 +1371,13 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
             </div>
 
-            <!-- Pie: meta + tipo + simulador + submit -->
+            <!-- Pie: meta + etiqueta + simulador + submit -->
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:8px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;">
+              <div><div class="bio-lbl">Fecha muestra</div><input type="date" id="bf-fecha" class="bio-input-sm" onchange="bioFechaChange(this)"></div>
               <div><div class="bio-lbl">Semana ISO</div><input type="text" id="bf-semana" class="bio-input-sm" placeholder="2025-W22" maxlength="8"></div>
-              <div><div class="bio-lbl">Fecha muestra</div><input type="date" id="bf-fecha" class="bio-input-sm"></div>
-              <!-- Selector inicio / fin -->
-              <div>
-                <div class="bio-lbl">Momento</div>
-                <div style="display:flex;gap:4px;">
-                  <button id="bio-tipo-ini" class="bio-tipo-btn active" onclick="setBioTipo('inicio')">
-                    <i class="ti ti-sun-rise" aria-hidden="true"></i> Inicio semana
-                  </button>
-                  <button id="bio-tipo-fin" class="bio-tipo-btn" onclick="setBioTipo('fin')">
-                    <i class="ti ti-sun-set" aria-hidden="true"></i> Fin semana
-                  </button>
-                </div>
+              <div style="flex:1;min-width:120px;">
+                <div class="bio-lbl">Etiqueta del informe</div>
+                <input type="text" id="bf-etiqueta" class="bio-input" placeholder="ej. Lunes, Miércoles tarde, Muestra 1..." style="width:100%;">
               </div>
               <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:5px 9px;font-family:var(--mono);font-size:8px;color:var(--muted);">
                 <div style="color:var(--accent);letter-spacing:.06em;margin-bottom:2px;">DATOS SIMULADOR (auto)</div>
@@ -1393,7 +1385,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
               <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
                 <div id="bio-save-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);"></div>
-                <button class="bio-btn-sec" onclick="limpiarFormBio()" title="Vaciar formulario para el próximo informe"><i class="ti ti-eraser" aria-hidden="true"></i> Limpiar</button>
+                <button class="bio-btn-sec" onclick="limpiarFormBio()" title="Vaciar formulario"><i class="ti ti-eraser" aria-hidden="true"></i> Limpiar</button>
                 <button class="bio-btn-pri" onclick="submitInformeBio()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar</button>
               </div>
             </div>
@@ -4586,17 +4578,6 @@ function loadInformes() {
 
 // ══ ANALÍTICA BIOLÓGICA ═══════════════════════════════════════════════════════
 
-let _bioTipo = 'inicio';
-
-function setBioTipo(tipo) {
-  _bioTipo = tipo;
-  const btnI = document.getElementById('bio-tipo-ini');
-  const btnF = document.getElementById('bio-tipo-fin');
-  if(btnI) btnI.classList.toggle('active', tipo === 'inicio');
-  if(btnF) btnF.classList.toggle('active', tipo === 'fin');
-}
-window.setBioTipo = setBioTipo;
-
 function bioTab(which) {
   const form = document.getElementById('bio-pf');
   const hist = document.getElementById('bio-ph');
@@ -4621,6 +4602,12 @@ function isoWeekLabel(d) {
   return y+'-W'+String(w).padStart(2,'0');
 }
 
+function bioFechaChange(input) {
+  const semEl = document.getElementById('bf-semana');
+  if(semEl && input.value) semEl.value = isoWeekLabel(new Date(input.value + 'T12:00:00'));
+}
+window.bioFechaChange = bioFechaChange;
+
 function loadAnalitica() {
   const simData = localStorage.getItem('sgi-kpi-sim');
   if(simData) {
@@ -4631,21 +4618,11 @@ function loadAnalitica() {
       if(d.dqo)  { const el=document.getElementById('bio-sim-dqo');  if(el) el.textContent=d.dqo; }
     } catch(e){}
   }
-  const semEl   = document.getElementById('bf-semana');
   const fechaEl = document.getElementById('bf-fecha');
-  // Solo auto-rellenar si están vacíos
+  const semEl   = document.getElementById('bf-semana');
   if(fechaEl && !fechaEl.value) fechaEl.value = new Date().toISOString().slice(0,10);
-  if(semEl   && !semEl.value && fechaEl && fechaEl.value) {
+  if(semEl && !semEl.value && fechaEl && fechaEl.value)
     semEl.value = isoWeekLabel(new Date(fechaEl.value + 'T12:00:00'));
-  }
-  // Al cambiar la fecha, recalcular la semana automáticamente
-  if(fechaEl && !fechaEl._bioListener) {
-    fechaEl._bioListener = true;
-    fechaEl.addEventListener('change', function() {
-      const s = document.getElementById('bf-semana');
-      if(s && this.value) s.value = isoWeekLabel(new Date(this.value + 'T12:00:00'));
-    });
-  }
 }
 window.loadAnalitica = loadAnalitica;
 
@@ -4656,7 +4633,7 @@ function bioFormToObj() {
   const simE=document.getElementById('bio-sim-edad'), simS=document.getElementById('bio-sim-sst'), simD=document.getElementById('bio-sim-dqo');
   const sp = el => { if(!el) return null; const t=(el.textContent||'').trim(); return t&&t!=='—'?Number(t)||null:null; };
   return {
-    semana:v('bf-semana'), fecha:v('bf-fecha'), tipo:_bioTipo, ts:Date.now(),
+    semana:v('bf-semana'), fecha:v('bf-fecha'), etiqueta:v('bf-etiqueta'), ts:Date.now(),
     licor:{ olor:v('bf-olor'), color:v('bf-color'), ph:n('bf-ph'), conductividad:n('bf-cond'),
             dilucion:n('bf-dil'), v5:n('bf-v5'), v30:n('bf-v30'), ivf:n('bf-ivf'),
             sedimentacion:v('bf-sed'), clarificado:v('bf-clar'), grasas:v('bf-grasas'),
@@ -4680,22 +4657,21 @@ function bioFormToObj() {
   };
 }
 
-
 async function submitInformeBio() {
   if(!window._fb) { alert('Firebase no disponible'); return; }
   const session = getSession();
   if(!session) { alert('Sesion no iniciada'); return; }
   const obj = bioFormToObj();
-  if(!obj.semana) { alert('Indica la semana ISO (ej. 2025-W22)'); return; }
+  if(!obj.fecha) { alert('Indica la fecha del informe'); return; }
   obj.usuario = session.username;
   const st = document.getElementById('bio-save-st');
   if(st) { st.style.color='var(--warn)'; st.textContent='GUARDANDO...'; }
   try {
-    const key  = obj.semana.replace(/[^a-zA-Z0-9\-]/g,'_');
-    const path = 'informes_bio/' + key + '/' + obj.tipo;
-    await window._fb.set(window._fb.ref(window._fb.db, path), obj);
-    const lbl = obj.tipo === 'inicio' ? 'INICIO guardado' : 'FIN guardado';
-    if(st) { st.style.color='var(--accent2)'; st.textContent=lbl+' \u2713'; setTimeout(()=>{ if(st) st.textContent=''; },3000); }
+    const listRef = window._fb.ref(window._fb.db, 'informes_bio');
+    const newRef  = window._fb.push(listRef);
+    await window._fb.set(newRef, obj);
+    const lbl = obj.etiqueta || obj.fecha;
+    if(st) { st.style.color='var(--accent2)'; st.textContent=lbl+' guardado \u2713'; setTimeout(()=>{ if(st) st.textContent=''; },3000); }
   } catch(e) {
     if(st) { st.style.color='var(--danger)'; st.textContent='ERROR: '+e.message; }
   }
@@ -4704,22 +4680,18 @@ window.submitInformeBio = submitInformeBio;
 
 function limpiarFormBio() {
   const ids = ['bf-olor','bf-color','bf-ph','bf-cond','bf-dil','bf-v5','bf-v30','bf-ivf',
-               'bf-sed','bf-clar','bf-grasas','bf-reflote','bf-bioag',
-               'bf-esp-prob','bf-esp-gras','bf-turb','bf-esp-reac',
-               'bf-floc-forma','bf-floc-tam','bf-floc-nuc','bf-floc-color','bf-floc-est','bf-disp','bf-zoogloea',
-               'bf-fil','bf-fil-tipo',
-               'bf-od','bf-temp','bf-sslm','bf-sslm-v','bf-sdlm','bf-sdlm-v','bf-sst','bf-sst-v',
-               'bf-bio-otros','bf-obs'];
+               'bf-sed','bf-clar','bf-grasas','bf-reflote','bf-bioag','bf-esp-prob','bf-esp-gras',
+               'bf-turb','bf-esp-reac','bf-floc-forma','bf-floc-tam','bf-floc-nuc','bf-floc-color',
+               'bf-floc-est','bf-disp','bf-zoogloea','bf-fil','bf-fil-tipo','bf-od','bf-temp',
+               'bf-sslm','bf-sslm-v','bf-sdlm','bf-sdlm-v','bf-sst','bf-sst-v','bf-bio-otros','bf-obs','bf-etiqueta'];
   ids.forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  // Desmarcar checkboxes
   ['bf-bio-ameba','bf-bio-aspidisca','bf-bio-deprano','bf-bio-cineto','bf-bio-pseudo',
    'bf-bio-rotaria','bf-bio-blepharisma','bf-bio-baclibres','bf-bio-agregado',
    'bf-bio-diatomea','bf-bio-nematodo','bf-bio-flagelado','bf-bio-vorticella','bf-bio-opercularia']
   .forEach(id => { const el=document.getElementById(id); if(el) el.checked=false; });
-  const semEl=document.getElementById('bf-semana'), fechaEl=document.getElementById('bf-fecha');
+  const fechaEl=document.getElementById('bf-fecha'), semEl=document.getElementById('bf-semana');
   if(fechaEl) fechaEl.value = new Date().toISOString().slice(0,10);
   if(semEl)   semEl.value   = isoWeekLabel(new Date());
-  setBioTipo('inicio');
   const st=document.getElementById('bio-save-st');
   if(st) { st.style.color='var(--muted)'; st.textContent='Formulario limpio \u2713'; setTimeout(()=>{ if(st) st.textContent=''; },2000); }
   _bioPdfText='';
@@ -5122,58 +5094,43 @@ function bioBuildCharts(entries) {
     mkDataset(e=>e.sim?.edad_fango??null, '#00c8f0', 'Edad fango'), 'd');
 }
 
-function bioBuildCard(semana) {
-  const {key, inicio, fin} = semana;
-  const hasAmbos = !!(inicio && fin);
-  const sim = fin?.sim || inicio?.sim || {};
+function bioBuildCard(entry) {
+  const m=entry.licor||{}, fl=entry.floculos||{}, fi=entry.filamentosos||{}, b=entry.bio||{}, d=entry.datos||{}, sim=entry.sim||{};
   const row=(lbl,val)=>val!=null&&val!==''?`<div style="display:flex;justify-content:space-between;font-size:9px;padding:1px 0;"><span style="color:var(--muted);">${lbl}</span><span style="color:var(--text);font-weight:600;">${val}</span></div>`:'';
-  const delta=(a,b)=>{ if(a==null||b==null)return ''; const d=b-a; if(Math.abs(d)<0.05)return '<span style="color:var(--muted);">&#x2500;</span>'; return d>0?`<span style="color:var(--accent2);">\u25b2${Math.abs(d).toFixed(d<1?1:0)}</span>`:`<span style="color:var(--danger);">\u25bc${Math.abs(d).toFixed(d<1?1:0)}</span>`; };
+  const filC=v=>v<=1?'var(--accent2)':v<=3?'var(--warn)':'var(--danger)';
+  const fecha = entry.fecha ? new Date(entry.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+  const etiqueta = entry.etiqueta || entry.tipo || '';
+  // Bioindicadores presentes
+  const bioKeys={ameba_desnuda:'Ameba',aspidisca_cicada:'Aspidisca',depranomonas:'Deprano.',cinetochillum:'Cineto.',pseudochilonodopsis:'Pseudo.',rotaria:'Rotaria',blepharisma:'Blepharisma',bacterias_libres:'Bac.libres',agregado_bacteriano:'Agr.bact.',diatomea:'Diatomea',nematodo:'Nematodo',flagelado:'Flagelado'};
+  const bioBadges=Object.entries(bioKeys).filter(([k])=>b[k]).map(([,n])=>`<span style="background:rgba(0,200,240,.1);border:1px solid rgba(0,200,240,.25);border-radius:2px;padding:0 4px;font-size:7.5px;color:var(--accent);white-space:nowrap;">${n}</span>`).join('');
 
-  function halfCol(report, label, bc) {
-    if(!report) return `<div style="background:var(--card);border:1px dashed var(--border);border-radius:3px;padding:6px 8px;display:flex;align-items:center;justify-content:center;min-height:80px;"><span style="font-family:var(--mono);font-size:8px;color:var(--muted);">SIN INFORME</span></div>`;
-    const l=report.licor||{}, fl=report.floculos||{}, fi=report.filamentosos||{}, b=report.bio||{}, d=report.datos||{};
-    const filC=v=>v<=1?'var(--accent2)':v<=3?'var(--warn)':'var(--danger)';
-    const fecha=report.fecha?new Date(report.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}):'';
-    // Bioindicadores presentes como badges
-    const bioKeys={ameba_desnuda:'Ameba',aspidisca_cicada:'Aspidisca',depranomonas:'Deprano.',cinetochillum:'Cineto.',pseudochilonodopsis:'Pseudo.',rotaria:'Rotaria',blepharisma:'Blepharisma',bacterias_libres:'Bac.libres',agregado_bacteriano:'Agr.bact.',diatomea:'Diatomea',nematodo:'Nematodo',flagelado:'Flagelado'};
-    const bioBadges=Object.entries(bioKeys).filter(([k])=>b[k]).map(([,n])=>`<span style="background:rgba(0,200,240,.1);border:1px solid rgba(0,200,240,.25);border-radius:2px;padding:0 4px;font-size:7.5px;color:var(--accent);white-space:nowrap;">${n}</span>`).join('');
-    return `<div style="background:var(--card);border:1px solid ${bc};border-radius:3px;padding:6px 8px;">
-      <div style="font-family:var(--mono);font-size:7px;color:${bc};letter-spacing:.07em;margin-bottom:4px;">${label}${fecha?' · '+fecha:''}</div>
-      ${l.ivf!=null?`<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--light);">${l.ivf}<span style="font-size:8px;color:var(--muted);"> ml/g IVF</span></div>`:''}
-      ${row('V30', l.v30!=null?l.v30+' ml'+(l.dilucion?` (${l.dilucion}dil)`:''): null)}
-      ${row('Color', l.color)} ${row('Sedim.', l.sedimentacion)} ${row('Clarificado', l.clarificado)}
-      ${row('Espumas prob.', report.espumas?.probeta)} ${row('Turbidez', report.espumas?.turbidez)}
-      <div style="height:3px;"></div>
-      ${row('Floc forma', fl.forma)} ${row('Estructura', fl.estructura)} ${row('Dispersión', fl.dispersion)}
-      ${row('Zoogloea', fl.zoogloea)}
-      ${fi.grado!=null?`<div style="font-size:9px;padding:1px 0;display:flex;justify-content:space-between;"><span style="color:var(--muted);">Filamentos</span><span style="color:${filC(fi.grado)};font-weight:700;">${fi.grado}/5</span></div>`:''}
-      ${d.od!=null?`<div style="font-size:9px;padding:1px 0;display:flex;justify-content:space-between;"><span style="color:var(--muted);">OD</span><span style="color:var(--text);font-weight:600;">${d.od} mg/L</span></div>`:''}
-      ${bioBadges?`<div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;">${bioBadges}</div>`:''}
-      ${report.obs?`<div style="font-size:8px;color:var(--muted);margin-top:4px;font-style:italic;line-height:1.3;">"${report.obs.slice(0,80)}${report.obs.length>80?'\u2026':''}"</div>`:''}
-    </div>`;
-  }
-
-  let deltaCol='';
-  if(hasAmbos) {
-    const il=inicio.licor||{}, fl=fin.licor||{}, ifi=inicio.filamentosos||{}, ffi=fin.filamentosos||{};
-    deltaCol=`<div style="background:var(--ink);border:1px solid var(--border);border-radius:3px;padding:6px 8px;display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:44px;">
-      <div style="font-family:var(--mono);font-size:6.5px;color:var(--muted);letter-spacing:.07em;text-align:center;">\u0394SEM</div>
-      ${il.ivf!=null&&fl.ivf!=null?`<div style="text-align:center;font-family:var(--mono);font-size:9px;"><div style="color:var(--muted);font-size:6.5px;">IVF</div>${delta(il.ivf,fl.ivf)}</div>`:''}
-      ${ifi.grado!=null&&ffi.grado!=null?`<div style="text-align:center;font-family:var(--mono);font-size:9px;"><div style="color:var(--muted);font-size:6.5px;">Fil.</div>${delta(ifi.grado,ffi.grado)}</div>`:''}
-    </div>`;
-  }
-  const gcols=hasAmbos?'1fr auto 1fr auto':'1fr 1fr';
   return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
       <i class="ti ti-microscope" style="font-size:14px;color:var(--accent);" aria-hidden="true"></i>
-      <span style="font-family:var(--mono);font-size:10px;color:var(--light);font-weight:600;letter-spacing:.05em;">${key}</span>
-      ${hasAmbos?'<span style="font-family:var(--mono);font-size:8px;background:rgba(0,232,122,.1);border:1px solid rgba(0,232,122,.3);border-radius:2px;color:var(--accent2);padding:1px 6px;">inicio + fin</span>':'<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">'+(inicio?'solo inicio':'solo fin')+'</span>'}
-      <span style="font-family:var(--mono);font-size:7.5px;color:var(--muted);margin-left:auto;">${(inicio||fin)?.usuario||''}</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--light);font-weight:600;">${fecha}</span>
+      ${etiqueta?`<span style="font-family:var(--mono);font-size:9px;background:rgba(0,200,240,.1);border:1px solid rgba(0,200,240,.3);border-radius:3px;padding:1px 7px;color:var(--accent);">${etiqueta}</span>`:''}
+      ${entry.semana?`<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${entry.semana}</span>`:''}
+      ${fi.grado!=null?`<span style="font-family:var(--mono);font-size:8px;color:${filC(fi.grado)};margin-left:auto;">Fil. ${fi.grado}/5</span>`:'<span style="margin-left:auto;"></span>'}
+      <span style="font-family:var(--mono);font-size:7.5px;color:var(--muted);">${entry.usuario||''}</span>
     </div>
-    <div style="display:grid;grid-template-columns:${gcols};gap:6px;">
-      ${halfCol(inicio,'INICIO','#00c8f0')}
-      ${hasAmbos?deltaCol:''}
-      ${halfCol(fin,'FIN','#00e87a')}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:6px 8px;">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--accent2);letter-spacing:.07em;margin-bottom:4px;">LICOR MEZCLA</div>
+        ${m.ivf!=null?`<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--light);">${m.ivf}<span style="font-size:8px;color:var(--muted);"> ml/g IVF</span></div>`:''}
+        ${row('V30',m.v30!=null?m.v30+' ml':null)} ${row('Color',m.color)}
+        ${row('Sedim.',m.sedimentacion)} ${row('Clarificado',m.clarificado)}
+        ${row('Espumas',(entry.espumas||{}).probeta)}
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:6px 8px;">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--accent);letter-spacing:.07em;margin-bottom:4px;">MICROSCOPIA</div>
+        ${row('Floc',fl.forma)} ${row('Estructura',fl.estructura)} ${row('Dispersión',fl.dispersion)}
+        ${row('Zoogloea',fl.zoogloea)}
+        ${fi.grado!=null?`<div style="font-size:9px;padding:1px 0;display:flex;justify-content:space-between;"><span style="color:var(--muted);">Filamentos</span><span style="color:${filC(fi.grado)};font-weight:700;">${fi.grado}/5</span></div>`:''}
+        ${fi.tipos?`<div style="font-size:8px;color:var(--muted);font-style:italic;margin-top:2px;">${fi.tipos}</div>`:''}
+        ${d.od!=null?`<div style="font-size:9px;padding:2px 0 1px;display:flex;justify-content:space-between;"><span style="color:var(--muted);">OD</span><span style="color:var(--text);font-weight:600;">${d.od} mg/L</span></div>`:''}
+        ${bioBadges?`<div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;">${bioBadges}</div>`:''}
+        ${entry.obs?`<div style="font-size:8px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.3;">"${entry.obs.slice(0,70)}${entry.obs.length>70?'\u2026':''}"</div>`:''}
+      </div>
       <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:6px 8px;">
         <div style="font-family:var(--mono);font-size:7px;color:var(--warn);letter-spacing:.07em;margin-bottom:4px;">SIMULADOR</div>
         ${sim.edad_fango!=null?`<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--light);">${sim.edad_fango}<span style="font-size:8px;color:var(--muted);"> d</span></div><div style="font-size:7.5px;color:var(--muted);margin-bottom:2px;">Edad fango</div>`:'<div style="font-size:8px;color:var(--muted);">Sin datos sim.</div>'}
@@ -5189,13 +5146,11 @@ async function loadBioHistory() {
   if(!listEl||!window._fb) return;
   listEl.innerHTML='<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Cargando...</div>';
 
-  // Cargar Chart.js si no está disponible
   if(!window.Chart) {
     await new Promise((res,rej)=>{
       const s=document.createElement('script');
       s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
-      s.onload=res; s.onerror=rej;
-      document.head.appendChild(s);
+      s.onload=res; s.onerror=rej; document.head.appendChild(s);
     });
   }
 
@@ -5207,32 +5162,37 @@ async function loadBioHistory() {
       return;
     }
 
-    // Estructura por semanas para las tarjetas
-    const semanas=Object.entries(data).map(([key,val])=>{
-      if(val.inicio||val.fin) return{key,inicio:val.inicio||null,fin:val.fin||null};
-      return{key,inicio:null,fin:val};
-    }).sort((a,b)=>{
-      const ta=Math.max(a.fin?.ts||0,a.inicio?.ts||0);
-      const tb=Math.max(b.fin?.ts||0,b.inicio?.ts||0);
-      return tb-ta;
-    }).slice(0,10);
-
-    // Lista plana de informes individuales ordenados por fecha real → para las gráficas
-    const flatEntries = [];
+    // Normalizar: soporta estructura nueva (push keys) y antigua (semana/inicio/fin)
+    const allEntries = [];
     Object.values(data).forEach(val => {
-      const entries = (val.inicio||val.fin) ? [val.inicio, val.fin].filter(Boolean) : [val];
-      entries.forEach(e => {
-        if(!e) return;
-        const fechaStr = e.fecha || '';
-        const fechaMs  = fechaStr ? new Date(fechaStr + 'T12:00:00').getTime() : (e.ts||0);
-        flatEntries.push({ ...e, _fechaMs: fechaMs, _label: fechaStr ? fechaStr.slice(5).replace('-','/') : (e.semana||'?') });
-      });
+      if(val.fecha || val.ts) {
+        // Nueva estructura: entrada plana directa
+        allEntries.push(val);
+      } else {
+        // Estructura antigua: {inicio, fin} agrupados por semana
+        if(val.inicio) allEntries.push(val.inicio);
+        if(val.fin)    allEntries.push(val.fin);
+      }
     });
-    flatEntries.sort((a,b) => a._fechaMs - b._fechaMs);
-    const chartEntries = flatEntries.slice(-10); // últimas 10 entradas individuales
 
+    // Ordenar por fecha real, las más recientes primero para las tarjetas
+    allEntries.sort((a,b) => {
+      const fa = a.fecha ? new Date(a.fecha+'T12:00:00').getTime() : (a.ts||0);
+      const fb = b.fecha ? new Date(b.fecha+'T12:00:00').getTime() : (b.ts||0);
+      return fb - fa;
+    });
+
+    // Gráfica: las últimas 15 entradas en orden cronológico
+    const chartEntries = [...allEntries].reverse().slice(0, 15).reverse();
+    chartEntries.forEach(e => {
+      e._fechaMs = e.fecha ? new Date(e.fecha+'T12:00:00').getTime() : (e.ts||0);
+      e._label   = e.fecha ? e.fecha.slice(5).replace('-','/') : (e.semana||'?');
+      if(e.etiqueta) e._label += ' · ' + e.etiqueta;
+    });
     setTimeout(()=>{ if(chartEntries.length>0) bioBuildCharts(chartEntries); }, 80);
-    listEl.innerHTML=semanas.map(s=>bioBuildCard(s)).join('');
+
+    // Tarjetas: las más recientes arriba
+    listEl.innerHTML = allEntries.slice(0,20).map(e => bioBuildCard(e)).join('');
   } catch(e) {
     listEl.innerHTML=`<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Error: ${e.message}</div>`;
   }
