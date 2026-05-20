@@ -585,6 +585,25 @@ body::before {
 
 /* Hide old portal visual layer */
 .portal-main, .portal-hero, .portal-grid-wrapper { display:none !important; }
+
+/* ── ANALÍTICA BIOLÓGICA ── */
+.bio-tab-btn{background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.bio-tab-btn:hover{color:var(--text);border-color:var(--accent);}
+.bio-tab-btn.active{background:rgba(0,200,240,.1);border-color:rgba(0,200,240,.4);color:var(--accent);}
+.bio-lbl{font-family:var(--mono);font-size:7.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.bio-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 7px;outline:none;transition:border-color .15s;}
+.bio-input:focus{border-color:var(--accent);}
+.bio-input-sm{width:100px;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 7px;outline:none;transition:border-color .15s;}
+.bio-input-sm:focus{border-color:var(--accent);}
+textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
+.bio-select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:9px;padding:4px 6px;outline:none;cursor:pointer;}
+.bio-select:focus{border-color:var(--accent);}
+.bio-select-mini{background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:9px;padding:2px 4px;outline:none;cursor:pointer;width:48px;}
+.bio-select-mini:focus{border-color:var(--accent);}
+.bio-btn-pri{background:rgba(0,200,240,.12);border:1px solid rgba(0,200,240,.4);border-radius:3px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 14px;transition:background .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.bio-btn-pri:hover{background:rgba(0,200,240,.22);}
+.bio-btn-sec{background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.bio-btn-sec:hover{color:var(--text);border-color:var(--accent);}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -1178,14 +1197,119 @@ body::before {
           </div>
         </div>
 
-        <!-- ── PANEL: ANALÍTICA ── -->
+        <!-- ── PANEL: ANALÍTICA BIOLÓGICA ── -->
         <div class="p-panel" id="panel-analitica">
-          <div class="p-panel-header"><i class="ti ti-chart-line" aria-hidden="true"></i>Analítica</div>
-          <div class="p-coming">
-            <i class="ti ti-chart-area" aria-hidden="true"></i>
-            <p>PRÓXIMAMENTE · HISTÓRICOS FIREBASE</p>
+          <div class="p-panel-header" style="align-items:center;">
+            <i class="ti ti-chart-line" aria-hidden="true"></i>Analítica
+            <div style="margin-left:auto;display:flex;gap:5px;">
+              <button class="bio-tab-btn active" id="bio-tab-form" onclick="bioTab('form')"><i class="ti ti-microscope" aria-hidden="true"></i> Informe Bio</button>
+              <button class="bio-tab-btn" id="bio-tab-hist" onclick="bioTab('hist')"><i class="ti ti-chart-area" aria-hidden="true"></i> Tendencias</button>
+            </div>
           </div>
-        </div>
+
+          <!-- ── FORMULARIO DE INFORME BIOLÓGICO ── -->
+          <div id="bio-pf" style="display:flex;flex-direction:column;flex:1;overflow-y:auto;gap:8px;padding-bottom:6px;">
+
+            <!-- Carga PDF / IA -->
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:9px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+              <i class="ti ti-file-type-pdf" style="font-size:20px;color:var(--danger);flex-shrink:0;" aria-hidden="true"></i>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:1px;">EXTRACCIÓN IA · PDF SEMANAL</div>
+                <div style="font-size:9px;color:var(--muted);">Sube el informe y la IA extrae automáticamente los datos de macro y microscopia</div>
+              </div>
+              <input type="file" id="bio-pdf-input" accept=".pdf" style="display:none;" onchange="cargarPDFBio(this)">
+              <button class="bio-btn-sec" onclick="document.getElementById('bio-pdf-input').click()"><i class="ti ti-upload" aria-hidden="true"></i> PDF</button>
+              <div id="bio-pdf-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);max-width:130px;text-align:right;line-height:1.3;white-space:pre-line;"></div>
+            </div>
+
+            <!-- Grid: Macroscopia | Microscopia -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:300px;">
+
+              <!-- MACROSCOPIA -->
+              <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;">
+                <div style="font-family:var(--mono);font-size:8px;color:var(--accent2);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;flex-shrink:0;">MACROSCOPIA</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div><div class="bio-lbl">V30 (mL/L)</div><input type="number" id="bf-v30" class="bio-input" placeholder="—" min="0" max="1000" step="1"></div>
+                  <div><div class="bio-lbl">IVF (mL/g)</div><input type="number" id="bf-ivf" class="bio-input" placeholder="—" min="0" max="500" step="0.1"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div><div class="bio-lbl">Color del fango</div>
+                  <select id="bf-color" class="bio-select"><option value="">—</option><option>Pardo claro</option><option>Pardo</option><option>Pardo oscuro</option><option>Negro</option><option>Otro</option></select></div>
+                  <div><div class="bio-lbl">Olor</div>
+                  <select id="bf-olor" class="bio-select"><option value="">—</option><option>Normal</option><option>Sulfhídrico</option><option>Putrefacción</option><option>Otro</option></select></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div><div class="bio-lbl">Espumas</div>
+                  <select id="bf-espumas" class="bio-select"><option value="">—</option><option>Ausentes</option><option>Escasas</option><option>Moderadas</option><option>Abundantes</option></select></div>
+                  <div><div class="bio-lbl">Tipo espumas</div>
+                  <select id="bf-esp-tipo" class="bio-select"><option value="">—</option><option>Blancas</option><option>Marrón-grasas</option><option>Chemical</option><option>Otra</option></select></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div><div class="bio-lbl">Turbidez sobrenadante</div>
+                  <select id="bf-turb" class="bio-select"><option value="">—</option><option>Clara</option><option>Ligeramente turbia</option><option>Turbia</option><option>Muy turbia</option></select></div>
+                  <div><div class="bio-lbl">Aspecto general</div>
+                  <select id="bf-aspecto" class="bio-select"><option value="">—</option><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Malo</option></select></div>
+                </div>
+              </div>
+
+              <!-- MICROSCOPIA -->
+              <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;">
+                <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:5px;flex-shrink:0;">MICROSCOPIA</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <div><div class="bio-lbl">Morfología floc</div>
+                  <select id="bf-floc" class="bio-select"><option value="">—</option><option>Compacto</option><option>Irregular</option><option>Difuso</option><option>Pinpoint</option><option>Mixto</option></select></div>
+                  <div><div class="bio-lbl">Filamentos (0–5)</div>
+                  <select id="bf-fil" class="bio-select"><option value="">—</option><option value="0">0 – Ninguno</option><option value="1">1 – Escasos</option><option value="2">2 – Algunos</option><option value="3">3 – Moderados</option><option value="4">4 – Abundantes</option><option value="5">5 – Excesivos</option></select></div>
+                </div>
+                <div><div class="bio-lbl">Tipo de filamentos</div>
+                <input type="text" id="bf-fil-tipo" class="bio-input" placeholder="ej. Microthrix parvicella, Tipo 021N..."></div>
+                <div style="font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.05em;padding-top:2px;">FAUNA · 0=ausente 1=escasa 2=presente 3=abundante</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Flagelados</span><select id="bf-flag" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Amebas</span><select id="bf-ame" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Cil. libres</span><select id="bf-cil" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Cil. pedunc.</span><select id="bf-cilp" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Rotíferos</span><select id="bf-rot" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(58,90,114,.5);"><span style="font-size:9px;color:var(--muted);">Nematodos</span><select id="bf-nem" class="bio-select-mini"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+                </div>
+                <div><div class="bio-lbl">Valoración global (1–5)</div>
+                <select id="bf-val" class="bio-select"><option value="">—</option><option value="1">1 – Muy malo</option><option value="2">2 – Malo</option><option value="3">3 – Regular</option><option value="4">4 – Bueno</option><option value="5">5 – Excelente</option></select></div>
+                <div style="flex:1;"><div class="bio-lbl">Observaciones</div>
+                <textarea id="bf-obs" class="bio-input" placeholder="Observaciones adicionales..." style="width:100%;min-height:55px;resize:vertical;line-height:1.5;"></textarea></div>
+              </div>
+            </div>
+
+            <!-- Pie: meta + simulador + submit -->
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:8px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;">
+              <div><div class="bio-lbl">Semana ISO</div><input type="text" id="bf-semana" class="bio-input-sm" placeholder="2025-W22" maxlength="8"></div>
+              <div><div class="bio-lbl">Fecha muestra</div><input type="date" id="bf-fecha" class="bio-input-sm"></div>
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:5px 9px;font-family:var(--mono);font-size:8px;color:var(--muted);">
+                <div style="color:var(--accent);letter-spacing:.06em;margin-bottom:2px;">DATOS SIMULADOR (auto)</div>
+                <span>Edad: <b id="bio-sim-edad" style="color:var(--text);">—</b> d &nbsp;·&nbsp; SST: <b id="bio-sim-sst" style="color:var(--text);">—</b> mg/L &nbsp;·&nbsp; DQO: <b id="bio-sim-dqo" style="color:var(--text);">—</b>%</span>
+              </div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+                <div id="bio-save-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);"></div>
+                <button class="bio-btn-pri" onclick="submitInformeBio()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar semana</button>
+              </div>
+            </div>
+          </div><!-- /#bio-pf -->
+
+          <!-- ── TENDENCIAS BIOLÓGICAS ── -->
+          <div id="bio-ph" style="display:none;flex:1;overflow-y:auto;flex-direction:column;gap:8px;padding-bottom:6px;">
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex-shrink:0;">
+              <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">TENDENCIA SEMANAL — ÚLTIMAS 10 SEMANAS</div>
+              <div id="bio-chart-svg"></div>
+              <div style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap;">
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#00e87a;vertical-align:middle;"></span>IVF (mL/g ÷3)</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#ffb800;vertical-align:middle;"></span>Filamentos ×60</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#a78bfa;vertical-align:middle;"></span>Valoración ×60</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:18px;height:2px;background:#00c8f0;border-top:1px dashed #00c8f0;vertical-align:middle;"></span>Edad fango ×10</span>
+              </div>
+            </div>
+            <div id="bio-hist-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div><!-- /#bio-ph -->
+
+        </div><!-- /#panel-analitica -->
 
         <!-- ── PANEL: INFORMES ── -->
         <div class="p-panel" id="panel-informes">
@@ -4128,7 +4252,8 @@ function sbNav(id) {
   }
   if(id === 'informes')    loadInformes();
   if(id === 'tendencias')  loadTendencias();
-  if(id === 'alertas')  loadAlertas();
+  if(id === 'alertas')     loadAlertas();
+  if(id === 'analitica')   loadAnalitica();
 }
 
 // ══ USER POPOVER ═══════════════════════════════════════════════════════════════
@@ -4299,6 +4424,238 @@ function loadInformes() {
   }).catch(() => { list.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">ERROR CARGANDO INFORMES</div>'; });
 }
 
+
+// ══ ANALÍTICA BIOLÓGICA ═══════════════════════════════════════════════════════
+
+function bioTab(which) {
+  const form = document.getElementById('bio-pf');
+  const hist = document.getElementById('bio-ph');
+  const btnF = document.getElementById('bio-tab-form');
+  const btnH = document.getElementById('bio-tab-hist');
+  if(which === 'form') {
+    form.style.display = 'flex'; hist.style.display = 'none';
+    btnF.classList.add('active'); btnH.classList.remove('active');
+  } else {
+    form.style.display = 'none'; hist.style.display = 'flex';
+    btnF.classList.remove('active'); btnH.classList.add('active');
+    loadBioHistory();
+  }
+}
+window.bioTab = bioTab;
+
+function isoWeekLabel(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  dt.setUTCDate(dt.getUTCDate() + 4 - (dt.getUTCDay()||7));
+  const y = dt.getUTCFullYear();
+  const w = Math.ceil((((dt - new Date(Date.UTC(y,0,1)))/86400000)+1)/7);
+  return y+'-W'+String(w).padStart(2,'0');
+}
+
+function loadAnalitica() {
+  const simData = localStorage.getItem('sgi-kpi-sim');
+  if(simData) {
+    try {
+      const d = JSON.parse(simData);
+      if(d.edad) { const el=document.getElementById('bio-sim-edad'); if(el) el.textContent=d.edad; }
+      if(d.sst)  { const el=document.getElementById('bio-sim-sst');  if(el) el.textContent=d.sst; }
+      if(d.dqo)  { const el=document.getElementById('bio-sim-dqo');  if(el) el.textContent=d.dqo; }
+    } catch(e){}
+  }
+  const semEl   = document.getElementById('bf-semana');
+  const fechaEl = document.getElementById('bf-fecha');
+  if(semEl   && !semEl.value)   semEl.value   = isoWeekLabel(new Date());
+  if(fechaEl && !fechaEl.value) fechaEl.value = new Date().toISOString().slice(0,10);
+}
+window.loadAnalitica = loadAnalitica;
+
+function bioFormToObj() {
+  const v = id => { const el=document.getElementById(id); return el?(el.value||''):''; };
+  const n = id => { const val=v(id); return val===''?null:Number(val); };
+  const simE = document.getElementById('bio-sim-edad');
+  const simS = document.getElementById('bio-sim-sst');
+  const simD = document.getElementById('bio-sim-dqo');
+  const simParse = el => { if(!el) return null; const t=(el.textContent||'').trim(); return t&&t!=='—'?Number(t)||null:null; };
+  return {
+    semana:  v('bf-semana'),
+    fecha:   v('bf-fecha'),
+    ts:      Date.now(),
+    macro:   { v30:n('bf-v30'), ivf:n('bf-ivf'), color:v('bf-color'), olor:v('bf-olor'),
+               espumas:v('bf-espumas'), esp_tipo:v('bf-esp-tipo'), turbidez:v('bf-turb'), aspecto:v('bf-aspecto') },
+    micro:   { floc:v('bf-floc'), filamentos:n('bf-fil'), fil_tipo:v('bf-fil-tipo'),
+               flagelados:n('bf-flag'), amebas:n('bf-ame'), cil_libres:n('bf-cil'), cil_pedu:n('bf-cilp'),
+               rotiferos:n('bf-rot'), nematodos:n('bf-nem'), valoracion:n('bf-val'), obs:v('bf-obs') },
+    sim:     { edad_fango:simParse(simE), sst:simParse(simS), rend_dqo:simParse(simD) }
+  };
+}
+
+async function submitInformeBio() {
+  if(!window._fb) { alert('Firebase no disponible'); return; }
+  const session = getSession();
+  if(!session) { alert('Sesión no iniciada'); return; }
+  const obj = bioFormToObj();
+  if(!obj.semana) { alert('Indica la semana ISO (ej. 2025-W22)'); return; }
+  obj.usuario = session.username;
+  const st = document.getElementById('bio-save-st');
+  if(st) { st.style.color='var(--warn)'; st.textContent='GUARDANDO...'; }
+  try {
+    const key = obj.semana.replace(/[^a-zA-Z0-9\-]/g,'_');
+    await window._fb.set(window._fb.ref(window._fb.db,'informes_bio/'+key), obj);
+    if(st) { st.style.color='var(--accent2)'; st.textContent='GUARDADO ✓'; setTimeout(()=>{ if(st) st.textContent=''; },3000); }
+  } catch(e) {
+    if(st) { st.style.color='var(--danger)'; st.textContent='ERROR: '+e.message; }
+  }
+}
+window.submitInformeBio = submitInformeBio;
+
+async function cargarPDFBio(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const st = document.getElementById('bio-pdf-st');
+  if(st) { st.style.color='var(--warn)'; st.textContent='Leyendo PDF...'; }
+  let base64Data = '';
+  try {
+    base64Data = await new Promise((res,rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(',')[1]);
+      r.onerror = () => rej(new Error('Error leyendo fichero'));
+      r.readAsDataURL(file);
+    });
+  } catch(e) { if(st) { st.style.color='var(--danger)'; st.textContent='Error leyendo PDF'; } return; }
+  if(st) st.textContent = 'Analizando con IA...';
+  const prompt = `Extrae los datos de este informe de macroscopia y microscopia de fangos activados (EDAR). Responde ÚNICAMENTE con JSON válido, sin texto adicional, sin markdown, sin backticks. Usa null para campos no encontrados. Estructura exacta (sin cambiar nombres de clave):
+{"v30":número_o_null,"ivf":número_o_null,"color":"texto_o_null","olor":"texto_o_null","espumas":"texto_o_null","esp_tipo":"texto_o_null","turbidez":"texto_o_null","aspecto":"texto_o_null","floc":"texto_o_null","filamentos":número_0_a_5_o_null,"fil_tipo":"texto_o_null","flagelados":número_0_a_3_o_null,"amebas":número_0_a_3_o_null,"cil_libres":número_0_a_3_o_null,"cil_pedu":número_0_a_3_o_null,"rotiferos":número_0_a_3_o_null,"nematodos":número_0_a_3_o_null,"valoracion":número_1_a_5_o_null,"obs":"texto_o_null"}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:[
+          {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64Data}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error?.message||'Error API');
+    const text = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('').trim();
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    const setV = (id,val) => { const el=document.getElementById(id); if(el&&val!==null&&val!==undefined) el.value=val; };
+    setV('bf-v30',parsed.v30); setV('bf-ivf',parsed.ivf); setV('bf-color',parsed.color);
+    setV('bf-olor',parsed.olor); setV('bf-espumas',parsed.espumas); setV('bf-esp-tipo',parsed.esp_tipo);
+    setV('bf-turb',parsed.turbidez); setV('bf-aspecto',parsed.aspecto); setV('bf-floc',parsed.floc);
+    setV('bf-fil',parsed.filamentos); setV('bf-fil-tipo',parsed.fil_tipo); setV('bf-flag',parsed.flagelados);
+    setV('bf-ame',parsed.amebas); setV('bf-cil',parsed.cil_libres); setV('bf-cilp',parsed.cil_pedu);
+    setV('bf-rot',parsed.rotiferos); setV('bf-nem',parsed.nematodos);
+    setV('bf-val',parsed.valoracion); setV('bf-obs',parsed.obs);
+    if(st) { st.style.color='var(--accent2)'; st.textContent='Extraído ✓\nRevisa y guarda'; }
+  } catch(e) {
+    if(st) { st.style.color='var(--danger)'; st.textContent='Error IA:\n'+e.message; }
+  }
+  input.value='';
+}
+window.cargarPDFBio = cargarPDFBio;
+
+function bioBuildChart(items) {
+  const W=560,H=100,PL=32,PR=12,PT=10,PB=20,gW=W-PL-PR,gH=H-PT-PB;
+  const n=items.length;
+  // All series normalized to [0,300] for unified axis
+  const series=[
+    {fn:it=>it.macro?.ivf!=null?Math.min(it.macro.ivf,300):null,   color:'#00e87a'},
+    {fn:it=>it.micro?.filamentos!=null?it.micro.filamentos*60:null, color:'#ffb800'},
+    {fn:it=>it.micro?.valoracion!=null?it.micro.valoracion*60:null, color:'#a78bfa'},
+    {fn:it=>it.sim?.edad_fango!=null?it.sim.edad_fango*10:null,     color:'#00c8f0',dash:'4 3'},
+  ];
+  function pts(fn){
+    return items.map((it,i)=>{
+      const val=fn(it);
+      if(val===null||val===undefined)return null;
+      return{x:PL+(n>1?i/(n-1):0.5)*gW, y:PT+gH-Math.min(1,Math.max(0,val/300))*gH};
+    });
+  }
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">`;
+  for(let i=0;i<=3;i++){const y=PT+i*(gH/3);svg+=`<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="#3a5a72" stroke-width="0.5"/>`;}
+  items.forEach((it,i)=>{
+    const x=(PL+(n>1?i/(n-1):0.5)*gW).toFixed(1);
+    svg+=`<text x="${x}" y="${H-4}" text-anchor="middle" font-size="7" font-family="'Share Tech Mono',monospace" fill="#5a8099">${(it.semana||'').slice(-3)}</text>`;
+  });
+  series.forEach(s=>{
+    const points=pts(s.fn).filter(Boolean);
+    if(points.length<2)return;
+    const path=points.map((p,j)=>(j===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+    const dash=s.dash?`stroke-dasharray="${s.dash}"`:'';
+    svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="1.5" ${dash} stroke-linecap="round" stroke-linejoin="round"/>`;
+    points.forEach(p=>{svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${s.color}" opacity="0.85"/>`;});
+  });
+  svg+='</svg>';
+  return svg;
+}
+
+function bioBuildCard(it) {
+  const macro=it.macro||{}, micro=it.micro||{}, sim=it.sim||{};
+  const valC=v=>v>=4?'var(--accent2)':v>=3?'var(--warn)':'var(--danger)';
+  const filC=v=>v<=1?'var(--accent2)':v<=3?'var(--warn)':'var(--danger)';
+  const row=(lbl,val)=>val!=null&&val!==''?`<div style="display:flex;justify-content:space-between;font-size:9px;padding:1px 0;"><span style="color:var(--muted);">${lbl}</span><span style="color:var(--text);font-weight:600;">${val}</span></div>`:'';
+  const semana=it.semana||'—';
+  const fecha=it.fecha?new Date(it.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+  return`<div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <i class="ti ti-microscope" style="font-size:14px;color:var(--accent);" aria-hidden="true"></i>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--light);font-weight:600;letter-spacing:.05em;">${semana}</span>
+      <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${fecha}</span>
+      ${micro.valoracion!=null?`<span style="font-family:var(--mono);font-size:9px;font-weight:700;color:${valC(micro.valoracion)};margin-left:4px;">★ ${micro.valoracion}/5</span>`:''}
+      ${micro.filamentos!=null?`<span style="font-family:var(--mono);font-size:8px;color:${filC(micro.filamentos)};margin-left:4px;">Fil. ${micro.filamentos}/5</span>`:''}
+      <span style="font-family:var(--mono);font-size:7.5px;color:var(--muted);margin-left:auto;">${it.usuario||''}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:6px 8px;">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--accent2);letter-spacing:.07em;margin-bottom:4px;">MACROSCOPIA</div>
+        ${macro.ivf!=null?`<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--light);">${macro.ivf}<span style="font-size:8px;color:var(--muted);"> mL/g</span></div><div style="font-size:7.5px;color:var(--muted);margin-bottom:2px;">IVF</div>`:''}
+        ${row('V30',macro.v30!=null?macro.v30+' mL/L':null)}
+        ${row('Color',macro.color)} ${row('Espumas',macro.espumas)} ${row('Aspecto',macro.aspecto)}
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:6px 8px;">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--accent);letter-spacing:.07em;margin-bottom:4px;">MICROSCOPIA</div>
+        ${row('Floc',micro.floc)} ${row('Filamentos',micro.filamentos!=null?micro.filamentos+'/5':null)}
+        ${micro.fil_tipo?`<div style="font-size:8px;color:var(--muted);font-style:italic;margin-top:1px;">${micro.fil_tipo}</div>`:''}
+        ${row('Cil. pedunc.',micro.cil_pedu!=null?micro.cil_pedu+'/3':null)}
+        ${row('Rotíferos',micro.rotiferos!=null?micro.rotiferos+'/3':null)}
+        ${micro.obs?`<div style="font-size:8px;color:var(--muted);margin-top:3px;line-height:1.4;font-style:italic;">"${micro.obs.slice(0,80)}${micro.obs.length>80?'…':''}"</div>`:''}
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:6px 8px;">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--warn);letter-spacing:.07em;margin-bottom:4px;">SIMULADOR</div>
+        ${sim.edad_fango!=null?`<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--light);">${sim.edad_fango}<span style="font-size:8px;color:var(--muted);"> d</span></div><div style="font-size:7.5px;color:var(--muted);margin-bottom:2px;">Edad fango</div>`:'<div style="font-size:8px;color:var(--muted);">Sin datos sim.</div>'}
+        ${row('SST reactor',sim.sst!=null?sim.sst+' mg/L':null)}
+        ${row('Rend. DQO',sim.rend_dqo!=null?sim.rend_dqo+'%':null)}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadBioHistory() {
+  const listEl=document.getElementById('bio-hist-list');
+  const svgEl =document.getElementById('bio-chart-svg');
+  if(!listEl||!window._fb) return;
+  listEl.innerHTML='<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Cargando...</div>';
+  try {
+    const snap=await window._fb.get(window._fb.ref(window._fb.db,'informes_bio'));
+    const data=snap.val();
+    if(!data) {
+      listEl.innerHTML='<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:8px;"><i class="ti ti-microscope" style="font-size:32px;opacity:.3;" aria-hidden="true"></i>SIN INFORMES AÚN<br><span style="font-size:8px;opacity:.6;">Carga el primer informe semanal en el formulario</span></div>';
+      if(svgEl) svgEl.innerHTML='';
+      return;
+    }
+    const items=Object.values(data).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,10);
+    const chartItems=[...items].reverse();
+    if(svgEl&&chartItems.length>1) svgEl.innerHTML=bioBuildChart(chartItems);
+    else if(svgEl) svgEl.innerHTML='<div style="color:var(--muted);font-size:9px;text-align:center;padding:1rem;">Se necesitan al menos 2 semanas para mostrar la gráfica</div>';
+    listEl.innerHTML=items.map(it=>bioBuildCard(it)).join('');
+  } catch(e) {
+    listEl.innerHTML=`<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Error: ${e.message}</div>`;
+  }
+}
+window.loadBioHistory = loadBioHistory;
 
 // ══ TENDENCIAS ═══════════════════════════════════════════════════════════════
 function loadTendencias() {
