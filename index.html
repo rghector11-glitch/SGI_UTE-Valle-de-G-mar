@@ -1305,6 +1305,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
               <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
                 <div id="bio-save-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);"></div>
+                <button class="bio-btn-sec" onclick="limpiarFormBio()" title="Vaciar formulario para el próximo informe"><i class="ti ti-eraser" aria-hidden="true"></i> Limpiar</button>
                 <button class="bio-btn-pri" onclick="submitInformeBio()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Guardar</button>
               </div>
             </div>
@@ -1361,7 +1362,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <button onclick="guardarApiKey()" style="background:rgba(0,200,240,.12);border:1px solid rgba(0,200,240,.35);border-radius:3px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:9px;padding:5px 12px;white-space:nowrap;">Guardar</button>
                 <button onclick="borrarApiKey()" style="background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:9px;padding:5px 10px;">Borrar</button>
               </div>
-              <div id="ajustes-api-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:5px;"></div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <div id="ajustes-api-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);flex:1;"></div>
+                <button onclick="verificarApiKey()" style="background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:8px;padding:3px 9px;white-space:nowrap;">Verificar clave</button>
+              </div>
             </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
               <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">DIAGNÓSTICO DEL PORTAL</div>
@@ -4546,6 +4550,28 @@ async function submitInformeBio() {
 }
 window.submitInformeBio = submitInformeBio;
 
+function limpiarFormBio() {
+  const ids = ['bf-v30','bf-ivf','bf-color','bf-olor','bf-espumas','bf-esp-tipo',
+                'bf-turb','bf-aspecto','bf-floc','bf-fil','bf-fil-tipo',
+                'bf-flag','bf-ame','bf-cil','bf-cilp','bf-rot','bf-nem','bf-val','bf-obs'];
+  ids.forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  // Actualizar semana y fecha al día de hoy
+  const semEl   = document.getElementById('bf-semana');
+  const fechaEl = document.getElementById('bf-fecha');
+  if(semEl)   semEl.value   = isoWeekLabel(new Date());
+  if(fechaEl) fechaEl.value = new Date().toISOString().slice(0,10);
+  // Resetear tipo a inicio
+  setBioTipo('inicio');
+  // Limpiar estado guardado
+  const st = document.getElementById('bio-save-st');
+  if(st) { st.style.color='var(--muted)'; st.textContent='Formulario limpio ✓'; setTimeout(()=>{ if(st) st.textContent=''; },2000); }
+  // Limpiar texto PDF guardado
+  _bioPdfText = '';
+  const pdfSt = document.getElementById('bio-pdf-st');
+  if(pdfSt) pdfSt.textContent='';
+}
+window.limpiarFormBio = limpiarFormBio;
+
 async function cargarPDFBio(input) {
   const file = input.files[0];
   if(!file) return;
@@ -4617,8 +4643,7 @@ function openBioPdfPanel(text, nombre) {
   }
   // Mostrar aviso si no hay clave API configurada
   const iaSt2 = document.getElementById('bio-ia-st');
-  let key=''; try{key=localStorage.getItem('sgi-anthropic-key')||'';}catch(e){}
-  if(!key && iaSt2) { iaSt2.style.color='var(--muted)'; iaSt2.textContent='(configura tu clave API en Ajustes para usar IA)'; }
+  if(!getApiKey() && iaSt2) { iaSt2.style.color='var(--muted)'; iaSt2.textContent='(configura tu clave API en Ajustes para usar IA)'; }
   if(overlay) overlay.style.display='block';
   panel.style.transform='translateX(0)';
 }
@@ -4633,35 +4658,76 @@ function closeBioPdfPanel() {
 window.closeBioPdfPanel = closeBioPdfPanel;
 
 // ── API Key Anthropic (localStorage) ─────────────────────────────────────────
+function getApiKey() {
+  try { return (localStorage.getItem('sgi-anthropic-key')||'').trim(); } catch(e){ return ''; }
+}
+
+function apiKeySt(msg, color) {
+  const el = document.getElementById('ajustes-api-st');
+  if(el) { el.style.color = color||'var(--muted)'; el.textContent = msg; }
+}
+
 function guardarApiKey() {
   const inp = document.getElementById('ajustes-api-key');
-  const st  = document.getElementById('ajustes-api-st');
   if(!inp) return;
-  const key = inp.value.trim();
-  if(!key.startsWith('sk-ant-')) { if(st){ st.style.color='var(--danger)'; st.textContent='Clave no válida (debe empezar por sk-ant-)'; } return; }
+  const key = inp.value.replace(/\s/g,''); // eliminar TODOS los espacios/tabs/newlines
+  if(!key) { apiKeySt('Introduce una clave','var(--danger)'); return; }
+  if(!key.startsWith('sk-ant-')) { apiKeySt('Formato incorrecto — debe empezar por sk-ant-','var(--danger)'); return; }
+  if(key.length < 40) { apiKeySt('Clave demasiado corta — cópiala completa','var(--danger)'); return; }
   try { localStorage.setItem('sgi-anthropic-key', key); } catch(e){}
   inp.value = '';
-  if(st) { st.style.color='var(--accent2)'; st.textContent='Clave guardada ✓ (solo en este navegador)'; setTimeout(()=>{ if(st) st.textContent=''; },4000); }
+  const preview = key.slice(0,10)+'...'+key.slice(-4);
+  apiKeySt('Guardada ✓  ('+preview+')','var(--accent2)');
 }
 window.guardarApiKey = guardarApiKey;
 
 function borrarApiKey() {
   try { localStorage.removeItem('sgi-anthropic-key'); } catch(e){}
   const inp = document.getElementById('ajustes-api-key');
-  const st  = document.getElementById('ajustes-api-st');
   if(inp) inp.value='';
-  if(st)  { st.style.color='var(--muted)'; st.textContent='Clave eliminada.'; setTimeout(()=>{ if(st) st.textContent=''; },3000); }
+  apiKeySt('Clave eliminada','var(--muted)');
 }
 window.borrarApiKey = borrarApiKey;
 
-// Inicializar indicador de clave en Ajustes al cargar
+async function verificarApiKey() {
+  const key = getApiKey();
+  if(!key) { apiKeySt('No hay clave guardada','var(--danger)'); return; }
+  apiKeySt('Verificando...','var(--warn)');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:10,
+        messages:[{role:'user',content:'Responde solo: ok'}]
+      })
+    });
+    const data = await res.json();
+    if(res.ok) {
+      const preview = key.slice(0,10)+'...'+key.slice(-4);
+      apiKeySt('Clave válida ✓  ('+preview+')','var(--accent2)');
+    } else {
+      apiKeySt('Error '+res.status+': '+(data.error?.message||'clave inválida'),'var(--danger)');
+    }
+  } catch(e) {
+    apiKeySt('Error de red: '+e.message,'var(--danger)');
+  }
+}
+window.verificarApiKey = verificarApiKey;
+
+// Inicializar indicador al cargar
 (function inicApiKeyIndicator(){
-  window.addEventListener('firebase-ready', ()=>{
-    const st = document.getElementById('ajustes-api-st');
-    if(!st) return;
-    let key=''; try { key=localStorage.getItem('sgi-anthropic-key')||''; } catch(e){}
-    if(key) { st.style.color='var(--accent2)'; st.textContent='Clave configurada ✓'; }
-  });
+  const key = getApiKey();
+  if(key) {
+    const preview = key.slice(0,10)+'...'+key.slice(-4);
+    apiKeySt('Clave configurada ('+preview+')','var(--accent2)');
+  }
 })();
 
 // ── Rellenar formulario con IA usando el texto ya extraído ────────────────────
@@ -4670,9 +4736,9 @@ let _bioPdfText = ''; // guarda el texto del último PDF cargado
 async function rellenarConIA() {
   const st  = document.getElementById('bio-ia-st');
   const btn = document.getElementById('bio-ia-btn');
-  let key = ''; try { key=localStorage.getItem('sgi-anthropic-key')||''; } catch(e){}
+  const key = getApiKey();
   if(!key) {
-    if(st) { st.style.color='var(--danger)'; st.textContent='Configura la clave API en Ajustes primero'; }
+    if(st) { st.style.color='var(--danger)'; st.textContent='Ve a Ajustes y configura tu clave API primero'; }
     return;
   }
   if(!_bioPdfText) { if(st) { st.style.color='var(--danger)'; st.textContent='Carga un PDF primero'; } return; }
