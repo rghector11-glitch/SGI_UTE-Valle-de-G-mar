@@ -1353,10 +1353,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <button style="background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;padding:6px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;" onclick="showUsersModal()">GESTIONAR USUARIOS</button>
             </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
-              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:4px;">CLAVE API ANTHROPIC</div>
-              <div style="font-size:9px;color:var(--muted);margin-bottom:8px;">Necesaria para el relleno automático del informe biológico desde PDF. Se guarda solo en este navegador.</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:4px;">CLAVE API GOOGLE GEMINI <span style="color:var(--accent2);font-size:8px;margin-left:4px;">GRATUITA</span></div>
+              <div style="font-size:9px;color:var(--muted);margin-bottom:6px;">Para el relleno automático del informe biológico. Gratuita en <b style="color:var(--text);">aistudio.google.com/app/apikey</b> · 1.500 llamadas/día sin coste.</div>
               <div style="display:flex;gap:6px;align-items:center;">
-                <input type="password" id="ajustes-api-key" placeholder="sk-ant-..." autocomplete="off"
+                <input type="password" id="ajustes-api-key" placeholder="AIza..." autocomplete="off"
                   style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 8px;outline:none;"
                   onfocus="this.type='text'" onblur="this.type='password'">
                 <button onclick="guardarApiKey()" style="background:rgba(0,200,240,.12);border:1px solid rgba(0,200,240,.35);border-radius:3px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:9px;padding:5px 12px;white-space:nowrap;">Guardar</button>
@@ -4657,9 +4657,9 @@ function closeBioPdfPanel() {
 }
 window.closeBioPdfPanel = closeBioPdfPanel;
 
-// ── API Key Anthropic (localStorage) ─────────────────────────────────────────
+// ── API Key Google Gemini (localStorage) ─────────────────────────────────────
 function getApiKey() {
-  try { return (localStorage.getItem('sgi-anthropic-key')||'').trim(); } catch(e){ return ''; }
+  try { return (localStorage.getItem('sgi-gemini-key')||'').trim(); } catch(e){ return ''; }
 }
 
 function apiKeySt(msg, color) {
@@ -4670,19 +4670,19 @@ function apiKeySt(msg, color) {
 function guardarApiKey() {
   const inp = document.getElementById('ajustes-api-key');
   if(!inp) return;
-  const key = inp.value.replace(/\s/g,''); // eliminar TODOS los espacios/tabs/newlines
+  const key = inp.value.replace(/\s/g,'');
   if(!key) { apiKeySt('Introduce una clave','var(--danger)'); return; }
-  if(!key.startsWith('sk-ant-')) { apiKeySt('Formato incorrecto — debe empezar por sk-ant-','var(--danger)'); return; }
-  if(key.length < 40) { apiKeySt('Clave demasiado corta — cópiala completa','var(--danger)'); return; }
-  try { localStorage.setItem('sgi-anthropic-key', key); } catch(e){}
+  if(!key.startsWith('AIza')) { apiKeySt('Formato incorrecto — debe empezar por AIza (clave de Google AI Studio)','var(--danger)'); return; }
+  if(key.length < 30) { apiKeySt('Clave demasiado corta — cópiala completa','var(--danger)'); return; }
+  try { localStorage.setItem('sgi-gemini-key', key); } catch(e){}
   inp.value = '';
-  const preview = key.slice(0,10)+'...'+key.slice(-4);
+  const preview = key.slice(0,6)+'...'+key.slice(-4);
   apiKeySt('Guardada ✓  ('+preview+')','var(--accent2)');
 }
 window.guardarApiKey = guardarApiKey;
 
 function borrarApiKey() {
-  try { localStorage.removeItem('sgi-anthropic-key'); } catch(e){}
+  try { localStorage.removeItem('sgi-gemini-key'); } catch(e){}
   const inp = document.getElementById('ajustes-api-key');
   if(inp) inp.value='';
   apiKeySt('Clave eliminada','var(--muted)');
@@ -4694,26 +4694,19 @@ async function verificarApiKey() {
   if(!key) { apiKeySt('No hay clave guardada','var(--danger)'); return; }
   apiKeySt('Verificando...','var(--warn)');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+    const res = await fetch(url, {
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key': key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body: JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:10,
-        messages:[{role:'user',content:'Responde solo: ok'}]
-      })
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{ parts:[{text:'Responde solo la palabra: ok'}] }] })
     });
     const data = await res.json();
     if(res.ok) {
-      const preview = key.slice(0,10)+'...'+key.slice(-4);
+      const preview = key.slice(0,6)+'...'+key.slice(-4);
       apiKeySt('Clave válida ✓  ('+preview+')','var(--accent2)');
     } else {
-      apiKeySt('Error '+res.status+': '+(data.error?.message||'clave inválida'),'var(--danger)');
+      const msg = data.error?.message || 'clave inválida';
+      apiKeySt('Error '+res.status+': '+msg,'var(--danger)');
     }
   } catch(e) {
     apiKeySt('Error de red: '+e.message,'var(--danger)');
@@ -4725,7 +4718,7 @@ window.verificarApiKey = verificarApiKey;
 (function inicApiKeyIndicator(){
   const key = getApiKey();
   if(key) {
-    const preview = key.slice(0,10)+'...'+key.slice(-4);
+    const preview = key.slice(0,6)+'...'+key.slice(-4);
     apiKeySt('Clave configurada ('+preview+')','var(--accent2)');
   }
 })();
@@ -4751,7 +4744,7 @@ Usa null para campos no encontrados o no mencionados.
 
 Campos a extraer:
 - v30: número (mL/L) o null
-- ivf: número (mL/g) o null  
+- ivf: número (mL/g) o null
 - color: string (ej "Pardo", "Pardo oscuro", "Negro") o null
 - olor: string (ej "Normal", "Sulfhídrico", "Putrefacción") o null
 - espumas: string (ej "Ausentes", "Escasas", "Moderadas", "Abundantes") o null
@@ -4774,19 +4767,16 @@ TEXTO DEL INFORME:
 ${_bioPdfText.slice(0, 8000)}`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error?.message || 'Error ' + res.status);
 
-    const raw    = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('').trim();
+    const raw    = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
 
     const setV = (id,val) => { const el=document.getElementById(id); if(el&&val!=null) el.value=val; };
@@ -4802,7 +4792,6 @@ ${_bioPdfText.slice(0, 8000)}`;
     setV('bf-val',parsed.valoracion);  setV('bf-obs',parsed.obs);
 
     if(st) { st.style.color='var(--accent2)'; st.textContent='Formulario rellenado ✓ Revisa y guarda'; }
-    // Cerrar panel tras 1.5s para que el usuario vea la confirmación
     setTimeout(()=>closeBioPdfPanel(), 1500);
   } catch(e) {
     if(st) { st.style.color='var(--danger)'; st.textContent='Error: '+e.message; }
