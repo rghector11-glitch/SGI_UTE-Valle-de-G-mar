@@ -1376,7 +1376,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest</option>
                   <option value="gemini-pro">gemini-pro</option>
                 </select>
+                <button onclick="listarModelosGemini()" style="background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:8px;padding:3px 9px;white-space:nowrap;">Detectar</button>
               </div>
+              <div id="ajustes-modelos-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:4px;"></div>
             </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
               <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">DIAGNÓSTICO DEL PORTAL</div>
@@ -4681,6 +4683,38 @@ function guardarModeloGemini(val) {
   try { localStorage.setItem('sgi-gemini-model', val); } catch(e){}
 }
 window.guardarModeloGemini = guardarModeloGemini;
+
+async function listarModelosGemini() {
+  const key = getApiKey();
+  const mst = document.getElementById('ajustes-modelos-st');
+  if(!key) { if(mst){mst.style.color='var(--danger)';mst.textContent='Guarda la clave primero';} return; }
+  if(mst) { mst.style.color='var(--warn)'; mst.textContent='Consultando modelos disponibles...'; }
+  try {
+    const res  = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error?.message||'Error '+res.status);
+
+    // Filtrar solo modelos que soporten generateContent
+    const modelos = (data.models||[])
+      .filter(m => (m.supportedGenerationMethods||[]).includes('generateContent'))
+      .map(m => m.name.replace('models/',''))
+      .filter(n => n.includes('gemini'));
+
+    if(!modelos.length) throw new Error('No hay modelos generateContent disponibles');
+
+    const sel = document.getElementById('ajustes-gemini-model');
+    if(sel) {
+      sel.innerHTML = modelos.map(m=>`<option value="${m}">${m}</option>`).join('');
+      // Seleccionar el primero y guardarlo
+      guardarModeloGemini(modelos[0]);
+      sel.value = modelos[0];
+    }
+    if(mst) { mst.style.color='var(--accent2)'; mst.textContent=modelos.length+' modelos encontrados — seleccionado: '+modelos[0]; }
+  } catch(e) {
+    if(mst) { mst.style.color='var(--danger)'; mst.textContent='Error: '+e.message; }
+  }
+}
+window.listarModelosGemini = listarModelosGemini;
 
 // Inicializar selector de modelo al cargar
 (function inicModeloSelector(){
