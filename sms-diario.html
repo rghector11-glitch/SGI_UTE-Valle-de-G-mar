@@ -677,9 +677,15 @@ function formatDayBadge(iso) {
 }
 
 // ─── BUILD SMS ────────────────────────────────────────────────────────────────
+function fmt(v) {
+  // Convierte punto decimal a coma para el formato SMS en español
+  if(v === '' || v === undefined || v === null) return 0;
+  return String(Number(v)).replace('.', ',');
+}
+
 function val(id) {
   const v = document.getElementById(id).value;
-  return v === '' ? 0 : Number(v);
+  return v === '' ? 0 : fmt(v);
 }
 
 function buildSMS(plant, dateIso) {
@@ -884,9 +890,9 @@ function copySMSFromRecord(id, plant) {
   const dateStr = formatDateDisplay(iso);
   let text;
   if(plant === 'edari') {
-    text = `SAR VALLE GUIMAR EDARI\n${dateStr}\n-----ENTRADA-----\nQ(m3/d): ${r.edari.ei.Q}\nDQO (mg/L): ${r.edari.ei.DQO}\nSST (mg/L): ${r.edari.ei.SST}\n-----SALIDA-----\nQ (m3/d): ${r.edari.eo.Q}\nDQO (mg/L): ${r.edari.eo.DQO}\nSST (mg/L): ${r.edari.eo.SST}\nNTU: ${r.edari.eo.NTU}\nC.E (us/cm): ${r.edari.eo.CE}`;
+    text = `SAR VALLE GUIMAR EDARI\n${dateStr}\n-----ENTRADA-----\nQ(m3/d): ${fmt(r.edari.ei.Q)}\nDQO (mg/L): ${fmt(r.edari.ei.DQO)}\nSST (mg/L): ${fmt(r.edari.ei.SST)}\n-----SALIDA-----\nQ (m3/d): ${fmt(r.edari.eo.Q)}\nDQO (mg/L): ${fmt(r.edari.eo.DQO)}\nSST (mg/L): ${fmt(r.edari.eo.SST)}\nNTU: ${fmt(r.edari.eo.NTU)}\nC.E (us/cm): ${fmt(r.edari.eo.CE)}`;
   } else {
-    text = `SAR VALLE GUIMAR EDARU\n${dateStr}\n-----ENTRADA-----\nQ(m3/d): ${r.edaru.ui.Q}\nDQO (mg/L): ${r.edaru.ui.DQO}\nSST (mg/L): ${r.edaru.ui.SST}\n-----SALIDA-----\nQ (m3/d): ${r.edaru.uo.Q}\nDQO (mg/L): ${r.edaru.uo.DQO}\nSST (mg/L): ${r.edaru.uo.SST}\nNTU: ${r.edaru.uo.NTU}\nC.E (us/cm): ${r.edaru.uo.CE}`;
+    text = `SAR VALLE GUIMAR EDARU\n${dateStr}\n-----ENTRADA-----\nQ(m3/d): ${fmt(r.edaru.ui.Q)}\nDQO (mg/L): ${fmt(r.edaru.ui.DQO)}\nSST (mg/L): ${fmt(r.edaru.ui.SST)}\n-----SALIDA-----\nQ (m3/d): ${fmt(r.edaru.uo.Q)}\nDQO (mg/L): ${fmt(r.edaru.uo.DQO)}\nSST (mg/L): ${fmt(r.edaru.uo.SST)}\nNTU: ${fmt(r.edaru.uo.NTU)}\nC.E (us/cm): ${fmt(r.edaru.uo.CE)}`;
   }
   navigator.clipboard.writeText(text).then(() => showToast('✓ Copiado al portapapeles')).catch(() => {
     const ta = document.createElement('textarea'); ta.value = text;
