@@ -4694,7 +4694,7 @@ async function verificarApiKey() {
   if(!key) { apiKeySt('No hay clave guardada','var(--danger)'); return; }
   apiKeySt('Verificando...','var(--warn)');
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
     const res = await fetch(url, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -4767,7 +4767,7 @@ TEXTO DEL INFORME:
 ${_bioPdfText.slice(0, 8000)}`;
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
