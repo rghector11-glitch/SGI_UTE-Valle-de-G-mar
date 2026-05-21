@@ -1496,8 +1496,21 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <div class="p-panel-header" style="align-items:center;"><i class="ti ti-trending-up" aria-hidden="true"></i>Tendencias
             <button onclick="limpiarTendencias()" title="Borrar datos de la semana cargada" style="margin-left:auto;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:4px;color:#f87171;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='rgba(239,68,68,.25)'" onmouseout="this.style.background='rgba(239,68,68,.12)'"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
           </div>
+          <!-- Selector de rango de fechas -->
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 0 10px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+            <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.06em;white-space:nowrap;">DESDE</span>
+            <input type="date" id="tend-fecha-ini"
+              style="background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--light);font-family:var(--mono);font-size:10px;padding:4px 8px;outline:none;colorScheme:dark;flex:1;min-width:120px;">
+            <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.06em;white-space:nowrap;">HASTA</span>
+            <input type="date" id="tend-fecha-fin"
+              style="background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--light);font-family:var(--mono);font-size:10px;padding:4px 8px;outline:none;colorScheme:dark;flex:1;min-width:120px;">
+            <button onclick="cargarTendenciasFecha()"
+              style="background:var(--accent);border:none;border-radius:4px;color:var(--bg);cursor:pointer;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.06em;padding:5px 12px;white-space:nowrap;">
+              <i class="ti ti-chart-line"></i> Cargar
+            </button>
+          </div>
           <div id="tendencias-content" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;padding-bottom:8px;">
-            <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando datos...</div>
+            <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:10px;"><i class="ti ti-calendar-search" style="font-size:32px;opacity:.3;"></i>Selecciona un rango de fechas y pulsa <b>Cargar</b>.</div>
           </div>
         </div>
 
@@ -5207,7 +5220,7 @@ window.loadBioHistory = loadBioHistory;
 function limpiarHistorialBio() {
   if(!confirm("¿Borrar todos los informes biológicos guardados? Esta acción no se puede deshacer.")) return;
   waitForFirebase().then(() => {
-    window._fb.remove(window._fb.ref(window._fb.db, "informes_bio"))
+    window._fb.set(window._fb.ref(window._fb.db, "informes_bio"), null)
       .then(() => loadBioHistory())
       .catch(e => alert("Error al borrar: " + e.message));
   }).catch(() => alert("Firebase no disponible"));
@@ -5269,7 +5282,7 @@ function loadTendencias() {
     return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">${s}</svg>`;
   }
 
-  const semanaLabel = start ? `Semana ${start} · ${days.length} días` : `${days.length} días`;
+  const semanaLabel = start ? `📅 ${start} · ${days.length} registros` : `${days.length} registros`;
 
   box.innerHTML = `<div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.06em;margin-bottom:4px;">📅 ${semanaLabel}</div>`
     + charts.map(ch => {
@@ -5292,9 +5305,76 @@ window.loadTendencias = loadTendencias;
 
 function limpiarTendencias() {
   localStorage.removeItem('sgi-tendencias-semana');
-  loadTendencias();
+  document.getElementById('tendencias-content').innerHTML =
+    '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:10px;"><i class="ti ti-calendar-search" style="font-size:32px;opacity:.3;"></i>Selecciona un rango de fechas y pulsa <b>Cargar</b>.</div>';
 }
 window.limpiarTendencias = limpiarTendencias;
+
+function cargarTendenciasFecha() {
+  const ini = document.getElementById('tend-fecha-ini').value;
+  const fin = document.getElementById('tend-fecha-fin').value;
+  const box = document.getElementById('tendencias-content');
+
+  if (!ini || !fin) {
+    box.innerHTML = '<div style="color:var(--warn);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">⚠ Selecciona fecha de inicio y fin.</div>';
+    return;
+  }
+  if (ini > fin) {
+    box.innerHTML = '<div style="color:var(--warn);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">⚠ La fecha de inicio debe ser anterior a la de fin.</div>';
+    return;
+  }
+
+  box.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando datos...</div>';
+
+  waitForFirebase().then(() => {
+    window._fb.get(window._fb.ref(window._fb.db, 'informes_bio')).then(snap => {
+      const entries = [];
+      snap.forEach(child => {
+        const v = child.val();
+        if (!v || !v.ts) return;
+        const d = new Date(v.ts);
+        const iso = d.getFullYear() + '-' +
+          String(d.getMonth()+1).padStart(2,'0') + '-' +
+          String(d.getDate()).padStart(2,'0');
+        if (iso >= ini && iso <= fin) {
+          entries.push({...v, _iso: iso});
+        }
+      });
+
+      entries.sort((a, b) => a.ts - b.ts);
+
+      if (entries.length === 0) {
+        box.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:8px;"><i class="ti ti-database-off" style="font-size:32px;opacity:.3;"></i>Sin informes registrados entre ' + ini + ' y ' + fin + '.</div>';
+        return;
+      }
+
+      const days = entries.map(e => {
+        const fechaLocal = e._iso.slice(5).replace('-','/');
+        return {
+          iso:      e._iso,
+          fecha:    fechaLocal,
+          tc:       Number(e.sim?.edad_fango) || 0,
+          rend_dqo: Number(e.sim?.rend_dqo)  || 0,
+          rend_dbo: 0,
+          rend_nh4: 0,
+          rend_pt:  0,
+        };
+      });
+
+      try {
+        localStorage.setItem('sgi-tendencias-semana', JSON.stringify({
+          days, start: ini + ' → ' + fin, ts: Date.now()
+        }));
+      } catch(e2) {}
+      loadTendencias();
+    }).catch(err => {
+      box.innerHTML = '<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Error al leer Firebase: ' + (err.message||'') + '</div>';
+    });
+  }).catch(() => {
+    box.innerHTML = '<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Firebase no disponible.</div>';
+  });
+}
+window.cargarTendenciasFecha = cargarTendenciasFecha;
 
 // Handle sim-history postMessage from simulator iframe
 // ══ ALERTAS ═══════════════════════════════════════════════════════════════════
