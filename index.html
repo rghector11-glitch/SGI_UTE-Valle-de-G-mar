@@ -860,9 +860,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <i class="ti ti-cpu" aria-hidden="true"></i>
           <div class="sb-tip">SIMULADOR</div>
         </button>
-        <button class="sb-btn" id="sb-analitica" onclick="sbNav('analitica')" aria-label="Analítica">
+        <button class="sb-btn" id="sb-analitica" onclick="sbNav('analitica')" aria-label="Macroscopía y microscopía">
           <i class="ti ti-chart-line" aria-hidden="true"></i>
-          <div class="sb-tip">ANALÍTICA</div>
+          <div class="sb-tip">MACRO/MICRO</div>
         </button>
         <div class="sb-sep"></div>
         <button class="sb-btn" id="sb-informes" onclick="sbNav('informes')" aria-label="Informes">
@@ -1207,9 +1207,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         </div>
 
         <!-- ── PANEL: ANALÍTICA BIOLÓGICA ── -->
-        <div class="p-panel" id="panel-analitica">
+        <div class="p-panel" id="panel-analitica" style="--panel:#2e5272;--border:#4a6d8a;">
           <div class="p-panel-header" style="align-items:center;">
-            <i class="ti ti-chart-line" aria-hidden="true"></i>Analítica
+            <i class="ti ti-chart-line" aria-hidden="true"></i>Macroscopía y microscopía
             <div style="margin-left:auto;display:flex;gap:5px;">
               <button class="bio-tab-btn active" id="bio-tab-form" onclick="bioTab('form')"><i class="ti ti-microscope" aria-hidden="true"></i> Informe Bio</button>
               <button class="bio-tab-btn" id="bio-tab-hist" onclick="bioTab('hist')"><i class="ti ti-chart-area" aria-hidden="true"></i> Tendencias</button>
@@ -1490,7 +1490,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: TENDENCIAS ── -->
         <div class="p-panel" id="panel-tendencias">
-          <div class="p-panel-header"><i class="ti ti-trending-up" aria-hidden="true"></i>Tendencias</div>
+          <div class="p-panel-header" style="align-items:center;"><i class="ti ti-trending-up" aria-hidden="true"></i>Tendencias
+            <button class="bio-btn-sec" style="margin-left:auto;font-size:9px;" onclick="limpiarTendencias()" title="Borrar datos de la semana cargada"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
+          </div>
           <div id="tendencias-content" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;padding-bottom:8px;">
             <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando datos...</div>
           </div>
@@ -4386,7 +4388,7 @@ function sbNav(id) {
   const btn = document.getElementById('sb-' + id);
   if(btn) btn.classList.add('active');
   // Update breadcrumb
-  const labels = {portal:'Portal',proceso:'Simulador',analitica:'Analítica',
+  const labels = {portal:'Portal',proceso:'Simulador',analitica:'Macroscopía',
                   informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
                   tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario'};
   const bc = document.getElementById('p-bc-section');
@@ -5182,8 +5184,8 @@ async function loadBioHistory() {
       return fb - fa;
     });
 
-    // Gráfica: las últimas 15 entradas en orden cronológico
-    const chartEntries = [...allEntries].reverse().slice(0, 15).reverse();
+    // Gráfica: las últimas 15 entradas en orden cronológico ascendente (más antigua a izquierda)
+    const chartEntries = [...allEntries].slice(0, 15).reverse();
     chartEntries.forEach(e => {
       e._fechaMs = e.fecha ? new Date(e.fecha+'T12:00:00').getTime() : (e.ts||0);
       e._label   = e.fecha ? e.fecha.slice(5).replace('-','/') : (e.semana||'?');
@@ -5274,6 +5276,12 @@ function loadTendencias() {
     }).join('');
 }
 window.loadTendencias = loadTendencias;
+
+function limpiarTendencias() {
+  localStorage.removeItem('sgi-tendencias-semana');
+  loadTendencias();
+}
+window.limpiarTendencias = limpiarTendencias;
 
 // Handle sim-history postMessage from simulator iframe
 // ══ ALERTAS ═══════════════════════════════════════════════════════════════════
