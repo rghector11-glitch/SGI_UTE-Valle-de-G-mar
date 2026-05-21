@@ -1491,7 +1491,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <!-- ── PANEL: TENDENCIAS ── -->
         <div class="p-panel" id="panel-tendencias">
           <div class="p-panel-header" style="align-items:center;"><i class="ti ti-trending-up" aria-hidden="true"></i>Tendencias
-            <button class="bio-btn-sec" style="margin-left:auto;font-size:9px;" onclick="limpiarTendencias()" title="Borrar datos de la semana cargada"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
+            <button onclick="limpiarTendencias()" title="Borrar datos de la semana cargada" style="margin-left:auto;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:4px;color:#f87171;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='rgba(239,68,68,.25)'" onmouseout="this.style.background='rgba(239,68,68,.12)'"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
           </div>
           <div id="tendencias-content" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1;padding-bottom:8px;">
             <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando datos...</div>
