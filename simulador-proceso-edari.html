@@ -1208,10 +1208,9 @@ function App(){
 
   // ── Excel / selector de fecha ──────────────────────────────────────────────
   const [excelData,setExcelData]=useState([]);
-  const [selectedDate,setSelectedDate]=useState('');
+  const [fechaIni,setFechaIni]=useState('');
+  const [fechaFin,setFechaFin]=useState('');
   const [xlsxMsg,setXlsxMsg]=useState('');
-  const [weekMode,setWeekMode]=useState(false);
-  const [weekStart,setWeekStart]=useState('');
   const [weekSummary,setWeekSummary]=useState(null); // {days, avg}
   const [weekCalc,setWeekCalc]=useState([]); // [{iso, tc, rend_dqo, ...}] per day
   const fileInputRef=useRef(null);
@@ -1329,29 +1328,15 @@ function App(){
     setP(prev=>({...prev,...updates}));
   }
 
-  function handleDateChange(e){
-    const val=e.target.value; // YYYY-MM-DD
-    setSelectedDate(val);
-    const row=excelData.find(r=>r._fechaISO===val);
-    if(row){
-      applyRow(row);
-      setXlsxMsg(`✓ Datos del ${val} cargados`);
-    } else if(excelData.length>0){
-      setXlsxMsg(`⚠ Sin datos para ${val}`);
-    }
-  }
-
-  function handleWeekLoad(startISO){
-    setWeekStart(startISO);
-    if(!startISO||!excelData.length){setWeekSummary(null);return;}
-    const days=[];
-    for(let i=0;i<7;i++){
-      const d=new Date(startISO+'T12:00:00'); d.setDate(d.getDate()+i);
-      const iso=d.toISOString().slice(0,10);
-      const row=excelData.find(r=>r._fechaISO===iso);
-      if(row) days.push({iso,row});
-    }
-    if(!days.length){setXlsxMsg('\u26a0 Sin datos para esa semana');setWeekSummary(null);return;}
+  function handleRangeLoad(ini,fin){
+    if(!ini||!fin){setXlsxMsg('⚠ Selecciona inicio y fin');return;}
+    if(ini>fin){setXlsxMsg('⚠ Inicio debe ser anterior al fin');return;}
+    if(!excelData.length){setWeekSummary(null);return;}
+    const days=excelData
+      .filter(r=>r._fechaISO>=ini&&r._fechaISO<=fin)
+      .map(r=>({iso:r._fechaISO,row:r}));
+    const startISO=ini;
+    if(!days.length){setXlsxMsg('\u26a0 Sin datos en ese rango');setWeekSummary(null);return;}
     // Promediar todos los campos numéricos
     const sampleKeys=Object.keys(days[0].row).filter(k=>k!=='_fechaISO');
     const avg={_fechaISO:startISO};
@@ -1470,7 +1455,7 @@ function App(){
       .footer{margin-top:20px;font-size:8px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:6px}
       @media print{body{padding:12px}.chart-box{break-inside:avoid}}
     </style></head><body>
-    <h1>Informe Semanal EDAR — ${weekStart} → ${days[days.length-1].iso}</h1>
+    <h1>Informe de período EDAR — ${startISO} → ${days[days.length-1].iso}</h1>
     <p style="font-size:9px;color:#5a7090">Generado: ${dateStr} · ${days.length} días con datos · Media aplicada al simulador</p>
     <h2>Datos de proceso (valores originales del Excel)</h2>
     <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rowsRaw}</table>
@@ -1518,9 +1503,7 @@ function App(){
 
   // Enviar KPIs al portal padre cada vez que cambian los resultados
   useEffect(()=>{
-    // Solo enviar KPIs automáticamente en modo DÍA
-    // En modo SEMANA los KPIs se envían directamente desde handleWeekLoad con el último día
-    if(weekMode) return;
+    // Enviar KPIs al portal cada vez que cambian los parámetros
     try{
       window.parent.postMessage({
         type:'sim-kpi',
@@ -1599,44 +1582,33 @@ function App(){
           📂 Cargar Excel
         </button>
         {excelData.length>0&&(
-          <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-            {/* Toggle día/semana */}
-            <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:5,padding:2}}>
-              {['día','semana'].map(m=>(
-                <button key={m} onClick={()=>{setWeekMode(m==='semana');setWeekSummary(null);setWeekStart('');setSelectedDate('');}}
-                  style={{padding:'2px 8px',border:'none',borderRadius:3,cursor:'pointer',fontSize:9,fontWeight:700,
-                    background:(weekMode?m==='semana':m==='día')?C.accent:'transparent',
-                    color:(weekMode?m==='semana':m==='día')?C.bg:C.muted}}>
-                  {m.charAt(0).toUpperCase()+m.slice(1)}
-                </button>
-              ))}
-            </div>
-            {!weekMode?(
-              <select value={selectedDate} onChange={handleDateChange}
-                style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
-                  color:C.accent,fontSize:10,fontWeight:700,fontFamily:'monospace',
-                  padding:'2px 6px',cursor:'pointer',outline:'none'}}>
-                <option value="">— elige fecha —</option>
-                {fechasDisponibles.map(f=>(<option key={f} value={f}>{f}</option>))}
-              </select>
-            ):(
-              <div style={{display:'flex',alignItems:'center',gap:4}}>
-                <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Inicio semana:</span>
-                <select value={weekStart} onChange={e=>handleWeekLoad(e.target.value)}
-                  style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
-                    color:C.accent,fontSize:10,fontWeight:700,fontFamily:'monospace',
-                    padding:'2px 6px',cursor:'pointer',outline:'none'}}>
-                  <option value="">— elige lunes —</option>
-                  {fechasDisponibles.map(f=>(<option key={f} value={f}>{f}</option>))}
-                </select>
-                {weekSummary&&(
-                  <button onClick={exportWeekPDF}
-                    style={{padding:'3px 8px',background:'rgba(185,28,28,.8)',border:'none',borderRadius:5,
-                      color:'white',fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
-                    📄 Informe semana
-                  </button>
-                )}
-              </div>
+          <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}}>
+            <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Desde:</span>
+            <input type='date' value={fechaIni} onChange={e=>setFechaIni(e.target.value)}
+              list='sim-ext-fechas'
+              style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                outline:'none',colorScheme:'dark',width:116}}/>
+            <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Hasta:</span>
+            <input type='date' value={fechaFin} onChange={e=>setFechaFin(e.target.value)}
+              list='sim-ext-fechas'
+              style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                outline:'none',colorScheme:'dark',width:116}}/>
+            <datalist id='sim-ext-fechas'>
+              {fechasDisponibles.map(f=>(<option key={f} value={f}/>))}
+            </datalist>
+            <button onClick={()=>handleRangeLoad(fechaIni,fechaFin)}
+              style={{padding:'3px 10px',background:C.accent,border:'none',borderRadius:4,
+                color:C.bg,fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+              Cargar
+            </button>
+            {weekSummary&&(
+              <button onClick={exportWeekPDF}
+                style={{padding:'3px 8px',background:'rgba(185,28,28,.8)',border:'none',borderRadius:5,
+                  color:'white',fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                📄 Informe período
+              </button>
             )}
           </div>
         )}
