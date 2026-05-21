@@ -1393,6 +1393,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
           <!-- ── TENDENCIAS BIOLÓGICAS ── -->
           <div id="bio-ph" style="display:none;flex:1;overflow-y:auto;flex-direction:column;gap:8px;padding-bottom:6px;">
+            <div style="display:flex;justify-content:flex-end;">
+              <button onclick="limpiarHistorialBio()" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:4px;color:#f87171;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
+            </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex-shrink:0;">
               <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:10px;">TENDENCIA SEMANAL — ÚLTIMAS 10 SEMANAS</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -5200,6 +5203,16 @@ async function loadBioHistory() {
   }
 }
 window.loadBioHistory = loadBioHistory;
+
+function limpiarHistorialBio() {
+  if(!confirm("¿Borrar todos los informes biológicos guardados? Esta acción no se puede deshacer.")) return;
+  waitForFirebase().then(() => {
+    window._fb.remove(window._fb.ref(window._fb.db, "informes_bio"))
+      .then(() => loadBioHistory())
+      .catch(e => alert("Error al borrar: " + e.message));
+  }).catch(() => alert("Firebase no disponible"));
+}
+window.limpiarHistorialBio = limpiarHistorialBio;
 
 // ══ TENDENCIAS ═══════════════════════════════════════════════════════════════
 function loadTendencias() {
