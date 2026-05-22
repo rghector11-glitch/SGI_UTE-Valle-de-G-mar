@@ -1393,8 +1393,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
           <!-- ── TENDENCIAS BIOLÓGICAS ── -->
           <div id="bio-ph" style="display:none;flex:1;overflow-y:auto;flex-direction:column;gap:8px;padding-bottom:6px;">
-            <div style="display:flex;justify-content:flex-end;">
-              <button onclick="limpiarHistorialBio()" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:4px;color:#f87171;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
+            <div style="display:flex;justify-content:flex-end;gap:6px;">
+              <button onclick="exportBioInforme()" style="background:rgba(0,168,232,.10);border:1px solid rgba(0,168,232,.35);border-radius:4px;color:#38bdf8;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;" onmouseover="this.style.background='rgba(0,168,232,.22)'" onmouseout="this.style.background='rgba(0,168,232,.10)'"><i class="ti ti-file-export" aria-hidden="true"></i> Informe PDF</button>
+              <button onclick="limpiarHistorialBio()" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:4px;color:#f87171;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;" onmouseover="this.style.background='rgba(239,68,68,.25)'" onmouseout="this.style.background='rgba(239,68,68,.12)'"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
             </div>
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex-shrink:0;">
               <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:10px;">TENDENCIA SEMANAL — ÚLTIMAS 10 SEMANAS</div>
@@ -5207,6 +5208,9 @@ async function loadBioHistory() {
       return fb - fa;
     });
 
+    // Guardar globalmente para exportBioInforme
+    window._bioEntries = allEntries;
+
     // Gráfica: las últimas 15 entradas en orden cronológico ascendente (más antigua a izquierda)
     const chartEntries = [...allEntries].slice(0, 15).reverse();
     chartEntries.forEach(e => {
@@ -5293,6 +5297,156 @@ function limpiarHistorialBio() {
   }).catch(() => alert("Firebase no disponible"));
 }
 window.limpiarHistorialBio = limpiarHistorialBio;
+
+// ── Exportar informe PDF de Macroscopía y Microscopía ────────────────────────
+function exportBioInforme() {
+  const entries = (window._bioEntries || []).slice().reverse(); // cronológico asc
+  if (!entries.length) { alert('No hay informes cargados. Ve a la pestaña Tendencias primero.'); return; }
+
+  const dateStr = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const fechas  = entries.map(e => e.fecha ? e.fecha.slice(5).replace('-','/') : (e.semana||'?'));
+
+  // ── Logo ──────────────────────────────────────────────────────────────────
+  const logoEl = document.querySelector('.sb-logo-img img');
+  const logoSrc = logoEl ? logoEl.src : '';
+
+  // ── Interpolación de nulos/ceros ──────────────────────────────────────────
+  function interpolate(arr) {
+    const out = arr.map(v => (v == null ? 0 : v));
+    const n = out.length;
+    let first = out.findIndex(v => v !== 0);
+    if (first < 0) return out;
+    for (let i = 0; i < first; i++) out[i] = out[first];
+    let i = first + 1;
+    while (i < n) {
+      if (out[i] === 0) {
+        let j = i;
+        while (j < n && out[j] === 0) j++;
+        const vA = out[i-1], vB = j < n ? out[j] : out[i-1];
+        for (let k = i; k < j; k++) out[k] = vA + (vB - vA) * (k - i + 1) / (j - i + 1);
+        i = j;
+      } else { i++; }
+    }
+    return out;
+  }
+
+  // ── SVG chart helper ─────────────────────────────────────────────────────
+  function svgLine(raw, color, refV, unit) {
+    const vals = interpolate(raw);
+    const W = Math.max(680, entries.length * 42), H = 100, PL = 38, PR = 8, PT = 12, PB = 20;
+    const gW = W-PL-PR, gH = H-PT-PB;
+    const minV = Math.max(0, Math.min(...vals) * 0.88);
+    const maxV = Math.max(...vals) * 1.1 || 1;
+    const rng  = maxV - minV || 1;
+    const px = (i) => PL + i / (vals.length - 1 || 1) * gW;
+    const py = (v)  => PT + gH - (v - minV) / rng * gH;
+    const pts = vals.map((v, i) => ({x: px(i), y: py(v), v, real: raw[i] != null && raw[i] !== 0}));
+    const poly = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const area = [`${pts[0].x.toFixed(1)},${PT+gH}`, ...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`), `${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
+    const refY = PT + gH - (refV - minV) / rng * gH;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+    s += `<polygon points="${area}" fill="${color}" opacity="0.12"/>`;
+    if (refV > minV && refV < maxV) s += `<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
+    [0, 0.5, 1].forEach(f => { s += `<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.4"/>`; });
+    s += `<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+    pts.forEach((p, i) => {
+      s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${p.real ? color : '#fff'}" stroke="${color}" stroke-width="1.2"/>`;
+      if (p.real) s += `<text x="${p.x.toFixed(1)}" y="${(p.y-5).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="6.5" font-family="Arial" font-weight="700">${p.v.toFixed(1)}</text>`;
+    });
+    [minV, (minV+maxV)/2, maxV].forEach((v, i) => {
+      s += `<text x="${PL-3}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="6.5" font-family="monospace">${v.toFixed(1)}</text>`;
+    });
+    fechas.forEach((f, i) => {
+      s += `<text x="${pts[i].x.toFixed(1)}" y="${H-3}" text-anchor="middle" fill="#7a8fa8" font-size="6" font-family="monospace">${f}</text>`;
+    });
+    s += `<text x="${PL-3}" y="${PT-2}" text-anchor="end" fill="#7a8fa8" font-size="5.5">${unit}</text>`;
+    s += `</svg>`;
+    return s;
+  }
+
+  // ── Datos por campo ───────────────────────────────────────────────────────
+  const ivfVals   = entries.map(e => e.licor?.ivf   ?? 0);
+  const filVals   = entries.map(e => e.filamentosos?.grado ?? 0);
+  const odVals    = entries.map(e => e.datos?.od    ?? 0);
+  const edadVals  = entries.map(e => e.sim?.edad_fango ?? 0);
+
+  // ── Tabla resumen por informe ─────────────────────────────────────────────
+  const filColor = g => g <= 1 ? '#22c55e' : g <= 3 ? '#f59e0b' : '#ef4444';
+  const bioKeys  = {ameba_desnuda:'Ameba',aspidisca_cicada:'Aspidisca',depranomonas:'Deprano.',cinetochillum:'Cineto.',pseudochilonodopsis:'Pseudo.',rotaria:'Rotaria',blepharisma:'Blepharisma',bacterias_libres:'Bac.libres',agregado_bacteriano:'Agr.bact.',diatomea:'Diatomea',nematodo:'Nematodo',flagelado:'Flagelado'};
+
+  const tableRows = entries.map(e => {
+    const m = e.licor||{}, fl = e.floculos||{}, fi = e.filamentosos||{}, b = e.bio||{}, d = e.datos||{}, sim = e.sim||{}, esp = e.espumas||{};
+    const fecha = e.fecha ? new Date(e.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'}) : '—';
+    const bios = Object.entries(bioKeys).filter(([k]) => b[k]).map(([,n]) => n).join(', ') || '—';
+    const filGr = fi.grado != null ? `<span style="color:${filColor(fi.grado)};font-weight:700;">${fi.grado}/5</span>` : '—';
+    const etiq = e.etiqueta ? `<span style="font-size:8px;background:#e0f2fe;border-radius:2px;padding:0 4px;color:#0284c7;">${e.etiqueta}</span>` : '';
+    return `<tr>
+      <td style="white-space:nowrap;font-weight:600;">${fecha} ${etiq}</td>
+      <td style="text-align:center;">${m.ivf != null ? m.ivf : '—'}</td>
+      <td style="text-align:center;">${m.v30 != null ? m.v30 : '—'}</td>
+      <td style="text-align:center;">${filGr}</td>
+      <td style="font-size:8px;max-width:120px;">${fi.tipos||'—'}</td>
+      <td style="text-align:center;">${d.od != null ? d.od : '—'}</td>
+      <td style="text-align:center;">${esp.probeta != null ? esp.probeta : '—'}</td>
+      <td style="text-align:center;">${sim.edad_fango != null ? sim.edad_fango : '—'}</td>
+      <td style="text-align:center;">${sim.sst != null ? sim.sst : '—'}</td>
+      <td style="font-size:8px;max-width:130px;">${bios}</td>
+      <td style="font-size:8px;color:#555;font-style:italic;max-width:120px;">${(e.obs||'').slice(0,60)}</td>
+    </tr>`;
+  }).join('');
+
+  const firstFecha = entries[0]?.fecha || '—';
+  const lastFecha  = entries[entries.length-1]?.fecha || '—';
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    *{box-sizing:border-box;}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#1a2540;padding:20px 24px;max-width:100%;margin:0;}
+    h1{font-size:15px;color:#003e6b;border-bottom:2px solid #005b99;padding-bottom:5px;margin:0 0 3px 0;}
+    h2{font-size:9.5px;color:#5a7090;text-transform:uppercase;letter-spacing:1px;margin:14px 0 5px;border-bottom:1px solid #e0e8f0;padding-bottom:3px;}
+    table{width:100%;border-collapse:collapse;font-size:9px;margin-bottom:6px;}
+    td,th{padding:3px 5px;border:1px solid #d0dce8;vertical-align:middle;}
+    th{background:#f0f4f8;font-weight:600;text-align:center;white-space:nowrap;}
+    td:first-child{text-align:left;}
+    tr:nth-child(even) td{background:#f8fafc;}
+    .chart-box{border:1px solid #e0e8f0;border-radius:4px;padding:8px 10px;margin-bottom:10px;background:#fafcff;overflow-x:auto;}
+    .chart-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+    .footer{margin-top:16px;font-size:7.5px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:5px;}
+    .header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+    @media print{body{padding:10px}.chart-box{break-inside:avoid}table{break-inside:auto}tr{break-inside:avoid}}
+  </style></head><body>
+  <div class="header-row">
+    <div>
+      <h1>Informe de Macroscopía y Microscopía</h1>
+      <p style="font-size:9px;color:#5a7090;margin:2px 0;">Período: ${firstFecha} → ${lastFecha} · ${entries.length} informes · Generado: ${dateStr}</p>
+      <p style="font-size:9px;color:#5a7090;margin:0;">Realizado por: <b>Héctor Hernández Hernández</b></p>
+    </div>
+    ${logoSrc ? `<img src="${logoSrc}" alt="UTE Valle de Güímar" style="height:48px;width:auto;object-fit:contain;"/>` : ''}
+  </div>
+
+  <h2>Tendencias</h2>
+  <div class="chart-box"><div class="chart-lbl" style="color:#00e87a;">IVF — Índice Volumétrico de Fangos (ml/g)</div>${svgLine(ivfVals,'#00a855',150,'ml/g')}</div>
+  <div class="chart-box"><div class="chart-lbl" style="color:#f59e0b;">Filamentosos (grado 0–5)</div>${svgLine(filVals,'#d97706',3,'')}</div>
+  <div class="chart-box"><div class="chart-lbl" style="color:#a78bfa;">Oxígeno disuelto — OD (mg/L)</div>${svgLine(odVals,'#7c3aed',2,'mg/L')}</div>
+  <div class="chart-box"><div class="chart-lbl" style="color:#00c8f0;">Edad de Fango (días)</div>${svgLine(edadVals,'#0284c7',15,'d')}</div>
+
+  <h2>Resumen de informes</h2>
+  <table>
+    <tr>
+      <th>Fecha</th><th>IVF<br>(ml/g)</th><th>V30<br>(ml)</th><th>Fil.<br>(0-5)</th><th>Tipos filam.</th>
+      <th>OD<br>(mg/L)</th><th>Espumas<br>probeta</th><th>Edad<br>fango (d)</th><th>SST<br>(mg/L)</th>
+      <th>Bioindicadores</th><th>Observaciones</th>
+    </tr>
+    ${tableRows}
+  </table>
+  <div class="footer">Macroscopía y Microscopía · UTE Valle de Güímar · EDAR Valle de Güímar</div>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+window.exportBioInforme = exportBioInforme;
 
 // ══ TENDENCIAS ═══════════════════════════════════════════════════════════════
 function loadTendencias() {
