@@ -1426,6 +1426,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">· Cada punto = un informe cargado · Eje X = fecha real del PDF</span>
               </div>
             </div>
+            <!-- ── Gráfico tendencia edad de fango del simulador ── -->
+            <div id="bio-sim-trend-card" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex-shrink:0;display:none;">
+              <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">EDAD DE FANGO — DATOS DEL SIMULADOR</div>
+              <canvas id="bio-chart-sim-edad" height="90"></canvas>
+              <div id="bio-sim-trend-label" style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:4px;text-align:right;"></div>
+            </div>
             <div id="bio-hist-list" style="display:flex;flex-direction:column;gap:6px;"></div>
           </div><!-- /#bio-ph -->
 
@@ -4608,6 +4614,7 @@ function bioTab(which) {
     form.style.display = 'none'; hist.style.display = 'flex';
     btnF.classList.remove('active'); btnH.classList.add('active');
     loadBioHistory();
+    buildSimEdadChart();
   }
 }
 window.bioTab = bioTab;
@@ -5217,6 +5224,57 @@ async function loadBioHistory() {
 }
 window.loadBioHistory = loadBioHistory;
 
+// ── Gráfico edad de fango del simulador en panel Macroscopía ─────────────────
+function buildSimEdadChart() {
+  let semana = null;
+  try { semana = JSON.parse(localStorage.getItem('sgi-tendencias-semana')||'null'); } catch(e){}
+  const card  = document.getElementById('bio-sim-trend-card');
+  const lbl   = document.getElementById('bio-sim-trend-label');
+  if (!card) return;
+  if (!semana || !semana.days || !semana.days.length) { card.style.display='none'; return; }
+  card.style.display = 'block';
+  const days  = semana.days;
+  const labels = days.map(d => d.fecha || d.iso.slice(5));
+  const vals   = days.map(d => Number(d.tc) || 0);
+  const existing = Chart.getChart('bio-chart-sim-edad');
+  if (existing) existing.destroy();
+  const ctx = document.getElementById('bio-chart-sim-edad');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Edad fango (d)',
+        data: vals,
+        borderColor:'#ffb300',
+        backgroundColor:'rgba(255,179,0,.10)',
+        borderWidth:2,
+        pointBackgroundColor:'#ffb300',
+        pointRadius:4,
+        fill:true,
+        tension:0.3,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`${c.parsed.y.toFixed(1)} d`}}
+      },
+      scales:{
+        x:{ticks:{color:'#5a8099',font:{family:'monospace',size:8}},grid:{color:'rgba(58,90,114,.25)'}},
+        y:{ticks:{color:'#5a8099',font:{family:'monospace',size:8},callback:v=>v+'d'},
+           grid:{color:'rgba(58,90,114,.25)'},
+           suggestedMin:0,
+           afterDataLimits(ax){ax.max=Math.max(ax.max,20);}}
+      }
+    }
+  });
+  if (lbl) lbl.textContent = `📅 ${semana.start||''} · ${days.length} registros`;
+}
+window.buildSimEdadChart = buildSimEdadChart;
+
 function limpiarHistorialBio() {
   if(!confirm("¿Borrar todos los informes biológicos guardados? Esta acción no se puede deshacer.")) return;
   // Limpiar gráficos y lista inmediatamente
@@ -5309,6 +5367,7 @@ function loadTendencias() {
         ${svgChart(days, ch.key, ch.color, ch.ref)}
       </div>`;
     }).join('');
+  buildSimEdadChart();
 }
 window.loadTendencias = loadTendencias;
 

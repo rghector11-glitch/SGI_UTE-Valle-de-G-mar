@@ -1344,7 +1344,7 @@ function App(){
       const vals=days.map(d=>d.row[k]).filter(v=>typeof v==='number'&&v!==0&&!isNaN(v));
       avg[k]=vals.length?Math.round((vals.reduce((s,v)=>s+v,0)/vals.length)*100)/100:0;
     });
-    setWeekSummary({days,avg});
+    setWeekSummary({days,avg,startISO:ini,endISO:fin});
     applyRow(avg);
 
     // Calcular resultados individuales por día para gráficas
@@ -1405,19 +1405,19 @@ function App(){
         }, '*');
       }catch(e){}
     }
-    setXlsxMsg('\u2713 '+days.length+'/7 d\u00edas \u00b7 \u00faltimo d\u00eda aplicado a KPIs');
+    setXlsxMsg('\u2713 '+days.length+' d\u00eda'+(days.length>1?'s':'')+' ('+ini+' \u2192 '+fin+')');
   }
 
   function exportWeekPDF(){
     if(!weekSummary) return;
-    const {days}=weekSummary;
+    const {days,startISO,endISO}=weekSummary;
     const calc=weekCalc.length?weekCalc:days.map(d=>({iso:d.iso,tc:0,rend_dqo:0,rend_dbo:0,rend_nh4:0,rend_pt:0,fecha:d.iso.slice(5)}));
     const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
 
     // ── SVG chart helper ──────────────────────────────────────────────────────
     function svgLine(data, key, color, label, refV, unit){
       const vals=data.map(d=>Number(d[key])||0);
-      const W=480,H=110,PL=42,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
+      const W=Math.max(480,data.length*38),H=110,PL=42,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
       const minV=Math.max(0,Math.min(...vals)*0.85), maxV=Math.max(...vals)*1.1||1, rng=maxV-minV||1;
       const pts=data.map((d,i)=>({x:PL+i/(data.length-1||1)*gW, y:PT+gH-(vals[i]-minV)/rng*gH, v:vals[i]}));
       const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
@@ -1455,7 +1455,7 @@ function App(){
       .footer{margin-top:20px;font-size:8px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:6px}
       @media print{body{padding:12px}.chart-box{break-inside:avoid}}
     </style></head><body>
-    <h1>Informe de período EDAR — ${startISO} → ${days[days.length-1].iso}</h1>
+    <h1>Informe de período EDAR — ${startISO||days[0].iso} → ${endISO||days[days.length-1].iso}</h1>
     <p style="font-size:9px;color:#5a7090">Generado: ${dateStr} · ${days.length} días con datos · Media aplicada al simulador</p>
     <h2>Datos de proceso (valores originales del Excel)</h2>
     <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rowsRaw}</table>
