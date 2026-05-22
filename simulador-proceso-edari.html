@@ -1542,7 +1542,16 @@ function App(){
     <Slider label={t.caudalBio}     unit="m³/d" min={200} max={2000} step={10}  value={p.caudal}        onChange={set('caudal')}        color={C.accent} C={C} compact={compact}/>
     <Slider label={t.od}            unit="mg/L"  min={0.3} max={6}   step={0.1} value={p.od}            onChange={set('od')}            color={C.green}  C={C} compact={compact}/>
     <Slider label={t.recirculacion} unit="%"     min={20}  max={150} step={5}   value={p.recirculacion} onChange={set('recirculacion')} color={C.warn}   C={C} compact={compact}/>
-    <div style={{display:'flex',alignItems:'center',gap:4,opacity:0.75}}><span style={{fontSize:9,color:C.muted,fontFamily:'monospace',whiteSpace:'nowrap'}}>{t.volReactor}:</span><span style={{fontSize:10,color:C.text,fontFamily:'monospace',fontWeight:700}}>2 167,90 m³</span><span style={{fontSize:8,color:C.muted,fontFamily:'monospace'}}>(fijo)</span></div>
+    <div style={{marginBottom:compact?7:12}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
+        <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.volReactor}</span>
+        <span style={{fontSize:8,color:C.muted}}>m³</span>
+      </div>
+      <input type="number" value={2167.90} readOnly
+        style={{width:'100%',background:C.inputBg,border:`1px solid ${C.inputBorder}`,borderRadius:4,
+          color:C.text,fontFamily:'monospace',fontSize:compact?11:13,fontWeight:700,
+          padding:compact?'4px 7px':'6px 9px',outline:'none',boxSizing:'border-box',cursor:'not-allowed',opacity:0.7}}/>
+    </div>
     <NumInput label={t.edadObjetivo} unit="días"  value={p.edad_objetivo} onChange={set('edad_objetivo')} color={C.text}   C={C} compact={compact}/>
   </>);}
   function PLE({compact=true}){return(<>
