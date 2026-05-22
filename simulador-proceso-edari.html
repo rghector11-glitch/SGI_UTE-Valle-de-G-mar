@@ -1208,6 +1208,8 @@ function App(){
 
   // ── Excel / selector de fecha ──────────────────────────────────────────────
   const [excelData,setExcelData]=useState([]);
+  const [rangeMode,setRangeMode]=useState(false);
+  const [selectedDate,setSelectedDate]=useState('');
   const [fechaIni,setFechaIni]=useState('');
   const [fechaFin,setFechaFin]=useState('');
   const [xlsxMsg,setXlsxMsg]=useState('');
@@ -1326,6 +1328,18 @@ function App(){
     const pt_e=n('PT ENTRADA');                       if(pt_e!==undefined)     updates.pt_entrada=pt_e;
     const pt_ef=n('PT EFLUENTE');                     if(pt_ef!==undefined)    updates.pt_efluente=pt_ef;
     setP(prev=>({...prev,...updates}));
+  }
+
+  function handleDateChange(val){
+    setSelectedDate(val);
+    const row=excelData.find(r=>r._fechaISO===val);
+    if(row){
+      applyRow(row);
+      setXlsxMsg(`✓ Datos del ${val} cargados`);
+      setWeekSummary(null);
+    } else if(val){
+      setXlsxMsg(`⚠ Sin datos para ${val}`);
+    }
   }
 
   function handleRangeLoad(ini,fin){
@@ -1589,27 +1603,47 @@ function App(){
         </button>
         {excelData.length>0&&(
           <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}}>
-            <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Desde:</span>
-            <input type='date' value={fechaIni} onChange={e=>setFechaIni(e.target.value)}
-              list='sim-ext-fechas'
-              style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
-                color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
-                outline:'none',colorScheme:'dark',width:116}}/>
-            <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Hasta:</span>
-            <input type='date' value={fechaFin} onChange={e=>setFechaFin(e.target.value)}
-              list='sim-ext-fechas'
-              style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
-                color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
-                outline:'none',colorScheme:'dark',width:116}}/>
+            <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:5,padding:2}}>
+              {[['día',false],['rango',true]].map(([lbl,rm])=>(
+                <button key={lbl} onClick={()=>{setRangeMode(rm);setXlsxMsg('');setWeekSummary(null);}}
+                  style={{padding:'2px 8px',border:'none',borderRadius:3,cursor:'pointer',fontSize:9,fontWeight:700,
+                    background:rangeMode===rm?C.accent:'transparent',
+                    color:rangeMode===rm?C.bg:C.muted}}>
+                  {lbl.charAt(0).toUpperCase()+lbl.slice(1)}
+                </button>
+              ))}
+            </div>
             <datalist id='sim-ext-fechas'>
               {fechasDisponibles.map(f=>(<option key={f} value={f}/>))}
             </datalist>
-            <button onClick={()=>handleRangeLoad(fechaIni,fechaFin)}
-              style={{padding:'3px 10px',background:C.accent,border:'none',borderRadius:4,
-                color:C.bg,fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
-              Cargar
-            </button>
-            {weekSummary&&(
+            {!rangeMode?(
+              <input type='date' value={selectedDate} onChange={e=>handleDateChange(e.target.value)}
+                list='sim-ext-fechas'
+                style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                  color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                  outline:'none',colorScheme:'dark',width:120}}/>
+            ):(
+              <>
+                <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Desde:</span>
+                <input type='date' value={fechaIni} onChange={e=>setFechaIni(e.target.value)}
+                  list='sim-ext-fechas'
+                  style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                    color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                    outline:'none',colorScheme:'dark',width:116}}/>
+                <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Hasta:</span>
+                <input type='date' value={fechaFin} onChange={e=>setFechaFin(e.target.value)}
+                  list='sim-ext-fechas'
+                  style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                    color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                    outline:'none',colorScheme:'dark',width:116}}/>
+                <button onClick={()=>handleRangeLoad(fechaIni,fechaFin)}
+                  style={{padding:'3px 10px',background:C.accent,border:'none',borderRadius:4,
+                    color:C.bg,fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                  Cargar
+                </button>
+              </>
+            )}
+            {weekSummary&&rangeMode&&(
               <button onClick={exportWeekPDF}
                 style={{padding:'3px 8px',background:'rgba(185,28,28,.8)',border:'none',borderRadius:5,
                   color:'white',fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
