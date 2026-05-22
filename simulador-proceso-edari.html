@@ -1429,8 +1429,30 @@ function App(){
     const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
 
     // ── SVG chart helper ──────────────────────────────────────────────────────
+    function interpolateZeros(arr){
+      const out=[...arr];
+      const n=out.length;
+      // Rellenar ceros iniciales con el primer valor no-cero
+      let first=out.findIndex(v=>v!==0);
+      if(first<0) return out; // todos cero
+      for(let i=0;i<first;i++) out[i]=out[first];
+      // Interpolación lineal entre bloques de ceros
+      let i=first+1;
+      while(i<n){
+        if(out[i]===0){
+          let j=i;
+          while(j<n&&out[j]===0) j++;
+          const vA=out[i-1], vB=j<n?out[j]:out[i-1];
+          const steps=j-i+1;
+          for(let k=i;k<j;k++) out[k]=vA+(vB-vA)*(k-i+1)/steps;
+          i=j;
+        } else { i++; }
+      }
+      return out;
+    }
     function svgLine(data, key, color, label, refV, unit){
-      const vals=data.map(d=>Number(d[key])||0);
+      const raw=data.map(d=>Number(d[key])||0);
+      const vals=interpolateZeros(raw);
       const W=Math.max(480,data.length*38),H=110,PL=42,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
       const minV=Math.max(0,Math.min(...vals)*0.85), maxV=Math.max(...vals)*1.1||1, rng=maxV-minV||1;
       const pts=data.map((d,i)=>({x:PL+i/(data.length-1||1)*gW, y:PT+gH-(vals[i]-minV)/rng*gH, v:vals[i]}));
@@ -1442,7 +1464,7 @@ function App(){
       if(refV>minV&&refV<maxV) svg+=`<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
       [0,0.5,1].forEach(f=>{ svg+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.5"/>`; });
       svg+=`<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-      pts.forEach((p,i)=>{ svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" stroke="#fff" stroke-width="1.2"/><text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="7" font-family="Arial" font-weight="700">${p.v.toFixed(1)}</text>`; });
+      pts.forEach((p,i)=>{ const isReal=raw[i]!==0; svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${isReal?color:'#fff'}" stroke="${color}" stroke-width="1.2"/>${isReal?`<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="7" font-family="Arial" font-weight="700">${p.v.toFixed(1)}</text>`:''}`;});
       [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svg+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${v.toFixed(1)}</text>`; });
       data.forEach((d,i)=>{ const p=pts[i]; svg+=`<text x="${p.x.toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${d.fecha||d.iso.slice(5)||''}</text>`; });
       svg+=`<text x="${PL-4}" y="${PT-2}" text-anchor="end" fill="#7a8fa8" font-size="6">${unit}</text>`;
