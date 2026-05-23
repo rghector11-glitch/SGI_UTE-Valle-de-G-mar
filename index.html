@@ -5946,35 +5946,90 @@ async function loadTareas() {
   try {
     const snap = await window._fb.get(window._fb.ref(window._fb.db, 'tareas'));
     const data  = snap.val();
-
-    // Filtrar por usuario actual si no es supervisor
     const user  = session?.username || '';
     const role  = session?.role || '';
     const isSup = role === 'supervisor' || role === 'admin';
-    const items = data
-      ? Object.entries(data)
-          .map(([id,t]) => ({id,...t}))
-          .filter(t => isSup || t.asignado_a === user)
-          .sort((a,b) => {
-            // Pendientes primero, ordenadas por prioridad luego por fecha
-            if(a.completada !== b.completada) return a.completada ? 1 : -1;
-            const po = {alta:0,media:1,baja:2};
-            return (po[a.prioridad]||1) - (po[b.prioridad]||1);
-          })
-      : [];
 
+    const sortFn = (a,b) => {
+      if(a.completada !== b.completada) return a.completada ? 1 : -1;
+      const po = {alta:0,media:1,baja:2};
+      return (po[a.prioridad]||1) - (po[b.prioridad]||1);
+    };
+
+    const allItems = data ? Object.entries(data).map(([id,t]) => ({id,...t})) : [];
+
+    if(!allItems.length) {
+      lista.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:3rem;text-align:center;">
+        <i class="ti ti-circle-check" style="font-size:48px;color:var(--accent2);opacity:.4;"></i>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">¡Sin tareas creadas!</div>
+      </div>`;
+      return;
+    }
+
+    // ── Vista SUPERVISOR: agrupada por usuario con botón WhatsApp ─────────────
+    if(isSup) {
+      // Agrupar por usuario asignado
+      const byUser = {};
+      allItems.forEach(t => {
+        const u = t.asignado_a || '(sin asignar)';
+        if(!byUser[u]) byUser[u] = [];
+        byUser[u].push(t);
+      });
+
+      let html = `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;">
+        Vista supervisor · ${allItems.length} tarea${allItems.length!==1?'s':''} · ${Object.keys(byUser).length} usuario${Object.keys(byUser).length!==1?'s':''}
+      </div>`;
+
+      Object.entries(byUser).sort(([a],[b])=>a.localeCompare(b)).forEach(([uname, tareas]) => {
+        const sorted    = [...tareas].sort(sortFn);
+        const pendCount = sorted.filter(t=>!t.completada).length;
+
+        html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden;">
+          <!-- Cabecera usuario -->
+          <div style="background:linear-gradient(90deg,var(--panel),transparent);display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);">
+            <i class="ti ti-user-circle" style="font-size:18px;color:var(--accent);" aria-hidden="true"></i>
+            <div style="flex:1;">
+              <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--light);">${uname}</div>
+              <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">
+                ${pendCount} pendiente${pendCount!==1?'s':''} · ${tareas.length-pendCount} completada${tareas.length-pendCount!==1?'s':''}
+              </div>
+            </div>
+            <button onclick="compartirWhatsApp('${uname}')"
+              style="display:flex;align-items:center;gap:6px;background:#25d366;border:none;border-radius:20px;color:#fff;cursor:pointer;font-family:var(--mono);font-size:9px;font-weight:700;padding:6px 14px;letter-spacing:.04em;transition:opacity .15s;"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'"
+              title="Enviar tareas de ${uname} por WhatsApp">
+              <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:white;" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+              </svg>
+              WhatsApp
+            </button>
+          </div>
+          <!-- Tareas del usuario -->
+          <div style="padding:8px 12px;display:flex;flex-direction:column;gap:6px;">
+            ${sorted.map(t => tareaCard(t)).join('')}
+          </div>
+        </div>`;
+      });
+
+      lista.innerHTML = html;
+      updateTareasBadge(allItems.filter(t=>!t.completada).length);
+      return;
+    }
+
+    // ── Vista OPERARIO: solo mis tareas ────────────────────────────────────────
+    const items = allItems.filter(t => t.asignado_a === user).sort(sortFn);
     if(!items.length) {
       lista.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:3rem;text-align:center;">
         <i class="ti ti-circle-check" style="font-size:48px;color:var(--accent2);opacity:.4;"></i>
         <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">¡Sin tareas pendientes!</div>
       </div>`;
+      updateTareasBadge(0);
       return;
     }
 
     const pendientes = items.filter(t => !t.completada);
     const hechas     = items.filter(t => t.completada);
     let html = '';
-
     if(pendientes.length) {
       html += `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">PENDIENTES (${pendientes.length})</div>`;
       html += pendientes.map(t => tareaCard(t)).join('');
@@ -5983,7 +6038,6 @@ async function loadTareas() {
       html += `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:10px 0 4px;">COMPLETADAS (${hechas.length})</div>`;
       html += hechas.map(t => tareaCard(t)).join('');
     }
-
     lista.innerHTML = html;
     updateTareasBadge(pendientes.length);
   } catch(e) {
@@ -6041,6 +6095,59 @@ async function completaTareaOp(id, done) {
   loadTareas();
 }
 window.completaTareaOp = completaTareaOp;
+
+// ─── Compartir tareas de un usuario por WhatsApp ─────────────────────────────
+async function compartirWhatsApp(username) {
+  if(!window._fb) return;
+  const snap = await window._fb.get(window._fb.ref(window._fb.db, 'tareas'));
+  const data = snap.val();
+  if(!data) return;
+
+  const PRIO_EMOJI = {alta:'🔴', media:'🟡', baja:'🟢'};
+  const hoy = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const tareas = Object.values(data)
+    .filter(t => t.asignado_a === username)
+    .sort((a,b) => {
+      if(a.completada !== b.completada) return a.completada ? 1 : -1;
+      const po = {alta:0,media:1,baja:2};
+      return (po[a.prioridad]||1) - (po[b.prioridad]||1);
+    });
+
+  if(!tareas.length) { alert(`No hay tareas asignadas a ${username}.`); return; }
+
+  const pendientes  = tareas.filter(t => !t.completada);
+  const completadas = tareas.filter(t => t.completada);
+
+  let msg = `📋 *TAREAS ASIGNADAS — ${username.toUpperCase()}*\n`;
+  msg += `📅 ${hoy}\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+
+  if(pendientes.length) {
+    msg += `\n*PENDIENTES (${pendientes.length})*\n`;
+    pendientes.forEach((t,i) => {
+      const emoji = PRIO_EMOJI[t.prioridad] || '⚪';
+      msg += `\n${emoji} *${t.titulo}*`;
+      if(t.fecha_limite) msg += ` ⏰ ${t.fecha_limite}`;
+      if(t.descripcion)  msg += `\n   _${t.descripcion}_`;
+      msg += '\n';
+    });
+  }
+
+  if(completadas.length) {
+    msg += `\n*COMPLETADAS (${completadas.length})*\n`;
+    completadas.forEach(t => {
+      msg += `\n✅ ~${t.titulo}~\n`;
+    });
+  }
+
+  msg += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `_UTE Valle de Güímar · SGI_`;
+
+  const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+window.compartirWhatsApp = compartirWhatsApp;
 
 // ─── Badge en módulo M08 ─────────────────────────────────────────────────────
 async function updateTareasBadge(count) {
