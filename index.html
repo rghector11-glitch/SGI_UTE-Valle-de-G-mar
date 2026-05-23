@@ -1519,8 +1519,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
                 <div>
                   <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Asignar a</div>
-                  <input id="gt-asignado" type="text" placeholder="Nombre de usuario"
-                    style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;">
+                  <select id="gt-asignado"
+                    style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;cursor:pointer;">
+                    <option value="">— Selecciona usuario —</option>
+                  </select>
                 </div>
                 <div>
                   <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Prioridad</div>
@@ -2705,6 +2707,9 @@ function showPortal(session) {
   // Show manage users btn if supervisor
   const mub = document.getElementById('manage-users-btn');
   if(mub) mub.style.display = session.role === 'supervisor' ? 'block' : 'none';
+  // Mostrar/ocultar botón Gestión Supervisor en sidebar
+  const sbGestion = document.getElementById('sb-gestion');
+  if(sbGestion) sbGestion.style.display = session.role === 'supervisor' ? '' : 'none';
 }
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
@@ -4465,7 +4470,11 @@ function sbNav(id) {
   if(id === 'tendencias')  loadTendencias();
   if(id === 'alertas')     loadAlertas();
   if(id === 'analitica')   loadAnalitica();
-  if(id === 'gestion')     loadGestion();
+  if(id === 'gestion') {
+    const s = getSession();
+    if(!s || s.role !== 'supervisor') { sbNav('portal'); return; }
+    loadGestion();
+  }
   if(id === 'tareas')      loadTareas();
 }
 
@@ -5669,6 +5678,27 @@ async function loadGestion() {
   if(!lista || !window._fb) return;
   lista.innerHTML = '<div style="font-size:10px;color:var(--muted);text-align:center;padding:1rem;font-family:var(--mono);">Cargando...</div>';
 
+  // Cargar usuarios para el desplegable
+  try {
+    const usersSnap = await window._fb.get(window._fb.ref(window._fb.db, 'usuarios'));
+    const usersData = usersSnap.val();
+    const sel = document.getElementById('gt-asignado');
+    if(sel && usersData) {
+      const current = sel.value;
+      sel.innerHTML = '<option value="">— Selecciona usuario —</option>';
+      Object.values(usersData)
+        .sort((a,b) => (a.username||'').localeCompare(b.username||''))
+        .forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.username;
+          opt.textContent = `${u.username}${u.name && u.name !== u.username ? ' · '+u.name : ''} (${u.role||'operario'})`;
+          if(u.username === current) opt.selected = true;
+          sel.appendChild(opt);
+        });
+    }
+  } catch(e) { /* sin usuarios disponibles */ }
+
+  // Cargar tareas
   try {
     const snap = await window._fb.get(window._fb.ref(window._fb.db, 'tareas'));
     const data  = snap.val();
