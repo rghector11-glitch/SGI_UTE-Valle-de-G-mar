@@ -1398,6 +1398,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex-shrink:0;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                 <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;flex:1;">TENDENCIAS — ÚLTIMOS 15 INFORMES (CRONOLÓGICO)</div>
+                <button onclick="exportarInformeTendencias()" style="background:var(--accent);border:none;border-radius:3px;color:#07090f;cursor:pointer;font-size:8px;padding:3px 9px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;">⬇ Descargar informe</button>
                 <button onclick="limpiarDatosBio()" style="background:none;border:1px solid var(--danger);border-radius:3px;color:var(--danger);cursor:pointer;font-size:8px;padding:3px 9px;font-family:var(--mono);letter-spacing:.04em;">🗑 Limpiar datos</button>
                 <button onclick="loadBioHistory()" style="background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-size:8px;padding:3px 9px;font-family:var(--mono);">↻ Actualizar</button>
               </div>
@@ -5321,6 +5322,8 @@ async function loadBioHistory() {
 
     // Tarjetas: las más recientes arriba
     listEl.innerHTML = allEntries.slice(0,20).map(e => bioBuildCard(e)).join('');
+    // Guardar para exportación
+    window._bioLastEntries = allEntries.slice(0, 30);
   } catch(e) {
     listEl.innerHTML=`<div style="color:var(--danger);font-family:var(--mono);font-size:10px;text-align:center;padding:1rem;">Error: ${e.message}</div>`;
   }
@@ -5345,6 +5348,162 @@ async function limpiarDatosBio() {
   }
 }
 window.limpiarDatosBio = limpiarDatosBio;
+
+function exportarInformeTendencias() {
+  // Capturar imágenes de los 4 gráficos
+  const chartIds = ['bio-chart-ivf','bio-chart-fil','bio-chart-od','bio-chart-edad'];
+  const imgs = {};
+  chartIds.forEach(id => {
+    const c = window.Chart?.getChart(id);
+    imgs[id] = c ? c.toBase64Image('image/png', 1.0) : null;
+  });
+
+  const entries = window._bioLastEntries || [];
+  const hoy = new Date();
+  const fechaStr = hoy.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  const fechaISO = hoy.toISOString().slice(0,10);
+
+  // Tabla de historial
+  const prio = {alta:'#dc2626',media:'#d97706',baja:'#16a34a'};
+  const filC  = v => v<=1?'#16a34a':v<=3?'#d97706':'#dc2626';
+  const rowsH = entries.slice(0,20).map(e => {
+    const fecha = e.fecha ? new Date(e.fecha+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+    const sem   = e.semana || '—';
+    const etiq  = e.etiqueta || '—';
+    const ivf   = e.licor?.ivf ?? '—';
+    const fil   = e.filamentosos?.grado ?? '—';
+    const od    = e.datos?.od ?? '—';
+    const edad  = e.sim?.edad_fango ?? '—';
+    const filColor = fil !== '—' ? filC(fil) : '#6b7280';
+    return `<tr>
+      <td>${fecha}</td><td>${sem}</td><td style="font-weight:600;color:#0369a1;">${etiq}</td>
+      <td>${ivf !== '—' ? ivf+' ml/g' : '—'}</td>
+      <td style="color:${filColor};font-weight:600;">${fil !== '—' ? fil+'/5' : '—'}</td>
+      <td>${od !== '—' ? od+' mg/L' : '—'}</td>
+      <td>${edad !== '—' ? edad+' d' : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Logo SVG UTE Valle de Güímar
+  const logoSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+    <!-- Icono depuradora -->
+    <circle cx="36" cy="40" r="28" fill="#003e6b" opacity=".9"/>
+    <ellipse cx="36" cy="40" rx="14" ry="9" fill="none" stroke="#00c8f0" stroke-width="1.8"/>
+    <path d="M26 40 Q36 28 46 40" fill="#00c8f0" opacity=".5"/>
+    <path d="M22 40 Q36 52 50 40" fill="none" stroke="#00e87a" stroke-width="1.4" stroke-dasharray="3,2"/>
+    <circle cx="36" cy="30" r="2.5" fill="#00c8f0"/>
+    <line x1="36" y1="32" x2="36" y2="50" stroke="#00c8f0" stroke-width="1.2"/>
+    <rect x="30" y="50" width="12" height="4" rx="1" fill="#005b99"/>
+    <rect x="28" y="54" width="16" height="2.5" rx="1" fill="#003e6b"/>
+    <!-- Texto principal -->
+    <text x="74" y="24" font-family="'Barlow Condensed',Arial,sans-serif" font-size="17" font-weight="700" fill="#003e6b" letter-spacing="0.5">UTE VALLE DE GÜÍMAR</text>
+    <text x="74" y="40" font-family="'Barlow Condensed',Arial,sans-serif" font-size="11" fill="#005b99" letter-spacing="0.3">Estación Depuradora de Aguas Residuales</text>
+    <line x1="74" y1="45" x2="310" y2="45" stroke="#003e6b" stroke-width="0.6" opacity=".4"/>
+    <text x="74" y="57" font-family="Arial,sans-serif" font-size="8.5" fill="#64748b">Sistema de Gestión Interno · SGI Portal</text>
+    <text x="74" y="69" font-family="Arial,sans-serif" font-size="8" fill="#94a3b8">Elaborado por: Héctor Hernández Hernández</text>
+  </svg>`;
+
+  const chartBlock = (imgSrc, title, desc) => imgSrc
+    ? `<div style="break-inside:avoid;">
+        <div style="font-family:'Barlow Condensed',Arial,sans-serif;font-size:11px;font-weight:700;color:#003e6b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;">${title}</div>
+        <div style="font-size:8px;color:#64748b;margin-bottom:4px;">${desc}</div>
+        <img src="${imgSrc}" style="width:100%;height:160px;object-fit:fill;border:1px solid #e2e8f0;border-radius:4px;" />
+      </div>`
+    : `<div style="height:160px;border:1px dashed #cbd5e1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;">Sin datos · ${title}</div>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Analítica Biológica — ${fechaISO}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Barlow',Arial,sans-serif; background:#fff; color:#1e293b; font-size:10px; }
+  .page { max-width:210mm; margin:0 auto; padding:14mm 14mm 12mm; }
+  /* CABECERO */
+  .header { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:10px; border-bottom:2px solid #003e6b; margin-bottom:14px; }
+  .header-right { text-align:right; }
+  .header-right .fecha-label { font-family:'Barlow Condensed',sans-serif; font-size:10px; color:#64748b; letter-spacing:.04em; text-transform:uppercase; }
+  .header-right .fecha-val { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; color:#003e6b; }
+  .header-right .ref { font-size:8px; color:#94a3b8; margin-top:3px; }
+  /* SECCIÓN */
+  .section-title { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:#003e6b; letter-spacing:.07em; text-transform:uppercase; border-left:4px solid #003e6b; padding-left:8px; margin:14px 0 8px; }
+  /* GRÁFICOS */
+  .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+  /* TABLA */
+  table { width:100%; border-collapse:collapse; font-size:8.5px; margin-bottom:14px; }
+  thead tr { background:#003e6b; color:#fff; }
+  thead th { padding:5px 6px; text-align:left; font-family:'Barlow Condensed',sans-serif; font-size:9px; letter-spacing:.04em; font-weight:600; }
+  tbody tr:nth-child(even) { background:#f8fafc; }
+  tbody tr:hover { background:#eff6ff; }
+  tbody td { padding:4px 6px; border-bottom:1px solid #e2e8f0; color:#334155; }
+  /* FOOTER */
+  .footer { border-top:1px solid #e2e8f0; padding-top:8px; margin-top:8px; display:flex; justify-content:space-between; font-size:7.5px; color:#94a3b8; }
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .no-print { display:none; }
+    .page { padding:10mm 12mm; }
+    thead tr { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- CABECERO -->
+  <div class="header">
+    <div>${logoSVG}</div>
+    <div class="header-right">
+      <div class="fecha-label">Fecha de emisión</div>
+      <div class="fecha-val">${fechaStr}</div>
+      <div class="ref">Informe analítica biológica · ${fechaISO}</div>
+      <div class="ref" style="margin-top:6px;font-size:9px;color:#003e6b;font-weight:600;">INFORME DE TENDENCIAS BIOLÓGICAS</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICAS -->
+  <div class="section-title">Tendencias — Evolución temporal</div>
+  <div class="charts-grid">
+    ${chartBlock(imgs['bio-chart-ivf'], 'IVF (ml/g)', 'Índice Volumétrico de Fangos · Normal &lt;150 · Bulking &gt;200')}
+    ${chartBlock(imgs['bio-chart-fil'], 'Filamentosos (0–5)', '0 = ninguno · 3 = moderados · 5 = excesivos')}
+    ${chartBlock(imgs['bio-chart-od'],  'OD en reactor (mg/L)', 'Oxígeno disuelto · Objetivo operacional: 2–4 mg/L')}
+    ${chartBlock(imgs['bio-chart-edad'],'Edad de fango (días)', 'Calculada por el simulador de proceso EDARi')}
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="section-title">Historial de informes (${entries.length} registros)</div>
+  ${entries.length ? `
+  <table>
+    <thead><tr>
+      <th>Fecha</th><th>Semana</th><th>Etiqueta</th>
+      <th>IVF (ml/g)</th><th>Filamentos</th><th>OD (mg/L)</th><th>Edad fango</th>
+    </tr></thead>
+    <tbody>${rowsH}</tbody>
+  </table>` : '<p style="color:#94a3b8;font-size:9px;padding:8px;">Sin registros en el historial.</p>'}
+
+  <!-- PIE -->
+  <div class="footer">
+    <span>UTE Valle de Güímar · EDAR · Sistema de Gestión Interno</span>
+    <span>Elaborado por: Héctor Hernández Hernández · ${fechaStr}</span>
+  </div>
+
+</div>
+<script>
+  window.onload = function() {
+    setTimeout(function() { window.print(); }, 600);
+  };
+<\/script>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank', 'width=900,height=700');
+  if(!w) { alert('Permite ventanas emergentes para generar el informe.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+window.exportarInformeTendencias = exportarInformeTendencias;
 
 // ══ TENDENCIAS ═══════════════════════════════════════════════════════════════
 function loadTendencias() {
