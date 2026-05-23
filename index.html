@@ -5203,6 +5203,7 @@ function bioBuildCharts(entries) {
     mkChart('bio-chart-edad',
       mkDataset(e=>e.sim?.edad_fango??null, '#00c8f0', 'Edad fango'), 'd');
   }
+} // end bioBuildCharts
 
 function bioBuildCard(entry) {
   const m=entry.licor||{}, fl=entry.floculos||{}, fi=entry.filamentosos||{}, b=entry.bio||{}, d=entry.datos||{}, sim=entry.sim||{};
