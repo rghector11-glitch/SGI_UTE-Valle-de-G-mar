@@ -1396,7 +1396,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <!-- ── TENDENCIAS BIOLÓGICAS ── -->
           <div id="bio-ph" style="display:none;flex:1;overflow-y:auto;flex-direction:column;gap:8px;padding-bottom:6px;">
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;flex-shrink:0;">
-              <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;margin-bottom:10px;">TENDENCIA SEMANAL — ÚLTIMAS 10 SEMANAS</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.08em;flex:1;">TENDENCIAS — ÚLTIMOS 15 INFORMES (CRONOLÓGICO)</div>
+                <button onclick="limpiarDatosBio()" style="background:none;border:1px solid var(--danger);border-radius:3px;color:var(--danger);cursor:pointer;font-size:8px;padding:3px 9px;font-family:var(--mono);letter-spacing:.04em;">🗑 Limpiar datos</button>
+                <button onclick="loadBioHistory()" style="background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-size:8px;padding:3px 9px;font-family:var(--mono);">↻ Actualizar</button>
+              </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div>
                   <div style="font-family:var(--mono);font-size:8px;color:var(--accent2);letter-spacing:.06em;margin-bottom:2px;">IVF (ml/g)</div>
@@ -1419,10 +1423,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div style="position:relative;height:130px;"><canvas id="bio-chart-edad" role="img" aria-label="Edad de fango semanal en días">Edad de fango en días por semana</canvas></div>
                 </div>
               </div>
-              <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;"></span>Fin de semana</span>
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:transparent;border:2px solid #888;"></span>Inicio de semana</span>
-                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">· Cada punto = un informe cargado · Eje X = fecha real del PDF</span>
+              <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">· Cada punto = un informe individual</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">· Eje X: fecha + etiqueta del informe</span>
+                <span style="font-family:var(--mono);font-size:8px;color:var(--muted);">· Orden cronológico izq → der</span>
               </div>
             </div>
             <div id="bio-hist-list" style="display:flex;flex-direction:column;gap:6px;"></div>
@@ -5141,16 +5145,17 @@ function bioBuildCharts(entries) {
           backgroundColor:'#243d55', titleColor:'#cde0f0', bodyColor:'#5a8099',
           borderColor:'#3a5a72', borderWidth:1,
           callbacks:{
-            title: ctx => labels[ctx[0].dataIndex],
+            title: ctx => Array.isArray(labels[ctx[0].dataIndex])
+              ? labels[ctx[0].dataIndex].join(' · ')
+              : labels[ctx[0].dataIndex],
             label: ctx => {
               const e = entries[ctx.dataIndex];
-              const tipo = e.tipo === 'inicio' ? '▶ Inicio' : '■ Fin';
-              return `${tipo}: ${ctx.parsed.y ?? '—'}${unit?' '+unit:''}`;
+              return `${ctx.parsed.y ?? '—'}${unit?' '+unit:''}`;
             }
           }
         }},
         scales:{
-          x:{ ticks:{ font:{size:9}, color:textC, maxRotation:30 }, grid:{ color:gridC } },
+          x:{ ticks:{ font:{size:8}, color:textC, maxRotation:45, minRotation:30 }, grid:{ color:gridC } },
           y:{ ticks:{ font:{size:9}, color:textC, callback: v=>v+(unit?' '+unit:'') },
               grid:{ color:gridC } }
         }
@@ -5303,11 +5308,14 @@ async function loadBioHistory() {
     });
 
     // Gráfica: las últimas 15 entradas en orden cronológico
-    const chartEntries = [...allEntries].reverse().slice(0, 15).reverse();
+    // Gráficas: últimos 15 informes en orden CRONOLÓGICO (más antiguo → más reciente)
+    const chartEntries = allEntries.slice(0, 15)  // 15 más recientes (allEntries ya está newest-first)
+                                   .reverse();     // dar vuelta → oldest-first para el eje X
     chartEntries.forEach(e => {
       e._fechaMs = e.fecha ? new Date(e.fecha+'T12:00:00').getTime() : (e.ts||0);
-      e._label   = e.fecha ? e.fecha.slice(5).replace('-','/') : (e.semana||'?');
-      if(e.etiqueta) e._label += ' · ' + e.etiqueta;
+      // Etiqueta eje X: fecha DD/MM y etiqueta en línea separada si existe
+      const dd = e.fecha ? e.fecha.slice(5).replace('-','/') : (e.semana||'?');
+      e._label   = e.etiqueta ? [dd, e.etiqueta] : dd; // array = Chart.js multiline label
     });
     setTimeout(()=>{ if(chartEntries.length>0) bioBuildCharts(chartEntries); }, 80);
 
@@ -5318,6 +5326,25 @@ async function loadBioHistory() {
   }
 }
 window.loadBioHistory = loadBioHistory;
+
+async function limpiarDatosBio() {
+  if(!window._fb) return;
+  const n = confirm('¿Borrar TODOS los informes de Analítica Biológica? Esta acción no se puede deshacer.');
+  if(!n) return;
+  try {
+    await window._fb.set(window._fb.ref(window._fb.db, 'informes_bio'), null);
+    const listEl = document.getElementById('bio-hist-list');
+    if(listEl) listEl.innerHTML = '';
+    // Destruir gráficas
+    ['bio-chart-ivf','bio-chart-fil','bio-chart-od','bio-chart-edad'].forEach(id => {
+      const c = window.Chart?.getChart(id); if(c) c.destroy();
+    });
+    alert('Datos borrados correctamente.');
+  } catch(e) {
+    alert('Error al borrar: ' + e.message);
+  }
+}
+window.limpiarDatosBio = limpiarDatosBio;
 
 // ══ TENDENCIAS ═══════════════════════════════════════════════════════════════
 function loadTendencias() {
