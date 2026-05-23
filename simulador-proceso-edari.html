@@ -1378,7 +1378,7 @@ function App(){
         dqo_entrada:      nv('DQO ENTRADA')              || p.dqo_entrada,
         nh4_entrada:      nv('NT ENTRADA')               || p.nh4_entrada,
         sst_reactor:      nv('SS REACTOR',1000)          || p.sst_reactor,
-        sst_recirculacion:nv('SS RECIRULACI',1000)       || p.sst_recirculacion,
+        sst_recirculacion:nv('SS RECIRCULACI',1000)       || p.sst_recirculacion,
         sst_efluente:     nv('SS EFLUENTE')              || p.sst_efluente,
         caudal_purga_d:   nv('CAUDAL PURGA')             || p.caudal_purga_d,
         caudal_recirculacion:nv('CAUDAL RECIR')          || p.caudal_recirculacion,
@@ -1473,9 +1473,24 @@ function App(){
     }
 
     // ── Tabla datos crudos ────────────────────────────────────────────────────
-    const cols=['Q bio (m³/d)','DBO₅ E','DQO E','SST R (g/L)','NT E','Caudal Purga','DQO Ef','NT Ef','PT Ef'];
-    const keys=['Caudal entrada Biologico','DBO5 ENTRADA','DQO ENTRADA','SS REACTOR','NT ENTRADA','CAUDAL PURGA','DQO EFLUENTE','NT FLUENTE','PT EFLUENTE'];
-    const rowsRaw=days.map(d=>`<tr><td><b>${d.iso}</b></td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==0?d.row[k]:'—'}</td>`).join('')}</tr>`).join('');
+    const cols=['Q bio (m³/d)','DBO₅ E','DQO E','SST R (g/L)','SST Recirc (g/L)','NT E','Caudal Purga','DQO Ef','NT Ef','PT Ef'];
+    const keys=['Caudal entrada Biologico','DBO5 ENTRADA','DQO ENTRADA','SS REACTOR','SS RECIRCULACIÓN','NT ENTRADA','CAUDAL PURGA','DQO EFLUENTE','NT FLUENTE','PT EFLUENTE'];
+    const rowsRaw=days.map(d=>`<tr><td><b>${d.iso}</b></td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==null&&d.row[k]!==''?d.row[k]:'—'}</td>`).join('')}</tr>`).join('');
+
+    // Tabla de resultados calculados por día (permite comparar con modo día individual)
+    const rowsCalc=calc.map(c=>{
+      const tcCol=c.tc<10?'color:#cc1122':c.tc<20?'color:#cc7700':'color:#008855';
+      const dqoCol=c.rend_dqo>85?'color:#008855':c.rend_dqo>70?'color:#cc7700':'color:#cc1122';
+      const dboCol=c.rend_dbo>85?'color:#008855':c.rend_dbo>70?'color:#cc7700':'color:#cc1122';
+      return `<tr>
+        <td><b>${c.iso}</b></td>
+        <td style="${tcCol};font-weight:700">${c.tc}</td>
+        <td style="${dqoCol}">${c.rend_dqo}</td>
+        <td style="${dboCol}">${c.rend_dbo}</td>
+        <td>${c.rend_nh4}</td>
+        <td>${c.rend_pt||0}</td>
+      </tr>`;
+    }).join('');
 
     const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
       body{font-family:Arial,sans-serif;font-size:11px;color:#1a2540;padding:24px;max-width:780px;margin:0 auto}
@@ -1501,6 +1516,12 @@ function App(){
     </div>
     <h2>Datos de proceso (valores originales del Excel)</h2>
     <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rowsRaw}</table>
+    <h2>Resultados calculados por día (simulador)</h2>
+    <p style="font-size:8px;color:#5a7090;margin:0 0 6px">Estos valores son los que calcula el simulador para cada día. Compara la columna <b>Edad fango</b> con el valor que obtienes al seleccionar ese mismo día en modo día individual.</p>
+    <table>
+      <tr><th>Fecha</th><th>Edad fango (d)</th><th>Rend. DQO (%)</th><th>Rend. DBO₅ (%)</th><th>Rend. NT (%)</th><th>Rend. PT (%)</th></tr>
+      ${rowsCalc}
+    </table>
     <h2>Tendencias calculadas por el simulador</h2>
     <div class="chart-row">
       <div class="chart-box"><div class="chart-lbl" style="color:#ffb300">Edad de Fango (días)</div>${svgLine(calc,'tc','#ffb300','Edad fango',15,'d')}</div>
