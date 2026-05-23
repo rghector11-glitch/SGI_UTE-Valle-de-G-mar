@@ -6103,7 +6103,24 @@ async function compartirWhatsApp(username) {
   const data = snap.val();
   if(!data) return;
 
-  const PRIO_EMOJI = {alta:'🔴', media:'🟡', baja:'🟢'};
+  // Emoji via codepoint para garantizar codificación correcta
+  const E = {
+    clip:  String.fromCodePoint(0x1F4CB), // 📋
+    cal:   String.fromCodePoint(0x1F4C5), // 📅
+    red:   String.fromCodePoint(0x1F534), // 🔴
+    yel:   String.fromCodePoint(0x1F7E1), // 🟡
+    grn:   String.fromCodePoint(0x1F7E2), // 🟢
+    clock: String.fromCodePoint(0x23F0),  // ⏰
+    check: String.fromCodePoint(0x2705),  // ✅
+    task:  String.fromCodePoint(0x1F4DD), // 📝
+  };
+
+  const PRIO = {
+    alta:  { emoji: E.red, txt: 'ALTA'  },
+    media: { emoji: E.yel, txt: 'MEDIA' },
+    baja:  { emoji: E.grn, txt: 'BAJA'  },
+  };
+
   const hoy = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
 
   const tareas = Object.values(data)
@@ -6119,33 +6136,32 @@ async function compartirWhatsApp(username) {
   const pendientes  = tareas.filter(t => !t.completada);
   const completadas = tareas.filter(t => t.completada);
 
-  let msg = `📋 *TAREAS ASIGNADAS — ${username.toUpperCase()}*\n`;
-  msg += `📅 ${hoy}\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+  let msg = `${E.clip} *TAREAS ASIGNADAS \u2014 ${username.toUpperCase()}*\n`;
+  msg += `${E.cal} ${hoy}\n`;
+  msg += `\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n`;
 
   if(pendientes.length) {
-    msg += `\n*PENDIENTES (${pendientes.length})*\n`;
-    pendientes.forEach((t,i) => {
-      const emoji = PRIO_EMOJI[t.prioridad] || '⚪';
-      msg += `\n${emoji} *${t.titulo}*`;
-      if(t.fecha_limite) msg += ` ⏰ ${t.fecha_limite}`;
-      if(t.descripcion)  msg += `\n   _${t.descripcion}_`;
+    msg += `\n${E.task} *PENDIENTES (${pendientes.length})*\n`;
+    pendientes.forEach(t => {
+      const p = PRIO[t.prioridad] || {emoji:'⚪',txt:'?'};
+      msg += `\n${p.emoji} *${t.titulo}*  [${p.txt}]`;
+      if(t.fecha_limite) msg += `\n${E.clock} L\xedmite: ${t.fecha_limite}`;
+      if(t.descripcion)  msg += `\n   ${t.descripcion}`;
       msg += '\n';
     });
   }
 
   if(completadas.length) {
-    msg += `\n*COMPLETADAS (${completadas.length})*\n`;
+    msg += `\n${E.check} *COMPLETADAS (${completadas.length})*\n`;
     completadas.forEach(t => {
-      msg += `\n✅ ~${t.titulo}~\n`;
+      msg += `\n${E.check} ~${t.titulo}~\n`;
     });
   }
 
-  msg += `\n━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `_UTE Valle de Güímar · SGI_`;
+  msg += `\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n`;
+  msg += `_UTE Valle de Gu\xedmar \xb7 SGI_`;
 
-  const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-  window.open(url, '_blank');
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 window.compartirWhatsApp = compartirWhatsApp;
 
