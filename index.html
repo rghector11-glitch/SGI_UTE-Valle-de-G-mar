@@ -896,6 +896,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
       </div>
       <div class="sb-bottom">
         <div class="sb-sep"></div>
+        <button class="sb-btn" onclick="m08Open()" aria-label="Diagnóstico del sistema">
+          <i class="ti ti-activity-heartbeat" aria-hidden="true"></i>
+          <div class="sb-tip">DIAGNÓSTICO</div>
+        </button>
         <button class="sb-btn" id="sb-ajustes" onclick="sbNav('ajustes')" aria-label="Ajustes">
           <i class="ti ti-settings" aria-hidden="true"></i>
           <div class="sb-tip">AJUSTES</div>
@@ -1164,32 +1168,30 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             </div></div>
 
             <!-- M08 Estado del sistema -->
-            <div class="mc" onclick="m08Open()" role="button" tabindex="0" style="--mc-color:var(--accent)">
-              <div class="mc-ilu" style="">
+            <div class="mc m08" onclick="sbNav('tareas')" role="button" tabindex="0" style="--mc-color:#a78bfa">
+              <div class="mc-ilu">
                 <div class="mc-num">M·08</div>
-                <div class="mc-badge ok" id="mc-status-badge">OPERATIVO</div>
+                <span class="mc-badge" id="tareas-badge" style="display:none;background:var(--danger);">0</span>
                 <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="18" y="10" width="54" height="60" rx="4" fill="rgba(0,200,240,.08)" stroke="rgba(0,200,240,.35)" stroke-width="1.4"/>
-                  <rect x="22" y="16" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="20" r="2.5" fill="rgba(0,232,122,.9)"/>
-                  <rect x="22" y="28" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="32" r="2.5" fill="rgba(0,232,122,.9)"/>
-                  <rect x="22" y="40" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="44" r="2.5" fill="rgba(255,184,0,.9)"/>
-                  <rect x="22" y="52" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="56" r="2.5" fill="rgba(0,232,122,.9)"/>
-                  <text x="36" y="21.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'Share Tech Mono',monospace">Firebase</text>
-                  <text x="36" y="33.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'Share Tech Mono',monospace">Red</text>
-                  <text x="36" y="45.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'Share Tech Mono',monospace">Cache SW</text>
-                  <text x="36" y="57.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'Share Tech Mono',monospace">Sesion</text>
+                  <rect x="18" y="8" width="54" height="64" rx="4" fill="rgba(167,139,250,.08)" stroke="rgba(167,139,250,.35)" stroke-width="1.4"/>
+                  <rect x="26" y="18" width="8" height="8" rx="2" fill="none" stroke="rgba(0,232,122,.8)" stroke-width="1.5"/>
+                  <line x1="38" y1="22" x2="56" y2="22" stroke="rgba(200,224,240,.5)" stroke-width="1.5" stroke-linecap="round"/>
+                  <polyline points="27,22 29,24 33,19" stroke="rgba(0,232,122,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="26" y="31" width="8" height="8" rx="2" fill="none" stroke="rgba(0,232,122,.8)" stroke-width="1.5"/>
+                  <line x1="38" y1="35" x2="56" y2="35" stroke="rgba(200,224,240,.5)" stroke-width="1.5" stroke-linecap="round"/>
+                  <polyline points="27,35 29,37 33,32" stroke="rgba(0,232,122,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="26" y="44" width="8" height="8" rx="2" fill="none" stroke="rgba(255,184,0,.7)" stroke-width="1.5"/>
+                  <line x1="38" y1="48" x2="56" y2="48" stroke="rgba(200,224,240,.35)" stroke-width="1.5" stroke-linecap="round"/>
+                  <rect x="26" y="57" width="8" height="8" rx="2" fill="none" stroke="rgba(167,139,250,.6)" stroke-width="1.5"/>
+                  <line x1="38" y1="61" x2="52" y2="61" stroke="rgba(200,224,240,.3)" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Estado del Sistema</div>
-                <div class="mc-desc">Firebase · Red · Caché · Sesión</div>
+                <div class="mc-title">Tareas Asignadas</div>
+                <div class="mc-desc">Checklist · Prioridad · Seguimiento</div>
               </div>
               <div class="mc-foot">
-                <div class="mc-stat">Ver. <b>SGI v7</b></div>
+                <div class="mc-stat" id="tareas-stat">Sin tareas</div>
                 <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
               </div>
             </div></div>
@@ -1498,10 +1500,73 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: GESTIÓN SUPERVISOR ── -->
         <div class="p-panel" id="panel-gestion">
-          <div class="p-panel-header"><i class="ti ti-shield-check" aria-hidden="true"></i>Gestión Supervisor</div>
-          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;flex:1;padding:2rem;">
-            <i class="ti ti-tools" style="font-size:48px;color:var(--muted);opacity:.4;"></i>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Panel consolidado · Histórico de turnos · Auditoría de acceso</span></div>
+          <div class="p-panel-header"><i class="ti ti-shield-check" aria-hidden="true"></i>Gestión Supervisor — Tareas</div>
+          <div style="display:flex;flex-direction:column;gap:14px;padding:14px;overflow-y:auto;flex:1;">
+
+            <!-- Formulario nueva tarea -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;">
+              <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.1em;margin-bottom:12px;text-transform:uppercase;">✚ Nueva tarea</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                <div style="grid-column:1/-1;">
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Título *</div>
+                  <input id="gt-titulo" type="text" placeholder="Ej: Calibrar sonda pH reactor" maxlength="80"
+                    style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;">
+                </div>
+                <div style="grid-column:1/-1;">
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Descripción (opcional)</div>
+                  <textarea id="gt-desc" rows="2" placeholder="Detalles de la tarea..."
+                    style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+                </div>
+                <div>
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Asignar a</div>
+                  <input id="gt-asignado" type="text" placeholder="Nombre de usuario"
+                    style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;">
+                </div>
+                <div>
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Prioridad</div>
+                  <select id="gt-prioridad"
+                    style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;cursor:pointer;">
+                    <option value="alta">🔴 Alta</option>
+                    <option value="media" selected>🟡 Media</option>
+                    <option value="baja">🟢 Baja</option>
+                  </select>
+                </div>
+                <div>
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Fecha límite</div>
+                  <input id="gt-fecha" type="date"
+                    style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;color-scheme:dark;">
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                  <button onclick="createTarea()"
+                    style="width:100%;background:var(--accent);border:none;border-radius:4px;color:#07090f;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;padding:9px;cursor:pointer;">
+                    CREAR TAREA
+                  </button>
+                </div>
+              </div>
+              <div id="gt-msg" style="font-family:var(--mono);font-size:9px;color:var(--muted);min-height:14px;"></div>
+            </div>
+
+            <!-- Lista de todas las tareas -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;flex:1;">📋 Todas las tareas</div>
+                <button onclick="loadGestion()" style="background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;font-size:9px;padding:3px 8px;font-family:var(--mono);">↻ Actualizar</button>
+              </div>
+              <div id="gt-lista" style="display:flex;flex-direction:column;gap:6px;">
+                <div style="font-size:10px;color:var(--muted);text-align:center;padding:1rem;font-family:var(--mono);">Cargando...</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── PANEL: TAREAS ASIGNADAS (M08) ── -->
+        <div class="p-panel" id="panel-tareas">
+          <div class="p-panel-header"><i class="ti ti-checklist" aria-hidden="true"></i>Tareas Asignadas</div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:14px;overflow-y:auto;flex:1;">
+            <div id="tareas-lista" style="display:flex;flex-direction:column;gap:8px;">
+              <div style="font-size:10px;color:var(--muted);text-align:center;padding:2rem;font-family:var(--mono);">Cargando...</div>
+            </div>
           </div>
         </div>
 
@@ -4370,7 +4435,7 @@ window.__SIM_PROCESO_SRC__ = "const { useState, useEffect, useCallback, useRef }
 
 <script>
 // ══ SIDEBAR NAVIGATION ════════════════════════════════════════════════════════
-const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes','tendencias','gestion','cuaderno'];
+const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes','tendencias','gestion','cuaderno','tareas'];
 
 function sbNav(id) {
   // Hide all panels
@@ -4388,7 +4453,8 @@ function sbNav(id) {
   // Update breadcrumb
   const labels = {portal:'Portal',proceso:'Simulador',analitica:'Analítica',
                   informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
-                  tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario'};
+                  tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario',
+                  tareas:'Tareas Asignadas'};
   const bc = document.getElementById('p-bc-section');
   if(bc) bc.textContent = labels[id] || id;
   // Side effects
@@ -4399,6 +4465,8 @@ function sbNav(id) {
   if(id === 'tendencias')  loadTendencias();
   if(id === 'alertas')     loadAlertas();
   if(id === 'analitica')   loadAnalitica();
+  if(id === 'gestion')     loadGestion();
+  if(id === 'tareas')      loadTareas();
 }
 
 // ══ USER POPOVER ═══════════════════════════════════════════════════════════════
@@ -5585,8 +5653,267 @@ function showPortalShell() {
   // Init badge y KPIs tras login
   refreshKPIs();
   initBadgeBuzon();
+  updateTareasBadge();
 }
 window.showPortalShell = showPortalShell;
+
+// ══ TAREAS ASIGNADAS ══════════════════════════════════════════════════════════
+
+const PRIO_COLOR = { alta:'var(--danger)', media:'var(--warn)', baja:'var(--accent2)' };
+const PRIO_ICON  = { alta:'🔴', media:'🟡', baja:'🟢' };
+
+// ─── Supervisor: cargar panel-gestion con lista de tareas ────────────────────
+async function loadGestion() {
+  const lista = document.getElementById('gt-lista');
+  if(!lista || !window._fb) return;
+  lista.innerHTML = '<div style="font-size:10px;color:var(--muted);text-align:center;padding:1rem;font-family:var(--mono);">Cargando...</div>';
+
+  try {
+    const snap = await window._fb.get(window._fb.ref(window._fb.db, 'tareas'));
+    const data  = snap.val();
+    if(!data) {
+      lista.innerHTML = '<div style="font-size:10px;color:var(--muted);text-align:center;padding:1rem;font-family:var(--mono);">Sin tareas creadas.</div>';
+      return;
+    }
+    const items = Object.entries(data)
+      .map(([id, t]) => ({id, ...t}))
+      .sort((a,b) => (b.ts||0) - (a.ts||0));
+
+    lista.innerHTML = items.map(t => gtRow(t)).join('');
+  } catch(e) {
+    lista.innerHTML = `<div style="font-size:10px;color:var(--danger);font-family:var(--mono);">Error: ${e.message}</div>`;
+  }
+}
+window.loadGestion = loadGestion;
+
+function gtRow(t) {
+  const pColor = PRIO_COLOR[t.prioridad] || 'var(--muted)';
+  const pIcon  = PRIO_ICON[t.prioridad]  || '⚪';
+  const done   = t.completada;
+  const limite = t.fecha_limite ? ` · Límite: ${t.fecha_limite}` : '';
+  const hoy    = new Date().toISOString().slice(0,10);
+  const vencida = !done && t.fecha_limite && t.fecha_limite < hoy;
+  return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--panel);border:1px solid ${done?'var(--border)':vencida?'var(--danger)40':'var(--border)'};border-left:3px solid ${done?'var(--border)':pColor};border-radius:4px;${done?'opacity:.55':''}">
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
+        <span style="font-size:11px;font-weight:600;color:${done?'var(--muted)':'var(--text)'};${done?'text-decoration:line-through':''};">${t.titulo}</span>
+        <span style="font-family:var(--mono);font-size:8px;background:${pColor}20;color:${pColor};border:1px solid ${pColor}40;border-radius:3px;padding:1px 5px;">${pIcon} ${(t.prioridad||'—').toUpperCase()}</span>
+        ${done?'<span style="font-family:var(--mono);font-size:8px;color:var(--accent2);border:1px solid var(--accent2)40;border-radius:3px;padding:1px 5px;">✓ COMPLETADA</span>':''}
+        ${vencida?'<span style="font-family:var(--mono);font-size:8px;color:var(--danger);">⚠ VENCIDA</span>':''}
+      </div>
+      ${t.descripcion?`<div style="font-size:9px;color:var(--muted);margin-bottom:3px;">${t.descripcion}</div>`:''}
+      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">
+        Para: <b style="color:var(--accent);">${t.asignado_a||'—'}</b>
+        · Creada por: ${t.asignado_por||'—'}${limite}
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+      <button onclick="supervisorCompletaTarea('${t.id}',${!done})"
+        style="background:${done?'var(--card)':'var(--accent2)20'};border:1px solid ${done?'var(--border)':'var(--accent2)40'};border-radius:3px;color:${done?'var(--muted)':'var(--accent2)'};cursor:pointer;font-size:9px;padding:3px 7px;font-family:var(--mono);">
+        ${done?'↩ Reabrir':'✓ Cerrar'}
+      </button>
+      <button onclick="deleteTarea('${t.id}')"
+        style="background:none;border:1px solid var(--danger)30;border-radius:3px;color:var(--danger);cursor:pointer;font-size:9px;padding:3px 7px;font-family:var(--mono);">
+        🗑 Borrar
+      </button>
+    </div>
+  </div>`;
+}
+
+// ─── Supervisor: crear tarea ─────────────────────────────────────────────────
+async function createTarea() {
+  if(!window._fb) return;
+  const session = getSession();
+  if(!session) return;
+  const titulo    = (document.getElementById('gt-titulo')?.value || '').trim();
+  const desc      = (document.getElementById('gt-desc')?.value || '').trim();
+  const asignado  = (document.getElementById('gt-asignado')?.value || '').trim();
+  const prioridad = document.getElementById('gt-prioridad')?.value || 'media';
+  const fechaLim  = document.getElementById('gt-fecha')?.value || '';
+  const msg       = document.getElementById('gt-msg');
+
+  if(!titulo)   { if(msg){msg.style.color='var(--warn)';msg.textContent='⚠ El título es obligatorio.';}; return; }
+  if(!asignado) { if(msg){msg.style.color='var(--warn)';msg.textContent='⚠ Indica a quién se asigna.';}; return; }
+
+  const tarea = {
+    titulo, descripcion:desc, asignado_a:asignado, asignado_por:session.username,
+    prioridad, fecha_limite:fechaLim, completada:false, ts:Date.now(), ts_completado:null
+  };
+
+  if(msg){ msg.style.color='var(--muted)'; msg.textContent='Guardando...'; }
+  try {
+    const ref = window._fb.push(window._fb.ref(window._fb.db, 'tareas'));
+    await window._fb.set(ref, tarea);
+    if(msg){ msg.style.color='var(--accent2)'; msg.textContent=`✓ Tarea "${titulo}" asignada a ${asignado}`; }
+    // Limpiar form
+    ['gt-titulo','gt-desc','gt-asignado','gt-fecha'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('gt-prioridad') && (document.getElementById('gt-prioridad').value='media');
+    loadGestion();
+    updateTareasBadge();
+  } catch(e) {
+    if(msg){ msg.style.color='var(--danger)'; msg.textContent='Error: '+e.message; }
+  }
+}
+window.createTarea = createTarea;
+
+// ─── Supervisor: toggle completar / borrar ───────────────────────────────────
+async function supervisorCompletaTarea(id, done) {
+  if(!window._fb) return;
+  await window._fb.set(
+    window._fb.ref(window._fb.db, `tareas/${id}/completada`), done
+  );
+  await window._fb.set(
+    window._fb.ref(window._fb.db, `tareas/${id}/ts_completado`), done ? Date.now() : null
+  );
+  loadGestion();
+  updateTareasBadge();
+}
+window.supervisorCompletaTarea = supervisorCompletaTarea;
+
+async function deleteTarea(id) {
+  if(!window._fb) return;
+  if(!confirm('¿Borrar esta tarea?')) return;
+  await window._fb.set(window._fb.ref(window._fb.db, `tareas/${id}`), null);
+  loadGestion();
+  updateTareasBadge();
+}
+window.deleteTarea = deleteTarea;
+
+// ─── Operario: cargar panel-tareas (mis tareas) ──────────────────────────────
+async function loadTareas() {
+  const lista = document.getElementById('tareas-lista');
+  if(!lista || !window._fb) return;
+  const session = getSession();
+  lista.innerHTML = '<div style="font-size:10px;color:var(--muted);text-align:center;padding:2rem;font-family:var(--mono);">Cargando...</div>';
+
+  try {
+    const snap = await window._fb.get(window._fb.ref(window._fb.db, 'tareas'));
+    const data  = snap.val();
+
+    // Filtrar por usuario actual si no es supervisor
+    const user  = session?.username || '';
+    const role  = session?.role || '';
+    const isSup = role === 'supervisor' || role === 'admin';
+    const items = data
+      ? Object.entries(data)
+          .map(([id,t]) => ({id,...t}))
+          .filter(t => isSup || t.asignado_a === user)
+          .sort((a,b) => {
+            // Pendientes primero, ordenadas por prioridad luego por fecha
+            if(a.completada !== b.completada) return a.completada ? 1 : -1;
+            const po = {alta:0,media:1,baja:2};
+            return (po[a.prioridad]||1) - (po[b.prioridad]||1);
+          })
+      : [];
+
+    if(!items.length) {
+      lista.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:3rem;text-align:center;">
+        <i class="ti ti-circle-check" style="font-size:48px;color:var(--accent2);opacity:.4;"></i>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">¡Sin tareas pendientes!</div>
+      </div>`;
+      return;
+    }
+
+    const pendientes = items.filter(t => !t.completada);
+    const hechas     = items.filter(t => t.completada);
+    let html = '';
+
+    if(pendientes.length) {
+      html += `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">PENDIENTES (${pendientes.length})</div>`;
+      html += pendientes.map(t => tareaCard(t)).join('');
+    }
+    if(hechas.length) {
+      html += `<div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:10px 0 4px;">COMPLETADAS (${hechas.length})</div>`;
+      html += hechas.map(t => tareaCard(t)).join('');
+    }
+
+    lista.innerHTML = html;
+    updateTareasBadge(pendientes.length);
+  } catch(e) {
+    lista.innerHTML = `<div style="font-size:10px;color:var(--danger);font-family:var(--mono);text-align:center;padding:1rem;">Error: ${e.message}</div>`;
+  }
+}
+window.loadTareas = loadTareas;
+
+function tareaCard(t) {
+  const pColor  = PRIO_COLOR[t.prioridad] || 'var(--muted)';
+  const pIcon   = PRIO_ICON[t.prioridad]  || '⚪';
+  const done    = t.completada;
+  const hoy     = new Date().toISOString().slice(0,10);
+  const vencida = !done && t.fecha_limite && t.fecha_limite < hoy;
+  const pronto  = !done && t.fecha_limite && !vencida &&
+                  (new Date(t.fecha_limite) - new Date()) < 86400000*2;
+  return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;
+      background:var(--card);border:1px solid ${vencida?'var(--danger)40':done?'var(--border)':'var(--border)'};
+      border-left:4px solid ${done?'var(--border)':pColor};border-radius:5px;${done?'opacity:.5':''}">
+    <!-- Checkbox -->
+    <div style="flex-shrink:0;padding-top:2px;">
+      <button onclick="completaTareaOp('${t.id}',${!done})"
+        style="width:22px;height:22px;border-radius:4px;border:2px solid ${done?'var(--accent2)':pColor};
+          background:${done?'var(--accent2)':'transparent'};cursor:pointer;display:flex;align-items:center;
+          justify-content:center;transition:all .15s;flex-shrink:0;"
+        title="${done?'Marcar pendiente':'Marcar completada'}">
+        ${done?'<svg viewBox="0 0 12 12" fill="none" style="width:11px;height:11px;stroke:#07090f;stroke-width:2"><polyline points="2,6 5,9 10,3"/></svg>':''}
+      </button>
+    </div>
+    <!-- Contenido -->
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:600;color:${done?'var(--muted)':'var(--text)'};
+          ${done?'text-decoration:line-through':''};">${t.titulo}</span>
+        <span style="font-family:var(--mono);font-size:8px;color:${pColor};border:1px solid ${pColor}40;
+          border-radius:3px;padding:1px 5px;">${pIcon} ${(t.prioridad||'').toUpperCase()}</span>
+        ${vencida?'<span style="font-family:var(--mono);font-size:8px;color:var(--danger);font-weight:700;">⚠ VENCIDA</span>':''}
+        ${pronto?'<span style="font-family:var(--mono);font-size:8px;color:var(--warn);">⏰ Vence pronto</span>':''}
+      </div>
+      ${t.descripcion?`<div style="font-size:10px;color:var(--muted);margin-bottom:5px;line-height:1.4;">${t.descripcion}</div>`:''}
+      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;">
+        <span>Asignada por: <b style="color:var(--text);">${t.asignado_por||'—'}</b></span>
+        ${t.fecha_limite?`<span>Límite: <b style="color:${vencida?'var(--danger)':pronto?'var(--warn)':'var(--text)'};">${t.fecha_limite}</b></span>`:''}
+        ${done&&t.ts_completado?`<span>Completada: <b style="color:var(--accent2);">${new Date(t.ts_completado).toLocaleDateString('es-ES')}</b></span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── Operario: marcar tarea completada / pendiente ───────────────────────────
+async function completaTareaOp(id, done) {
+  if(!window._fb) return;
+  await window._fb.set(window._fb.ref(window._fb.db, `tareas/${id}/completada`), done);
+  await window._fb.set(window._fb.ref(window._fb.db, `tareas/${id}/ts_completado`), done ? Date.now() : null);
+  loadTareas();
+}
+window.completaTareaOp = completaTareaOp;
+
+// ─── Badge en módulo M08 ─────────────────────────────────────────────────────
+async function updateTareasBadge(count) {
+  if(count === undefined && window._fb) {
+    try {
+      const session = getSession();
+      const snap = await window._fb.get(window._fb.ref(window._fb.db, 'tareas'));
+      const data = snap.val();
+      if(data) {
+        const user = session?.username || '';
+        const role = session?.role || '';
+        const isSup = role === 'supervisor' || role === 'admin';
+        count = Object.values(data).filter(t =>
+          !t.completada && (isSup || t.asignado_a === user)
+        ).length;
+      } else { count = 0; }
+    } catch(e) { count = 0; }
+  }
+  const badge = document.getElementById('tareas-badge');
+  const stat  = document.getElementById('tareas-stat');
+  if(badge) {
+    badge.style.display = count > 0 ? 'flex' : 'none';
+    badge.textContent   = count;
+  }
+  if(stat) {
+    stat.textContent = count > 0 ? `${count} pendiente${count!==1?'s':''}` : 'Al día ✓';
+    stat.style.color = count > 0 ? 'var(--warn)' : 'var(--accent2)';
+  }
+}
+window.updateTareasBadge = updateTareasBadge;
 
 // ── Arrancar la app una vez que TODOS los scripts han cargado ──
 initAuth();
