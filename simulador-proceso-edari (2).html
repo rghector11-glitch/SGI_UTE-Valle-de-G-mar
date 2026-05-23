@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Proceso EDARi — UTE Valle de Güímar</title>
+<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body,#app-root{height:100%;overflow:hidden;background:#07090f;}
+#sim-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:1rem;background:#07090f;z-index:10;}
+#sim-loading p{color:#4a6a7a;font-family:monospace;font-size:.85rem;}
+.spin{width:32px;height:32px;border:3px solid #1a2540;border-top-color:#00c8ff;
+  border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="sim-loading">
+  <div class="spin"></div>
+  <p>Compilando simulador...</p>
+</div>
+<div id="app-root" style="height:100%;display:none;"></div>
+<script id="sim-jsx-src" type="text/jsx-source">
+
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── Temas ────────────────────────────────────────────────────────────────────
+const DARK = {
+  bg:'#07090f',panel:'#0d1220',border:'#1a2540',
+  accent:'#00c8ff',green:'#00e899',warn:'#ffb300',danger:'#ff4455',
+  purple:'#b388ff',text:'#c8ddf0',muted:'#7a9ab8',white:'#e8f0f8',
+  orange:'#ff8c42',inputBg:'#0a1020',inputBorder:'#1a2540',
+};
+const LIGHT = {
+  bg:'#eef2f7',panel:'#ffffff',border:'#c8d8e8',
+  accent:'#0070a8',green:'#007a44',warn:'#b86800',danger:'#c01020',
+  purple:'#5c28bb',text:'#1a2540',muted:'#6a84a0',white:'#0d1220',
+  orange:'#b54800',inputBg:'#f4f8fc',inputBorder:'#aec4d8',
+};
+
+// ─── Traducciones ─────────────────────────────────────────────────────────────
+const T = {
+  es:{
+    appTitle:'Simulador de Reactor Biológico EDAR',
+    appSubtitle:'usando datos reales del laboratorio',
+    proceso:'Proceso',labEntrada:'Lab. entrada',labReactor:'Lab. reactor',
+    labEfluente:'Lab. efluente',calidadEfluente:'Calidad efluente',
+    incumplimientos:'Incumplimientos',
+    caudalBio:'Caudal Q_bio',od:'OD',recirculacion:'Recirculación',
+    volReactor:'Vol. reactor',edadObjetivo:'Edad objetivo',
+    dboEntrada:'DBO₅ entrada',dqoEntrada:'DQO entrada',nh4Entrada:'Nt entrada',pt_entrada:'Pt entrada',
+    sstReactor:'SST Reactor',sstRecirc:'SST Recirc.',sstEfluente:'SST Efluente',
+    caudalPurga:'Caudal purga',caudalRecirc:'Caudal recirc.',irCalculado:'IR calculado',
+    dboEfluente:'DBO₅ efluente',dqoEfluente:'DQO efluente',nh4Efluente:'Nt efluente',pt_efluente:'Pt efluente',
+    diagramaProceso:'Diagrama de proceso',
+    pretratamiento:'PRETRATAMIENTO',homogenizacion:'HOMOGENIZACIÓN',
+    reactorBio:'REACTOR BIOLÓGICO',decantadorSec:'DECANTADOR SEC.',
+    arquetaSalida:'ARQUETA SALIDA',cauce:'CAUCE',purga:'PURGA',
+    conforme:'✓ conforme',incumple:'⚠ incumple',agitacion:'agitación',
+    cribasDesarenador:'cribas · desarenador',solidos:'sólidos',
+    indicadores:'Indicadores de proceso',eficiencias:'Eficiencias',
+    trh:'TRH',rendDbo:'Rend. DBO₅',rendDqo:'Rend. DQO',rendNh4:'Rend. Nt',rendPt:'Rend. Pt',
+    cargaFM:'Carga F/M',cargaVol:'Carga vol.',edadFango:'Edad fango',irReal:'IR real',
+    balanceMasa:'Balance de masa',masaReactor:'Masa reactor',produccionPx:'Producción Px',
+    salidaPurga:'Salida purga',salidaEfluente:'Salida efluente',
+    acumulacionNeta:'Acumulación neta',aumentaPurga:'↑ Aumenta purga',reducePurga:'↓ Reduce purga',
+    verificacionPurga:'Verificación purga',actual:'Actual',necesaria:'Necesaria',
+    desviacion:'Desviación',equipSS:'Equiv. SS',
+    formulasAplicadas:'ƒ Fórmulas aplicadas',
+    footer:'Cálculos basados en datos reales de laboratorio · Límites RD 509/1996',
+    autor:'Héctor Hernández Hernández',
+    tabProceso:'Proceso',tabEntrada:'Entrada',tabReactor:'Reactor',tabEfluente:'Efluente',
+    lechoFangos:'Lecho fangos',altDecantador:'Alt. útil decantador',margenLibre:'Margen libre',ivfReal:'IVF real',alertaLecho:'⚠ Lecho alto — riesgo arrastre de SST',decantador:'Decantador',
+    tabDecantador:'Decantador',supDecantador:'Superficie',caudalDecantador:'Caudal total dec.',
+    chsLabel:'Carga hidr. sup.',cssLabel:'Carga sólidos sup.',trhDec:'TRH decantador',
+    volDecantador:'Volumen',chsRng:'Óptimo 0.5–1.5 m³/m²·h',cssRng:'Óptimo <6 kgSS/m²·h',
+    trhRng:'Óptimo 1.5–3 h',chsAlerta:'⚠ Sobrecarga hidráulica',cssAlerta:'⚠ Sobrecarga de sólidos',
+    velSed:'Vel. sedim. aparente',velSedRng:'Referencia >1.5 m/h',
+    instFijos:'Parámetros instalación',datosCampo:'Datos campo / lab',calculados:'Resultados calculados',
+  },
+  en:{
+    appTitle:'Biological Reactor Simulator WWTP',
+    appSubtitle:'using real laboratory data',
+    proceso:'Process',labEntrada:'Lab. Influent',labReactor:'Lab. Reactor',
+    labEfluente:'Lab. Effluent',calidadEfluente:'Effluent Quality',
+    incumplimientos:'Violations',
+    caudalBio:'Flow Q_bio',od:'DO',recirculacion:'Recirculation',
+    volReactor:'Reactor Vol.',edadObjetivo:'Target SRT',
+    dboEntrada:'BOD₅ influent',dqoEntrada:'COD influent',nh4Entrada:'Nt influent',pt_entrada:'Pt influent',
+    sstReactor:'TSS Reactor',sstRecirc:'TSS Recirc.',sstEfluente:'TSS Effluent',
+    caudalPurga:'Waste flow',caudalRecirc:'Recirc. flow',irCalculado:'Calc. RAS',
+    dboEfluente:'BOD₅ effluent',dqoEfluente:'COD effluent',nh4Efluente:'Nt effluent',pt_efluente:'Pt effluent',
+    diagramaProceso:'Process diagram',
+    pretratamiento:'PRETREATMENT',homogenizacion:'EQUALISATION',
+    reactorBio:'BIOLOGICAL REACTOR',decantadorSec:'SEC. CLARIFIER',
+    arquetaSalida:'OUTLET CHAMBER',cauce:'RECEIVING BODY',purga:'WASTE',
+    conforme:'✓ compliant',incumple:'⚠ violation',agitacion:'mixing',
+    cribasDesarenador:'screens · grit removal',solidos:'solids',
+    indicadores:'Process indicators',eficiencias:'Removal efficiencies',
+    trh:'HRT',rendDbo:'BOD₅ removal',rendDqo:'COD removal',rendNh4:'Nt removal',rendPt:'Pt removal',
+    cargaFM:'F/M ratio',cargaVol:'Vol. loading',edadFango:'SRT',irReal:'RAS real',
+    balanceMasa:'Mass balance',masaReactor:'Reactor mass',produccionPx:'Production Px',
+    salidaPurga:'Waste solids',salidaEfluente:'Effluent solids',
+    acumulacionNeta:'Net accumulation',aumentaPurga:'↑ Increase waste',reducePurga:'↓ Reduce waste',
+    verificacionPurga:'Waste verification',actual:'Current',necesaria:'Required',
+    desviacion:'Deviation',equipSS:'Equiv. SS',
+    formulasAplicadas:'ƒ Applied formulas',
+    footer:'Calculations based on real laboratory data · Limits RD 509/1996',
+    autor:'Héctor Hernández Hernández',
+    tabProceso:'Process',tabEntrada:'Influent',tabReactor:'Reactor',tabEfluente:'Effluent',
+    lechoFangos:'Sludge blanket',altDecantador:'Clarifier useful depth',margenLibre:'Free margin',ivfReal:'SVI real',alertaLecho:'⚠ High blanket — SST carry-over risk',decantador:'Clarifier',
+    tabDecantador:'Clarifier',supDecantador:'Surface',caudalDecantador:'Total clarifier flow',
+    chsLabel:'Surface hydraulic load',cssLabel:'Solids surface load',trhDec:'Clarifier HRT',
+    volDecantador:'Volume',chsRng:'Optimal 0.5–1.5 m³/m²·h',cssRng:'Optimal <6 kgSS/m²·h',
+    trhRng:'Optimal 1.5–3 h',chsAlerta:'⚠ Hydraulic overload',cssAlerta:'⚠ Solids overload',
+    velSed:'Apparent settling vel.',velSedRng:'Reference >1.5 m/h',
+    instFijos:'Installation parameters',datosCampo:'Field / lab data',calculados:'Calculated results',
+  }
+};
+
+// ─── Motor ────────────────────────────────────────────────────────────────────
+function calcular(p) {
+  const Q=Number(p.caudal)||0, Vr=Number(p.vol_reactor)||1;
+  const Xr=Number(p.sst_reactor)||0, Xw=Number(p.sst_recirculacion)||1;
+  const Xe=Number(p.sst_efluente)||0, Qw_d=Number(p.caudal_purga_d)||0;
+  const Qr=Number(p.caudal_recirculacion)||0, tc_obj=Number(p.edad_objetivo)||15;
+  const dbo_in=Number(p.dbo_entrada)||0, dqo_in=Number(p.dqo_entrada)||0;
+  const nh4_in=Number(p.nh4_entrada)||0, pt_in=Number(p.pt_entrada)||0;
+  const dbo_ef=Number(p.dbo_efluente)||0;
+  const dqo_ef=Number(p.dqo_efluente)||0, nh4_ef=Number(p.nh4_efluente)||0;
+  const pt_ef=Number(p.pt_efluente)||0;
+  const od=Number(p.od)||0, Qd=Q, ss_ef=Xe;
+  const hlf=Number(p.hlf)||0, h_dec=Number(p.h_decantador)||1;
+
+  const M=Xr*Vr/1000, FQwXw=Qw_d*Xw/1000, FQeXe=Qd*Xe/1000;
+  const F_sal=FQwXw+FQeXe, tc=F_sal>0?M/F_sal:0;
+  const rend_dbo=dbo_in>0?Math.max(0,(dbo_in-dbo_ef)/dbo_in*100):0;
+  const rend_dqo=dqo_in>0?Math.max(0,(dqo_in-dqo_ef)/dqo_in*100):0;
+  const rend_nh4=nh4_in>0?Math.max(0,(nh4_in-nh4_ef)/nh4_in*100):0;
+  const rend_pt=pt_in>0?Math.max(0,(pt_in-pt_ef)/pt_in*100):0;
+  const IR=Q>0?Qr/Q*100:0;
+  const TRH=Q>0?Vr/Q*24:0, FM=M>0?dbo_in*Qd/1000/M:0;
+  const Cv=Vr>0?dbo_in*Qd/(Vr*1000):0;
+  const dbo_elim_d=(dbo_in-dbo_ef)*Qd/1000;
+  const Yobs=dbo_elim_d>0&&tc>0?M/(dbo_elim_d*tc):0;
+  const Px=Yobs*dbo_elim_d, acum=Px-F_sal;
+  const FQwXw_nec=Math.max(0,M/tc_obj-FQeXe);
+  const Qw_nec=Xw>0?FQwXw_nec*1000/Xw:0;
+  const ivf_raw=120-od*15-(Xr/1000)*4+(tc>20?(tc-20)*2:0);
+  const ivf=Math.min(300,Math.max(50,ivf_raw));
+  const margen_libre=h_dec>0?h_dec-hlf:0;
+  const ivf_real=h_dec>0&&Xr>0?(hlf/h_dec)*(1000/Xr)*1000:0;
+  const pct_lecho=h_dec>0?hlf/h_dec*100:0;
+  const alerta_lecho=pct_lecho>70;
+  const limites={dbo:25,dqo:125,ss:35,nh4:10,nt:15,pt:2};
+  const alertas=[];
+  if(dbo_ef>limites.dbo)alertas.push({param:'DBO₅',valor:dbo_ef.toFixed(1),limite:limites.dbo});
+  if(dqo_ef>limites.dqo)alertas.push({param:'DQO',valor:dqo_ef.toFixed(1),limite:limites.dqo});
+  if(ss_ef>limites.ss)alertas.push({param:'SS',valor:ss_ef.toFixed(1),limite:limites.ss});
+  if(nh4_ef>limites.nh4)alertas.push({param:'Nt',valor:nh4_ef.toFixed(1),limite:limites.nh4});
+  if(pt_ef>limites.pt)alertas.push({param:'Pt',valor:pt_ef.toFixed(1),limite:limites.pt});
+  return {M,FQwXw,FQeXe,F_sal,tc,Qd,rend_dbo,rend_dqo,rend_nh4,rend_pt,IR,TRH,FM,Cv,
+    Yobs,Px,acum,Qw_nec,FQwXw_nec,dbo_ef,dqo_ef,nh4_ef,pt_ef,ss_ef,ivf,limites,alertas,
+    margen_libre,ivf_real,pct_lecho,alerta_lecho};
+}
+
+// ─── Primitivas ───────────────────────────────────────────────────────────────
+function Slider({label,unit,min,max,step,value,onChange,color,C,compact=false}){
+  const pct=((value-min)/(max-min))*100;
+  return(
+    <div style={{marginBottom:compact?9:14}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
+        <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{label}</span>
+        <span style={{fontSize:compact?11:12,fontWeight:700,color,fontFamily:'monospace'}}>
+          {value%1===0?value:value.toFixed(1)}<span style={{fontSize:8,color:C.muted,marginLeft:2}}>{unit}</span>
+        </span>
+      </div>
+      <div style={{position:'relative',height:3,background:C.inputBg,borderRadius:2}}>
+        <div style={{position:'absolute',inset:0,width:`${pct}%`,background:`linear-gradient(90deg,${color}44,${color})`,borderRadius:2}}/>
+        <input type="range" min={min} max={max} step={step} value={value}
+          onChange={e=>onChange(Number(e.target.value))}
+          style={{position:'absolute',top:-9,left:0,width:'100%',height:20,opacity:0,cursor:'pointer',margin:0}}/>
+        <div style={{position:'absolute',top:-5,left:`calc(${pct}% - 5px)`,width:10,height:10,
+          borderRadius:'50%',background:color,pointerEvents:'none'}}/>
+      </div>
+    </div>
+  );
+}
+
+function NumInput({label,unit,value,onChange,color,C,compact=false}){
+  const [local,setLocal]=React.useState(String(value));
+  React.useEffect(()=>{ setLocal(String(value)); },[value]);
+  const commit=()=>{
+    const n=parseFloat(local);
+    if(!isNaN(n)) onChange(n);
+    else setLocal(String(value));
+  };
+  return(
+    <div style={{marginBottom:compact?7:12}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
+        <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{label}</span>
+        <span style={{fontSize:8,color:C.muted}}>{unit}</span>
+      </div>
+      <input type="number" value={local}
+        onChange={e=>setLocal(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e=>{ if(e.key==='Enter'){ commit(); e.target.blur(); } }}
+        style={{width:'100%',background:C.inputBg,border:`1px solid ${C.inputBorder}`,borderRadius:4,
+          color,fontFamily:'monospace',fontSize:compact?11:13,fontWeight:700,
+          padding:compact?'4px 7px':'6px 9px',outline:'none',boxSizing:'border-box'}}/>
+    </div>
+  );
+}
+
+function Gauge({label,value,limite,unit,C,compact=false}){
+  const ok=value<=limite,col=ok?C.green:C.danger;
+  const pct=Math.min(100,value/(limite*1.6)*100);
+  return(
+    <div style={{flex:'1 1 70px',background:C.inputBg,border:`1px solid ${ok?C.green+'40':C.danger+'40'}`,
+      borderRadius:7,padding:compact?'6px 8px':'10px 12px'}}>
+      <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:3}}>{label}</div>
+      <div style={{fontSize:compact?14:18,fontWeight:800,color:col,fontFamily:'monospace'}}>
+        {value.toFixed(1)}<span style={{fontSize:7,color:C.muted,marginLeft:2}}>{unit}</span>
+      </div>
+      <div style={{height:2,background:C.border,borderRadius:1,margin:'4px 0 2px'}}>
+        <div style={{height:'100%',width:`${pct}%`,background:col,borderRadius:1,transition:'width .4s'}}/>
+      </div>
+      <div style={{fontSize:7,color:C.muted}}>Lím. {limite} {unit}</div>
+    </div>
+  );
+}
+
+function SecHdr({label,color,C,mt=false}){
+  return(
+    <div style={{fontSize:8,color,textTransform:'uppercase',letterSpacing:2,fontWeight:700,
+      marginBottom:7,paddingBottom:3,borderBottom:`1px solid ${C.border}`,marginTop:mt?14:0}}>
+      ▸ {label}
+    </div>
+  );
+}
+
+// ─── Fórmulas ─────────────────────────────────────────────────────────────────
+function PanelFormulas({p,res,t,C}){
+  const [open,setOpen]=useState(false);
+  const rows=[
+    {l:'Masa reactor',      f:'M = SST_r × V / 1000',                      r:`${res.M.toFixed(1)} kgSS`},
+    {l:'Flujo purga SS',    f:'Qw·Xw = Q_purga × SST_recirc / 1000',       r:`${res.FQwXw.toFixed(1)} kgSS/d`},
+    {l:'Flujo efluente SS', f:'Qe·Xe = Q × SST_ef / 1000',                 r:`${res.FQeXe.toFixed(1)} kgSS/d`},
+    {l:'Edad fango θ_c',    f:'θ_c = M / (Qw·Xw + Qe·Xe)',                r:`${res.tc.toFixed(1)} d`},
+    {l:'IR recirculación',  f:'IR = Qr / Q × 100',                          r:`${res.IR.toFixed(1)} %`},
+    {l:'Rend. DBO₅',        f:'η = (DBO_in − DBO_ef) / DBO_in × 100',     r:`${res.rend_dbo.toFixed(1)} %`},
+    {l:'Rend. DQO',         f:'η = (DQO_in − DQO_ef) / DQO_in × 100',     r:`${res.rend_dqo.toFixed(1)} %`},
+    {l:'Rend. Nt',           f:'η = (Nt_in − Nt_ef) / Nt_in × 100',        r:`${res.rend_nh4.toFixed(1)} %`},
+    {l:'Rend. Pt',           f:'η = (Pt_in − Pt_ef) / Pt_in × 100',        r:`${res.rend_pt.toFixed(1)} %`},
+    {l:'TRH',               f:'TRH = V / Q × 24  [Q m³/d → h]',            r:`${res.TRH.toFixed(1)} h`},
+    {l:'Carga F/M',         f:'F/M = DBO_in × Q / (1000 × M)',             r:`${res.FM.toFixed(3)} kgDBO/kgSS·d`},
+    {l:'Carga volumétrica', f:'Cv = DBO_in × Q / (1000 × V)',              r:`${res.Cv.toFixed(3)} kgDBO/m³·d`},
+    {l:'Y observado',       f:'Y_obs = M / (DBO_elim × Q × θ_c / 1000)',   r:`${res.Yobs.toFixed(3)} kgSS/kgDBO`},
+    {l:'Prod. fangos Px',   f:'Px = Y_obs × (DBO_in−DBO_ef) × Q / 1000',  r:`${res.Px.toFixed(1)} kgSS/d`},
+    {l:'Acumulación ΔM',    f:'ΔM = Px − (Qw·Xw + Qe·Xe)',                r:`${res.acum.toFixed(1)} kgSS/d`},
+    {l:'Purga necesaria',   f:'Qw_nec = (M/θ_obj − Qe·Xe) × 1000 / Xw',  r:`${res.Qw_nec.toFixed(0)} m³/d`},
+    {l:'— Decantador —',    f:'',                                              r:''},
+    {l:'% lecho ocupado',   f:'% = HLF / H_dec × 100',                        r:`${res.pct_lecho.toFixed(1)} %`},
+    {l:'Margen libre',       f:'M_libre = H_dec − HLF',                        r:`${res.margen_libre.toFixed(2)} m`},
+    {l:'IVF real',           f:'IVF = (HLF / H_dec) × (1000 / SST_r) × 1000', r:`${res.ivf_real.toFixed(0)} mL/g`},
+  ];
+  return(
+    <div style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:7,overflow:'hidden'}}>
+      <button onClick={()=>setOpen(o=>!o)}
+        style={{width:'100%',background:'none',border:'none',cursor:'pointer',
+          padding:'7px 11px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <span style={{fontSize:9,color:C.muted,textTransform:'uppercase',letterSpacing:2,fontWeight:700}}>{t.formulasAplicadas}</span>
+        <span style={{fontSize:10,color:C.muted}}>{open?'▲':'▼'}</span>
+      </button>
+      {open&&(
+        <div style={{padding:'0 10px 8px',overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:9}}>
+            <thead>
+              <tr style={{borderBottom:`1px solid ${C.border}`}}>
+                {['Parámetro','Expresión','Resultado'].map(h=>(
+                  <th key={h} style={{textAlign:'left',color:C.muted,padding:'3px 5px',fontWeight:600,fontSize:8}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r,i)=>(
+                r.f===''
+                ? <tr key={i}><td colSpan={3} style={{padding:'5px 5px 2px',color:C.orange,fontSize:8,fontWeight:700,textTransform:'uppercase',letterSpacing:1,borderTop:`1px solid ${C.border}`}}>{r.l}</td></tr>
+                : <tr key={i} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?'transparent':C.panel}}>
+                    <td style={{padding:'4px 5px',color:C.accent,whiteSpace:'nowrap'}}>{r.l}</td>
+                    <td style={{padding:'4px 5px',color:C.text,fontFamily:'monospace',whiteSpace:'nowrap'}}>{r.f}</td>
+                    <td style={{padding:'4px 5px',color:C.green,fontFamily:'monospace',textAlign:'right',whiteSpace:'nowrap'}}>{r.r}</td>
+                  </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Diagrama ─────────────────────────────────────────────────────────────────
+function Diagrama({p,res,t,C,onGoDec}){
+  const ok=res.alertas.length===0,ec=ok?C.green:C.danger;
+  const wD='#4a3a18',wM='#1a2e38',wC=ok?'#0d3a2a':'#3a0d12',wS='#1a2e0a';
+  function Arr({x1,y1,x2,y2,color=C.muted,w=4,dash=''}){
+    const dx=x2-x1,dy=y2-y1,l=Math.sqrt(dx*dx+dy*dy);
+    if(l<1)return null;
+    const ux=dx/l,uy=dy/l;
+    return(<>
+      <line x1={x1} y1={y1} x2={x2-ux*6} y2={y2-uy*6} stroke={color} strokeWidth={w} strokeDasharray={dash} opacity={0.6}/>
+      <polygon points={`${x2},${y2} ${x2-uy*4-ux*7},${y2+ux*4-uy*7} ${x2+uy*4-ux*7},${y2-ux*4-uy*7}`} fill={color} opacity={0.85}/>
+    </>);
+  }
+  return(
+    <svg viewBox="0 0 900 300" style={{width:'100%',height:'auto'}}>
+      <defs>
+        <clipPath id="ch"><rect x={200} y={60} width={100} height={80}/></clipPath>
+        <clipPath id="cb"><rect x={360} y={50} width={130} height={100}/></clipPath>
+        <clipPath id="cd"><rect x={555} y={45} width={110} height={110}/></clipPath>
+      </defs>
+      {/* Pretratamiento */}
+      <rect x={30} y={80} width={90} height={60} rx={4} fill="#0c1018" stroke={`${C.accent}50`} strokeWidth={1}/>
+      <rect x={30} y={110} width={90} height={30} fill={wD} opacity={0.4}/>
+      {[38,44,50,56,62,68,74,80,86,92,98,104,110,116].map(x=>(<rect key={x} x={x} y={82} width={1.5} height={48} fill="#2a4060" opacity={0.85}/>))}
+      <line x1={75} y1={80} x2={75} y2={66} stroke={C.muted} strokeWidth={0.8} strokeDasharray="2,2"/>
+      <polygon points="75,60 71,67 79,67" fill={C.muted} opacity={0.5}/>
+      <text x={75} y={57} textAnchor="middle" fill={C.muted} fontSize={5.5} fontFamily="monospace">{t.solidos}</text>
+      <text x={75} y={77} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.pretratamiento}</text>
+      <text x={75} y={153} textAnchor="middle" fill={C.muted} fontSize={6} fontFamily="monospace">{t.cribasDesarenador}</text>
+      <Arr x1={3} y1={112} x2={30} y2={112} color={wD} w={6}/>
+      <Arr x1={120} y1={110} x2={200} y2={110} color={wM} w={5}/>
+      {/* Homogenización */}
+      <rect x={200} y={60} width={100} height={80} rx={4} fill="#080e1a" stroke={`${C.accent}60`} strokeWidth={1.2}/>
+      <rect x={200} y={100} width={100} height={40} fill={wM} opacity={0.5} clipPath="url(#ch)"/>
+      {[215,250,285].map(x=>(<g key={x}><line x1={x} y1={65} x2={x} y2={128} stroke="#2a4060" strokeWidth={2}/><ellipse cx={x} cy={105} rx={9} ry={3.5} fill="none" stroke={`${C.accent}70`} strokeWidth={1}/></g>))}
+      <text x={250} y={57} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.homogenizacion}</text>
+      <text x={250} y={153} textAnchor="middle" fill={C.muted} fontSize={6} fontFamily="monospace">{t.agitacion}</text>
+      <Arr x1={300} y1={100} x2={360} y2={100} color={wM} w={5}/>
+      <text x={330} y={93} textAnchor="middle" fill={C.accent} fontSize={6} fontFamily="monospace">Q={p.caudal}m³/d</text>
+      {/* Reactor */}
+      <rect x={360} y={50} width={130} height={100} rx={4} fill="#080e1a" stroke={`${C.accent}50`} strokeWidth={1.2}/>
+      <rect x={360} y={90} width={130} height={60} fill={wM} opacity={0.55} clipPath="url(#cb)"/>
+      {[370,385,400,415,430,445,460,470].map((x,i)=>(<rect key={i} x={x} y={146} width={9} height={4} rx={2} fill={`${C.green}80`}/>))}
+      {[375,395,415,435,455,475].map((x,i)=>(<ellipse key={i} cx={x} cy={115-(i%3)*8} rx={2.5} ry={3.5} fill={`${C.green}55`}/>))}
+      <rect x={362} y={52} width={46} height={11} rx={2} fill={`${C.green}20`} stroke={`${C.green}40`} strokeWidth={0.6}/>
+      <text x={385} y={60} textAnchor="middle" fill={C.green} fontSize={5.5} fontWeight={700} fontFamily="monospace">{t.od}={p.od}mg/L</text>
+      <rect x={414} y={52} width={72} height={11} rx={2} fill={`${C.purple}15`} stroke={`${C.purple}40`} strokeWidth={0.6}/>
+      <text x={450} y={60} textAnchor="middle" fill={C.purple} fontSize={5.5} fontWeight={700} fontFamily="monospace">SST={p.sst_reactor}mg/L</text>
+      <rect x={420} y={150} width={6} height={18} rx={1} fill="#0a1820" stroke={`${C.green}60`} strokeWidth={0.8}/>
+      <text x={423} y={175} textAnchor="middle" fill={C.green} fontSize={5.5} fontFamily="monospace">AIRE</text>
+      <text x={425} y={47} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.reactorBio}</text>
+      <text x={425} y={175} textAnchor="middle" fill={C.muted} fontSize={6} fontFamily="monospace">V={p.vol_reactor} m³</text>
+      <Arr x1={490} y1={100} x2={555} y2={100} color={wM} w={5}/>
+      {/* Decantador */}
+      <path d="M555,45 L665,45 L665,155 L610,175 L555,155 Z" fill="#080e18" stroke={C.border} strokeWidth={1.2}/>
+      <path d="M555,45 L665,45 L665,95 L555,95 Z" fill={wC} opacity={0.3} clipPath="url(#cd)"/>
+      <path d="M555,120 L665,120 L665,155 L610,175 L555,155 Z" fill={wS} opacity={0.55}/>
+      <line x1={555} y1={120} x2={665} y2={120} stroke={`${C.green}40`} strokeWidth={0.8} strokeDasharray="3,2"/>
+      <line x1={555} y1={78} x2={665} y2={78} stroke={C.muted} strokeWidth={1.5} opacity={0.35}/>
+      <rect x={595} y={74} width={35} height={4} rx={2} fill={C.muted} opacity={0.4}/>
+      <circle cx={610} cy={78} r={4} fill="none" stroke={C.muted} strokeWidth={1} opacity={0.4}/>
+      <text x={610} y={42} textAnchor="middle" fill={C.accent} fontSize={6.5} fontWeight={700} fontFamily="monospace" style={{cursor:'pointer'}} onClick={onGoDec}>{t.decantadorSec}</text>
+      {/* Recirculación */}
+      <path d="M555,140 Q490,220 425,220 Q425,220 425,150" fill="none" stroke={`${C.warn}80`} strokeWidth={2} strokeDasharray="5,3"/>
+      <polygon points="425,150 421,158 429,158" fill={C.warn} opacity={0.8}/>
+      <text x={480} y={233} textAnchor="middle" fill={C.warn} fontSize={6} fontFamily="monospace">{p.caudal_recirculacion}m³/d · IR={res.IR.toFixed(1)}%</text>
+      {/* Purga */}
+      <rect x={605} y={175} width={10} height={22} rx={2} fill="#0a1820" stroke={C.muted} strokeWidth={0.6}/>
+      <Arr x1={610} y1={197} x2={610} y2={250} color={C.orange} w={4}/>
+      <rect x={572} y={250} width={76} height={18} rx={3} fill={C.inputBg} stroke={`${C.orange}40`} strokeWidth={0.8}/>
+      <text x={610} y={262} textAnchor="middle" fill={C.orange} fontSize={6.5} fontWeight={700} fontFamily="monospace">{t.purga} {p.caudal_purga_d} m³/d</text>
+      {/* Efluente */}
+      <Arr x1={665} y1={75} x2={710} y2={75} color={ec} w={5}/>
+      <rect x={710} y={55} width={75} height={40} rx={4} fill={ok?'#081810':'#180808'} stroke={`${ec}70`} strokeWidth={1.2}/>
+      <text x={747} y={73} textAnchor="middle" fill={ec} fontSize={7} fontWeight={700} fontFamily="monospace">{t.arquetaSalida}</text>
+      <text x={747} y={48} textAnchor="middle" fill={ec} fontSize={5.5} fontFamily="monospace">DBO {res.dbo_ef.toFixed(1)} · SS {res.ss_ef.toFixed(1)} mg/L</text>
+      <Arr x1={785} y1={75} x2={800} y2={75} color={ec} w={4}/>
+      {/* Cauce receptor — ondas */}
+      {[0,1,2].map(i=>(<path key={i} d={`M800,${68+i*7} Q820,${64+i*7} 840,${68+i*7} Q860,${72+i*7} 880,${68+i*7}`} fill="none" stroke={ec} strokeWidth={1.2-i*0.3} opacity={0.6-i*0.15}/>))}
+      <text x={840} y={98} textAnchor="middle" fill={ec} fontSize={6} fontWeight={700} fontFamily="monospace">{t.cauce}</text>
+      <text x={840} y={107} textAnchor="middle" fill={ec} fontSize={5.5} fontFamily="monospace">{ok?t.conforme:t.incumple}</text>
+      {/* Leyenda */}
+      {[{col:wM,lbl:'Agua/Water'},{col:C.warn,lbl:'Recirc.'},{col:C.orange,lbl:'Purga/Waste'},{col:ec,lbl:'Efluente/Effluent'}].map((l,i)=>(
+        <g key={i}><rect x={30+i*120} y={280} width={14} height={5} rx={1} fill={l.col} opacity={0.7}/><text x={48+i*120} y={286} fill={C.muted} fontSize={6} fontFamily="monospace">{l.lbl}</text></g>
+      ))}
+    </svg>
+  );
+}
+
+// ─── Panel indicadores ────────────────────────────────────────────────────────
+function PanelInd({res,p,t,C}){
+  const items=[
+    {lbl:t.trh,      val:res.TRH.toFixed(1),      unit:'h',             col:C.accent, ok:res.TRH>=4&&res.TRH<=8,      rng:'4–8 h'},
+    {lbl:t.rendDbo,  val:res.rend_dbo.toFixed(1),  unit:'%',             col:C.green,  ok:res.rend_dbo>=80,             rng:'>80%'},
+    {lbl:t.rendDqo,  val:res.rend_dqo.toFixed(1),  unit:'%',             col:C.green,  ok:res.rend_dqo>=75,             rng:'>75%'},
+    {lbl:t.rendNh4,  val:res.rend_nh4.toFixed(1),  unit:'%',             col:C.green,  ok:res.rend_nh4>=70,             rng:'>70%'},
+    {lbl:t.rendPt,    val:res.rend_pt.toFixed(1),   unit:'%',             col:C.green,  ok:res.rend_pt>=70,              rng:'>70%'},
+    {lbl:t.cargaFM,  val:res.FM.toFixed(3),         unit:'kgDBO/kgSS·d', col:C.purple, ok:res.FM>=0.1&&res.FM<=0.4,    rng:'0.10–0.40'},
+    {lbl:t.cargaVol, val:res.Cv.toFixed(3),         unit:'kgDBO/m³·d',   col:C.purple, ok:res.Cv>=0.3&&res.Cv<=1.0,   rng:'0.3–1.0'},
+    {lbl:t.edadFango,val:res.tc.toFixed(1),         unit:'días/d',        col:C.warn,   ok:res.tc>=5&&res.tc<=30,       rng:`Obj: ${p.edad_objetivo}d`},
+    {lbl:t.irReal,   val:res.IR.toFixed(1),         unit:'%',             col:C.warn,   ok:res.IR>=20&&res.IR<=150,     rng:'20–150%'},
+    {lbl:t.ivfReal,  val:res.ivf_real.toFixed(0),     unit:'mL/g',          col:C.orange, ok:res.ivf_real<150,             rng:'<150 bueno'},
+    {lbl:t.margenLibre, val:res.margen_libre.toFixed(2), unit:'m',           col:res.margen_libre>0.8?C.green:res.margen_libre>0.4?C.warn:C.danger, ok:res.margen_libre>0.8, rng:'>0.8 m ok'},
+  ];
+  return(
+    <div>
+      <div style={{fontSize:9,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:8}}>▸ {t.indicadores}</div>
+      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+        {items.map(k=>(
+          <div key={k.lbl} style={{flex:'1 1 90px',background:C.inputBg,
+            border:`1px solid ${k.ok?C.green+'40':C.border}`,borderRadius:6,padding:'7px 9px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:2}}>
+              <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{k.lbl}</div>
+              <span style={{fontSize:7,color:k.ok?C.green:C.warn}}>{k.ok?'✓':'⚠'}</span>
+            </div>
+            <div style={{fontSize:15,fontWeight:800,color:k.col,fontFamily:'monospace',lineHeight:1}}>
+              {k.val}<span style={{fontSize:7,color:C.muted,marginLeft:2}}>{k.unit}</span>
+            </div>
+            <div style={{fontSize:7,color:C.muted,marginTop:3}}>{k.rng}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Dashboard Decantador ─────────────────────────────────────────────────────
+function calcularDec(p){
+  const Q_bio=Number(p.caudal)||0, Q_recirc=Number(p.caudal_recirculacion)||0;
+  const SST_r=Number(p.sst_reactor)||1;
+  const HLF=Number(p.hlf)||0, H_dec=Number(p.h_decantador)||1, S_dec=Number(p.s_decantador)||1;
+  const Q_dec=Q_bio+Q_recirc, Vol_dec=S_dec*H_dec;
+  const CHS=S_dec>0?(Q_dec/24)/S_dec:0;
+  const CSS=S_dec>0?(Q_dec*SST_r/1000/24)/S_dec:0;
+  const TRH_dec=Q_dec>0?Vol_dec/Q_dec*24:0;
+  const vel_sed=TRH_dec>0?H_dec/TRH_dec:0;
+  const pct=H_dec>0?HLF/H_dec*100:0, margen=H_dec-HLF;
+  const ivf=H_dec>0&&SST_r>0?(HLF/H_dec)*(1000/SST_r)*1000:0;
+  return{Q_dec,Vol_dec,CHS,CSS,TRH_dec,vel_sed,pct,margen,ivf,
+    alerta_lecho:pct>70, alerta_chs:CHS>1.5, alerta_css:CSS>6};
+}
+
+function PanelDecantador({p,C,t,set}){
+  const d=calcularDec(p);
+  const lCol=d.alerta_lecho?C.danger:C.orange;
+
+  // ── Histórico ──────────────────────────────────────────────────────────────
+  const HIST_KEY='edar_lecho_hist';
+  const MAX_DIAS=90;
+  const [hist,setHist]=useState(()=>{
+    try{ return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); }catch(e){return [];}
+  });
+  const [confirmBorrar,setConfirmBorrar]=useState(false);
+  const [nota,setNota]=useState('');
+  const [fechaManual,setFechaManual]=useState(()=>new Date().toISOString().slice(0,10));
+
+  function guardarLectura(){
+    const now=fechaManual?new Date(fechaManual+'T12:00:00'):new Date();
+    const entry={
+      ts: now.toISOString(),
+      fecha: now.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'}),
+      hora:  new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}),
+      hlf:   Number(p.hlf),
+      pct:   Number(d.pct.toFixed(1)),
+      margen:Number(d.margen.toFixed(2)),
+      ivf:   Number(d.ivf.toFixed(0)),
+      chs:   Number(d.CHS.toFixed(3)),
+      nota:  nota.trim(),
+    };
+    const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-MAX_DIAS);
+    const nuevo=[...hist.filter(h=>new Date(h.ts)>cutoff), entry];
+    setHist(nuevo);
+    localStorage.setItem(HIST_KEY, JSON.stringify(nuevo));
+    setNota('');
+  }
+
+  function exportarCSV(){
+    const cab='Fecha,Hora,Lecho(m),%(ocup),Margen(m),IVF(mL/g),CHS(m3/m2h),Nota';
+    const filas=hist.map(h=>[h.fecha,h.hora,h.hlf,h.pct,h.margen,h.ivf,h.chs||'',`"${(h.nota||'').replace(/"/g,'""')}"`].join(','));
+    const csv=[cab,...filas].join('\n');
+    const a=document.createElement('a');
+    a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='historico_decantador.csv';
+    a.click();
+  }
+
+  function borrarHistorico(){
+    setHist([]); localStorage.removeItem(HIST_KEY); setConfirmBorrar(false);
+  }
+
+  // Gráfica SVG simple de línea
+  function Grafica(){
+    if(hist.length<2) return(
+      <div style={{textAlign:'center',padding:'20px 0',color:C.muted,fontSize:9}}>
+        Guarda al menos 2 lecturas para ver la evolución
+      </div>
+    );
+    const W=420, H=90, PL=36, PR=8, PT=8, PB=20;
+    const gW=W-PL-PR, gH=H-PT-PB;
+    const valsRaw=hist.map(h=>h.hlf);
+    const vals=interpolarCeros(valsRaw);
+    const minV=Math.min(...vals), maxV=Math.max(...vals);
+    const rng=maxV-minV||1;
+    const alerta70=Number(p.h_decantador)*0.7;
+    const y70=PT+gH-(alerta70-minV)/rng*gH;
+    const pts=hist.map((h,i)=>{
+      const x=PL+i/(hist.length-1)*gW;
+      const y=PT+gH-(vals[i]-minV)/rng*gH;
+      return{x,y,h,interpolado:valsRaw[i]===0&&vals[i]!==0};
+    });
+    const polyline=pts.map(p=>`${p.x},${p.y}`).join(' ');
+    const area=[`${pts[0].x},${PT+gH}`,...pts.map(p=>`${p.x},${p.y}`),`${pts[pts.length-1].x},${PT+gH}`].join(' ');
+    const yLabels=[minV, (minV+maxV)/2, maxV];
+    const xIdxs=[0, Math.floor((hist.length-1)/2), hist.length-1];
+    return(
+      <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'auto'}}>
+        <polygon points={area} fill={lCol} opacity="0.08"/>
+        {alerta70>=minV&&alerta70<=maxV&&(
+          <>
+            <line x1={PL} y1={y70} x2={W-PR} y2={y70} stroke={C.danger} strokeWidth="0.8" strokeDasharray="3,2" opacity="0.6"/>
+            <text x={PL+2} y={y70-2} fill={C.danger} fontSize="5.5" opacity="0.8">70%</text>
+          </>
+        )}
+        {[0,0.5,1].map((f,i)=>(
+          <line key={i} x1={PL} y1={PT+gH*f} x2={W-PR} y2={PT+gH*f}
+            stroke={C.border} strokeWidth="0.5" opacity="0.5"/>
+        ))}
+        <polyline points={polyline} fill="none" stroke={lCol} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+        {pts.map((p,i)=>(
+          p.interpolado
+            ? <circle key={i} cx={p.x} cy={p.y} r="3" fill="none" stroke={lCol} strokeWidth="1.2" strokeDasharray="2,1" opacity="0.7"/>
+            : <circle key={i} cx={p.x} cy={p.y} r="2.5"
+                fill={p.h.pct>70?C.danger:p.h.pct>50?C.warn:C.green} stroke={C.bg} strokeWidth="1"/>
+        ))}
+        {yLabels.map((v,i)=>(
+          <text key={i} x={PL-3} y={PT+gH*(1-i*0.5)+3} textAnchor="end"
+            fill={C.muted} fontSize="6" fontFamily="monospace">{v.toFixed(2)}</text>
+        ))}
+        {xIdxs.filter(i=>i<hist.length).map(i=>(
+          <text key={i} x={PL+i/(hist.length-1)*gW} y={H-2} textAnchor="middle"
+            fill={C.muted} fontSize="5.5" fontFamily="monospace">
+            {hist[i].fecha}
+          </text>
+        ))}
+        <text x={PL-3} y={PT-1} textAnchor="end" fill={C.muted} fontSize="5.5">m</text>
+      </svg>
+    );
+  }
+
+  function KPI({label,value,unit,color,ok,rng,alert}){
+    return(
+      <div style={{background:C.inputBg,border:`1px solid ${alert?C.danger+'60':ok?C.green+'40':C.border}`,
+        borderRadius:8,padding:'10px 12px',flex:'1 1 130px',minWidth:0}}>
+        <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{label}</div>
+        <div style={{fontSize:20,fontWeight:800,fontFamily:'monospace',color:alert?C.danger:color,lineHeight:1}}>
+          {value}<span style={{fontSize:9,color:C.muted,marginLeft:3}}>{unit}</span>
+        </div>
+        <div style={{fontSize:7,color:alert?C.danger:C.muted,marginTop:5}}>{alert||rng}</div>
+      </div>
+    );
+  }
+
+  function SeccionDec(){
+    const pct=Math.min(100,d.pct);
+    return(
+      <div style={{background:C.inputBg,border:`1px solid ${d.alerta_lecho?C.danger+'50':C.border}`,borderRadius:8,padding:'12px 14px'}}>
+        <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:10}}>▸ Sección transversal</div>
+        <div style={{display:'flex',gap:16,alignItems:'flex-start'}}>
+          <div style={{flex:'0 0 150px'}}>
+            <svg viewBox="0 0 160 200" style={{width:'100%',height:'auto'}}>
+              <defs>
+                <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={C.accent} stopOpacity="0.05"/>
+                  <stop offset="100%" stopColor={C.accent} stopOpacity="0.18"/>
+                </linearGradient>
+                <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={lCol} stopOpacity="0.4"/>
+                  <stop offset="100%" stopColor={lCol} stopOpacity="0.9"/>
+                </linearGradient>
+                <clipPath id="cD"><path d="M20,10 L140,10 L140,160 L110,185 L50,185 L20,160 Z"/></clipPath>
+              </defs>
+              <path d="M20,10 L140,10 L140,160 L110,185 L50,185 L20,160 Z" fill={C.bg} stroke={C.border} strokeWidth="2"/>
+              <rect x="20" y="10" width="120" height={150*(1-pct/100)} fill="url(#gA)" clipPath="url(#cD)"/>
+              <rect x="20" y={10+150*(1-pct/100)} width="120" height={150*pct/100+28} fill="url(#gL)" clipPath="url(#cD)"/>
+              <line x1="20" y1={10+150*(1-pct/100)} x2="140" y2={10+150*(1-pct/100)} stroke={lCol} strokeWidth="1.5" strokeDasharray="4,2"/>
+              <line x1="20" y1={10+150*0.3} x2="140" y2={10+150*0.3} stroke={C.danger} strokeWidth="0.8" strokeDasharray="2,3" opacity="0.5"/>
+              <rect x="60" y="2" width="40" height="10" rx="2" fill={C.accent} opacity="0.25"/>
+              <text x="80" y="10" textAnchor="middle" fill={C.accent} fontSize="6" fontFamily="monospace">entrada</text>
+              <rect x="72" y="185" width="16" height="10" rx="2" fill={C.orange} opacity="0.5"/>
+              <text x="80" y="199" textAnchor="middle" fill={C.orange} fontSize="6" fontFamily="monospace">purga</text>
+              {pct>12&&<text x="80" y={10+150*(1-pct/100)+150*pct/100*0.5} textAnchor="middle" fill="#fff" fontSize="12" fontWeight="700" fontFamily="monospace">{d.pct.toFixed(0)}%</text>}
+              <text x="17" y={10+150*0.3-2} textAnchor="end" fill={C.danger} fontSize="5.5" opacity="0.7">70%</text>
+              <line x1="148" y1="10" x2="148" y2={10+150*(1-pct/100)} stroke={C.green} strokeWidth="1" opacity="0.6"/>
+              {(1-pct/100)>0.15&&<text x="156" y={10+75*(1-pct/100)} textAnchor="middle" fill={C.green} fontSize="5.5" fontFamily="monospace"
+                transform={`rotate(-90,156,${10+75*(1-pct/100)})`}>{d.margen.toFixed(2)}m</text>}
+            </svg>
+          </div>
+          <div style={{flex:1,display:'flex',flexDirection:'column',gap:7}}>
+            {[
+              {l:t.lechoFangos,   v:p.hlf.toFixed(2),          u:'m',    col:d.alerta_lecho?C.danger:C.orange},
+              {l:t.altDecantador, v:p.h_decantador.toFixed(1),  u:'m',    col:C.muted},
+              {l:'% ocupado',     v:d.pct.toFixed(1),           u:'%',    col:d.pct>70?C.danger:d.pct>50?C.warn:C.green},
+              {l:t.margenLibre,   v:d.margen.toFixed(2),        u:'m',    col:d.margen>0.8?C.green:d.margen>0.4?C.warn:C.danger},
+              {l:t.ivfReal,       v:d.ivf.toFixed(0),           u:'mL/g', col:d.ivf<120?C.green:d.ivf<180?C.warn:C.danger},
+            ].map(r=>(
+              <div key={r.l} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                padding:'5px 8px',background:C.panel,borderRadius:5,border:`1px solid ${C.border}22`}}>
+                <span style={{fontSize:9,color:C.muted}}>{r.l}</span>
+                <span style={{fontFamily:'monospace',fontWeight:700,fontSize:12,color:r.col}}>
+                  {r.v}<span style={{fontSize:7,color:C.muted,marginLeft:2}}>{r.u}</span>
+                </span>
+              </div>
+            ))}
+            {d.alerta_lecho&&(
+              <div style={{background:'#120508',border:`1px solid ${C.danger}40`,borderRadius:5,
+                padding:'5px 8px',fontSize:8,color:C.danger,fontWeight:700}}>{t.alertaLecho}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return(
+    <div style={{display:'flex',gap:12,height:'100%',overflow:'hidden'}}>
+      {/* Col izq: parámetros */}
+      <div style={{width:195,flexShrink:0,overflowY:'auto'}}>
+        <SecHdr label={t.instFijos} color={C.orange} C={C}/>
+        <NumInput label={t.supDecantador} unit="m²" value={p.s_decantador} onChange={set('s_decantador')} color={C.muted}   C={C} compact={true}/>
+        <NumInput label={t.altDecantador} unit="m"  value={p.h_decantador} onChange={set('h_decantador')} color={C.muted}   C={C} compact={true}/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+          background:C.inputBg,border:`1px solid ${C.muted}20`,borderRadius:5,padding:'5px 8px',marginBottom:12}}>
+          <span style={{fontSize:9,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.volDecantador}</span>
+          <span style={{fontFamily:'monospace',fontWeight:700,fontSize:12,color:C.text}}>
+            {d.Vol_dec.toFixed(0)}<span style={{fontSize:7,color:C.muted,marginLeft:2}}>m³</span>
+          </span>
+        </div>
+        <SecHdr label={t.datosCampo} color={C.accent} C={C} mt/>
+        <NumInput label={t.lechoFangos}  unit="m"    value={p.hlf}                  onChange={set('hlf')}                  color={C.orange} C={C} compact={true}/>
+        <NumInput label={t.sstReactor}   unit="mg/L" value={p.sst_reactor}          onChange={set('sst_reactor')}          color={C.purple} C={C} compact={true}/>
+        <NumInput label={t.caudalRecirc} unit="m³/d" value={p.caudal_recirculacion} onChange={set('caudal_recirculacion')} color={C.warn}   C={C} compact={true}/>
+        <NumInput label={t.caudalBio}    unit="m³/d" value={p.caudal}               onChange={set('caudal')}               color={C.accent} C={C} compact={true}/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+          background:C.inputBg,border:`1px solid ${C.accent}30`,borderRadius:5,padding:'5px 8px',marginBottom:7}}>
+          <span style={{fontSize:9,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.caudalDecantador}</span>
+          <span style={{fontFamily:'monospace',fontWeight:700,fontSize:12,color:C.accent}}>
+            {d.Q_dec.toFixed(0)}<span style={{fontSize:7,color:C.muted,marginLeft:2}}>m³/d</span>
+          </span>
+        </div>
+        <div style={{height:1,background:C.border,margin:'4px 0 10px'}}/>
+        <div style={{marginBottom:6}}>
+          <div style={{fontSize:7,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:3}}>Fecha lectura</div>
+          <input type="date" value={fechaManual} onChange={e=>setFechaManual(e.target.value)}
+            style={{width:'100%',background:C.inputBg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
+              padding:'4px 7px',fontSize:9,color:C.text,outline:'none',fontFamily:'monospace',
+              colorScheme:'dark'}}/>
+        </div>
+        <input value={nota} onChange={e=>setNota(e.target.value)}
+          placeholder="Nota opcional..."
+          style={{width:'100%',background:C.inputBg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
+            padding:'5px 8px',fontSize:9,color:C.text,outline:'none',marginBottom:6,fontFamily:'inherit'}}/>
+        <button onClick={guardarLectura}
+          style={{width:'100%',background:C.green,border:'none',borderRadius:6,padding:'8px 0',
+            cursor:'pointer',fontSize:10,fontWeight:700,color:C.bg,letterSpacing:0.5}}>
+          ✚ Guardar lectura
+        </button>
+        <div style={{fontSize:7,color:C.muted,textAlign:'center',marginTop:4}}>
+          {hist.length} registro{hist.length!==1?'s':''} guardado{hist.length!==1?'s':''}
+        </div>
+        {hist.length>0&&(
+          <>
+          <button onClick={exportarCSV}
+            style={{width:'100%',marginTop:6,background:'none',border:`1px solid ${C.accent}50`,
+              borderRadius:5,padding:'4px 0',cursor:'pointer',fontSize:8,color:C.accent}}>
+            ⬇ Exportar CSV
+          </button>
+          {confirmBorrar
+          ? <div style={{marginTop:6,background:'#120508',border:`1px solid ${C.danger}40`,borderRadius:5,padding:'7px 8px'}}>
+              <div style={{fontSize:8,color:C.danger,marginBottom:6}}>¿Borrar todo el histórico?</div>
+              <div style={{display:'flex',gap:5}}>
+                <button onClick={borrarHistorico}
+                  style={{flex:1,background:C.danger,border:'none',borderRadius:4,padding:'4px 0',
+                    cursor:'pointer',fontSize:9,fontWeight:700,color:'#fff'}}>Sí</button>
+                <button onClick={()=>setConfirmBorrar(false)}
+                  style={{flex:1,background:C.border,border:'none',borderRadius:4,padding:'4px 0',
+                    cursor:'pointer',fontSize:9,color:C.text}}>No</button>
+              </div>
+            </div>
+          : <button onClick={()=>setConfirmBorrar(true)}
+              style={{width:'100%',marginTop:6,background:'none',border:`1px solid ${C.border}`,
+                borderRadius:5,padding:'4px 0',cursor:'pointer',fontSize:8,color:C.muted}}>
+              🗑 Borrar histórico
+            </button>
+          }
+          </>
+        )}
+        <button onClick={()=>generarInformePDF(p,null,'decantador',calcularDec(p),null,hist)}
+          style={{width:'100%',marginTop:10,background:'none',border:`1px solid ${C.orange}50`,
+            borderRadius:6,padding:'7px 0',cursor:'pointer',fontSize:9,color:C.orange,fontWeight:700}}>
+          🖨 Imprimir informe
+        </button>
+      </div>
+      {/* Col central: diagrama + KPIs + fórmulas */}
+      <div style={{flex:1,overflowY:'auto',display:'flex',flexDirection:'column',gap:12}}>
+        <SeccionDec/>
+        <div>
+          <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:8}}>▸ {t.calculados}</div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <KPI label={t.chsLabel} value={d.CHS.toFixed(2)}     unit="m³/m²·h"   color={C.accent} ok={d.CHS>=0.5&&d.CHS<=1.5}       rng={t.chsRng} alert={d.alerta_chs?t.chsAlerta:null}/>
+            <KPI label={t.cssLabel} value={d.CSS.toFixed(2)}     unit="kgSS/m²·h" color={C.purple} ok={d.CSS<=6}                      rng={t.cssRng} alert={d.alerta_css?t.cssAlerta:null}/>
+            <KPI label={t.trhDec}   value={d.TRH_dec.toFixed(2)} unit="h"          color={C.green}  ok={d.TRH_dec>=1.5&&d.TRH_dec<=3} rng={t.trhRng}/>
+            <KPI label={t.velSed}   value={d.vel_sed.toFixed(2)} unit="m/h"        color={C.warn}   ok={d.vel_sed>=1.5}                rng={t.velSedRng}/>
+          </div>
+        </div>
+        <div style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:7,overflow:'hidden'}}>
+          <details>
+            <summary style={{padding:'7px 11px',cursor:'pointer',fontSize:9,color:C.muted,
+              textTransform:'uppercase',letterSpacing:2,fontWeight:700,
+              display:'flex',justifyContent:'space-between',alignItems:'center',listStyle:'none'}}>
+              <span>ƒ {t.formulasAplicadas}</span><span>▼</span>
+            </summary>
+            <div style={{padding:'0 10px 10px',overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:9}}>
+                <thead>
+                  <tr style={{borderBottom:`1px solid ${C.border}`}}>
+                    {['Parámetro','Expresión','Resultado'].map(h=>(
+                      <th key={h} style={{textAlign:'left',color:C.muted,padding:'3px 5px',fontWeight:600,fontSize:8}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {l:'Caudal decantador', f:'Q_dec = Q_bio + Q_recirc',                      r:`${d.Q_dec.toFixed(0)} m³/d`},
+                    {l:'Volumen',           f:'V = S × H_útil',                                r:`${d.Vol_dec.toFixed(0)} m³`},
+                    {l:'Carga hidr. sup.',  f:'CHS = (Q_dec / 24) / S',                        r:`${d.CHS.toFixed(3)} m³/m²·h`},
+                    {l:'Carga sólidos',     f:'CSS = (Q_dec × SST_r / 1000 / 24) / S',        r:`${d.CSS.toFixed(3)} kgSS/m²·h`},
+                    {l:'TRH decantador',    f:'TRH = V / Q_dec × 24',                          r:`${d.TRH_dec.toFixed(2)} h`},
+                    {l:'Vel. sedim. apar.', f:'v_s = H_útil / TRH',                            r:`${d.vel_sed.toFixed(2)} m/h`},
+                    {l:'% lecho',           f:'% = HLF / H_útil × 100',                        r:`${d.pct.toFixed(1)} %`},
+                    {l:'Margen libre',      f:'M = H_útil − HLF',                              r:`${d.margen.toFixed(2)} m`},
+                    {l:'IVF real',          f:'IVF = (HLF/H_útil) × (1000/SST_r) × 1000',    r:`${d.ivf.toFixed(0)} mL/g`},
+                  ].map((r,i)=>(
+                    <tr key={i} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?'transparent':C.panel}}>
+                      <td style={{padding:'4px 5px',color:C.accent,whiteSpace:'nowrap'}}>{r.l}</td>
+                      <td style={{padding:'4px 5px',color:C.text,fontFamily:'monospace',whiteSpace:'nowrap'}}>{r.f}</td>
+                      <td style={{padding:'4px 5px',color:C.green,fontFamily:'monospace',textAlign:'right',whiteSpace:'nowrap'}}>{r.r}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+        {/* Histórico */}
+        {hist.length>0&&(
+          <div style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:8,padding:'12px 14px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2}}>▸ Evolución lecho de fangos</div>
+              <div style={{fontSize:7,color:C.muted}}>{hist.length} lecturas · últimos 90 días</div>
+            </div>
+            <Grafica/>
+            {/* Mini tabla últimas 8 lecturas */}
+            <div style={{marginTop:10,overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:8.5}}>
+                <thead>
+                  <tr style={{borderBottom:`1px solid ${C.border}`}}>
+                    {['Fecha','Hora','Lecho m','% ocup.','Margen m','IVF mL/g','Nota'].map(h=>(
+                      <th key={h} style={{padding:'3px 6px',color:C.muted,fontWeight:600,textAlign:'right',whiteSpace:'nowrap'}}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...hist].reverse().slice(0,8).map((h,i)=>(
+                    <tr key={i} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?'transparent':C.panel}}>
+                      <td style={{padding:'3px 6px',color:C.muted,whiteSpace:'nowrap'}}>{h.fecha}</td>
+                      <td style={{padding:'3px 6px',color:C.muted,whiteSpace:'nowrap'}}>{h.hora}</td>
+                      <td style={{padding:'3px 6px',fontFamily:'monospace',fontWeight:700,textAlign:'right',
+                        color:h.pct>70?C.danger:h.pct>50?C.warn:C.green}}>{h.hlf.toFixed(2)}</td>
+                      <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',
+                        color:h.pct>70?C.danger:h.pct>50?C.warn:C.green}}>{h.pct.toFixed(1)}</td>
+                      <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',
+                        color:h.margen>0.8?C.green:h.margen>0.4?C.warn:C.danger}}>{h.margen.toFixed(2)}</td>
+                      <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',
+                        color:h.ivf<120?C.green:h.ivf<180?C.warn:C.danger}}>{h.ivf}</td>
+                      <td style={{padding:'3px 6px',color:C.muted,fontSize:8,maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{h.nota||'—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Histórico Reactor ────────────────────────────────────────────────────────
+function PanelHistoricoReactor({p,res,C,t}){
+  const HKEY='edar_reactor_hist', MAX=90;
+  const [hist,setHist]=useState(()=>{try{return JSON.parse(localStorage.getItem(HKEY)||'[]');}catch(e){return [];}});
+  const [nota,setNota]=useState('');
+  const [confirmBorrar,setConfirmBorrar]=useState(false);
+  const [fechaManual,setFechaManual]=useState(()=>new Date().toISOString().slice(0,10));
+
+  function guardar(){
+    const now=fechaManual?new Date(fechaManual+'T12:00:00'):new Date();
+    const entry={
+      ts:now.toISOString(),
+      fecha:now.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'}),
+      hora:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}),
+      tc:Number(res.tc.toFixed(1)),
+      fm:Number(res.FM.toFixed(3)),
+      rend_dbo:Number(res.rend_dbo.toFixed(1)),
+      rend_nh4:Number(res.rend_nh4.toFixed(1)),
+            rend_pt:Number(res.rend_pt.toFixed(1)),
+      sst:Number(p.sst_reactor),
+      purga:Number(p.caudal_purga_d),
+      nota:nota.trim(),
+    };
+    const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-MAX);
+    const nuevo=[...hist.filter(h=>new Date(h.ts)>cutoff),entry];
+    setHist(nuevo); localStorage.setItem(HKEY,JSON.stringify(nuevo)); setNota('');
+    // Sync to Firebase reactor-history
+    if(window._fb){
+      try{
+        window._fb.set(window._fb.ref(window._fb.db,'reactor-history'), nuevo)
+          .catch(e=>console.warn('Firebase reactor-history error:',e));
+      }catch(e){}
+    }
+    // Notify portal to refresh Tendencias
+    try{ window.parent.postMessage({type:'sim-history', hist:nuevo}, '*'); }catch(e){}
+  }
+
+  function borrar(){setHist([]);localStorage.removeItem(HKEY);setConfirmBorrar(false);}
+
+  function exportarCSV(){
+    const cab='Fecha,Hora,EdadFango(d),F/M,Rend.DBO%,Rend.Nt%,Rend.Pt%,SST(mg/L),Purga(m3/d),Nota';
+    const filas=hist.map(h=>[h.fecha,h.hora,h.tc,h.fm,h.rend_dbo,h.rend_nh4,h.rend_pt||0,h.sst,h.purga,`"${(h.nota||'').replace(/"/g,'""')}"`].join(','));
+    const csv=[cab,...filas].join('\n');
+    const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='historico_reactor.csv'; a.click();
+  }
+
+  function GraficaReactor(){
+    const valsRaw=hist.map(h=>h.tc);
+    const vals=interpolarCeros(valsRaw);
+    const histF=vals.filter(v=>v>0);
+    if(histF.length<2) return(
+      <div style={{textAlign:'center',padding:'16px 0',color:C.muted,fontSize:9}}>
+        Guarda al menos 2 lecturas para ver la evolución
+      </div>
+    );
+    const W=420,H=90,PL=36,PR=8,PT=8,PB=20,gW=W-PL-PR,gH=H-PT-PB;
+    const minT=Math.min(...vals), maxT=Math.max(...vals), rngT=maxT-minT||1;
+    const xIdxs=[0,Math.floor((vals.length-1)/2),vals.length-1];
+    const ptsTc=vals.map((v,i)=>({
+      x:PL+i/(vals.length-1)*gW,
+      y:PT+gH-(v-minT)/rngT*gH,
+      fecha:hist[i].fecha,
+      interpolado:valsRaw[i]===0&&v!==0
+    }));
+    const polyTc=ptsTc.map(p=>`${p.x},${p.y}`).join(' ');
+    const areaTc=[`${ptsTc[0].x},${PT+gH}`,...ptsTc.map(p=>`${p.x},${p.y}`),`${ptsTc[ptsTc.length-1].x},${PT+gH}`].join(' ');
+    return(
+      <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'auto'}}>
+        <polygon points={areaTc} fill={C.warn} opacity="0.07"/>
+        {[0,0.5,1].map((f,i)=>(
+          <line key={i} x1={PL} y1={PT+gH*f} x2={W-PR} y2={PT+gH*f} stroke={C.border} strokeWidth="0.5" opacity="0.5"/>
+        ))}
+        <polyline points={polyTc} fill="none" stroke={C.warn} strokeWidth="1.5" strokeLinejoin="round"/>
+        {ptsTc.map((p,i)=>(
+          p.interpolado
+            ? <circle key={i} cx={p.x} cy={p.y} r="3" fill="none" stroke={C.warn} strokeWidth="1.2" strokeDasharray="2,1" opacity="0.7"/>
+            : <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={C.warn} stroke={C.bg} strokeWidth="1"/>
+        ))}
+        {[minT,(minT+maxT)/2,maxT].map((v,i)=>(
+          <text key={i} x={PL-3} y={PT+gH*(1-i*0.5)+3} textAnchor="end" fill={C.muted} fontSize="6" fontFamily="monospace">{v.toFixed(1)}</text>
+        ))}
+        {xIdxs.filter(i=>i<vals.length).map(i=>(
+          <text key={i} x={PL+i/(vals.length-1)*gW} y={H-2} textAnchor="middle" fill={C.muted} fontSize="5.5" fontFamily="monospace">
+            {hist[i].fecha}
+          </text>
+        ))}
+        <text x={PL-3} y={PT-1} textAnchor="end" fill={C.muted} fontSize="5.5">d</text>
+      </svg>
+    );
+  }
+
+  return(
+    <div style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:8,padding:'12px 14px',marginTop:12}}>
+      <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:10}}>▸ Histórico reactor</div>
+      <div style={{display:'flex',gap:8,marginBottom:10,alignItems:'flex-end',flexWrap:'wrap'}}>
+        <div style={{display:'flex',flexDirection:'column',gap:2}}>
+          <span style={{fontSize:7,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>Fecha</span>
+          <input type="date" value={fechaManual} onChange={e=>setFechaManual(e.target.value)}
+            style={{background:C.bg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
+              padding:'4px 7px',fontSize:9,color:C.text,outline:'none',fontFamily:'monospace',
+              colorScheme:'dark'}}/>
+        </div>
+        <input value={nota} onChange={e=>setNota(e.target.value)}
+          placeholder="Nota opcional (turno, incidencia...)"
+          style={{flex:1,minWidth:120,background:C.bg,border:`1px solid ${C.inputBorder}`,borderRadius:5,
+            padding:'5px 8px',fontSize:9,color:C.text,outline:'none',fontFamily:'inherit'}}/>
+        <button onClick={guardar}
+          style={{background:C.green,border:'none',borderRadius:6,padding:'6px 14px',
+            cursor:'pointer',fontSize:9,fontWeight:700,color:C.bg,whiteSpace:'nowrap'}}>
+          ✚ Guardar
+        </button>
+        {hist.length>0&&(<>
+          <button onClick={exportarCSV}
+            style={{background:'none',border:`1px solid ${C.accent}50`,borderRadius:5,padding:'6px 10px',
+              cursor:'pointer',fontSize:8,color:C.accent,whiteSpace:'nowrap'}}>
+            ⬇ CSV
+          </button>
+          <button onClick={()=>generarInformePDF(p,res,'reactor',null,hist,null)}
+            style={{background:'none',border:`1px solid ${C.accent}50`,borderRadius:5,padding:'6px 10px',
+              cursor:'pointer',fontSize:8,color:C.accent,whiteSpace:'nowrap'}}>
+            🖨 PDF
+          </button>
+          {confirmBorrar
+            ? <div style={{display:'flex',gap:4}}>
+                <button onClick={borrar} style={{background:C.danger,border:'none',borderRadius:4,padding:'4px 8px',cursor:'pointer',fontSize:8,fontWeight:700,color:'#fff',whiteSpace:'nowrap'}}>✓ Sí</button>
+                <button onClick={()=>setConfirmBorrar(false)} style={{background:C.border,border:'none',borderRadius:4,padding:'4px 8px',cursor:'pointer',fontSize:8,color:C.text,whiteSpace:'nowrap'}}>✕ No</button>
+              </div>
+            : <button onClick={()=>setConfirmBorrar(true)}
+                style={{background:'none',border:`1px solid ${C.border}`,borderRadius:5,padding:'6px 10px',
+                  cursor:'pointer',fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>
+                🗑 Borrar
+              </button>
+          }
+        </>)}
+      </div>
+      <div style={{fontSize:7,color:C.muted,marginBottom:8}}>{hist.length} registros · últimos {MAX} días</div>
+      {hist.length>=2&&(
+        <>
+          <div style={{fontSize:7.5,color:C.warn,marginBottom:4}}>Edad de fango (días)</div>
+          <GraficaReactor/>
+        </>
+      )}
+      {hist.length>0&&(
+        <div style={{marginTop:10,overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:8.5}}>
+            <thead>
+              <tr style={{borderBottom:`1px solid ${C.border}`}}>
+                {['Fecha','Hora','Edad(d)','F/M','DBO%','Nt%','Pt%','SST','Purga','Nota'].map(h=>(
+                  <th key={h} style={{padding:'3px 6px',color:C.muted,fontWeight:600,textAlign:'right',whiteSpace:'nowrap'}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[...hist].reverse().slice(0,8).map((h,i)=>(
+                <tr key={i} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?'transparent':C.panel}}>
+                  <td style={{padding:'3px 6px',color:C.muted,whiteSpace:'nowrap'}}>{h.fecha}</td>
+                  <td style={{padding:'3px 6px',color:C.muted,whiteSpace:'nowrap'}}>{h.hora}</td>
+                  <td style={{padding:'3px 6px',fontFamily:'monospace',fontWeight:700,textAlign:'right',color:C.warn}}>{h.tc}</td>
+                  <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',color:C.purple}}>{h.fm}</td>
+                  <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',color:h.rend_dbo>85?C.green:h.rend_dbo>70?C.warn:C.danger}}>{h.rend_dbo}</td>
+                  <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',color:h.rend_nh4>70?C.green:C.warn}}>{h.rend_nh4}</td>
+                  <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',color:(h.rend_pt||0)>70?C.green:C.warn}}>{h.rend_pt||0}</td>
+                  <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',color:C.purple}}>{h.sst}</td>
+                  <td style={{padding:'3px 6px',fontFamily:'monospace',textAlign:'right',color:C.orange}}>{h.purga}</td>
+                  <td style={{padding:'3px 6px',color:C.muted,fontSize:8,maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{h.nota||'—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+// ─── Interpolación de ceros ───────────────────────────────────────────────────
+// Sustituye valores 0 por la interpolación lineal entera entre el anterior y siguiente no-cero
+function interpolarCeros(arr){
+  const out=arr.slice();
+  for(let i=0;i<out.length;i++){
+    if(out[i]===0){
+      // buscar anterior no-cero
+      let prev=null, iPrev=-1;
+      for(let j=i-1;j>=0;j--){ if(out[j]!==0){prev=out[j];iPrev=j;break;} }
+      // buscar siguiente no-cero
+      let next=null, iNext=-1;
+      for(let j=i+1;j<out.length;j++){ if(out[j]!==0){next=out[j];iNext=j;break;} }
+      if(prev!==null&&next!==null){
+        // interpolación lineal
+        const t=(i-iPrev)/(iNext-iPrev);
+        out[i]=Math.round(prev+(next-prev)*t);
+      } else if(prev!==null){
+        out[i]=Math.round(prev);
+      } else if(next!==null){
+        out[i]=Math.round(next);
+      }
+    }
+  }
+  return out;
+}
+
+// ─── Helpers gráfica SVG para PDF ────────────────────────────────────────────
+function svgLineaPDF(hist, key, color, labelY, W=520, H=110){
+  if(!hist||hist.length<2) return '<p style="color:#999;font-size:11px">Sin datos suficientes (mínimo 2 lecturas)</p>';
+  const PL=44,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
+  const valsRaw=hist.map(h=>h[key]);
+  const vals=interpolarCeros(valsRaw);
+  const minV=Math.min(...vals), maxV=Math.max(...vals), rng=maxV-minV||1;
+  const pts=hist.map((h,i)=>({
+    x:PL+i/(hist.length-1)*gW,
+    y:PT+gH-(vals[i]-minV)/rng*gH,
+    v:vals[i], f:h.fecha, interpolado:valsRaw[i]===0&&vals[i]!==0
+  }));
+  const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area=[`${pts[0].x.toFixed(1)},${(PT+gH).toFixed(1)}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${(PT+gH).toFixed(1)}`].join(' ');
+  const yLabels=[minV,(minV+maxV)/2,maxV];
+  const xIdxs=[0,Math.floor((hist.length-1)/2),hist.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+  let svgLines='', svgPts='', svgYL='', svgXL='', svgGrid='';
+  [0,0.5,1].forEach(f=>{
+    const y=(PT+gH*f).toFixed(1);
+    svgGrid+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#d0dce8" stroke-width="0.5"/>`;
+  });
+  yLabels.forEach((v,i)=>{
+    const y=(PT+gH*(1-i*0.5)+3).toFixed(1);
+    svgYL+=`<text x="${PL-4}" y="${y}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${typeof v==='number'?v.toFixed(1):v}</text>`;
+  });
+  xIdxs.forEach(i=>{
+    const x=(PL+i/(hist.length-1)*gW).toFixed(1);
+    svgXL+=`<text x="${x}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${pts[i].f}</text>`;
+  });
+  pts.forEach(p=>{
+    if(p.interpolado){
+      svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="none" stroke="${color}" stroke-width="1.2" stroke-dasharray="2,1" opacity="0.7"/>`;
+    } else {
+      svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${color}" stroke="#fff" stroke-width="1"/>`;
+    }
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+    ${svgGrid}
+    <polygon points="${area}" fill="${color}" opacity="0.08"/>
+    <polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    ${svgPts}
+    ${svgYL}
+    ${svgXL}
+    <text x="${PL-4}" y="${PT-1}" text-anchor="end" fill="#7a8fa8" font-size="6.5">${labelY}</text>
+  </svg>`;
+}
+
+function svgLechoPDF(hist, W=520, H=110){
+  if(!hist||hist.length<2) return '<p style="color:#999;font-size:11px">Sin datos suficientes (mínimo 2 lecturas)</p>';
+  const PL=44,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
+  const valsRaw=hist.map(h=>h.hlf);
+  const vals=interpolarCeros(valsRaw);
+  const minV=Math.min(...vals), maxV=Math.max(...vals), rng=maxV-minV||1;
+  const pts=hist.map((h,i)=>({x:PL+i/(hist.length-1)*gW,y:PT+gH-(vals[i]-minV)/rng*gH,h,interpolado:valsRaw[i]===0&&vals[i]!==0}));
+  const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area=[`${pts[0].x.toFixed(1)},${(PT+gH).toFixed(1)}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${(PT+gH).toFixed(1)}`].join(' ');
+  const xIdxs=[0,Math.floor((hist.length-1)/2),hist.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+  let svgGrid='',svgPts='',svgYL='',svgXL='';
+  [0,0.5,1].forEach(f=>{ svgGrid+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.5"/>`; });
+  [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svgYL+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${v.toFixed(2)}</text>`; });
+  xIdxs.forEach(i=>{ svgXL+=`<text x="${(PL+i/(hist.length-1)*gW).toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${pts[i].h.fecha}</text>`; });
+  pts.forEach(p=>{ const col=p.h.pct>70?'#cc1122':p.h.pct>50?'#cc7700':'#008855'; if(p.interpolado){ svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="none" stroke="${col}" stroke-width="1.2" stroke-dasharray="2,1" opacity="0.7"/>`; } else { svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${col}" stroke="#fff" stroke-width="1"/>`; } });
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+    ${svgGrid}
+    <polygon points="${area}" fill="#ff8c42" opacity="0.08"/>
+    <polyline points="${poly}" fill="none" stroke="#ff8c42" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    ${svgPts}
+    ${svgYL}${svgXL}
+    <text x="${PL-4}" y="${PT-1}" text-anchor="end" fill="#7a8fa8" font-size="6.5">m</text>
+  </svg>`;
+}
+
+// ─── Informe PDF ───────────────────────────────────────────────────────────────
+function generarInformePDF(p, res, tipo, d, histR, histD){
+  const now=new Date();
+  const fecha=now.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hora=now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  const estiloBase=`body{font-family:Arial,sans-serif;font-size:12px;color:#1a2540;padding:30px;max-width:800px;margin:0 auto}
+    h1{font-size:18px;padding-bottom:8px;margin-bottom:20px}
+    h2{font-size:12px;color:#5a7090;text-transform:uppercase;letter-spacing:1px;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid #e0e8f0}
+    table{width:100%;border-collapse:collapse;margin-bottom:14px}
+    td,th{padding:4px 9px;border:1px solid #d0dce8;font-size:10.5px}
+    th{background:#f0f4f8;font-weight:600;text-align:left}
+    .ok{color:#008855;font-weight:700}.warn{color:#cc7700;font-weight:700}.bad{color:#cc1122;font-weight:700}
+    .grafica{margin:8px 0 14px;padding:10px;background:#f8fafc;border:1px solid #e0e8f0;border-radius:4px}
+    .grafica-title{font-size:10px;color:#5a7090;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-weight:600}
+    .footer{margin-top:28px;font-size:9px;color:#7a8fa8;border-top:1px solid #d0dce8;padding-top:8px}`;
+
+  let html='';
+  if(tipo==='reactor'){
+    const gTc   = svgLineaPDF(histR,'tc',  '#cc7700','d');
+    const gFM   = svgLineaPDF(histR,'fm',  '#6633cc','kg/kg');
+    const gDBO  = svgLineaPDF(histR,'rend_dbo','#008855','%');
+    const gNH4  = svgLineaPDF(histR,'rend_nh4','#0077aa','%');
+    html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+    <style>${estiloBase}h1{border-bottom:2px solid #00c8ff}</style></head><body>
+    <h1>📋 Informe Reactor Biológico EDAR &mdash; ${fecha} ${hora}</h1>
+    <h2>Parámetros de entrada</h2>
+    <table><tr><th>Parámetro</th><th>Valor</th><th>Unidad</th></tr>
+    <tr><td>Caudal Q_bio</td><td>${p.caudal}</td><td>m³/d</td></tr>
+    <tr><td>OD</td><td>${p.od}</td><td>mg/L</td></tr>
+    <tr><td>Volumen reactor</td><td>${p.vol_reactor}</td><td>m³</td></tr>
+    <tr><td>Recirculación</td><td>${p.recirculacion}</td><td>%</td></tr>
+    <tr><td>Edad objetivo</td><td>${p.edad_objetivo}</td><td>días</td></tr>
+    <tr><td>DBO₅ entrada</td><td>${p.dbo_entrada}</td><td>mg/L</td></tr>
+    <tr><td>DQO entrada</td><td>${p.dqo_entrada}</td><td>mg/L</td></tr>
+    <tr><td>Nt entrada</td><td>${p.nh4_entrada}</td><td>mg/L</td></tr>
+    <tr><td>Pt entrada</td><td>${p.pt_entrada}</td><td>mg/L</td></tr>
+    <tr><td>SST reactor</td><td>${p.sst_reactor}</td><td>mg/L</td></tr>
+    <tr><td>SST recirculación</td><td>${p.sst_recirculacion}</td><td>mg/L</td></tr>
+    <tr><td>SST efluente</td><td>${p.sst_efluente}</td><td>mg/L</td></tr>
+    <tr><td>Caudal purga</td><td>${p.caudal_purga_d}</td><td>m³/d</td></tr>
+    </table>
+    <h2>Resultados calculados</h2>
+    <table><tr><th>Parámetro</th><th>Valor</th><th>Unidad</th><th>Estado</th></tr>
+    <tr><td>Edad fango real</td><td>${res.tc.toFixed(1)}</td><td>días</td><td class="${res.tc>=5&&res.tc<=30?'ok':'warn'}">${res.tc>=5&&res.tc<=30?'✓':'⚠'}</td></tr>
+    <tr><td>TRH</td><td>${res.TRH.toFixed(1)}</td><td>h</td><td></td></tr>
+    <tr><td>F/M</td><td>${res.FM.toFixed(3)}</td><td>kgDBO/kgSS·d</td><td class="${res.FM>=0.1&&res.FM<=0.4?'ok':'warn'}">${res.FM>=0.1&&res.FM<=0.4?'✓':'⚠'}</td></tr>
+    <tr><td>Carga vol.</td><td>${res.Cv.toFixed(3)}</td><td>kgDBO/m³·d</td><td></td></tr>
+    <tr><td>Rend. DBO₅</td><td>${res.rend_dbo.toFixed(1)}</td><td>%</td><td class="${res.rend_dbo>=80?'ok':'bad'}">${res.rend_dbo>=80?'✓':'✗'}</td></tr>
+    <tr><td>Rend. DQO</td><td>${res.rend_dqo.toFixed(1)}</td><td>%</td><td class="${res.rend_dqo>=75?'ok':'bad'}">${res.rend_dqo>=75?'✓':'✗'}</td></tr>
+    <tr><td>Rend. Nt</td><td>${res.rend_nh4.toFixed(1)}</td><td>%</td><td class="${res.rend_nh4>=70?'ok':'bad'}">${res.rend_nh4>=70?'✓':'✗'}</td></tr>
+    <tr><td>Rend. Pt</td><td>${res.rend_pt.toFixed(1)}</td><td>%</td><td class="${res.rend_pt>=70?'ok':'bad'}">${res.rend_pt>=70?'✓':'✗'}</td></tr>
+    <tr><td>Masa reactor</td><td>${res.M.toFixed(1)}</td><td>kgSS</td><td></td></tr>
+    <tr><td>Producción Px</td><td>${res.Px.toFixed(1)}</td><td>kgSS/d</td><td></td></tr>
+    <tr><td>Acumulación neta</td><td>${res.acum.toFixed(1)}</td><td>kgSS/d</td><td class="${Math.abs(res.acum)<20?'ok':'warn'}">${Math.abs(res.acum)<20?'✓':'⚠'}</td></tr>
+    <tr><td>Purga actual</td><td>${p.caudal_purga_d}</td><td>m³/d</td><td></td></tr>
+    <tr><td>Purga necesaria</td><td>${res.Qw_nec.toFixed(0)}</td><td>m³/d</td><td class="${Math.abs(p.caudal_purga_d-res.Qw_nec)<5?'ok':'warn'}">${Math.abs(p.caudal_purga_d-res.Qw_nec)<5?'✓':'⚠'}</td></tr>
+    </table>
+    <h2>Evolución histórica (${histR?histR.length:0} registros)</h2>
+    <div class="grafica"><div class="grafica-title">Edad de fango (días)</div>${gTc}</div>
+    <div class="grafica"><div class="grafica-title">F/M (kgDBO/kgSS·d)</div>${gFM}</div>
+    <div class="grafica"><div class="grafica-title">Rendimiento DBO₅ (%)</div>${gDBO}</div>
+    <div class="grafica"><div class="grafica-title">Rendimiento Nt (%)</div>${gNH4}</div>
+    <div class="footer">Simulador Reactor Biológico EDAR &middot; Cálculos basados en datos reales de laboratorio &middot; Límites RD 509/1996 &middot; <strong>Héctor Hernández Hernández</strong></div>
+    </body></html>`;
+  } else {
+    const gHLF  = svgLechoPDF(histD);
+    const gPct  = svgLineaPDF(histD,'pct',  '#cc7700','%');
+    const gIVF  = svgLineaPDF(histD,'ivf',  '#6633cc','mL/g');
+    const gMarg = svgLineaPDF(histD,'margen','#008855','m');
+    html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+    <style>${estiloBase}h1{border-bottom:2px solid #ff8c42}</style></head><body>
+    <h1>📋 Informe Decantador Secundario EDAR &mdash; ${fecha} ${hora}</h1>
+    <h2>Parámetros instalación</h2>
+    <table><tr><th>Parámetro</th><th>Valor</th><th>Unidad</th></tr>
+    <tr><td>Superficie</td><td>${p.s_decantador}</td><td>m²</td></tr>
+    <tr><td>Altura útil</td><td>${p.h_decantador}</td><td>m</td></tr>
+    <tr><td>Volumen</td><td>${d.Vol_dec.toFixed(0)}</td><td>m³</td></tr>
+    </table>
+    <h2>Datos de campo</h2>
+    <table><tr><th>Parámetro</th><th>Valor</th><th>Unidad</th></tr>
+    <tr><td>Lecho de fangos (HLF)</td><td>${p.hlf}</td><td>m</td></tr>
+    <tr><td>% lecho ocupado</td><td>${d.pct.toFixed(1)}</td><td>%</td></tr>
+    <tr><td>Margen libre</td><td>${d.margen.toFixed(2)}</td><td>m</td></tr>
+    <tr><td>SST reactor</td><td>${p.sst_reactor}</td><td>mg/L</td></tr>
+    <tr><td>Caudal Q_bio</td><td>${p.caudal}</td><td>m³/d</td></tr>
+    <tr><td>Caudal recirculación</td><td>${p.caudal_recirculacion}</td><td>m³/d</td></tr>
+    <tr><td>Caudal total decantador</td><td>${d.Q_dec.toFixed(0)}</td><td>m³/d</td></tr>
+    </table>
+    <h2>Resultados calculados</h2>
+    <table><tr><th>Parámetro</th><th>Valor</th><th>Unidad</th><th>Estado</th></tr>
+    <tr><td>Carga hidr. superficial</td><td>${d.CHS.toFixed(3)}</td><td>m³/m²·h</td><td class="${d.CHS>=0.5&&d.CHS<=1.5?'ok':'bad'}">${d.CHS>=0.5&&d.CHS<=1.5?'✓':'⚠'}</td></tr>
+    <tr><td>Carga sólidos superficial</td><td>${d.CSS.toFixed(3)}</td><td>kgSS/m²·h</td><td class="${d.CSS<=6?'ok':'bad'}">${d.CSS<=6?'✓':'⚠'}</td></tr>
+    <tr><td>TRH decantador</td><td>${d.TRH_dec.toFixed(2)}</td><td>h</td><td class="${d.TRH_dec>=1.5&&d.TRH_dec<=3?'ok':'warn'}">${d.TRH_dec>=1.5&&d.TRH_dec<=3?'✓':'⚠'}</td></tr>
+    <tr><td>Vel. sedimentación aparente</td><td>${d.vel_sed.toFixed(2)}</td><td>m/h</td><td class="${d.vel_sed>=1.5?'ok':'warn'}">${d.vel_sed>=1.5?'✓':'⚠'}</td></tr>
+    <tr><td>IVF real</td><td>${d.ivf.toFixed(0)}</td><td>mL/g</td><td class="${d.ivf<120?'ok':d.ivf<180?'warn':'bad'}">${d.ivf<120?'✓':d.ivf<180?'⚠':'✗'}</td></tr>
+    </table>
+    <h2>Evolución histórica (${histD?histD.length:0} registros)</h2>
+    <div class="grafica"><div class="grafica-title">Altura lecho de fangos (m)</div>${gHLF}</div>
+    <div class="grafica"><div class="grafica-title">% lecho ocupado</div>${gPct}</div>
+    <div class="grafica"><div class="grafica-title">IVF real (mL/g)</div>${gIVF}</div>
+    <div class="grafica"><div class="grafica-title">Margen libre (m)</div>${gMarg}</div>
+    <div class="footer">Simulador Reactor Biológico EDAR &middot; Cálculos basados en datos reales de laboratorio &middot; <strong>Héctor Hernández Hernández</strong></div>
+    </body></html>`;
+  }
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
+
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+function App(){
+  const [dark,setDark]=useState(()=>localStorage.getItem('edar_theme')!=='light');
+  const [lang,setLang]=useState(()=>localStorage.getItem('edar_lang')||'es');
+  const C=dark?DARK:LIGHT, t=T[lang];
+  useEffect(()=>localStorage.setItem('edar_theme',dark?'dark':'light'),[dark]);
+  useEffect(()=>localStorage.setItem('edar_lang',lang),[lang]);
+
+  const [p,setP]=useState({
+    caudal:500,vol_reactor:2167.90,recirculacion:75,od:2.0,edad_objetivo:15,
+    caudal_recirculacion:375,sst_reactor:3500,sst_recirculacion:8000,sst_efluente:15,
+    dbo_entrada:200,dqo_entrada:450,nh4_entrada:35,
+    dbo_efluente:10,dqo_efluente:60,nh4_efluente:3,pt_entrada:5,pt_efluente:1,caudal_purga_d:80,
+    hlf:1.2,h_decantador:3.5,s_decantador:200,
+  });
+
+  // ── Excel / selector de fecha ──────────────────────────────────────────────
+  const [excelData,setExcelData]=useState([]);
+  const [rangeMode,setRangeMode]=useState(false);
+  const [selectedDate,setSelectedDate]=useState('');
+  const [fechaIni,setFechaIni]=useState('');
+  const [fechaFin,setFechaFin]=useState('');
+  const [xlsxMsg,setXlsxMsg]=useState('');
+  const [weekSummary,setWeekSummary]=useState(null); // {days, avg}
+  const [weekCalc,setWeekCalc]=useState([]); // [{iso, tc, rend_dqo, ...}] per day
+  const fileInputRef=useRef(null);
+
+  // Convierte número serial Excel a cadena YYYY-MM-DD
+  function excelSerialToDate(serial){
+    if(serial instanceof Date) return serial;
+    const d=new Date(Math.round((serial-25569)*86400*1000));
+    return d;
+  }
+  function dateToISO(d){
+    if(!d) return '';
+    const dd=d instanceof Date?d:excelSerialToDate(d);
+    return dd.toISOString().slice(0,10);
+  }
+
+  function handleExcelLoad(e){
+    const file=e.target.files[0];
+    if(!file){return;}
+    setXlsxMsg('Cargando...');
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        // El Excel tiene 5 filas de cabecera:
+        // F1=Título, F2=Instrucción, F3=Grupos, F4=Cabeceras reales, F5=Aviso
+        // F6+ = datos. Usamos range:3 → fila 4 (0-indexed) = cabeceras reales.
+        const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rowsRaw=XLSX.utils.sheet_to_json(ws,{raw:true, defval:null, range:3});
+        const rowsFmt=XLSX.utils.sheet_to_json(ws,{raw:false,dateNF:'yyyy-mm-dd',defval:'',range:3});
+
+        // Convierte cualquier valor a ISO yyyy-mm-dd
+        function parsearFecha(rawVal, fmtVal){
+          if(rawVal instanceof Date){
+            const y=rawVal.getFullYear(), mo=String(rawVal.getMonth()+1).padStart(2,'0'), d=String(rawVal.getDate()).padStart(2,'0');
+            return `${y}-${mo}-${d}`;
+          }
+          const n=Number(rawVal);
+          if(!isNaN(n)&&n>40000&&n<60000){
+            const dt=new Date(Math.round((n-25569)*86400*1000));
+            return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`;
+          }
+          const s=String(fmtVal||rawVal||'').trim();
+          if(!s) return '';
+          if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+          const m1=s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+          if(m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+          const m2=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+          if(m2) return `${m2[1]}-${m2[2].padStart(2,'0')}-${m2[3].padStart(2,'0')}`;
+          return '';
+        }
+
+        const sampleKeys=rowsRaw.length>0?Object.keys(rowsRaw[0]):[];
+        const fechaKey=sampleKeys.find(k=>/^fecha$/i.test(k.trim()))
+                    || sampleKeys.find(k=>/fecha|date|d[ií]a|jornada/i.test(k));
+
+        // Normalizar claves: quitar \r\n y texto de unidades
+        function normalizarClave(k){
+          return k.split(/[\r\n]/)[0].replace(/\s*[\(\[].*$/,'').trim();
+        }
+
+        const parsed=rowsRaw.map((r,i)=>{
+          const fk=fechaKey||Object.keys(r)[0];
+          const fechaISO=fk?parsearFecha(r[fk],rowsFmt[i]?.[fk]):'';
+          // Reconstruir fila con claves normalizadas
+          const normalized={_fechaISO:fechaISO};
+          Object.keys(r).forEach(k=>{
+            normalized[normalizarClave(k)]=r[k];
+          });
+          return normalized;
+        }).filter(r=>r._fechaISO);
+        setExcelData(parsed);
+        setXlsxMsg(`✓ ${parsed.length} registros cargados`);
+        // Si sólo hay una fila, seleccionarla automáticamente
+        if(parsed.length===1) applyRow(parsed[0]);
+      }catch(err){
+        setXlsxMsg('⚠ Error al leer el Excel: '+err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // Mapeo columnas Excel → campos app
+  // SS REACTOR y SS RECIRCULACIÓN están en g/L en el Excel → ×1000 para mg/L
+  function applyRow(row){
+    const rowKeys=Object.keys(row);
+    // Búsqueda robusta: exacto → parcial (ignora mayús/acento/unidades)
+    const n=(search,mult=1)=>{
+      // 1. Exacto
+      let v=parseFloat(row[search]);
+      if(!isNaN(v)) return v*mult;
+      // 2. Clave que empieza por search (ignora mayúsculas)
+      const sl=search.toLowerCase();
+      const fk=rowKeys.find(k=>k.trim().toLowerCase().startsWith(sl))
+            ||rowKeys.find(k=>k.trim().toLowerCase().includes(sl));
+      if(fk){ v=parseFloat(row[fk]); if(!isNaN(v)) return v*mult; }
+      return undefined;
+    };
+    const updates={};
+    const caudal=n('Caudal entrada Biologico');        if(caudal!==undefined)   updates.caudal=caudal;
+    const dbo_e=n('DBO5 ENTRADA');                    if(dbo_e!==undefined)    updates.dbo_entrada=dbo_e;
+    const dqo_e=n('DQO ENTRADA');                     if(dqo_e!==undefined)    updates.dqo_entrada=dqo_e;
+    const nh4_e=n('NT ENTRADA');                      if(nh4_e!==undefined)    updates.nh4_entrada=nh4_e;
+    // SS REACTOR en g/L → mg/L
+    const sst_r=n('SS REACTOR',1000);                 if(sst_r!==undefined)    updates.sst_reactor=sst_r;
+    const sst_rc=n('SS RECIRCULACIÓN',1000);           if(sst_rc!==undefined)   updates.sst_recirculacion=sst_rc;
+    const sst_ef=n('SS EFLUENTE');                    if(sst_ef!==undefined)   updates.sst_efluente=sst_ef;
+    const qpurga=n('CAUDAL PURGA');                   if(qpurga!==undefined)   updates.caudal_purga_d=qpurga;
+    const qrecirc=n('CAUDAL RECIRCULACIÓN');           if(qrecirc!==undefined)  updates.caudal_recirculacion=qrecirc;
+    const dbo_ef=n('DBO EFLUENTE');                   if(dbo_ef!==undefined)   updates.dbo_efluente=dbo_ef;
+    const dqo_ef=n('DQO EFLUENTE');                   if(dqo_ef!==undefined)   updates.dqo_efluente=dqo_ef;
+    const nh4_ef=n('NT FLUENTE');                     if(nh4_ef!==undefined)   updates.nh4_efluente=nh4_ef;
+    const pt_e=n('PT ENTRADA');                       if(pt_e!==undefined)     updates.pt_entrada=pt_e;
+    const pt_ef=n('PT EFLUENTE');                     if(pt_ef!==undefined)    updates.pt_efluente=pt_ef;
+    setP(prev=>({...prev,...updates}));
+  }
+
+  function handleDateChange(val){
+    setSelectedDate(val);
+    const row=excelData.find(r=>r._fechaISO===val);
+    if(row){
+      applyRow(row);
+      setXlsxMsg(`✓ Datos del ${val} cargados`);
+      setWeekSummary(null);
+    } else if(val){
+      setXlsxMsg(`⚠ Sin datos para ${val}`);
+    }
+  }
+
+  function handleRangeLoad(ini,fin){
+    if(!ini||!fin){setXlsxMsg('⚠ Selecciona inicio y fin');return;}
+    if(ini>fin){setXlsxMsg('⚠ Inicio debe ser anterior al fin');return;}
+    if(!excelData.length){setWeekSummary(null);return;}
+    const days=excelData
+      .filter(r=>r._fechaISO>=ini&&r._fechaISO<=fin)
+      .map(r=>({iso:r._fechaISO,row:r}));
+    const startISO=ini;
+    if(!days.length){setXlsxMsg('\u26a0 Sin datos en ese rango');setWeekSummary(null);return;}
+    // Promediar todos los campos numéricos
+    const sampleKeys=Object.keys(days[0].row).filter(k=>k!=='_fechaISO');
+    const avg={_fechaISO:startISO};
+    sampleKeys.forEach(k=>{
+      const vals=days.map(d=>d.row[k]).filter(v=>typeof v==='number'&&v!==0&&!isNaN(v));
+      avg[k]=vals.length?Math.round((vals.reduce((s,v)=>s+v,0)/vals.length)*100)/100:0;
+    });
+    setWeekSummary({days,avg,startISO:ini,endISO:fin});
+    applyRow(avg);
+
+    // Calcular resultados individuales por día para gráficas
+    const calc=days.map(d=>{
+      // Construir params del día usando el mapping de applyRow
+      const rkeys=Object.keys(d.row);
+      const nv=(search,mult=1)=>{
+        const sl=search.toLowerCase();
+        const fk=rkeys.find(k=>k.trim().toLowerCase().startsWith(sl))||rkeys.find(k=>k.trim().toLowerCase().includes(sl));
+        const v=parseFloat(fk?d.row[fk]:undefined);
+        return isNaN(v)?0:v*mult;
+      };
+      const dp={
+        ...p,
+        caudal:           nv('Caudal entrada Biologico') || p.caudal,
+        dbo_entrada:      nv('DBO5 ENTRADA')             || p.dbo_entrada,
+        dqo_entrada:      nv('DQO ENTRADA')              || p.dqo_entrada,
+        nh4_entrada:      nv('NT ENTRADA')               || p.nh4_entrada,
+        sst_reactor:      nv('SS REACTOR',1000)          || p.sst_reactor,
+        sst_recirculacion:nv('SS RECIRCULACI',1000)       || p.sst_recirculacion,
+        sst_efluente:     nv('SS EFLUENTE')              || p.sst_efluente,
+        caudal_purga_d:   nv('CAUDAL PURGA')             || p.caudal_purga_d,
+        caudal_recirculacion:nv('CAUDAL RECIR')          || p.caudal_recirculacion,
+        dbo_efluente:     nv('DBO EFLUENTE')             || p.dbo_efluente,
+        dqo_efluente:     nv('DQO EFLUENTE')             || p.dqo_efluente,
+        nh4_efluente:     nv('NT FLUENTE')               || p.nh4_efluente,
+        pt_entrada:       nv('PT ENTRADA')               || p.pt_entrada,
+        pt_efluente:      nv('PT EFLUENTE')              || p.pt_efluente,
+      };
+      const dr=calcular(dp);
+      return {
+        iso:d.iso,
+        tc:Number(dr.tc.toFixed(1)),
+        rend_dqo:Number(dr.rend_dqo.toFixed(1)),
+        rend_dbo:Number(dr.rend_dbo.toFixed(1)),
+        rend_nh4:Number(dr.rend_nh4.toFixed(1)),
+        rend_pt:Number(dr.rend_pt.toFixed(1)),
+        fecha:d.iso.slice(5), // MM-DD
+      };
+    });
+    setWeekCalc(calc);
+    // Notificar al portal con datos de la semana
+    try{
+      window.parent.postMessage({type:'sim-week', days:calc, start:startISO}, '*');
+      localStorage.setItem('sgi-tendencias-semana', JSON.stringify({days:calc, start:startISO, ts:Date.now()}));
+    }catch(e){}
+    // Enviar KPIs del ÚLTIMO DÍA directamente (no el promedio)
+    if(calc.length){
+      const lastDay=calc[calc.length-1];
+      const lastRow=days[days.length-1].row;
+      const sstLast=parseFloat(lastRow['SS REACTOR']||0);
+      try{
+        window.parent.postMessage({
+          type:'sim-kpi',
+          edad:String(lastDay.tc),
+          sst: sstLast?Math.round(sstLast*1000):undefined,
+          dqo: String(lastDay.rend_dqo)
+        }, '*');
+      }catch(e){}
+    }
+    setXlsxMsg('\u2713 '+days.length+' d\u00eda'+(days.length>1?'s':'')+' ('+ini+' \u2192 '+fin+')');
+  }
+
+  function exportWeekPDF(){
+    if(!weekSummary) return;
+    const {days,startISO,endISO}=weekSummary;
+    const calc=weekCalc.length?weekCalc:days.map(d=>({iso:d.iso,tc:0,rend_dqo:0,rend_dbo:0,rend_nh4:0,rend_pt:0,fecha:d.iso.slice(5)}));
+    const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+    // ── SVG chart helper ──────────────────────────────────────────────────────
+    function interpolateZeros(arr){
+      const out=[...arr];
+      const n=out.length;
+      // Rellenar ceros iniciales con el primer valor no-cero
+      let first=out.findIndex(v=>v!==0);
+      if(first<0) return out; // todos cero
+      for(let i=0;i<first;i++) out[i]=out[first];
+      // Interpolación lineal entre bloques de ceros
+      let i=first+1;
+      while(i<n){
+        if(out[i]===0){
+          let j=i;
+          while(j<n&&out[j]===0) j++;
+          const vA=out[i-1], vB=j<n?out[j]:out[i-1];
+          const steps=j-i+1;
+          for(let k=i;k<j;k++) out[k]=vA+(vB-vA)*(k-i+1)/steps;
+          i=j;
+        } else { i++; }
+      }
+      return out;
+    }
+    function svgLine(data, key, color, label, refV, unit){
+      const raw=data.map(d=>Number(d[key])||0);
+      const vals=interpolateZeros(raw);
+      const W=Math.max(480,data.length*38),H=110,PL=42,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
+      const minV=Math.max(0,Math.min(...vals)*0.85), maxV=Math.max(...vals)*1.1||1, rng=maxV-minV||1;
+      const pts=data.map((d,i)=>({x:PL+i/(data.length-1||1)*gW, y:PT+gH-(vals[i]-minV)/rng*gH, v:vals[i]}));
+      const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      const area=[`${pts[0].x.toFixed(1)},${PT+gH}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
+      const refY=PT+gH-(refV-minV)/rng*gH;
+      let svg=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+      svg+=`<polygon points="${area}" fill="${color}" opacity="0.1"/>`;
+      if(refV>minV&&refV<maxV) svg+=`<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
+      [0,0.5,1].forEach(f=>{ svg+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.5"/>`; });
+      svg+=`<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      pts.forEach((p,i)=>{ const isReal=raw[i]!==0; svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${isReal?color:'#fff'}" stroke="${color}" stroke-width="1.2"/>${isReal?`<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="7" font-family="Arial" font-weight="700">${p.v.toFixed(1)}</text>`:''}`;});
+      [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svg+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${v.toFixed(1)}</text>`; });
+      data.forEach((d,i)=>{ const p=pts[i]; svg+=`<text x="${p.x.toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${d.fecha||d.iso.slice(5)||''}</text>`; });
+      svg+=`<text x="${PL-4}" y="${PT-2}" text-anchor="end" fill="#7a8fa8" font-size="6">${unit}</text>`;
+      svg+=`</svg>`;
+      return svg;
+    }
+
+    // ── Tabla datos crudos ────────────────────────────────────────────────────
+    const cols=['Q bio (m³/d)','DBO₅ E','DQO E','SST R (g/L)','NT E','Caudal Purga','DQO Ef','NT Ef','PT Ef'];
+    const keys=['Caudal entrada Biologico','DBO5 ENTRADA','DQO ENTRADA','SS REACTOR','NT ENTRADA','CAUDAL PURGA','DQO EFLUENTE','NT FLUENTE','PT EFLUENTE'];
+    const rowsRaw=days.map(d=>`<tr><td><b>${d.iso}</b></td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==0?d.row[k]:'—'}</td>`).join('')}</tr>`).join('');
+
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+      body{font-family:Arial,sans-serif;font-size:11px;color:#1a2540;padding:24px;max-width:780px;margin:0 auto}
+      h1{font-size:16px;color:#003e6b;border-bottom:2px solid #005b99;padding-bottom:6px;margin-bottom:4px}
+      h2{font-size:10px;color:#5a7090;text-transform:uppercase;letter-spacing:1px;margin:14px 0 5px;border-bottom:1px solid #e0e8f0;padding-bottom:3px}
+      table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9px}
+      td,th{padding:3px 5px;border:1px solid #d0dce8;text-align:right}
+      th{background:#f0f4f8;font-weight:600;text-align:center}
+      td:first-child{text-align:left;color:#003e6b;font-weight:600}
+      .chart-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}
+      .chart-box{flex:1 1 220px;border:1px solid #e0e8f0;border-radius:4px;padding:8px 10px;background:#fafcff}
+      .chart-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+      .footer{margin-top:20px;font-size:8px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:6px}
+      @media print{body{padding:12px}.chart-box{break-inside:avoid}}
+    </style></head><body>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+      <div>
+        <h1 style="margin:0 0 4px 0">Informe de período EDAR — ${startISO||days[0].iso} → ${endISO||days[days.length-1].iso}</h1>
+        <p style="font-size:9px;color:#5a7090;margin:0">Generado: ${dateStr} · ${days.length} días con datos · Media aplicada al simulador</p>
+        <p style="font-size:9px;color:#5a7090;margin:2px 0 0 0">Realizado por: <b>Héctor Hernández Hernández</b></p>
+      </div>
+      <img src="data:image/png;base64,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" alt="UTE Valle de Güímar" style="height:52px;width:auto;object-fit:contain;"/>
+    </div>
+    <h2>Datos de proceso (valores originales del Excel)</h2>
+    <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rowsRaw}</table>
+    <h2>Tendencias calculadas por el simulador</h2>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-lbl" style="color:#ffb300">Edad de Fango (días)</div>${svgLine(calc,'tc','#ffb300','Edad fango',15,'d')}</div>
+      <div class="chart-box"><div class="chart-lbl" style="color:#00a8e8">Rendimiento DQO (%)</div>${svgLine(calc,'rend_dqo','#00a8e8','Rend DQO',75,'%')}</div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-lbl" style="color:#2ecc71">Rendimiento DBO₅ (%)</div>${svgLine(calc,'rend_dbo','#2ecc71','Rend DBO',80,'%')}</div>
+      <div class="chart-box"><div class="chart-lbl" style="color:#b388ff">Rendimiento NT (%)</div>${svgLine(calc,'rend_nh4','#b388ff','Rend NT',70,'%')}</div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-lbl" style="color:#ff8c42">Rendimiento PT (%)</div>${svgLine(calc,'rend_pt','#ff8c42','Rend PT',70,'%')}</div>
+    </div>
+    <div class="footer">Simulador Reactor Biológico EDAR · UTE Valle de Güímar · Límites RD 509/1996</div>
+    </body></html>`;
+    const w=window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(()=>w.print(),400);
+  }
+
+  // Fechas disponibles para el selector
+  const fechasDisponibles=excelData.map(r=>r._fechaISO);
+  const [tab,setTab]=useState('proceso');
+  const [mainTab,setMainTab]=useState('reactor');
+  const [fs,setFs]=useState(false);
+  const toggleFs=()=>{
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();
+      setFs(true);
+    } else {
+      document.exitFullscreen&&document.exitFullscreen();
+      setFs(false);
+    }
+  };
+  useEffect(()=>{
+    const h=()=>setFs(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange',h);
+    return()=>document.removeEventListener('fullscreenchange',h);
+  },[]);
+  const [mob,setMob]=useState(window.innerWidth<700);
+  useEffect(()=>{const f=()=>setMob(window.innerWidth<700);window.addEventListener('resize',f);return()=>window.removeEventListener('resize',f);},[]);
+
+  const set=useCallback(k=>v=>setP(prev=>({...prev,[k]:v})),[]);
+  const res=calcular(p);
+
+  // Enviar KPIs al portal padre cada vez que cambian los resultados
+  useEffect(()=>{
+    // Enviar KPIs al portal cada vez que cambian los parámetros
+    try{
+      window.parent.postMessage({
+        type:'sim-kpi',
+        edad:res.tc.toFixed(1),
+        sst: p.sst_reactor,
+        dqo: res.rend_dqo.toFixed(1)
+      }, '*');
+    }catch(_){}
+  },[p]);
+  const acumCol=Math.abs(res.acum)<20?C.green:res.acum>0?C.warn:C.danger;
+  const diff=p.caudal_purga_d-res.Qw_nec, pOk=Math.abs(diff)<5;
+
+  const sc=`background:${C.bg};color:${C.text}`;
+
+  function PP({compact=true}){return(<>
+    <Slider label={t.caudalBio}     unit="m³/d" min={200} max={2000} step={10}  value={p.caudal}        onChange={set('caudal')}        color={C.accent} C={C} compact={compact}/>
+    <Slider label={t.od}            unit="mg/L"  min={0.3} max={6}   step={0.1} value={p.od}            onChange={set('od')}            color={C.green}  C={C} compact={compact}/>
+    <Slider label={t.recirculacion} unit="%"     min={20}  max={150} step={5}   value={p.recirculacion} onChange={set('recirculacion')} color={C.warn}   C={C} compact={compact}/>
+    <div style={{marginBottom:compact?7:12}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
+        <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.volReactor}</span>
+        <span style={{fontSize:8,color:C.muted}}>m³</span>
+      </div>
+      <input type="number" value={2167.90} readOnly
+        style={{width:'100%',background:C.inputBg,border:`1px solid ${C.inputBorder}`,borderRadius:4,
+          color:C.text,fontFamily:'monospace',fontSize:compact?11:13,fontWeight:700,
+          padding:compact?'4px 7px':'6px 9px',outline:'none',boxSizing:'border-box',cursor:'not-allowed',opacity:0.7}}/>
+    </div>
+    <NumInput label={t.edadObjetivo} unit="días"  value={p.edad_objetivo} onChange={set('edad_objetivo')} color={C.text}   C={C} compact={compact}/>
+  </>);}
+  function PLE({compact=true}){return(<>
+    <NumInput label={t.dboEntrada} unit="mg/L" value={p.dbo_entrada} onChange={set('dbo_entrada')} color={C.accent} C={C} compact={compact}/>
+    <NumInput label={t.dqoEntrada} unit="mg/L" value={p.dqo_entrada} onChange={set('dqo_entrada')} color={C.accent} C={C} compact={compact}/>
+    <NumInput label={t.nh4Entrada} unit="mg/L" value={p.nh4_entrada} onChange={set('nh4_entrada')} color={C.accent} C={C} compact={compact}/>
+    <NumInput label={t.pt_entrada} unit="mg/L" value={p.pt_entrada} onChange={set('pt_entrada')} color={C.accent} C={C} compact={compact}/>
+  </>);}
+  function PLR({compact=true}){return(<>
+    <NumInput label={t.sstReactor}  unit="mg/L" value={p.sst_reactor}         onChange={set('sst_reactor')}         color={C.purple} C={C} compact={compact}/>
+    <NumInput label={t.sstRecirc}   unit="mg/L" value={p.sst_recirculacion}    onChange={set('sst_recirculacion')}   color={C.warn}   C={C} compact={compact}/>
+    <NumInput label={t.sstEfluente} unit="mg/L" value={p.sst_efluente}         onChange={set('sst_efluente')}        color={C.purple} C={C} compact={compact}/>
+    <NumInput label={t.caudalPurga} unit="m³/d" value={p.caudal_purga_d}       onChange={set('caudal_purga_d')}      color={C.orange} C={C} compact={compact}/>
+    <NumInput label={t.caudalRecirc} unit="m³/d" value={p.caudal_recirculacion} onChange={set('caudal_recirculacion')} color={C.warn} C={C} compact={compact}/>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+      background:C.inputBg,border:`1px solid ${C.warn}40`,borderRadius:5,padding:'5px 8px',marginBottom:compact?7:12}}>
+      <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.irCalculado}</span>
+      <span style={{fontFamily:'monospace',fontWeight:700,fontSize:compact?12:14,color:C.warn}}>
+        {res.IR.toFixed(1)}<span style={{fontSize:8,color:C.muted,marginLeft:2}}>%</span>
+      </span>
+    </div>
+  </>);}
+  function PLEf({compact=true}){return(<>
+    <NumInput label={t.dboEfluente} unit="mg/L" value={p.dbo_efluente} onChange={set('dbo_efluente')} color={C.green} C={C} compact={compact}/>
+    <NumInput label={t.dqoEfluente} unit="mg/L" value={p.dqo_efluente} onChange={set('dqo_efluente')} color={C.green} C={C} compact={compact}/>
+    <NumInput label={t.nh4Efluente} unit="mg/L" value={p.nh4_efluente} onChange={set('nh4_efluente')} color={C.green} C={C} compact={compact}/>
+    <NumInput label={t.pt_efluente} unit="mg/L" value={p.pt_efluente} onChange={set('pt_efluente')} color={C.green} C={C} compact={compact}/>
+  </>);}
+
+  const Topbar=()=>(
+    <div style={{display:'flex',alignItems:'center',gap:10,padding:'5px 14px',
+      background:C.panel,borderBottom:`1px solid ${C.border}`,flexShrink:0,flexWrap:'wrap'}}>
+      <div>
+        <span style={{fontSize:13,fontWeight:700,color:C.white}}>{t.appTitle}</span>
+        <span style={{fontSize:9,color:C.muted,marginLeft:8}}>{t.appSubtitle}</span>
+      </div>
+      <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:6,padding:2,marginLeft:16}}>
+        {[{id:'reactor',lbl:'⚗ Reactor'},{id:'decantador',lbl:'🌀 '+t.tabDecantador}].map(m=>(
+          <button key={m.id} onClick={()=>setMainTab(m.id)}
+            style={{padding:'4px 14px',border:'none',borderRadius:4,cursor:'pointer',fontSize:10,fontWeight:700,
+              background:mainTab===m.id?C.accent:'transparent',color:mainTab===m.id?C.bg:C.muted,transition:'all .15s'}}>
+            {m.lbl}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Selector Excel + fecha ── */}
+      <div style={{display:'flex',alignItems:'center',gap:6,background:C.inputBg,
+        border:`1px solid ${excelData.length?C.green+'60':C.border}`,
+        borderRadius:7,padding:'4px 10px',gap:8}}>
+        <input ref={fileInputRef} type="file" accept=".xlsx,.xls"
+          style={{display:'none'}} onChange={handleExcelLoad}/>
+        <button onClick={()=>fileInputRef.current&&fileInputRef.current.click()}
+          style={{padding:'3px 10px',border:`1px solid ${C.accent}`,borderRadius:5,
+            background:C.accent+'18',color:C.accent,fontSize:9,fontWeight:700,cursor:'pointer',
+            whiteSpace:'nowrap'}}>
+          📂 Cargar Excel
+        </button>
+        {excelData.length>0&&(
+          <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}}>
+            <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:5,padding:2}}>
+              {[['día',false],['rango',true]].map(([lbl,rm])=>(
+                <button key={lbl} onClick={()=>{setRangeMode(rm);setXlsxMsg('');setWeekSummary(null);}}
+                  style={{padding:'2px 8px',border:'none',borderRadius:3,cursor:'pointer',fontSize:9,fontWeight:700,
+                    background:rangeMode===rm?C.accent:'transparent',
+                    color:rangeMode===rm?C.bg:C.muted}}>
+                  {lbl.charAt(0).toUpperCase()+lbl.slice(1)}
+                </button>
+              ))}
+            </div>
+            <datalist id='sim-ext-fechas'>
+              {fechasDisponibles.map(f=>(<option key={f} value={f}/>))}
+            </datalist>
+            {!rangeMode?(
+              <input type='date' value={selectedDate} onChange={e=>handleDateChange(e.target.value)}
+                list='sim-ext-fechas'
+                style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                  color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                  outline:'none',colorScheme:'dark',width:120}}/>
+            ):(
+              <>
+                <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Desde:</span>
+                <input type='date' value={fechaIni} onChange={e=>setFechaIni(e.target.value)}
+                  list='sim-ext-fechas'
+                  style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                    color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                    outline:'none',colorScheme:'dark',width:116}}/>
+                <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Hasta:</span>
+                <input type='date' value={fechaFin} onChange={e=>setFechaFin(e.target.value)}
+                  list='sim-ext-fechas'
+                  style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,
+                    color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',
+                    outline:'none',colorScheme:'dark',width:116}}/>
+                <button onClick={()=>handleRangeLoad(fechaIni,fechaFin)}
+                  style={{padding:'3px 10px',background:C.accent,border:'none',borderRadius:4,
+                    color:C.bg,fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                  Cargar
+                </button>
+              </>
+            )}
+            {weekSummary&&rangeMode&&(
+              <button onClick={exportWeekPDF}
+                style={{padding:'3px 8px',background:'rgba(185,28,28,.8)',border:'none',borderRadius:5,
+                  color:'white',fontSize:9,fontWeight:700,cursor:'pointer',whiteSpace:'nowrap'}}>
+                📄 Informe período
+              </button>
+            )}
+          </div>
+        )}
+        {xlsxMsg&&(
+          <span style={{fontSize:8,color:xlsxMsg.startsWith('✓')?C.green:xlsxMsg.startsWith('⚠')?C.warn:C.muted,
+            whiteSpace:'nowrap',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis'}}>
+            {xlsxMsg}
+          </span>
+        )}
+      </div>
+
+      <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
+        <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:5,padding:2}}>
+          {['es','en'].map(l=>(
+            <button key={l} onClick={()=>setLang(l)}
+              style={{padding:'3px 8px',border:'none',borderRadius:4,cursor:'pointer',fontSize:9,fontWeight:700,
+                background:lang===l?C.accent:'transparent',color:lang===l?C.bg:C.muted,transition:'all .15s'}}>
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>setDark(d=>!d)}
+          style={{padding:'3px 10px',border:`1px solid ${C.border}`,borderRadius:5,
+            background:'transparent',color:C.muted,fontSize:10,cursor:'pointer'}}>
+          {dark?'☀ Light':'🌙 Dark'}
+        </button>
+        <button onClick={toggleFs}
+          title={fs?'Salir de pantalla completa':'Pantalla completa'}
+          style={{padding:'3px 10px',border:`1px solid ${fs?C.accent:C.border}`,borderRadius:5,
+            background:fs?C.accent+'22':'transparent',color:fs?C.accent:C.muted,
+            fontSize:13,cursor:'pointer',lineHeight:1}}>
+          {fs?'⊡':'⊞'}
+        </button>
+      </div>
+    </div>
+  );
+
+  const tabs=[{id:'proceso',lbl:t.tabProceso},{id:'lab_ent',lbl:t.tabEntrada},{id:'lab_reac',lbl:t.tabReactor},{id:'lab_ef',lbl:t.tabEfluente}];
+  const gauges=[{l:'DBO₅',v:res.dbo_ef,lm:res.limites.dbo},{l:'DQO',v:res.dqo_ef,lm:res.limites.dqo},{l:'SS',v:res.ss_ef,lm:res.limites.ss},{l:'Nt',v:res.nh4_ef,lm:res.limites.nh4},{l:'Pt',v:res.pt_ef,lm:res.limites.pt}];
+
+  if(mob) return(
+    <div style={{minHeight:'100vh',background:C.bg,color:C.text,fontFamily:"'IBM Plex Sans',sans-serif",paddingBottom:24}}>
+      <Topbar/>
+      <div style={{padding:'12px 14px',display:'flex',flexDirection:'column',gap:10}}>
+        <div style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:8,padding:'8px 10px',overflowX:'auto'}}>
+          <div style={{minWidth:600}}><Diagrama p={p} res={res} t={t} C={C} onGoDec={()=>setMainTab('decantador')}/></div>
+        </div>
+        <div style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:8,padding:'10px 12px'}}>
+          <PanelInd res={res} p={p} t={t} C={C}/>
+        </div>
+        <div style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:8,overflow:'hidden'}}>
+          <div style={{display:'flex',borderBottom:`1px solid ${C.border}`}}>
+            {tabs.map(tb=>(<button key={tb.id} onClick={()=>setTab(tb.id)}
+              style={{flex:1,padding:'7px 2px',background:tab===tb.id?C.inputBg:'transparent',
+                border:'none',color:tab===tb.id?C.accent:C.muted,fontSize:8,fontWeight:700,cursor:'pointer',
+                borderBottom:tab===tb.id?`2px solid ${C.accent}`:'2px solid transparent'}}>
+              {tb.lbl}
+            </button>))}
+          </div>
+          <div style={{padding:'10px 12px'}}>
+            {tab==='proceso'&&<PP/>}
+            {tab==='lab_ent'&&<PLE/>}
+            {tab==='lab_reac'&&<PLR/>}
+            {tab==='lab_ef'&&<PLEf/>}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit="mg/L" C={C} compact/>))}
+        </div>
+        <PanelFormulas p={p} res={res} t={t} C={C}/>
+        <div style={{fontSize:7.5,color:C.muted,textAlign:'center',opacity:0.65}}>{t.footer} · {t.autor}</div>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{height:'100vh',background:C.bg,color:C.text,fontFamily:"'IBM Plex Sans',sans-serif",display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <Topbar/>
+      <div style={{flex:1,display:'flex',overflow:'hidden'}}>
+        {mainTab==='decantador'?(
+          <div style={{flex:1,padding:'12px 14px',overflow:'hidden'}}>
+            <PanelDecantador p={p} C={C} t={t} set={set}/>
+          </div>
+        ):(
+        <React.Fragment>
+        {/* Col 1 */}
+        <div style={{width:215,borderRight:`1px solid ${C.border}`,overflowY:'auto',padding:'10px 11px',flexShrink:0}}>
+          <SecHdr label={t.proceso}         color={C.accent} C={C}/>     <PP/>
+          <SecHdr label={t.labEntrada}      color={C.accent} C={C} mt/> <PLE/>
+          <SecHdr label={t.labReactor}      color={C.purple} C={C} mt/> <PLR/>
+          <SecHdr label={t.labEfluente}     color={C.green}  C={C} mt/> <PLEf/>
+          <SecHdr label={t.calidadEfluente} color={C.green}  C={C} mt/>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
+            {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit="mg/L" C={C} compact/>))}
+          </div>
+          {res.alertas.length>0&&(
+            <div style={{background:'#120508',border:`1px solid ${C.danger}40`,borderRadius:6,padding:'6px 9px',marginTop:4}}>
+              <div style={{fontSize:8,color:C.danger,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>⚠ {t.incumplimientos}</div>
+              {res.alertas.map(a=>(<div key={a.param} style={{display:'flex',justifyContent:'space-between',padding:'3px 0',borderBottom:`1px solid ${C.danger}15`}}>
+                <span style={{fontSize:10,fontWeight:700,color:C.danger,fontFamily:'monospace'}}>{a.param}</span>
+                <span style={{fontSize:9,color:C.muted}}>{a.valor} &gt; {a.limite}</span>
+              </div>))}
+            </div>
+          )}
+        </div>
+        {/* Col 2 */}
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',borderRight:`1px solid ${C.border}`}}>
+          <div style={{padding:'8px 12px',borderBottom:`1px solid ${C.border}`,flexShrink:0,overflowX:'auto'}}>
+            <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:4}}>▸ {t.diagramaProceso}</div>
+            <div style={{minWidth:780}}><Diagrama p={p} res={res} t={t} C={C} onGoDec={()=>setMainTab('decantador')}/></div>
+          </div>
+
+          <PanelHistoricoReactor p={p} res={res} C={C} t={t}/>
+          <div style={{padding:'3px 12px',borderTop:`1px solid ${C.border}`,fontSize:7.5,color:C.muted,textAlign:'center',opacity:0.65,marginTop:8}}>
+            {t.footer} · {t.autor}
+          </div>
+        </div>
+        {/* Col 3 */}
+        <div style={{width:260,overflowY:'auto',padding:'10px 11px'}}>
+          <PanelInd res={res} p={p} t={t} C={C}/>
+          <div style={{marginTop:14}}>
+            <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:8}}>▸ {t.eficiencias}</div>
+            {[{l:'DBO₅',v:res.rend_dbo},{l:'DQO',v:res.rend_dqo},{l:'Nt',v:res.rend_nh4},{l:'Pt',v:res.rend_pt}].map(e=>(
+              <div key={e.l} style={{marginBottom:14}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                  <span style={{fontSize:10,color:C.muted,fontWeight:600}}>{e.l}</span>
+                  <span style={{fontSize:13,fontWeight:800,fontFamily:'monospace',color:e.v>85?C.green:e.v>70?C.warn:C.danger}}>{e.v.toFixed(1)}%</span>
+                </div>
+                <div style={{height:7,background:C.border,borderRadius:4}}>
+                  <div style={{height:'100%',width:`${Math.min(e.v,100)}%`,background:e.v>85?C.green:e.v>70?C.warn:C.danger,borderRadius:4,transition:'width .4s'}}/>
+                </div>
+                <div style={{fontSize:7,color:C.muted,marginTop:2}}>{e.v>85?'✓ Óptimo':e.v>70?'⚠ Mejorable':'✗ Bajo'}</div>
+              </div>
+            ))}
+          </div>
+          <SecHdr label={t.balanceMasa} color={C.green} C={C} mt/>
+          {[{lbl:t.masaReactor,v:res.M,u:'kgSS',col:C.text,ar:null},
+            {lbl:t.produccionPx,v:res.Px,u:'kgSS/d',col:C.green,ar:'+'},
+            {lbl:t.salidaPurga,v:res.FQwXw,u:'kgSS/d',col:C.orange,ar:'−'},
+            {lbl:t.salidaEfluente,v:res.FQeXe,u:'kgSS/d',col:C.muted,ar:'−'}].map(r=>(
+            <div key={r.lbl} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:`1px solid ${C.border}22`}}>
+              <span style={{fontSize:9,color:C.muted}}>{r.ar&&<span style={{color:r.col,marginRight:3}}>{r.ar}</span>}{r.lbl}</span>
+              <span style={{fontFamily:'monospace',fontWeight:700,fontSize:10,color:r.col}}>
+                {r.v.toFixed(1)}<span style={{fontSize:7,color:C.muted,marginLeft:1}}>{r.u}</span>
+              </span>
+            </div>
+          ))}
+          <div style={{display:'flex',justifyContent:'space-between',marginTop:5,paddingTop:5,borderTop:`1px solid ${C.border}`}}>
+            <span style={{fontSize:9,fontWeight:700,color:C.text}}>{t.acumulacionNeta}</span>
+            <span style={{fontFamily:'monospace',fontWeight:700,fontSize:11,color:acumCol}}>
+              {res.acum>0?'+':''}{res.acum.toFixed(1)}<span style={{fontSize:7,color:C.muted,marginLeft:1}}>kgSS/d</span>
+            </span>
+          </div>
+          {Math.abs(res.acum)>30&&(
+            <div style={{fontSize:8,color:acumCol,marginTop:4,background:C.inputBg,borderRadius:4,padding:'4px 7px'}}>
+              {res.acum>0?t.aumentaPurga:t.reducePurga}
+            </div>
+          )}
+          <SecHdr label={t.verificacionPurga} color={C.orange} C={C} mt/>
+          <div style={{background:C.inputBg,border:`1px solid ${pOk?C.green+'40':C.danger+'40'}`,borderRadius:7,padding:'9px 11px'}}>
+            <div style={{display:'flex',gap:6,marginBottom:7}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:7.5,color:C.muted,marginBottom:1}}>{t.actual}</div>
+                <div style={{fontSize:16,fontWeight:800,fontFamily:'monospace',color:C.orange}}>
+                  {p.caudal_purga_d}<span style={{fontSize:7,color:C.muted}}> m³/d</span>
+                </div>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:7.5,color:C.muted,marginBottom:1}}>{t.necesaria}</div>
+                <div style={{fontSize:16,fontWeight:800,fontFamily:'monospace',color:pOk?C.green:C.danger}}>
+                  {res.Qw_nec.toFixed(0)}<span style={{fontSize:7,color:C.muted}}> m³/d</span>
+                </div>
+              </div>
+            </div>
+            <div style={{height:1,background:C.border,marginBottom:7}}/>
+            <div style={{display:'flex',justifyContent:'space-between'}}>
+              <span style={{fontSize:8,color:C.muted}}>{t.desviacion}</span>
+              <span style={{fontFamily:'monospace',fontWeight:700,fontSize:12,color:pOk?C.green:Math.abs(diff)<10?C.warn:C.danger}}>
+                {diff>0?'+':''}{diff.toFixed(0)} m³/d
+              </span>
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
+              <span style={{fontSize:8,color:C.muted}}>{t.equipSS}</span>
+              <span style={{fontFamily:'monospace',fontWeight:700,fontSize:10,color:pOk?C.green:C.warn}}>
+                {(diff*p.sst_recirculacion/1000).toFixed(0)} kgSS/d
+              </span>
+            </div>
+          </div>
+          <div style={{marginTop:12}}>
+            <PanelFormulas p={p} res={res} t={t} C={C}/>
+          </div>
+
+        </div>
+      </React.Fragment>
+      )}
+      </div>
+    </div>
+  );
+}
+
+
+const _rootEl = document.getElementById('sim-proceso-root') || document.getElementById('app-root');
+ReactDOM.createRoot(_rootEl).render(<App/>);
+
+
+</script>
+<!-- Babel loaded LAST so the DOM (including sim-jsx-src) is ready -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script>
+// Manual compilation — guaranteed to run after DOM is ready
+(function() {
+  var src = document.getElementById('sim-jsx-src').textContent;
+  try {
+    var compiled = Babel.transform(src, { presets: ['react'] }).code;
+    var el = document.getElementById('app-root');
+    var loading = document.getElementById('sim-loading');
+    el.style.display = 'block';
+    if(loading) loading.style.display = 'none';
+    eval(compiled);
+  } catch(err) {
+    document.getElementById('sim-loading').innerHTML =
+      '<div style="color:#ff4455;padding:2rem;font-family:monospace;font-size:.82rem;max-width:600px;">' +
+      '<strong>Error al compilar el simulador:</strong><br><br>' +
+      err.message.replace(/</g,'&lt;').replace(/>/g,'&gt;') +
+      '</div>';
+  }
+})();
+</script>
+</body>
+</html>
