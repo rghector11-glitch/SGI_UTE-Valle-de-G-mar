@@ -559,45 +559,58 @@ body::before {
   .kpi-v{font-size:14px;}
   .kpi-lbl{font-size:6.5px;}
 
-  /* Módulos: 2 columnas cuadradas tipo app icons */
+  /* Módulos: 1 columna, tarjetas grandes, scroll tipo carrusel */
   .modules-grid{
-    grid-template-columns:repeat(2,1fr);
-    grid-auto-rows:auto;
+    grid-template-columns:1fr;
     gap:8px;
     overflow-y:auto;
-    align-content:start;
+    overflow-x:hidden;
+    scroll-snap-type:y mandatory;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:8px;
   }
   .mc{
-    aspect-ratio:1;
-    flex-direction:column;
+    scroll-snap-align:start;
+    flex-direction:row;              /* ilustración izq, texto der */
     min-height:unset;
+    height:calc(100svh - 148px);    /* casi pantalla completa */
+    max-height:340px;               /* cap para tablets */
     border-radius:10px;
     overflow:hidden;
   }
-  /* Ilustración: ocupa todo el espacio disponible */
+  /* Ilustración: vuelve a ocupar el lado izquierdo, más grande */
   .mc-ilu{
-    width:100%;
-    height:auto;
-    flex:1;
-    border-right:none;
-    border-bottom:1px solid rgba(255,255,255,.07);
-    padding:10px;
-  }
-  .mc-ilu svg{max-width:80%;max-height:80%;}
-  /* Número módulo más visible */
-  .mc-num{font-size:9px;opacity:.6;}
-  /* Panel inferior: solo título y stat */
-  .mc-right{
-    width:100%;
+    width:45%;
+    height:100%;
     flex-shrink:0;
-    flex:0;
+    border-right:1px solid var(--border);
+    border-bottom:none;
+    padding:12px;
   }
-  .mc-body{padding:5px 9px 2px;}
-  .mc-title{font-size:11px;font-weight:700;line-height:1.2;}
-  .mc-desc{display:none;}
-  .mc-foot{padding:2px 9px 6px;}
-  .mc-stat{font-size:8px;}
-  .mc-arr{display:none;}
+  .mc-ilu svg{width:100%;height:100%;}
+  .mc-num{font-size:10px;opacity:.6;}
+  /* Lado derecho: título + descripción visible */
+  .mc-right{
+    width:55%;
+    display:flex;
+    flex-direction:column;
+  }
+  .mc-body{
+    padding:16px 14px 8px;
+    flex:1;
+    justify-content:center;
+    gap:8px;
+  }
+  .mc-title{font-size:16px;font-weight:700;line-height:1.2;}
+  .mc-desc{display:block;font-size:11px;color:var(--muted);line-height:1.4;}
+  .mc-foot{padding:10px 14px 14px;}
+  .mc-stat{font-size:10px;}
+  .mc-arr{display:flex;}
+
+  /* M08 (Tareas) primero en móvil — solo CSS, sin tocar HTML ni JS */
+  .mc.m08{order:-1;}
+  /* El resto mantiene orden natural */
+  .modules-grid{display:grid;}
 
   /* Panels: padding reducido */
   .p-panel-header{font-size:13px;margin-bottom:8px;}
