@@ -506,6 +506,92 @@ body::before {
 
 /* ── KPI STRIP ── */
 .kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:10px;flex-shrink:0;}
+
+/* ══ MOBILE RESPONSIVE ═════════════════════════════════════════════════════ */
+/* Botón hamburguesa — oculto en desktop */
+#sb-hamburger{display:none;background:none;border:1px solid var(--border);border-radius:5px;color:var(--accent);cursor:pointer;padding:5px 8px;align-items:center;justify-content:center;flex-shrink:0;}
+#sb-hamburger i{font-size:18px;}
+/* Overlay oscuro cuando el sidebar está abierto en móvil */
+#sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:4;-webkit-tap-highlight-color:transparent;}
+
+@media (max-width:768px){
+  /* Botón hamburguesa visible */
+  #sb-hamburger{display:flex;}
+
+  /* Sidebar: cajón lateral oculto por defecto */
+  .p-sidebar{
+    position:fixed;left:0;top:0;bottom:0;z-index:6;
+    transform:translateX(-100%);transition:transform .22s ease;
+    width:200px;box-shadow:4px 0 20px rgba(0,0,0,.4);
+  }
+  /* Sidebar abierto */
+  .p-sidebar.mob-open{transform:translateX(0);}
+  /* Overlay visible cuando sidebar abierto */
+  #sb-overlay.show{display:block;}
+
+  /* Sidebar más ancho en móvil: mostrar texto de los botones */
+  .sb-btn{width:100%;height:44px;justify-content:flex-start;padding:0 14px;gap:10px;border-radius:0;}
+  .sb-btn i{font-size:16px;flex-shrink:0;}
+  /* Tooltip reutilizado como texto */
+  .sb-btn .sb-tip{position:static;background:none;border:none;padding:0;font-size:10px;color:var(--text);opacity:1;pointer-events:none;box-shadow:none;letter-spacing:.04em;}
+  .sb-btn:hover .sb-tip{opacity:1;}
+  .sb-logo{width:100%;padding:10px 14px;justify-content:flex-start;flex-direction:row;gap:10px;}
+  .sb-logo-sub{display:none;}
+  .sb-sep{width:100%;margin:4px 0;}
+
+  /* Main: sin margen del sidebar */
+  .p-main{width:100%;}
+
+  /* Topbar: compacto */
+  .p-topbar{padding:0 10px;gap:8px;}
+  .p-bc{font-size:9px;}
+  .p-stat{display:none;}        /* ocultar estados en topbar */
+  .p-cl{display:none;}          /* ocultar reloj */
+  .p-user-btn{font-size:8px;padding:3px 7px;}
+
+  /* Content: menos padding */
+  .p-content{padding:6px;}
+
+  /* KPI: 3 columnas en móvil */
+  .kpi-strip{grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:6px;}
+  .kpi-v{font-size:14px;}
+  .kpi-lbl{font-size:6.5px;}
+
+  /* Módulos: 2 columnas */
+  .modules-grid{grid-template-columns:repeat(2,1fr);gap:5px;}
+  .mc{min-height:80px;flex-direction:column;}
+  .mc-ilu{width:100%;height:56px;border-right:none;border-bottom:1px solid var(--border);}
+  .mc-right{width:100%;}
+  .mc-body{padding:6px 8px;}
+  .mc-title{font-size:10px;}
+  .mc-desc{display:none;}
+  .mc-foot{padding:4px 8px;}
+  .mc-stat{font-size:8px;}
+
+  /* Panels: padding reducido */
+  .p-panel-header{font-size:13px;margin-bottom:8px;}
+
+  /* Tareas: cards más compactas */
+  #tareas-lista > div > div[style*="padding:10px 14px"]{padding:8px 10px !important;}
+  
+  /* Modal WhatsApp: pantalla completa en móvil */
+  #wa-modal > div{max-width:100% !important;border-radius:0 !important;height:100vh;overflow-y:auto;}
+  #wa-modal{align-items:flex-start !important;}
+  #wa-msg-text{height:180px !important;}
+
+  /* Bio analytics form: columnas apiladas */
+  #bio-pf > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important;}
+  
+  /* Gestion supervisor form */
+  #panel-gestion div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important;}
+
+  /* Panel tendencias: gráficas en 1 columna */
+  #bio-ph div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important;}
+  div.charts-grid{grid-template-columns:1fr !important;}
+
+  /* Informes SMS */
+  .topbar{padding:6px 10px;}
+}
 .kpi{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 8px;position:relative;overflow:hidden;}
 .kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2.5px;}
 .kpi.cb::before{background:var(--accent);}
@@ -915,6 +1001,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
     <div class="p-main">
       <!-- Topbar -->
       <div class="p-topbar">
+        <!-- Hamburger (solo móvil) -->
+        <button id="sb-hamburger" onclick="toggleSidebar()" aria-label="Menú">
+          <i class="ti ti-menu-2" aria-hidden="true"></i>
+        </button>
+        <div id="sb-overlay" onclick="closeSidebar()"></div>
         <div class="p-bc">SGI <em>/</em> <em>UTE Valle de Güímar</em> <em>/</em> <em id="p-bc-section">Portal</em></div>
         <div class="p-spacer"></div>
         <div class="p-stat"><div class="p-dot ok" id="p-dot-fb"></div><span id="p-fb-label" style="color:var(--muted);font-size:9px;font-family:var(--mono)">FIREBASE OK</span></div>
@@ -4448,6 +4539,7 @@ window.__SIM_PROCESO_SRC__ = "const { useState, useEffect, useCallback, useRef }
 const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes','tendencias','gestion','cuaderno','tareas'];
 
 function sbNav(id) {
+  closeSidebar(); // Cerrar sidebar en móvil al navegar
   // Hide all panels
   PANELS.forEach(p => {
     const el = document.getElementById('panel-' + p);
@@ -6247,6 +6339,23 @@ async function updateTareasBadge(count) {
   }
 }
 window.updateTareasBadge = updateTareasBadge;
+
+// ── Móvil: sidebar toggle ────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb  = document.querySelector('.p-sidebar');
+  const ov  = document.getElementById('sb-overlay');
+  if(!sb) return;
+  const open = sb.classList.toggle('mob-open');
+  if(ov) ov.classList.toggle('show', open);
+}
+function closeSidebar() {
+  const sb = document.querySelector('.p-sidebar');
+  const ov = document.getElementById('sb-overlay');
+  if(sb) sb.classList.remove('mob-open');
+  if(ov) ov.classList.remove('show');
+}
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar  = closeSidebar;
 
 // ── Arrancar la app una vez que TODOS los scripts han cargado ──
 initAuth();
