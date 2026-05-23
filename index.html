@@ -6096,72 +6096,125 @@ async function completaTareaOp(id, done) {
 }
 window.completaTareaOp = completaTareaOp;
 
-// ─── Compartir tareas de un usuario por WhatsApp ─────────────────────────────
+// ─── Modal WhatsApp ──────────────────────────────────────────────────────────
+function mostrarModalWA(username, msg) {
+  // Reutilizar o crear modal
+  let modal = document.getElementById('wa-modal');
+  if(!modal) {
+    modal = document.createElement('div');
+    modal.id = 'wa-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    modal.onclick = e => { if(e.target===modal) modal.remove(); };
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+      <!-- Cabecera -->
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#25d366;flex-shrink:0;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        <div style="flex:1;">
+          <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--light);">Enviar tareas por WhatsApp</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">Para: ${username}</div>
+        </div>
+        <button onclick="document.getElementById('wa-modal').remove()"
+          style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0;line-height:1;">✕</button>
+      </div>
+      <!-- Texto del mensaje -->
+      <div style="padding:12px 16px;">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;">VISTA PREVIA DEL MENSAJE</div>
+        <textarea id="wa-msg-text" readonly
+          style="width:100%;height:220px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:monospace;font-size:11px;line-height:1.5;padding:10px;resize:none;outline:none;box-sizing:border-box;">${msg}</textarea>
+      </div>
+      <!-- Botones -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px;">
+        <button id="wa-copy-btn" onclick="copiarMsgWA()"
+          style="background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:600;padding:10px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;">
+          <i class="ti ti-copy" aria-hidden="true"></i> Copiar texto
+        </button>
+        <button onclick="abrirWhatsApp()"
+          style="background:#25d366;border:none;border-radius:6px;color:#fff;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;padding:10px;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:white;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          Abrir WhatsApp
+        </button>
+      </div>
+      <div style="padding:0 16px 14px;font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;">
+        1. Copia el texto &nbsp;·&nbsp; 2. Abre WhatsApp &nbsp;·&nbsp; 3. Pega en el chat de ${username}
+      </div>
+    </div>`;
+
+  // Guardar msg para los botones
+  window._waMsgPending = msg;
+}
+
+function copiarMsgWA() {
+  const ta  = document.getElementById('wa-msg-text');
+  const btn = document.getElementById('wa-copy-btn');
+  if(!ta) return;
+  navigator.clipboard.writeText(ta.value).then(() => {
+    if(btn) { btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> ¡Copiado!'; btn.style.color='var(--accent2)'; btn.style.borderColor='var(--accent2)'; }
+    setTimeout(() => { if(btn) { btn.innerHTML = '<i class="ti ti-copy" aria-hidden="true"></i> Copiar texto'; btn.style.color=''; btn.style.borderColor=''; } }, 2000);
+  }).catch(() => { ta.select(); document.execCommand('copy'); });
+}
+window.copiarMsgWA = copiarMsgWA;
+
+function abrirWhatsApp() {
+  window.open('https://web.whatsapp.com', '_blank');
+}
+window.abrirWhatsApp = abrirWhatsApp;
+
+// ─── Compartir tareas de un usuario ─────────────────────────────────────────
 async function compartirWhatsApp(username) {
   if(!window._fb) return;
   const snap = await window._fb.get(window._fb.ref(window._fb.db, 'tareas'));
   const data = snap.val();
   if(!data) return;
 
-  // Emoji via codepoint para garantizar codificación correcta
-  const E = {
-    clip:  String.fromCodePoint(0x1F4CB), // 📋
-    cal:   String.fromCodePoint(0x1F4C5), // 📅
-    red:   String.fromCodePoint(0x1F534), // 🔴
-    yel:   String.fromCodePoint(0x1F7E1), // 🟡
-    grn:   String.fromCodePoint(0x1F7E2), // 🟢
-    clock: String.fromCodePoint(0x23F0),  // ⏰
-    check: String.fromCodePoint(0x2705),  // ✅
-    task:  String.fromCodePoint(0x1F4DD), // 📝
-  };
+  const clip  = '\uD83D\uDCCB'; // 📋
+  const cal   = '\uD83D\uDCC5'; // 📅
+  const red   = '\uD83D\uDD34'; // 🔴
+  const org   = '\uD83D\uDD36'; // 🔶
+  const grn   = '\u2705';       // ✅
+  const clock = '\u23F0';       // ⏰
+  const task  = '\uD83D\uDCDD'; // 📝
+  const done  = '\u2714\uFE0F'; // ✔️
 
-  const PRIO = {
-    alta:  { emoji: E.red, txt: 'ALTA'  },
-    media: { emoji: E.yel, txt: 'MEDIA' },
-    baja:  { emoji: E.grn, txt: 'BAJA'  },
-  };
-
-  const hoy = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const PRIO = { alta:{e:red,txt:'ALTA'}, media:{e:org,txt:'MEDIA'}, baja:{e:grn,txt:'BAJA'} };
+  const hoy  = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const SEP  = '\u2501'.repeat(20);
 
   const tareas = Object.values(data)
     .filter(t => t.asignado_a === username)
     .sort((a,b) => {
       if(a.completada !== b.completada) return a.completada ? 1 : -1;
-      const po = {alta:0,media:1,baja:2};
-      return (po[a.prioridad]||1) - (po[b.prioridad]||1);
+      return ({alta:0,media:1,baja:2}[a.prioridad]||1) - ({alta:0,media:1,baja:2}[b.prioridad]||1);
     });
 
-  if(!tareas.length) { alert(`No hay tareas asignadas a ${username}.`); return; }
+  if(!tareas.length) { alert('No hay tareas asignadas a ' + username + '.'); return; }
 
   const pendientes  = tareas.filter(t => !t.completada);
   const completadas = tareas.filter(t => t.completada);
 
-  let msg = `${E.clip} *TAREAS ASIGNADAS \u2014 ${username.toUpperCase()}*\n`;
-  msg += `${E.cal} ${hoy}\n`;
-  msg += `\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n`;
+  let msg = clip + ' *TAREAS ASIGNADAS \u2014 ' + username.toUpperCase() + '*\n';
+  msg += cal + ' ' + hoy + '\n' + SEP + '\n';
 
   if(pendientes.length) {
-    msg += `\n${E.task} *PENDIENTES (${pendientes.length})*\n`;
+    msg += '\n' + task + ' *PENDIENTES (' + pendientes.length + ')*\n';
     pendientes.forEach(t => {
-      const p = PRIO[t.prioridad] || {emoji:'⚪',txt:'?'};
-      msg += `\n${p.emoji} *${t.titulo}*  [${p.txt}]`;
-      if(t.fecha_limite) msg += `\n${E.clock} L\xedmite: ${t.fecha_limite}`;
-      if(t.descripcion)  msg += `\n   ${t.descripcion}`;
+      const p = PRIO[t.prioridad] || {e:'\u26AA',txt:'?'};
+      msg += '\n' + p.e + ' *' + t.titulo + '*  [' + p.txt + ']';
+      if(t.fecha_limite) msg += '\n' + clock + ' L\xedmite: ' + t.fecha_limite;
+      if(t.descripcion)  msg += '\n   ' + t.descripcion;
       msg += '\n';
     });
   }
-
   if(completadas.length) {
-    msg += `\n${E.check} *COMPLETADAS (${completadas.length})*\n`;
-    completadas.forEach(t => {
-      msg += `\n${E.check} ~${t.titulo}~\n`;
-    });
+    msg += '\n' + done + ' *COMPLETADAS (' + completadas.length + ')*\n';
+    completadas.forEach(t => { msg += done + ' ~' + t.titulo + '~\n'; });
   }
+  msg += '\n' + SEP + '\n_UTE Valle de Gu\xedmar \xb7 SGI_';
 
-  msg += `\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n`;
-  msg += `_UTE Valle de Gu\xedmar \xb7 SGI_`;
-
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  mostrarModalWA(username, msg);
 }
 window.compartirWhatsApp = compartirWhatsApp;
 
