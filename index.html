@@ -5141,6 +5141,7 @@ function bioBuildCharts(entries) {
       data:{ labels, datasets },
       options:{
         responsive:true, maintainAspectRatio:false,
+        devicePixelRatio: 3,
         animation:{ duration:400 },
         plugins:{ legend:{ display:false }, tooltip:{
           backgroundColor:'#243d55', titleColor:'#cde0f0', bodyColor:'#5a8099',
@@ -5201,6 +5202,7 @@ function bioBuildCharts(entries) {
       }]},
       options:{
         responsive:true, maintainAspectRatio:false, animation:{duration:400},
+        devicePixelRatio: 3,
         plugins:{ legend:{display:false}, tooltip:{
           backgroundColor:'#243d55', titleColor:'#cde0f0', bodyColor:'#5a8099',
           borderColor:'#3a5a72', borderWidth:1,
@@ -5364,6 +5366,13 @@ function exportarInformeTendencias() {
   const fechaISO = hoy.toISOString().slice(0,10);
 
   // Tabla de historial
+  const BIO_NAMES = {
+    ameba_desnuda:'Ameba desnuda', aspidisca_cicada:'Aspidisca', depranomonas:'Depranomonas',
+    cinetochillum:'Cinetochillum', pseudochilonodopsis:'Pseudo.', rotaria:'Rotaria',
+    blepharisma:'Blepharisma', bacterias_libres:'Bac. libres', agregado_bacteriano:'Agr. bact.',
+    diatomea:'Diatomea', nematodo:'Nematodo', flagelado:'Flagelado',
+    vorticella:'Vorticella', opercularia:'Opercularia'
+  };
   const prio = {alta:'#dc2626',media:'#d97706',baja:'#16a34a'};
   const filC  = v => v<=1?'#16a34a':v<=3?'#d97706':'#dc2626';
   const rowsH = entries.slice(0,20).map(e => {
@@ -5372,15 +5381,23 @@ function exportarInformeTendencias() {
     const etiq  = e.etiqueta || '—';
     const ivf   = e.licor?.ivf ?? '—';
     const fil   = e.filamentosos?.grado ?? '—';
+    const filTipo = e.filamentosos?.tipos || '';
     const od    = e.datos?.od ?? '—';
     const edad  = e.sim?.edad_fango ?? '—';
     const filColor = fil !== '—' ? filC(fil) : '#6b7280';
+    // Microorganismos detectados
+    const bioObj = e.bio || {};
+    const detected = Object.entries(BIO_NAMES)
+      .filter(([k]) => bioObj[k])
+      .map(([,name]) => `<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:3px;padding:1px 4px;font-size:7px;margin:1px 1px 1px 0;white-space:nowrap;">${name}</span>`)
+      .join('');
     return `<tr>
       <td>${fecha}</td><td>${sem}</td><td style="font-weight:600;color:#0369a1;">${etiq}</td>
       <td>${ivf !== '—' ? ivf+' ml/g' : '—'}</td>
-      <td style="color:${filColor};font-weight:600;">${fil !== '—' ? fil+'/5' : '—'}</td>
+      <td style="color:${filColor};font-weight:600;">${fil !== '—' ? fil+'/5' : '—'}${filTipo ? `<br><span style="color:#6b7280;font-weight:400;font-size:7px;">${filTipo}</span>` : ''}</td>
       <td>${od !== '—' ? od+' mg/L' : '—'}</td>
       <td>${edad !== '—' ? edad+' d' : '—'}</td>
+      <td>${detected || '<span style="color:#9ca3af;font-size:8px;">—</span>'}</td>
     </tr>`;
   }).join('');
 
@@ -5432,12 +5449,13 @@ function exportarInformeTendencias() {
   /* GRÁFICOS */
   .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
   /* TABLA */
-  table { width:100%; border-collapse:collapse; font-size:8.5px; margin-bottom:14px; }
+  table { width:100%; border-collapse:collapse; font-size:8px; margin-bottom:14px; }
   thead tr { background:#003e6b; color:#fff; }
-  thead th { padding:5px 6px; text-align:left; font-family:'Barlow Condensed',sans-serif; font-size:9px; letter-spacing:.04em; font-weight:600; }
+  thead th { padding:5px 5px; text-align:left; font-family:'Barlow Condensed',sans-serif; font-size:8.5px; letter-spacing:.04em; font-weight:600; }
+  thead th:last-child { width:28%; }
   tbody tr:nth-child(even) { background:#f8fafc; }
   tbody tr:hover { background:#eff6ff; }
-  tbody td { padding:4px 6px; border-bottom:1px solid #e2e8f0; color:#334155; }
+  tbody td { padding:4px 5px; border-bottom:1px solid #e2e8f0; color:#334155; vertical-align:top; }
   /* FOOTER */
   .footer { border-top:1px solid #e2e8f0; padding-top:8px; margin-top:8px; display:flex; justify-content:space-between; font-size:7.5px; color:#94a3b8; }
   @media print {
@@ -5477,7 +5495,7 @@ function exportarInformeTendencias() {
   <table>
     <thead><tr>
       <th>Fecha</th><th>Semana</th><th>Etiqueta</th>
-      <th>IVF (ml/g)</th><th>Filamentos</th><th>OD (mg/L)</th><th>Edad fango</th>
+      <th>IVF (ml/g)</th><th>Filamentos</th><th>OD (mg/L)</th><th>Edad fango</th><th>Bioindicadores detectados</th>
     </tr></thead>
     <tbody>${rowsH}</tbody>
   </table>` : '<p style="color:#94a3b8;font-size:9px;padding:8px;">Sin registros en el historial.</p>'}
