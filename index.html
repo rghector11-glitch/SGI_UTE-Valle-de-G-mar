@@ -559,41 +559,58 @@ body::before {
   .kpi-v{font-size:14px;}
   .kpi-lbl{font-size:6.5px;}
 
-  /* ── MÓDULOS: carrusel vertical, 1 tarjeta por pantalla ── */
+  /* ── MÓDULOS: carrusel HORIZONTAL, desliza izquierda/derecha ── */
   .modules-grid{
-    flex:1 !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
+    /* Fila horizontal que desborda */
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    /* Scroll horizontal */
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
     -webkit-overflow-scrolling:touch;
-    touch-action:pan-y;
-    display:grid !important;
-    grid-template-columns:1fr !important;
-    grid-auto-rows:calc(100dvh - 150px);
-    gap:8px;
-    padding-bottom:8px;
-    scroll-snap-type:none;
+    touch-action:pan-x;
+    scroll-snap-type:x mandatory;
+    /* Espacio entre tarjetas */
+    gap:10px;
+    padding:0 16px 8px 16px;
+    /* No crecer en vertical, solo lo que ocupe */
+    flex:1 !important;
+    align-items:stretch;
   }
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  .modules-grid::-webkit-scrollbar{display:none;}
+  .modules-grid{scrollbar-width:none;-ms-overflow-style:none;}
+
   .mc{
+    /* Cada tarjeta = ancho de pantalla, sin encoger */
+    flex:0 0 calc(100vw - 48px);
+    width:calc(100vw - 48px);
     min-height:unset;
-    height:auto;
-    flex-direction:row;
-    border-radius:10px;
+    height:100%;
+    /* Snap al inicio de cada tarjeta */
+    scroll-snap-align:start;
+    /* Layout vertical: ilustración arriba, texto abajo */
+    flex-direction:column;
+    border-radius:12px;
     overflow:hidden;
-    touch-action:pan-y;
   }
   .mc-ilu{
-    width:42%;height:100%;flex-shrink:0;
-    border-right:1px solid var(--border);border-bottom:none;
-    padding:16px;
+    width:100%;
+    flex:1;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+    padding:20px;
+    height:auto;
   }
   .mc-ilu svg{width:100%;height:100%;}
   .mc-num{font-size:10px;opacity:.6;}
-  .mc-right{width:58%;display:flex;flex-direction:column;}
-  .mc-body{padding:20px 16px 10px;flex:1;justify-content:center;gap:10px;}
-  .mc-title{font-size:18px;font-weight:700;line-height:1.2;}
-  .mc-desc{display:block;font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px;}
-  .mc-foot{padding:12px 16px 16px;}
-  .mc-stat{font-size:10px;}
+  .mc-right{width:100%;flex-shrink:0;}
+  .mc-body{padding:16px 18px 8px;gap:6px;}
+  .mc-title{font-size:20px;font-weight:700;line-height:1.2;}
+  .mc-desc{display:block;font-size:12px;color:var(--muted);line-height:1.4;}
+  .mc-foot{padding:8px 18px 14px;}
+  .mc-stat{font-size:11px;}
   .mc-arr{display:flex;}
 
   /* M08 Tareas primero — solo CSS order */
