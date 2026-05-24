@@ -549,45 +549,37 @@ body::before {
   .p-cl{display:none;}          /* ocultar reloj */
   .p-user-btn{font-size:8px;padding:3px 7px;}
 
-  /* Content: menos padding */
-  .p-content{padding:6px;}
-  /* Panel portal: NO debe hacer scroll él, el grid lo hace internamente */
-  #panel-portal{overflow:hidden;}
+  /* Content: menos padding, overflow permite que el grid hijo gestione su scroll */
+  .p-content{padding:6px;overflow:hidden;}
+  /* Panel portal: flex column */
+  #panel-portal{overflow:hidden !important;display:flex;flex-direction:column;}
 
-  /* KPI: 3 columnas en móvil */
-  .kpi-strip{grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:6px;}
+  /* KPI: 3 columnas, fijo arriba */
+  .kpi-strip{grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:6px;flex-shrink:0;}
   .kpi-v{font-size:14px;}
   .kpi-lbl{font-size:6.5px;}
 
-  /* ── MÓDULOS: scroll tipo carrusel, 1 tarjeta por pantalla ── */
+  /* ── MÓDULOS: carrusel vertical, 1 tarjeta por pantalla ── */
   .modules-grid{
-    /* Altura fija = contenedor del scroll */
-    height:calc(100svh - 130px);
-    /* Scroll vertical interno */
-    overflow-y:scroll;
-    overflow-x:hidden;
+    flex:1 !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
     -webkit-overflow-scrolling:touch;
-    /* Snap: cada tarjeta encaja sola */
-    scroll-snap-type:y mandatory;
-    /* 1 columna, filas del tamaño de la pantalla */
+    touch-action:pan-y;
     display:grid !important;
     grid-template-columns:1fr !important;
-    grid-auto-rows:calc(100svh - 142px);
+    grid-auto-rows:calc(100dvh - 150px);
     gap:8px;
-    /* Anular flex:1 y overflow:hidden del desktop */
-    flex:none !important;
     padding-bottom:8px;
+    scroll-snap-type:none;
   }
   .mc{
-    /* Tarjeta ocupa toda la fila del grid */
-    height:100%;
     min-height:unset;
-    /* Snap al inicio de cada tarjeta */
-    scroll-snap-align:start;
-    /* Layout horizontal: ilustración izq, texto der */
+    height:auto;
     flex-direction:row;
     border-radius:10px;
     overflow:hidden;
+    touch-action:pan-y;
   }
   .mc-ilu{
     width:42%;height:100%;flex-shrink:0;
@@ -604,15 +596,9 @@ body::before {
   .mc-stat{font-size:10px;}
   .mc-arr{display:flex;}
 
-  /* M08 (Tareas) primero en móvil — solo CSS order, sin cambiar HTML ni JS */
+  /* M08 Tareas primero — solo CSS order */
   .mc.m08{order:-1;}
 
-  /* Panels: padding reducido */
-  .p-panel-header{font-size:13px;margin-bottom:8px;}
-
-  /* Tareas: cards más compactas */
-  #tareas-lista > div > div[style*="padding:10px 14px"]{padding:8px 10px !important;}
-  
   /* Modal WhatsApp: pantalla completa en móvil */
   #wa-modal > div{max-width:100% !important;border-radius:0 !important;height:100vh;overflow-y:auto;}
   #wa-modal{align-items:flex-start !important;}
