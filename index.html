@@ -1266,33 +1266,32 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
             </div></div>
 
-            <!-- M08 Estado del sistema -->
-            <div class="mc" onclick="m08Open()" role="button" tabindex="0" style="--mc-color:var(--accent)">
-              <div class="mc-ilu" style="">
+            <!-- M08 Tareas -->
+            <div class="mc" onclick="toggleTareasPan()" role="button" tabindex="0" style="--mc-color:var(--accent)">
+              <div class="mc-ilu">
                 <div class="mc-num">M·08</div>
-                <div class="mc-badge ok" id="mc-status-badge">OPERATIVO</div>
+                <div class="mc-badge ok" id="mc-tareas-badge" style="display:none;background:rgba(229,74,100,.16);color:var(--danger);border:1px solid rgba(229,74,100,.35);">0</div>
                 <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="18" y="10" width="54" height="60" rx="4" fill="rgba(0,200,240,.08)" stroke="rgba(0,200,240,.35)" stroke-width="1.4"/>
-                  <rect x="22" y="16" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="20" r="2.5" fill="rgba(0,232,122,.9)"/>
-                  <rect x="22" y="28" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="32" r="2.5" fill="rgba(0,232,122,.9)"/>
-                  <rect x="22" y="40" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="44" r="2.5" fill="rgba(255,184,0,.9)"/>
-                  <rect x="22" y="52" width="46" height="8" rx="2" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <circle cx="62" cy="56" r="2.5" fill="rgba(0,232,122,.9)"/>
-                  <text x="36" y="21.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'JetBrains Mono',monospace">Firebase</text>
-                  <text x="36" y="33.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'JetBrains Mono',monospace">Red</text>
-                  <text x="36" y="45.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'JetBrains Mono',monospace">Cache SW</text>
-                  <text x="36" y="57.5" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.55)" font-family="'JetBrains Mono',monospace">Sesion</text>
+                  <rect x="22" y="9" width="46" height="63" rx="4" fill="rgba(0,200,240,.08)" stroke="rgba(0,200,240,.35)" stroke-width="1.4"/>
+                  <rect x="37" y="5" width="16" height="8" rx="2.5" fill="rgba(0,200,240,.18)" stroke="rgba(0,200,240,.45)" stroke-width="1.2"/>
+                  <rect x="27" y="20" width="8.5" height="8.5" rx="2" fill="rgba(0,232,122,.18)" stroke="rgba(0,232,122,.5)" stroke-width="1"/>
+                  <path d="M29 24.2l1.8 1.8 3.2-3.2" stroke="rgba(0,232,122,.95)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="39" y="22.6" width="22" height="3.4" rx="1.7" fill="rgba(200,224,240,.28)"/>
+                  <rect x="27" y="33" width="8.5" height="8.5" rx="2" fill="rgba(0,232,122,.18)" stroke="rgba(0,232,122,.5)" stroke-width="1"/>
+                  <path d="M29 37.2l1.8 1.8 3.2-3.2" stroke="rgba(0,232,122,.95)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="39" y="35.6" width="18" height="3.4" rx="1.7" fill="rgba(200,224,240,.28)"/>
+                  <rect x="27" y="46" width="8.5" height="8.5" rx="2" fill="rgba(255,255,255,.04)" stroke="rgba(255,184,0,.55)" stroke-width="1"/>
+                  <rect x="39" y="48.6" width="22" height="3.4" rx="1.7" fill="rgba(200,224,240,.5)"/>
+                  <rect x="27" y="59" width="8.5" height="8.5" rx="2" fill="rgba(255,255,255,.04)" stroke="rgba(255,184,0,.55)" stroke-width="1"/>
+                  <rect x="39" y="61.6" width="16" height="3.4" rx="1.7" fill="rgba(200,224,240,.5)"/>
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Estado del Sistema</div>
-                <div class="mc-desc">Firebase · Red · Caché · Sesión</div>
+                <div class="mc-title">Tareas</div>
+                <div class="mc-desc">Asignación supervisor → operario</div>
               </div>
               <div class="mc-foot">
-                <div class="mc-stat">Ver. <b>SGI v7</b></div>
+                <div class="mc-stat"><b id="mc-tareas-pend">—</b> pendientes</div>
                 <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
               </div>
             </div></div>
@@ -4792,6 +4791,291 @@ async function cdCargarMeta(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){const dw=document.getElementById('carga-drawer');if(dw&&dw.classList.contains('open'))toggleCargaPan();}
 });
+</script>
+
+
+<!-- ═══ DRAWER TAREAS (M08) ═══ -->
+<style>
+#tareas-drawer{position:fixed;top:0;right:0;width:420px;max-width:92vw;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:9600;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.45);}
+#tareas-drawer.open{transform:translateX(0);}
+#tareas-overlay{display:none;position:fixed;inset:0;z-index:9599;background:rgba(0,0,0,.45);}
+#tareas-overlay.open{display:block;}
+.tar-h{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:linear-gradient(135deg,rgba(0,60,110,.5),rgba(0,90,150,.25));}
+.tar-h-ic{width:34px;height:34px;border-radius:8px;background:rgba(58,175,232,.12);border:1px solid rgba(58,175,232,.35);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:18px;flex-shrink:0;}
+.tar-h-tit{flex:1;}
+.tar-h-tit h3{font-family:var(--cond);font-size:15px;font-weight:600;color:#fff;margin:0;letter-spacing:.02em;}
+.tar-h-tit p{font-family:var(--mono);font-size:8px;color:var(--muted);margin:2px 0 0;letter-spacing:.06em;}
+.tar-toolbar{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tar-filtros{display:flex;gap:4px;flex:1;}
+.tar-fbtn{background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:8px;letter-spacing:.05em;padding:4px 9px;transition:all .15s;text-transform:uppercase;}
+.tar-fbtn.active{background:rgba(58,175,232,.1);border-color:rgba(58,175,232,.4);color:var(--accent);}
+.tar-add-btn{display:none;}
+.tar-add-btn button{background:rgba(58,175,232,.1);border:1px solid rgba(58,175,232,.3);border-radius:4px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.05em;padding:5px 11px;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.tar-form{display:none;padding:11px 14px;border-bottom:1px solid var(--border);background:rgba(58,175,232,.03);flex-shrink:0;}
+.tar-form.open{display:block;}
+.tar-form .lbl{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.05em;margin-bottom:2px;text-transform:uppercase;}
+.tar-form input,.tar-form textarea,.tar-form select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--sans);font-size:11px;padding:6px 8px;outline:none;box-sizing:border-box;margin-bottom:7px;}
+.tar-form textarea{resize:vertical;line-height:1.4;}
+.tar-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.tar-list{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:7px;}
+.tar-item{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:9px 11px;display:flex;align-items:flex-start;gap:9px;border-left-width:3px;}
+.tar-item.done{opacity:.6;}
+.tar-item.pri-alta{border-left-color:var(--danger);}
+.tar-item.pri-media{border-left-color:var(--warn);}
+.tar-item.pri-baja{border-left-color:var(--accent2);}
+.tar-chk{width:19px;height:19px;border-radius:4px;border:1.5px solid rgba(255,255,255,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s;}
+.tar-chk.done{background:rgba(34,201,149,.15);border-color:var(--accent2);}
+.tar-tit{font-family:var(--cond);font-size:13px;font-weight:600;color:var(--light);line-height:1.15;margin-bottom:2px;}
+.tar-item.done .tar-tit{text-decoration:line-through;color:var(--muted);}
+.tar-desc{font-size:10px;color:var(--text-d);line-height:1.4;margin-bottom:3px;}
+.tar-meta{display:flex;gap:7px;flex-wrap:wrap;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.03em;}
+.tar-meta .pri{font-weight:700;}
+.tar-meta .pri.alta{color:var(--danger);} .tar-meta .pri.media{color:var(--warn);} .tar-meta .pri.baja{color:var(--accent2);}
+.tar-meta .venc{color:var(--danger);}
+.tar-foot{padding:7px 14px;border-top:1px solid var(--border);font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;flex-shrink:0;background:rgba(0,0,0,.12);}
+</style>
+<div id="tareas-overlay" onclick="toggleTareasPan()"></div>
+<div id="tareas-drawer">
+  <div class="tar-h">
+    <div class="tar-h-ic"><i class="ti ti-checklist"></i></div>
+    <div class="tar-h-tit"><h3>Tareas</h3><p id="tar-sub">— pendientes</p></div>
+    <button onclick="toggleTareasPan()" style="background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;padding:4px 9px;font-size:12px;">✕</button>
+  </div>
+  <div class="tar-toolbar">
+    <div class="tar-filtros">
+      <button class="tar-fbtn active" id="tar-f-pend" onclick="tarFiltro('pend')">Pendientes</button>
+      <button class="tar-fbtn" id="tar-f-todas" onclick="tarFiltro('todas')">Todas</button>
+    </div>
+    <div class="tar-add-btn" id="tar-add-wrap">
+      <button onclick="tarToggleForm()"><i class="ti ti-plus"></i> Nueva</button>
+    </div>
+  </div>
+  <div class="tar-form" id="tar-form">
+    <div class="lbl">Título *</div>
+    <input id="tar-titulo" type="text" placeholder="Ej: Revisar bombeo nº2" maxlength="90">
+    <div class="lbl">Descripción</div>
+    <textarea id="tar-desc" rows="2" placeholder="Detalle opcional…"></textarea>
+    <div class="row2">
+      <div><div class="lbl">Asignar a *</div><select id="tar-asignado"><option value="">—</option></select></div>
+      <div><div class="lbl">Prioridad</div><select id="tar-prioridad"><option value="alta">Alta</option><option value="media" selected>Media</option><option value="baja">Baja</option></select></div>
+    </div>
+    <div class="lbl">Fecha límite</div>
+    <input id="tar-fecha" type="date" style="font-family:var(--mono);">
+    <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+      <button onclick="tarCrear()" style="background:rgba(58,175,232,.12);border:1px solid rgba(58,175,232,.35);border-radius:4px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:9px;padding:6px 13px;letter-spacing:.05em;"><i class="ti ti-device-floppy"></i> Crear tarea</button>
+      <button onclick="tarCerrarForm()" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-family:var(--mono);font-size:9px;padding:6px 11px;">Cancelar</button>
+      <span id="tar-form-st" style="font-family:var(--mono);font-size:8px;flex:1;text-align:right;"></span>
+    </div>
+  </div>
+  <div class="tar-list" id="tar-list">
+    <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">Cargando…</div>
+  </div>
+  <div class="tar-foot" id="tar-foot">—</div>
+</div>
+
+<script>
+// ══ TAREAS (M08) ═════════════════════════════════════════════════════════════
+const _tar = { data:{}, filtro:'pend', escuchando:false };
+
+function toggleTareasPan(){
+  const dw=document.getElementById('tareas-drawer');
+  const ov=document.getElementById('tareas-overlay');
+  if(!dw) return;
+  const opening=!dw.classList.contains('open');
+  dw.classList.toggle('open'); ov.classList.toggle('open');
+  if(opening){ tarIniciar(); tarLoadUsuarios(); tarRender(); }
+  else tarCerrarForm();
+}
+window.toggleTareasPan = toggleTareasPan;
+
+function tarIniciar(){
+  if(_tar.escuchando || !window._fb || !window._fb.onValue) return;
+  _tar.escuchando=true;
+  try{
+    window._fb.onValue(window._fb.ref(window._fb.db,'tareas'), snap=>{
+      _tar.data=snap.val()||{};
+      tarRender(); tarBadge();
+    });
+  }catch(e){ console.warn('tareas listen',e); }
+}
+
+async function tarLoadUsuarios(){
+  const sel=document.getElementById('tar-asignado');
+  if(!sel||!window._fb) return;
+  try{
+    const snap=await window._fb.get(window._fb.ref(window._fb.db,'usuarios'));
+    const us=snap.val()||{};
+    sel.innerHTML='<option value="">—</option>'+Object.values(us)
+      .map(u=>`<option value="${u.username}">${u.username} · ${u.name||''} (${u.role||'?'})</option>`).join('');
+  }catch(e){}
+}
+
+function tarFiltro(f){
+  _tar.filtro=f;
+  document.getElementById('tar-f-pend').classList.toggle('active',f==='pend');
+  document.getElementById('tar-f-todas').classList.toggle('active',f==='todas');
+  tarRender();
+}
+window.tarFiltro=tarFiltro;
+
+function tarItems(){
+  const s=getSession();
+  const esSup = s && (s.role==='supervisor'||s.role==='admin');
+  const user = s ? s.username : '';
+  return Object.entries(_tar.data||{})
+    .map(([id,t])=>({id,...t}))
+    .filter(t=> esSup || t.asignado_a===user)
+    .filter(t=> _tar.filtro==='todas' || !t.completada)
+    .sort((a,b)=>{
+      if(a.completada!==b.completada) return a.completada?1:-1;
+      const pr={alta:0,media:1,baja:2};
+      const pa=pr[a.prioridad]??1, pb=pr[b.prioridad]??1;
+      if(pa!==pb) return pa-pb;
+      return (a.ts||0)-(b.ts||0);
+    });
+}
+
+function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function tarRender(){
+  const list=document.getElementById('tar-list');
+  const s=getSession();
+  const esSup = s && (s.role==='supervisor'||s.role==='admin');
+  const addWrap=document.getElementById('tar-add-wrap');
+  if(addWrap) addWrap.style.display = esSup?'block':'none';
+
+  const items=tarItems();
+  const pend=items.filter(t=>!t.completada).length;
+  const sub=document.getElementById('tar-sub');
+  if(sub) sub.textContent = esSup ? `${pend} pendientes · todas las cuentas` : `${pend} tareas pendientes`;
+  const foot=document.getElementById('tar-foot');
+  if(foot) foot.textContent = `${items.length} tarea${items.length!==1?'s':''} mostrada${items.length!==1?'s':''}`;
+
+  if(!list) return;
+  if(items.length===0){
+    list.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--muted);padding:2.5rem;">
+      <i class="ti ti-checklist" style="font-size:32px;color:var(--border);"></i>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.05em;">${_tar.filtro==='pend'?'Sin tareas pendientes':'Sin tareas'}</div>
+      ${esSup?'<div style="font-size:9px;opacity:.5;">Pulsa &quot;Nueva&quot; para asignar una</div>':''}
+    </div>`;
+    return;
+  }
+
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  list.innerHTML=items.map(t=>{
+    const done=!!t.completada;
+    const venc=t.fecha_limite && !done && new Date(t.fecha_limite+'T12:00:00')<hoy;
+    const fechaStr=t.fecha_limite?new Date(t.fecha_limite+'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short'}):'';
+    const supBtn=esSup?`<button onclick="tarBorrar('${t.id}')" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:10px;padding:2px 6px;flex-shrink:0;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted)'"><i class="ti ti-trash"></i></button>`:'';
+    return `<div class="tar-item pri-${t.prioridad||'media'}${done?' done':''}">
+      <div class="tar-chk${done?' done':''}" onclick="tarToggle('${t.id}',${done})" title="${done?'Marcar pendiente':'Marcar completada'}">
+        ${done?'<i class="ti ti-check" style="font-size:12px;color:var(--accent2);"></i>':''}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="tar-tit">${_esc(t.titulo||'(sin título)')}</div>
+        ${t.descripcion?`<div class="tar-desc">${_esc(t.descripcion)}</div>`:''}
+        <div class="tar-meta">
+          <span class="pri ${t.prioridad||'media'}">${(t.prioridad||'media').toUpperCase()}</span>
+          <span>→ ${_esc(t.asignado_a||'?')}</span>
+          ${fechaStr?`<span class="${venc?'venc':''}">⏱ ${fechaStr}${venc?' · VENCE':''}</span>`:''}
+          ${done&&t.asignado_por?`<span style="color:var(--accent2);">✓ hecho</span>`:''}
+        </div>
+      </div>
+      ${supBtn}
+    </div>`;
+  }).join('');
+}
+window.tarRender=tarRender;
+
+async function tarToggle(id,done){
+  const s=getSession();
+  if(!s){alert('Sesión no iniciada');return;}
+  if(!window._fb||!window._fb.update){alert('Firebase no disponible');return;}
+  try{
+    await window._fb.update(window._fb.ref(window._fb.db,'tareas/'+id),{
+      completada:!done, ts_completado:!done?Date.now():null
+    });
+  }catch(e){alert('Error: '+e.message);}
+}
+window.tarToggle=tarToggle;
+
+function tarToggleForm(){
+  const f=document.getElementById('tar-form');
+  if(!f) return;
+  const opening=!f.classList.contains('open');
+  if(opening){
+    ['tar-titulo','tar-desc','tar-fecha'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('tar-prioridad').value='media';
+    document.getElementById('tar-asignado').value='';
+    const st=document.getElementById('tar-form-st'); if(st){st.style.color='';st.textContent='';}
+    f.classList.add('open');
+    document.getElementById('tar-titulo').focus();
+  } else tarCerrarForm();
+}
+window.tarToggleForm=tarToggleForm;
+function tarCerrarForm(){const f=document.getElementById('tar-form');if(f)f.classList.remove('open');}
+window.tarCerrarForm=tarCerrarForm;
+
+async function tarCrear(){
+  const s=getSession();
+  if(!s||!(s.role==='supervisor'||s.role==='admin')){alert('Solo supervisores pueden crear tareas.');return;}
+  if(!window._fb){alert('Firebase no disponible');return;}
+  const titulo=(document.getElementById('tar-titulo').value||'').trim();
+  const asignado=document.getElementById('tar-asignado').value;
+  const st=document.getElementById('tar-form-st');
+  if(!titulo){if(st){st.style.color='var(--danger)';st.textContent='Falta el título';}return;}
+  if(!asignado){if(st){st.style.color='var(--warn)';st.textContent='Indica a quién se asigna';}return;}
+  const tarea={
+    titulo,
+    descripcion:(document.getElementById('tar-desc').value||'').trim(),
+    asignado_a:asignado,
+    asignado_por:s.username,
+    prioridad:document.getElementById('tar-prioridad').value||'media',
+    fecha_limite:document.getElementById('tar-fecha').value||'',
+    completada:false, ts:Date.now(), ts_completado:null
+  };
+  if(st){st.style.color='var(--warn)';st.textContent='Guardando…';}
+  try{
+    const ref=window._fb.push(window._fb.ref(window._fb.db,'tareas'));
+    await window._fb.set(ref,tarea);
+    if(st){st.style.color='var(--accent2)';st.textContent='✓ Asignada a '+asignado;}
+    setTimeout(tarCerrarForm,800);
+  }catch(e){if(st){st.style.color='var(--danger)';st.textContent='Error: '+e.message;}}
+}
+window.tarCrear=tarCrear;
+
+async function tarBorrar(id){
+  const s=getSession();
+  if(!s||!(s.role==='supervisor'||s.role==='admin')){alert('Solo supervisores pueden borrar.');return;}
+  if(!window._fb||!confirm('¿Borrar esta tarea?'))return;
+  try{await window._fb.set(window._fb.ref(window._fb.db,'tareas/'+id),null);}
+  catch(e){alert('Error: '+e.message);}
+}
+window.tarBorrar=tarBorrar;
+
+// Badge + contador en la tarjeta M08
+function tarBadge(){
+  const s=getSession();
+  const esSup = s && (s.role==='supervisor'||s.role==='admin');
+  const user = s ? s.username : '';
+  const pend=Object.values(_tar.data||{}).filter(t=>t && !t.completada && (esSup||t.asignado_a===user)).length;
+  const stat=document.getElementById('mc-tareas-pend'); if(stat) stat.textContent=pend;
+  const badge=document.getElementById('mc-tareas-badge');
+  if(badge){ if(pend>0){badge.textContent=pend;badge.style.display='block';} else badge.style.display='none'; }
+}
+window.tarBadge=tarBadge;
+
+// Escape + suscripción silenciosa para el badge
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){const dw=document.getElementById('tareas-drawer');if(dw&&dw.classList.contains('open'))toggleTareasPan();}
+});
+if(typeof waitForFirebase==='function'){
+  waitForFirebase().then(()=>{
+    if(_tar.escuchando||!window._fb||!window._fb.onValue) return;
+    _tar.escuchando=true;
+    try{ window._fb.onValue(window._fb.ref(window._fb.db,'tareas'),snap=>{_tar.data=snap.val()||{};tarBadge();const dw=document.getElementById('tareas-drawer');if(dw&&dw.classList.contains('open'))tarRender();}); }catch(e){}
+  }).catch(()=>{});
+}
 </script>
 
 </body></html>`;\n  } else {\n    const gHLF  = svgLechoPDF(histD);\n    const gPct  = svgLineaPDF(histD,'pct',  '#cc7700','%');\n    const gIVF  = svgLineaPDF(histD,'ivf',  '#6633cc','mL/g');\n    const gMarg = svgLineaPDF(histD,'margen','#008855','m');\n    html=`<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/>\n    <style>${estiloBase}h1{border-bottom:2px solid #ff8c42}</style></head><body>\n    <h1>\ud83d\udccb Informe Decantador Secundario EDAR &mdash; ${fecha} ${hora}</h1>\n    <h2>Par\u00e1metros instalaci\u00f3n</h2>\n    <table><tr><th>Par\u00e1metro</th><th>Valor</th><th>Unidad</th></tr>\n    <tr><td>Superficie</td><td>${p.s_decantador}</td><td>m\u00b2</td></tr>\n    <tr><td>Altura \u00fatil</td><td>${p.h_decantador}</td><td>m</td></tr>\n    <tr><td>Volumen</td><td>${d.Vol_dec.toFixed(0)}</td><td>m\u00b3</td></tr>\n    </table>\n    <h2>Datos de campo</h2>\n    <table><tr><th>Par\u00e1metro</th><th>Valor</th><th>Unidad</th></tr>\n    <tr><td>Lecho de fangos (HLF)</td><td>${p.hlf}</td><td>m</td></tr>\n    <tr><td>% lecho ocupado</td><td>${d.pct.toFixed(1)}</td><td>%</td></tr>\n    <tr><td>Margen libre</td><td>${d.margen.toFixed(2)}</td><td>m</td></tr>\n    <tr><td>SST reactor</td><td>${p.sst_reactor}</td><td>mg/L</td></tr>\n    <tr><td>Caudal Q_bio</td><td>${p.caudal}</td><td>m\u00b3/d</td></tr>\n    <tr><td>Caudal recirculaci\u00f3n</td><td>${p.caudal_recirculacion}</td><td>m\u00b3/d</td></tr>\n    <tr><td>Caudal total decantador</td><td>${d.Q_dec.toFixed(0)}</td><td>m\u00b3/d</td></tr>\n    </table>\n    <h2>Resultados calculados</h2>\n    <table><tr><th>Par\u00e1metro</th><th>Valor</th><th>Unidad</th><th>Estado</th></tr>\n    <tr><td>Carga hidr. superficial</td><td>${d.CHS.toFixed(3)}</td><td>m\u00b3/m\u00b2\u00b7h</td><td class=\"${d.CHS>=0.5&&d.CHS<=1.5?'ok':'bad'}\">${d.CHS>=0.5&&d.CHS<=1.5?'\u2713':'\u26a0'}</td></tr>\n    <tr><td>Carga s\u00f3lidos superficial</td><td>${d.CSS.toFixed(3)}</td><td>kgSS/m\u00b2\u00b7h</td><td class=\"${d.CSS<=6?'ok':'bad'}\">${d.CSS<=6?'\u2713':'\u26a0'}</td></tr>\n    <tr><td>TRH decantador</td><td>${d.TRH_dec.toFixed(2)}</td><td>h</td><td class=\"${d.TRH_dec>=1.5&&d.TRH_dec<=3?'ok':'warn'}\">${d.TRH_dec>=1.5&&d.TRH_dec<=3?'\u2713':'\u26a0'}</td></tr>\n    <tr><td>Vel. sedimentaci\u00f3n aparente</td><td>${d.vel_sed.toFixed(2)}</td><td>m/h</td><td class=\"${d.vel_sed>=1.5?'ok':'warn'}\">${d.vel_sed>=1.5?'\u2713':'\u26a0'}</td></tr>\n    <tr><td>IVF real</td><td>${d.ivf.toFixed(0)}</td><td>mL/g</td><td class=\"${d.ivf<120?'ok':d.ivf<180?'warn':'bad'}\">${d.ivf<120?'\u2713':d.ivf<180?'\u26a0':'\u2717'}</td></tr>\n    </table>\n    <h2>Evoluci\u00f3n hist\u00f3rica (${histD?histD.length:0} registros)</h2>\n    <div class=\"grafica\"><div class=\"grafica-title\">Altura lecho de fangos (m)</div>${gHLF}</div>\n    <div class=\"grafica\"><div class=\"grafica-title\">% lecho ocupado</div>${gPct}</div>\n    <div class=\"grafica\"><div class=\"grafica-title\">IVF real (mL/g)</div>${gIVF}</div>\n    <div class=\"grafica\"><div class=\"grafica-title\">Margen libre (m)</div>${gMarg}</div>\n    <div class=\"footer\">Simulador Reactor Biol\u00f3gico EDAR &middot; C\u00e1lculos basados en datos reales de laboratorio &middot; <strong>H\u00e9ctor Hern\u00e1ndez Hern\u00e1ndez</strong></div>\n    </body></html>`;\n  }\n  const w=window.open('','_blank');\n  w.document.write(html);\n  w.document.close();\n  setTimeout(()=>w.print(),400);\n}\n\n\n// \u2500\u2500\u2500 App \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nfunction App(){\n  const [dark,setDark]=useState(()=>localStorage.getItem('edar_theme')!=='light');\n  const [lang,setLang]=useState(()=>localStorage.getItem('edar_lang')||'es');\n  const C=dark?DARK:LIGHT, t=T[lang];\n  useEffect(()=>localStorage.setItem('edar_theme',dark?'dark':'light'),[dark]);\n  useEffect(()=>localStorage.setItem('edar_lang',lang),[lang]);\n\n  const [p,setP]=useState({\n    caudal:500,vol_reactor:3000,recirculacion:75,od:2.0,edad_objetivo:15,\n    caudal_recirculacion:375,sst_reactor:3500,sst_recirculacion:8000,sst_efluente:15,\n    dbo_entrada:200,dqo_entrada:450,nh4_entrada:35,\n    dbo_efluente:10,dqo_efluente:60,nh4_efluente:3,pt_entrada:5,pt_efluente:1,caudal_purga_d:80,\n    hlf:1.2,h_decantador:3.5,s_decantador:200,\n  });\n\n  // \u2500\u2500 Excel / selector de fecha \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  const [excelData,setExcelData]=useState([]); // [{fecha, ...campos}]\n  const [fechaIni,setFechaIni]=useState('');\n  const [fechaFin,setFechaFin]=useState('');\n  const [xlsxMsg,setXlsxMsg]=useState('');\n  const fileInputRef=useRef(null);\n\n  // Convierte n\u00famero serial Excel a cadena YYYY-MM-DD\n  function excelSerialToDate(serial){\n    if(serial instanceof Date) return serial;\n    const d=new Date(Math.round((serial-25569)*86400*1000));\n    return d;\n  }\n  function dateToISO(d){\n    if(!d) return '';\n    const dd=d instanceof Date?d:excelSerialToDate(d);\n    return dd.toISOString().slice(0,10);\n  }\n\n  function handleExcelLoad(e){\n    const file=e.target.files[0];\n    if(!file){return;}\n    setXlsxMsg('Cargando...');\n    const reader=new FileReader();\n    reader.onload=ev=>{\n      try{\n        const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});\n        const ws=wb.Sheets[wb.SheetNames[0]];\n        const rows=XLSX.utils.sheet_to_json(ws,{raw:false,dateNF:'yyyy-mm-dd'});\n        // Normalizamos: la columna Fecha puede ser Date obj o string\n        const parsed=rows.map(r=>{\n          // Detectar la clave de fecha (case-insensitive)\n          const fk=Object.keys(r).find(k=>k.toLowerCase().includes('fecha'));\n          let fechaISO='';\n          if(fk){\n            const fv=r[fk];\n            if(typeof fv==='string'&&fv.match(/^\\d{4}-\\d{2}-\\d{2}/)){\n              fechaISO=fv.slice(0,10);\n            } else if(fv instanceof Date){\n              fechaISO=fv.toISOString().slice(0,10);\n            } else {\n              // n\u00famero serial (raw:false raramente pasa, pero por si acaso)\n              try{ fechaISO=new Date(fv).toISOString().slice(0,10); }catch(_){}\n            }\n          }\n          return {...r, _fechaISO:fechaISO};\n        }).filter(r=>r._fechaISO);\n        setExcelData(parsed);\n        setXlsxMsg(`\u2713 ${parsed.length} registros cargados`);\n        // Si s\u00f3lo hay una fila, seleccionarla autom\u00e1ticamente\n        if(parsed.length===1) applyRow(parsed[0]);\n      }catch(err){\n        setXlsxMsg('\u26a0 Error al leer el Excel: '+err.message);\n      }\n    };\n    reader.readAsArrayBuffer(file);\n  }\n\n  // Mapeo columnas Excel \u2192 campos app\n  // SS REACTOR y SS RECIRCULACI\u00d3N est\u00e1n en g/L en el Excel \u2192 \u00d71000 para mg/L\n  function applyRow(row){\n    const n=(k,mult=1)=>{\n      const v=parseFloat(row[k]);\n      return isNaN(v)?undefined:v*mult;\n    };\n    const updates={};\n    const caudal=n('Caudal entrada Biologico');        if(caudal!==undefined)   updates.caudal=caudal;\n    const dbo_e=n('DBO5 ENTRADA');                    if(dbo_e!==undefined)    updates.dbo_entrada=dbo_e;\n    const dqo_e=n('DQO ENTRADA');                     if(dqo_e!==undefined)    updates.dqo_entrada=dqo_e;\n    const nh4_e=n('NT ENTRADA');                      if(nh4_e!==undefined)    updates.nh4_entrada=nh4_e;\n    // SS REACTOR en g/L \u2192 mg/L\n    const sst_r=n('SS REACTOR',1000);                 if(sst_r!==undefined)    updates.sst_reactor=sst_r;\n    const sst_rc=n('SS RECIRCULACI\u00d3N',1000);           if(sst_rc!==undefined)   updates.sst_recirculacion=sst_rc;\n    const sst_ef=n('SS EFLUENTE');                    if(sst_ef!==undefined)   updates.sst_efluente=sst_ef;\n    const qpurga=n('CAUDAL PURGA');                   if(qpurga!==undefined)   updates.caudal_purga_d=qpurga;\n    const qrecirc=n('CAUDAL RECIRCULACI\u00d3N');           if(qrecirc!==undefined)  updates.caudal_recirculacion=qrecirc;\n    const dbo_ef=n('DBO EFLUENTE');                   if(dbo_ef!==undefined)   updates.dbo_efluente=dbo_ef;\n    const dqo_ef=n('DQO EFLUENTE');                   if(dqo_ef!==undefined)   updates.dqo_efluente=dqo_ef;\n    const nh4_ef=n('NT FLUENTE');                     if(nh4_ef!==undefined)   updates.nh4_efluente=nh4_ef;\n    const pt_e=n('PT ENTRADA');                       if(pt_e!==undefined)     updates.pt_entrada=pt_e;\n    const pt_ef=n('PT EFLUENTE');                     if(pt_ef!==undefined)    updates.pt_efluente=pt_ef;\n    setP(prev=>({...prev,...updates}));\n  }\n\n  function applyRange(ini,fin){\n    if(!ini||!fin){setXlsxMsg('\u26a0 Selecciona inicio y fin');return;}\n    if(ini>fin){setXlsxMsg('\u26a0 Inicio debe ser anterior al fin');return;}\n    const rows=excelData.filter(r=>r._fechaISO>=ini&&r._fechaISO<=fin);\n    if(!rows.length){setXlsxMsg('\u26a0 Sin datos en ese rango');return;}\n    const avg=(k,mult=1)=>{\n      const vals=rows.map(r=>parseFloat(r[k])).filter(v=>!isNaN(v));\n      return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length*mult:undefined;\n    };\n    const upd={};\n    const caudal=avg('Caudal entrada Biologico');       if(caudal!==undefined)  upd.caudal=Math.round(caudal);\n    const dbo_e=avg('DBO5 ENTRADA');                   if(dbo_e!==undefined)   upd.dbo_entrada=+dbo_e.toFixed(1);\n    const dqo_e=avg('DQO ENTRADA');                    if(dqo_e!==undefined)   upd.dqo_entrada=+dqo_e.toFixed(1);\n    const nh4_e=avg('NT ENTRADA');                     if(nh4_e!==undefined)   upd.nh4_entrada=+nh4_e.toFixed(1);\n    const sst_r=avg('SS REACTOR',1000);                if(sst_r!==undefined)   upd.sst_reactor=Math.round(sst_r);\n    const sst_rc=avg('SS RECIRCULACI\u00d3N',1000);       if(sst_rc!==undefined)  upd.sst_recirculacion=Math.round(sst_rc);\n    const sst_ef=avg('SS EFLUENTE');                   if(sst_ef!==undefined)  upd.sst_efluente=+sst_ef.toFixed(1);\n    const qpurga=avg('CAUDAL PURGA');                  if(qpurga!==undefined)  upd.caudal_purga_d=Math.round(qpurga);\n    const qrecirc=avg('CAUDAL RECIRCULACI\u00d3N');       if(qrecirc!==undefined) upd.caudal_recirculacion=Math.round(qrecirc);\n    const dbo_ef=avg('DBO EFLUENTE');                  if(dbo_ef!==undefined)  upd.dbo_efluente=+dbo_ef.toFixed(1);\n    const dqo_ef=avg('DQO EFLUENTE');                  if(dqo_ef!==undefined)  upd.dqo_efluente=+dqo_ef.toFixed(1);\n    const nh4_ef=avg('NT FLUENTE');                    if(nh4_ef!==undefined)  upd.nh4_efluente=+nh4_ef.toFixed(1);\n    const pt_e=avg('PT ENTRADA');                      if(pt_e!==undefined)    upd.pt_entrada=+pt_e.toFixed(2);\n    const pt_ef=avg('PT EFLUENTE');                    if(pt_ef!==undefined)   upd.pt_efluente=+pt_ef.toFixed(2);\n    setP(prev=>({...prev,...upd}));\n    setXlsxMsg(`\u2713 ${rows.length} d\u00eda${rows.length>1?'s':''} (${ini} \u2192 ${fin})`);\n  }\n\n  const fechasDisponibles=excelData.map(r=>r._fechaISO);\n  const [tab,setTab]=useState('proceso');\n  const [mainTab,setMainTab]=useState('reactor');\n  const [fs,setFs]=useState(false);\n  const toggleFs=()=>{\n    if(!document.fullscreenElement){\n      document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();\n      setFs(true);\n    } else {\n      document.exitFullscreen&&document.exitFullscreen();\n      setFs(false);\n    }\n  };\n  useEffect(()=>{\n    const h=()=>setFs(!!document.fullscreenElement);\n    document.addEventListener('fullscreenchange',h);\n    return()=>document.removeEventListener('fullscreenchange',h);\n  },[]);\n  const [mob,setMob]=useState(window.innerWidth<700);\n  useEffect(()=>{const f=()=>setMob(window.innerWidth<700);window.addEventListener('resize',f);return()=>window.removeEventListener('resize',f);},[]);\n\n  const set=useCallback(k=>v=>setP(prev=>({...prev,[k]:v})),[]);\n  const res=calcular(p);\n  useEffect(()=>{try{localStorage.setItem('sgi-kpi-sim',JSON.stringify({edad:res.tc.toFixed(1),sst:String(p.sst_reactor),dqo:res.rend_dqo.toFixed(1),type:'sim-kpi'}));}catch(e){}const _bE=document.getElementById('bio-sim-edad');if(_bE)_bE.textContent=res.tc.toFixed(1);const _bS=document.getElementById('bio-sim-sst');if(_bS)_bS.textContent=String(p.sst_reactor);const _bD=document.getElementById('bio-sim-dqo');if(_bD)_bD.textContent=res.rend_dqo.toFixed(1);const _kE=document.getElementById('kpi-edad');if(_kE)_kE.innerHTML=res.tc.toFixed(1)+' <span class=\"ku\">d</span>';const _kS=document.getElementById('kpi-sst');if(_kS)_kS.innerHTML=p.sst_reactor+' <span class=\"ku\">mg/L</span>';const _kD=document.getElementById('kpi-dqo');if(_kD)_kD.innerHTML=res.rend_dqo.toFixed(1)+' <span class=\"ku\">%</span>';},[res.tc,p.sst_reactor,res.rend_dqo]);\n  const acumCol=Math.abs(res.acum)<20?C.green:res.acum>0?C.warn:C.danger;\n  const diff=p.caudal_purga_d-res.Qw_nec, pOk=Math.abs(diff)<5;\n\n  const sc=`background:${C.bg};color:${C.text}`;\n\n  function PP({compact=true}){return(<>\n    <Slider label={t.caudalBio}     unit=\"m\u00b3/d\" min={200} max={2000} step={10}  value={p.caudal}        onChange={set('caudal')}        color={C.accent} C={C} compact={compact}/>\n    <Slider label={t.od}            unit=\"mg/L\"  min={0.3} max={6}   step={0.1} value={p.od}            onChange={set('od')}            color={C.green}  C={C} compact={compact}/>\n    <Slider label={t.recirculacion} unit=\"%\"     min={20}  max={150} step={5}   value={p.recirculacion} onChange={set('recirculacion')} color={C.warn}   C={C} compact={compact}/>\n    <NumInput label={t.volReactor}   unit=\"m\u00b3\"    value={p.vol_reactor}   onChange={set('vol_reactor')}   color={C.text}   C={C} compact={compact}/>\n    <NumInput label={t.edadObjetivo} unit=\"d\u00edas\"  value={p.edad_objetivo} onChange={set('edad_objetivo')} color={C.text}   C={C} compact={compact}/>\n  </>);}\n  function PLE({compact=true}){return(<>\n    <NumInput label={t.dboEntrada} unit=\"mg/L\" value={p.dbo_entrada} onChange={set('dbo_entrada')} color={C.accent} C={C} compact={compact}/>\n    <NumInput label={t.dqoEntrada} unit=\"mg/L\" value={p.dqo_entrada} onChange={set('dqo_entrada')} color={C.accent} C={C} compact={compact}/>\n    <NumInput label={t.nh4Entrada} unit=\"mg/L\" value={p.nh4_entrada} onChange={set('nh4_entrada')} color={C.accent} C={C} compact={compact}/>\n    <NumInput label={t.pt_entrada} unit=\"mg/L\" value={p.pt_entrada} onChange={set('pt_entrada')} color={C.accent} C={C} compact={compact}/>\n  </>);}\n  function PLR({compact=true}){return(<>\n    <NumInput label={t.sstReactor}  unit=\"mg/L\" value={p.sst_reactor}         onChange={set('sst_reactor')}         color={C.purple} C={C} compact={compact}/>\n    <NumInput label={t.sstRecirc}   unit=\"mg/L\" value={p.sst_recirculacion}    onChange={set('sst_recirculacion')}   color={C.warn}   C={C} compact={compact}/>\n    <NumInput label={t.sstEfluente} unit=\"mg/L\" value={p.sst_efluente}         onChange={set('sst_efluente')}        color={C.purple} C={C} compact={compact}/>\n    <NumInput label={t.caudalPurga} unit=\"m\u00b3/d\" value={p.caudal_purga_d}       onChange={set('caudal_purga_d')}      color={C.orange} C={C} compact={compact}/>\n    <NumInput label={t.caudalRecirc} unit=\"m\u00b3/d\" value={p.caudal_recirculacion} onChange={set('caudal_recirculacion')} color={C.warn} C={C} compact={compact}/>\n    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',\n      background:C.inputBg,border:`1px solid ${C.warn}40`,borderRadius:5,padding:'5px 8px',marginBottom:compact?7:12}}>\n      <span style={{fontSize:compact?9:10,color:C.muted,textTransform:'uppercase',letterSpacing:1}}>{t.irCalculado}</span>\n      <span style={{fontFamily:'monospace',fontWeight:700,fontSize:compact?12:14,color:C.warn}}>\n        {res.IR.toFixed(1)}<span style={{fontSize:8,color:C.muted,marginLeft:2}}>%</span>\n      </span>\n    </div>\n  </>);}\n  function PLEf({compact=true}){return(<>\n    <NumInput label={t.dboEfluente} unit=\"mg/L\" value={p.dbo_efluente} onChange={set('dbo_efluente')} color={C.green} C={C} compact={compact}/>\n    <NumInput label={t.dqoEfluente} unit=\"mg/L\" value={p.dqo_efluente} onChange={set('dqo_efluente')} color={C.green} C={C} compact={compact}/>\n    <NumInput label={t.nh4Efluente} unit=\"mg/L\" value={p.nh4_efluente} onChange={set('nh4_efluente')} color={C.green} C={C} compact={compact}/>\n    <NumInput label={t.pt_efluente} unit=\"mg/L\" value={p.pt_efluente} onChange={set('pt_efluente')} color={C.green} C={C} compact={compact}/>\n  </>);}\n\n  const Topbar=()=>(\n    <div style={{display:'flex',alignItems:'center',gap:10,padding:'5px 14px',\n      background:C.panel,borderBottom:`1px solid ${C.border}`,flexShrink:0,flexWrap:'wrap'}}>\n      <div>\n        <span style={{fontSize:13,fontWeight:700,color:C.white}}>{t.appTitle}</span>\n        <span style={{fontSize:9,color:C.muted,marginLeft:8}}>{t.appSubtitle}</span>\n      </div>\n      <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:6,padding:2,marginLeft:16}}>\n        {[{id:'reactor',lbl:'\u2697 Reactor'},{id:'decantador',lbl:'\ud83c\udf00 '+t.tabDecantador}].map(m=>(\n          <button key={m.id} onClick={()=>setMainTab(m.id)}\n            style={{padding:'4px 14px',border:'none',borderRadius:4,cursor:'pointer',fontSize:10,fontWeight:700,\n              background:mainTab===m.id?C.accent:'transparent',color:mainTab===m.id?C.bg:C.muted,transition:'all .15s'}}>\n            {m.lbl}\n          </button>\n        ))}\n      </div>\n\n      {/* \u2500\u2500 Selector Excel + fecha \u2500\u2500 */}\n      <div style={{display:'flex',alignItems:'center',gap:6,background:C.inputBg,\n        border:`1px solid ${excelData.length?C.green+'60':C.border}`,\n        borderRadius:7,padding:'4px 10px',gap:8}}>\n        <input ref={fileInputRef} type=\"file\" accept=\".xlsx,.xls\"\n          style={{display:'none'}} onChange={handleExcelLoad}/>\n        <button onClick={()=>fileInputRef.current&&fileInputRef.current.click()}\n          style={{padding:'3px 10px',border:`1px solid ${C.accent}`,borderRadius:5,\n            background:C.accent+'18',color:C.accent,fontSize:9,fontWeight:700,cursor:'pointer',\n            whiteSpace:'nowrap'}}>\n          \ud83d\udcc2 Cargar Excel\n        </button>\n        {excelData.length>0&&(\n          <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}}>\n            <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Desde:</span>\n            <input type='date' value={fechaIni} onChange={e=>setFechaIni(e.target.value)}\n              list='sim-fechas'\n              style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,\n                color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',\n                outline:'none',colorScheme:'dark',width:112}}/>\n            <span style={{fontSize:8,color:C.muted,whiteSpace:'nowrap'}}>Hasta:</span>\n            <input type='date' value={fechaFin} onChange={e=>setFechaFin(e.target.value)}\n              list='sim-fechas'\n              style={{background:C.inputBg,border:`1px solid ${C.border}`,borderRadius:4,\n                color:C.accent,fontSize:9,fontFamily:'monospace',padding:'2px 6px',\n                outline:'none',colorScheme:'dark',width:112}}/>\n            <datalist id='sim-fechas'>\n              {fechasDisponibles.map(f=>(<option key={f} value={f}/>))}\n            </datalist>\n            <button onClick={()=>applyRange(fechaIni,fechaFin)}\n              style={{background:C.accent,border:'none',borderRadius:4,cursor:'pointer',\n                color:C.bg,fontSize:9,fontWeight:700,padding:'3px 10px',whiteSpace:'nowrap'}}>\n              Cargar\n            </button>\n          </div>\n        )}\n        {xlsxMsg&&(\n          <span style={{fontSize:8,color:xlsxMsg.startsWith('\u2713')?C.green:xlsxMsg.startsWith('\u26a0')?C.warn:C.muted,\n            whiteSpace:'nowrap',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis'}}>\n            {xlsxMsg}\n          </span>\n        )}\n      </div>\n\n      <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>\n        <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:5,padding:2}}>\n          {['es','en'].map(l=>(\n            <button key={l} onClick={()=>setLang(l)}\n              style={{padding:'3px 8px',border:'none',borderRadius:4,cursor:'pointer',fontSize:9,fontWeight:700,\n                background:lang===l?C.accent:'transparent',color:lang===l?C.bg:C.muted,transition:'all .15s'}}>\n              {l.toUpperCase()}\n            </button>\n          ))}\n        </div>\n        <button onClick={()=>setDark(d=>!d)}\n          style={{padding:'3px 10px',border:`1px solid ${C.border}`,borderRadius:5,\n            background:'transparent',color:C.muted,fontSize:10,cursor:'pointer'}}>\n          {dark?'\u2600 Light':'\ud83c\udf19 Dark'}\n        </button>\n        <button onClick={toggleFs}\n          title={fs?'Salir de pantalla completa':'Pantalla completa'}\n          style={{padding:'3px 10px',border:`1px solid ${fs?C.accent:C.border}`,borderRadius:5,\n            background:fs?C.accent+'22':'transparent',color:fs?C.accent:C.muted,\n            fontSize:13,cursor:'pointer',lineHeight:1}}>\n          {fs?'\u22a1':'\u229e'}\n        </button>\n      </div>\n    </div>\n  );\n\n  const tabs=[{id:'proceso',lbl:t.tabProceso},{id:'lab_ent',lbl:t.tabEntrada},{id:'lab_reac',lbl:t.tabReactor},{id:'lab_ef',lbl:t.tabEfluente}];\n  const gauges=[{l:'DBO\u2085',v:res.dbo_ef,lm:res.limites.dbo},{l:'DQO',v:res.dqo_ef,lm:res.limites.dqo},{l:'SS',v:res.ss_ef,lm:res.limites.ss},{l:'Nt',v:res.nh4_ef,lm:res.limites.nh4},{l:'Pt',v:res.pt_ef,lm:res.limites.pt}];\n\n  if(mob) return(\n    <div style={{minHeight:'100vh',background:C.bg,color:C.text,fontFamily:\"'IBM Plex Sans',sans-serif\",paddingBottom:24}}>\n      <Topbar/>\n      <div style={{padding:'12px 14px',display:'flex',flexDirection:'column',gap:10}}>\n        <div style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:8,padding:'8px 10px',overflowX:'auto'}}>\n          <div style={{minWidth:600}}><Diagrama p={p} res={res} t={t} C={C} onGoDec={()=>setMainTab('decantador')}/></div>\n        </div>\n        <div style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:8,padding:'10px 12px'}}>\n          <PanelInd res={res} p={p} t={t} C={C}/>\n        </div>\n        <div style={{background:C.panel,border:`1px solid ${C.border}`,borderRadius:8,overflow:'hidden'}}>\n          <div style={{display:'flex',borderBottom:`1px solid ${C.border}`}}>\n            {tabs.map(tb=>(<button key={tb.id} onClick={()=>setTab(tb.id)}\n              style={{flex:1,padding:'7px 2px',background:tab===tb.id?C.inputBg:'transparent',\n                border:'none',color:tab===tb.id?C.accent:C.muted,fontSize:8,fontWeight:700,cursor:'pointer',\n                borderBottom:tab===tb.id?`2px solid ${C.accent}`:'2px solid transparent'}}>\n              {tb.lbl}\n            </button>))}\n          </div>\n          <div style={{padding:'10px 12px'}}>\n            {tab==='proceso'&&<PP/>}\n            {tab==='lab_ent'&&<PLE/>}\n            {tab==='lab_reac'&&<PLR/>}\n            {tab==='lab_ef'&&<PLEf/>}\n          </div>\n        </div>\n        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>\n          {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit=\"mg/L\" C={C} compact/>))}\n        </div>\n        <PanelFormulas p={p} res={res} t={t} C={C}/>\n        <div style={{fontSize:7.5,color:C.muted,textAlign:'center',opacity:0.65}}>{t.footer} \u00b7 {t.autor}</div>\n      </div>\n    </div>\n  );\n\n  return(\n    <div style={{height:'100vh',background:C.bg,color:C.text,fontFamily:\"'IBM Plex Sans',sans-serif\",display:'flex',flexDirection:'column',overflow:'hidden'}}>\n      <Topbar/>\n      <div style={{flex:1,display:'flex',overflow:'hidden'}}>\n        {mainTab==='decantador'?(\n          <div style={{flex:1,padding:'12px 14px',overflow:'hidden'}}>\n            <PanelDecantador p={p} C={C} t={t} set={set}/>\n          </div>\n        ):(\n        <React.Fragment>\n        {/* Col 1 */}\n        <div style={{width:215,borderRight:`1px solid ${C.border}`,overflowY:'auto',padding:'10px 11px',flexShrink:0}}>\n          <SecHdr label={t.proceso}         color={C.accent} C={C}/>     <PP/>\n          <SecHdr label={t.labEntrada}      color={C.accent} C={C} mt/> <PLE/>\n          <SecHdr label={t.labReactor}      color={C.purple} C={C} mt/> <PLR/>\n          <SecHdr label={t.labEfluente}     color={C.green}  C={C} mt/> <PLEf/>\n          <SecHdr label={t.calidadEfluente} color={C.green}  C={C} mt/>\n          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>\n            {gauges.map(g=>(<Gauge key={g.l} label={g.l} value={g.v} limite={g.lm} unit=\"mg/L\" C={C} compact/>))}\n          </div>\n          {res.alertas.length>0&&(\n            <div style={{background:'#120508',border:`1px solid ${C.danger}40`,borderRadius:6,padding:'6px 9px',marginTop:4}}>\n              <div style={{fontSize:8,color:C.danger,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>\u26a0 {t.incumplimientos}</div>\n              {res.alertas.map(a=>(<div key={a.param} style={{display:'flex',justifyContent:'space-between',padding:'3px 0',borderBottom:`1px solid ${C.danger}15`}}>\n                <span style={{fontSize:10,fontWeight:700,color:C.danger,fontFamily:'monospace'}}>{a.param}</span>\n                <span style={{fontSize:9,color:C.muted}}>{a.valor} &gt; {a.limite}</span>\n              </div>))}\n            </div>\n          )}\n        </div>\n        {/* Col 2 */}\n        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',borderRight:`1px solid ${C.border}`}}>\n          <div style={{padding:'8px 12px',borderBottom:`1px solid ${C.border}`,flexShrink:0,overflowX:'auto'}}>\n            <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:4}}>\u25b8 {t.diagramaProceso}</div>\n            <div style={{minWidth:780}}><Diagrama p={p} res={res} t={t} C={C} onGoDec={()=>setMainTab('decantador')}/></div>\n          </div>\n\n          <PanelHistoricoReactor p={p} res={res} C={C} t={t}/>\n          <div style={{padding:'3px 12px',borderTop:`1px solid ${C.border}`,fontSize:7.5,color:C.muted,textAlign:'center',opacity:0.65,marginTop:8}}>\n            {t.footer} \u00b7 {t.autor}\n          </div>\n        </div>\n        {/* Col 3 */}\n        <div style={{width:260,overflowY:'auto',padding:'10px 11px'}}>\n          <PanelInd res={res} p={p} t={t} C={C}/>\n          <div style={{marginTop:14}}>\n            <div style={{fontSize:8,color:C.muted,textTransform:'uppercase',letterSpacing:2,marginBottom:8}}>\u25b8 {t.eficiencias}</div>\n            {[{l:'DBO\u2085',v:res.rend_dbo},{l:'DQO',v:res.rend_dqo},{l:'Nt',v:res.rend_nh4},{l:'Pt',v:res.rend_pt}].map(e=>(\n              <div key={e.l} style={{marginBottom:14}}>\n                <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>\n                  <span style={{fontSize:10,color:C.muted,fontWeight:600}}>{e.l}</span>\n                  <span style={{fontSize:13,fontWeight:800,fontFamily:'monospace',color:e.v>85?C.green:e.v>70?C.warn:C.danger}}>{e.v.toFixed(1)}%</span>\n                </div>\n                <div style={{height:7,background:C.border,borderRadius:4}}>\n                  <div style={{height:'100%',width:`${Math.min(e.v,100)}%`,background:e.v>85?C.green:e.v>70?C.warn:C.danger,borderRadius:4,transition:'width .4s'}}/>\n                </div>\n                <div style={{fontSize:7,color:C.muted,marginTop:2}}>{e.v>85?'\u2713 \u00d3ptimo':e.v>70?'\u26a0 Mejorable':'\u2717 Bajo'}</div>\n              </div>\n            ))}\n          </div>\n          <SecHdr label={t.balanceMasa} color={C.green} C={C} mt/>\n          {[{lbl:t.masaReactor,v:res.M,u:'kgSS',col:C.text,ar:null},\n            {lbl:t.produccionPx,v:res.Px,u:'kgSS/d',col:C.green,ar:'+'},\n            {lbl:t.salidaPurga,v:res.FQwXw,u:'kgSS/d',col:C.orange,ar:'\u2212'},\n            {lbl:t.salidaEfluente,v:res.FQeXe,u:'kgSS/d',col:C.muted,ar:'\u2212'}].map(r=>(\n            <div key={r.lbl} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:`1px solid ${C.border}22`}}>\n              <span style={{fontSize:9,color:C.muted}}>{r.ar&&<span style={{color:r.col,marginRight:3}}>{r.ar}</span>}{r.lbl}</span>\n              <span style={{fontFamily:'monospace',fontWeight:700,fontSize:10,color:r.col}}>\n                {r.v.toFixed(1)}<span style={{fontSize:7,color:C.muted,marginLeft:1}}>{r.u}</span>\n              </span>\n            </div>\n          ))}\n          <div style={{display:'flex',justifyContent:'space-between',marginTop:5,paddingTop:5,borderTop:`1px solid ${C.border}`}}>\n            <span style={{fontSize:9,fontWeight:700,color:C.text}}>{t.acumulacionNeta}</span>\n            <span style={{fontFamily:'monospace',fontWeight:700,fontSize:11,color:acumCol}}>\n              {res.acum>0?'+':''}{res.acum.toFixed(1)}<span style={{fontSize:7,color:C.muted,marginLeft:1}}>kgSS/d</span>\n            </span>\n          </div>\n          {Math.abs(res.acum)>30&&(\n            <div style={{fontSize:8,color:acumCol,marginTop:4,background:C.inputBg,borderRadius:4,padding:'4px 7px'}}>\n              {res.acum>0?t.aumentaPurga:t.reducePurga}\n            </div>\n          )}\n          <SecHdr label={t.verificacionPurga} color={C.orange} C={C} mt/>\n          <div style={{background:C.inputBg,border:`1px solid ${pOk?C.green+'40':C.danger+'40'}`,borderRadius:7,padding:'9px 11px'}}>\n            <div style={{display:'flex',gap:6,marginBottom:7}}>\n              <div style={{flex:1}}>\n                <div style={{fontSize:7.5,color:C.muted,marginBottom:1}}>{t.actual}</div>\n                <div style={{fontSize:16,fontWeight:800,fontFamily:'monospace',color:C.orange}}>\n                  {p.caudal_purga_d}<span style={{fontSize:7,color:C.muted}}> m\u00b3/d</span>\n                </div>\n              </div>\n              <div style={{flex:1}}>\n                <div style={{fontSize:7.5,color:C.muted,marginBottom:1}}>{t.necesaria}</div>\n                <div style={{fontSize:16,fontWeight:800,fontFamily:'monospace',color:pOk?C.green:C.danger}}>\n                  {res.Qw_nec.toFixed(0)}<span style={{fontSize:7,color:C.muted}}> m\u00b3/d</span>\n                </div>\n              </div>\n            </div>\n            <div style={{height:1,background:C.border,marginBottom:7}}/>\n            <div style={{display:'flex',justifyContent:'space-between'}}>\n              <span style={{fontSize:8,color:C.muted}}>{t.desviacion}</span>\n              <span style={{fontFamily:'monospace',fontWeight:700,fontSize:12,color:pOk?C.green:Math.abs(diff)<10?C.warn:C.danger}}>\n                {diff>0?'+':''}{diff.toFixed(0)} m\u00b3/d\n              </span>\n            </div>\n            <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>\n              <span style={{fontSize:8,color:C.muted}}>{t.equipSS}</span>\n              <span style={{fontFamily:'monospace',fontWeight:700,fontSize:10,color:pOk?C.green:C.warn}}>\n                {(diff*p.sst_recirculacion/1000).toFixed(0)} kgSS/d\n              </span>\n            </div>\n          </div>\n          <div style={{marginTop:12}}>\n            <PanelFormulas p={p} res={res} t={t} C={C}/>\n          </div>\n\n        </div>\n      </React.Fragment>\n      )}\n      </div>\n    </div>\n  );\n}\n\n\nconst _rootEl = document.getElementById('sim-proceso-root') || document.getElementById('app-root');\nReactDOM.createRoot(_rootEl).render(<App/>);";
