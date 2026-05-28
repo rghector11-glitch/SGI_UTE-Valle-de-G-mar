@@ -516,7 +516,7 @@ body::before {
 .p-coming p{font-family:var(--mono);font-size:11px;letter-spacing:.08em;}
 
 /* ── KPI STRIP ── */
-.kpi-strip{display:flex;gap:6px;margin-bottom:10px;flex-shrink:0;align-items:stretch;}
+.kpi-strip{display:flex;gap:12px;margin-bottom:14px;flex-shrink:0;align-items:stretch;}
 .kpi-small{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 6px!important;}
 .kpi-small .kpi-lbl{font-size:8px;white-space:normal;overflow:visible;text-overflow:unset;line-height:1.3;margin-bottom:4px;}
 .kpi-small .kpi-v{font-size:24px;letter-spacing:.01em;}
@@ -546,6 +546,31 @@ body::before {
 .kpi.cp .kpi-v{color:var(--purple);}
 .kpi-s{font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ku{font-size:11px;font-weight:400;}
+/* ── KPI refinados (capa 3) ── */
+.kpi-r{flex:1;min-width:0;background:linear-gradient(160deg,var(--panel) 0%,var(--surface) 100%);border:1px solid var(--border);border-radius:10px;padding:13px 15px;display:flex;flex-direction:column;transition:border-color .2s,transform .2s;position:relative;overflow:hidden;}
+.kpi-r:hover{border-color:var(--border-l);}
+.kpi-r-hd{display:flex;align-items:center;gap:9px;margin-bottom:11px;}
+.kpi-r-ic{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:var(--muted);}
+.kpi-r-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;line-height:1.3;}
+.kpi-r-data{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;}
+.kpi-r-v{font-family:var(--cond);font-size:30px;font-weight:500;line-height:1;color:var(--light);letter-spacing:-.005em;}
+.kpi-r-v .ku{font-size:11px;font-family:var(--mono);font-weight:400;color:var(--muted);margin-left:4px;letter-spacing:.04em;}
+.kpi-r-foot{margin-top:6px;font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:.05em;}
+.kpi-r.warn .kpi-r-ic{background:rgba(240,176,51,.08);border-color:rgba(240,176,51,.25);color:var(--warn);}
+.kpi-r.warn .kpi-r-v{color:var(--warn);}
+.kpi-r.danger .kpi-r-ic{background:rgba(229,74,100,.08);border-color:rgba(229,74,100,.25);color:var(--danger);}
+.kpi-r.danger .kpi-r-v{color:var(--danger);}
+.kpi-r.accent .kpi-r-ic{background:rgba(58,175,232,.08);border-color:rgba(58,175,232,.25);color:var(--accent);}
+.kpi-r-obj{cursor:pointer;flex-direction:row;align-items:center;gap:16px;}
+.kpi-r-ring{position:relative;width:74px;height:74px;flex-shrink:0;}
+.kpi-r-ring svg{width:74px;height:74px;}
+.kpi-r-ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.kpi-r-ring-c .pct{font-family:var(--cond);font-size:21px;font-weight:600;color:var(--light);line-height:1;}
+.kpi-r-ring-c .sub{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.05em;}
+.kpi-r-obj-info{flex:1;min-width:0;}
+.kpi-r-obj-anio{font-family:var(--cond);font-size:17px;color:var(--light);font-weight:500;letter-spacing:.01em;margin:3px 0;}
+.kpi-r-obj-anio b{color:var(--accent);font-weight:500;}
+.kpi-r-obj-d{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:.04em;}
 
 /* ── MODULE GRID ── */
 .modules-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;flex:1;overflow:hidden;}
@@ -989,45 +1014,51 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <div class="kpi-strip">
 
             <!-- SST Reactor -->
-            <div class="kpi cw kpi-small">
-              <div class="kpi-lbl">SST Reactor EDARi</div>
-              <div class="kpi-v" id="kpi-sst">— <span class="ku">mg/L</span></div>
-              <div class="kpi-s" id="kpi-sst-s">Simulador EDARi</div>
+            <div class="kpi-r warn">
+              <div class="kpi-r-hd">
+                <div class="kpi-r-ic"><i class="ti ti-flask" aria-hidden="true"></i></div>
+                <div class="kpi-r-lbl">SST Reactor · EDARi</div>
+              </div>
+              <div class="kpi-r-data">
+                <div class="kpi-r-v" id="kpi-sst">— <span class="ku">mg/L</span></div>
+              </div>
+              <div class="kpi-r-foot" id="kpi-sst-s">Simulador EDARi</div>
             </div>
 
             <!-- Próximas calibraciones -->
-            <div class="kpi cd kpi-small">
-              <div class="kpi-lbl">Próximas calibr.</div>
-              <div class="kpi-v" id="kpi-cal">— <span class="ku">instr.</span></div>
-              <div class="kpi-s" id="kpi-cal-s">en ≤5 días · M01</div>
+            <div class="kpi-r danger">
+              <div class="kpi-r-hd">
+                <div class="kpi-r-ic"><i class="ti ti-test-pipe" aria-hidden="true"></i></div>
+                <div class="kpi-r-lbl">Próximas calibraciones</div>
+              </div>
+              <div class="kpi-r-data">
+                <div class="kpi-r-v" id="kpi-cal">— <span class="ku">instr.</span></div>
+              </div>
+              <div class="kpi-r-foot" id="kpi-cal-s">en ≤5 días · M01</div>
             </div>
 
-            <!-- Objetivos anuales — KPI grande con anillo -->
-            <div class="kpi kpi-obj-big" id="kpi-obj-chip"
+            <!-- Objetivos anuales — KPI con anillo -->
+            <div class="kpi-r kpi-r-obj" id="kpi-obj-chip"
                  onclick="toggleObjetivosPan()" title="Ver objetivos anuales"
-                 role="button" tabindex="0"
-                 style="border:1px solid var(--border);border-radius:4px;overflow:hidden;position:relative;">
-              <!-- Borde de color dinámico (izquierda) reemplazado por anillo; pero mantenemos borde sutil -->
-              <div class="kpi-obj-ring-wrap">
-                <!-- SVG ring: r=34, C=213.6, inicio desde arriba (-90°) -->
+                 role="button" tabindex="0">
+              <div class="kpi-r-ring">
                 <svg viewBox="0 0 80 80" fill="none">
-                  <!-- Pista -->
-                  <circle cx="40" cy="40" r="32"
-                    stroke="rgba(255,255,255,.1)" stroke-width="7" fill="none"/>
-                  <!-- Relleno dinámico -->
+                  <circle cx="40" cy="40" r="32" stroke="rgba(255,255,255,.07)" stroke-width="7" fill="none"/>
                   <circle cx="40" cy="40" r="32" id="kpi-obj-ring"
-                    stroke="rgba(0,232,122,.85)" stroke-width="7" fill="none"
+                    stroke="rgba(34,201,149,.85)" stroke-width="7" fill="none"
                     stroke-dasharray="0 201.1" stroke-linecap="round"
                     style="transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dasharray .7s ease, stroke .4s;"/>
                 </svg>
-                <!-- Texto centrado sobre el ring -->
-                <div class="kpi-obj-ring-center">
-                  <span class="kpi-obj-ring-pct" id="kpi-obj-pct-big">—%</span>
-                  <span class="kpi-obj-ring-sub" id="kpi-obj-count-big">—/—</span>
+                <div class="kpi-r-ring-c">
+                  <span class="pct" id="kpi-obj-pct-big">—%</span>
+                  <span class="sub" id="kpi-obj-count-big">—/—</span>
                 </div>
               </div>
-              <div class="kpi-obj-big-lbl">Objetivos Anuales</div>
-              <div class="kpi-obj-big-anio" id="kpi-obj-anio-big">2026</div>
+              <div class="kpi-r-obj-info">
+                <div class="kpi-r-lbl">Objetivos Anuales</div>
+                <div class="kpi-r-obj-anio">Año <b id="kpi-obj-anio-big">2026</b></div>
+                <div class="kpi-r-obj-d">Metas del supervisor</div>
+              </div>
             </div>
 
           </div>
