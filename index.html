@@ -96,7 +96,7 @@ body::before {
 
 /* ── APP VIEWER (iframe shell) ── */
 #app-viewer {
-  position: fixed; inset: 0; z-index: 10;
+  position: fixed; inset: 0; z-index: 9999;
   display: none; flex-direction: column;
   background: #f4f6f9;
 }
@@ -2221,7 +2221,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
 
 <!-- ═══════════════════ APP VIEWER (iframe para apps externas) ═══════════════════ -->
-<div id="app-viewer" style="display:none;position:fixed;inset:0;z-index:10;flex-direction:column;background:#f4f6f9;">
+<div id="app-viewer" style="display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#f4f6f9;">
   <div style="background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);">
     <button onclick="closeApp()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:'Barlow',sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;">
       <svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -2248,7 +2248,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 </div>
 
 <!-- ═══════════════════ SIMULADOR (inline) ═══════════════════ -->
-<div id="app-simulador" style="display:none;position:fixed;inset:0;z-index:10;background:#0d1f1a;overflow:hidden;">
+<div id="app-simulador" style="display:none;position:fixed;inset:0;z-index:9999;background:#0d1f1a;overflow:hidden;">
   <style id="sim-styles">
 
 :root{--bg:#0d1f1a;--bg2:#122319;--bg3:#0a1a14;--card:#152b20;--card2:#1a3328;--border:#2a4d38;--border2:#1e3d2c;--green:#2ecc71;--green2:#27ae60;--green3:#1e8449;--teal:#1abc9c;--yellow:#f39c12;--red:#e74c3c;--blue:#3498db;--text:#e8f5ec;--text2:#a8c9b0;--text3:#6a9878;--accent:#4ade80}
@@ -4041,7 +4041,7 @@ const INLINE_APPS = {'simulador-edari.html': 'app-simulador'};
 
 function openApp(url, title, module){
   const _splash = document.getElementById('splash'); if(_splash) _splash.style.display = 'none';
-  // Hide new portal shell when opening an app
+  // Ocultar portal por completo para que la app quede en primer plano
   const shell = document.getElementById('portal-shell');
   if(shell) shell.style.display = 'none';
   const inlineId = INLINE_APPS[url];
@@ -4049,11 +4049,13 @@ function openApp(url, title, module){
     document.getElementById(inlineId).style.display = 'block';
     history.pushState({app: url, title}, '', '#' + url.replace('.html',''));
   } else {
-    // iframe path for external apps (ruta colector, sms, etc.)
+    // iframe en primer plano
     const titleEl = document.getElementById('viewer-title-static');
     if(titleEl) titleEl.textContent = title;
     document.getElementById('app-frame').src = url;
-    document.getElementById('app-viewer').style.display = 'flex';
+    const viewer = document.getElementById('app-viewer');
+    viewer.style.display = 'flex';
+    viewer.style.zIndex = '9999';   // por encima de cualquier panel del portal
     history.pushState({app: url, title}, '', '#' + url.replace('.html',''));
   }
 }
@@ -5019,8 +5021,7 @@ function openSimuladorProceso() {
   if(!viewer) {
     viewer = document.createElement('div');
     viewer.id = 'sim-proceso-viewer';
-    viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#07090f;';
-
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;background:#07090f;';
     const bar = document.createElement('div');
     bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
     bar.innerHTML = [
@@ -5029,18 +5030,17 @@ function openSimuladorProceso() {
       ' Inicio</button>',
       '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;">\u2697\uFE0F Simulador Proceso EDARi</div>'
     ].join('');
-
     const frame = document.createElement('iframe');
     frame.id = 'sim-proceso-frame';
     frame.src = 'simulador-proceso-edari.html';
     frame.style.cssText = 'flex:1;border:none;width:100%;background:#07090f;';
     frame.allowFullscreen = true;
-
     viewer.appendChild(bar);
     viewer.appendChild(frame);
     document.body.appendChild(viewer);
   } else {
     viewer.style.display = 'flex';
+    viewer.style.zIndex = '9999';
   }
 }
 function closeSimuladorProceso() {
