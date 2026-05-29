@@ -1310,20 +1310,24 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               const ks = Object.keys(obj||{}).sort();
               return ks.slice(-n);
             }
+            // Devuelve los últimos N días que cumplen el predicado tieneDatos(valor)
+            function ultimosDiasConDatos(obj, n, tieneDatos){
+              const ks = Object.keys(obj||{}).sort();
+              const filtrados = ks.filter(k => tieneDatos(obj[k]));
+              return filtrados.slice(-n);
+            }
             function setText(id,t){const e=document.getElementById(id);if(e)e.textContent=t;}
             function setHTML(id,h){const e=document.getElementById(id);if(e)e.innerHTML=h;}
             const _esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
             // ── Gráfico 1: Caudal entrada (líneas EDARi y EDARu, 7 días) ──
             function dibujaCaudal(){
-              const dias = ultimasFechasOrdenadas(ST.caudales, 7);
+              const dias = ultimosDiasConDatos(ST.caudales, 7, v => v && ((+v.edari>0)||(+v.edaru>0)));
               const cont = document.getElementById('da-q-chart');
-              if(!cont){ console.warn('[DA dibujaCaudal] #da-q-chart NO está en el DOM'); return; }
+              if(!cont){ return; }
               if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-q-v','— '); setText('da-q-sub','media · —'); return; }
               const datos = dias.map(f=>({f, i:(ST.caudales[f]||{}).edari, u:(ST.caudales[f]||{}).edaru}));
-              console.log('[DA dibujaCaudal] primer:', JSON.stringify(datos[0]), '| último:', JSON.stringify(datos[datos.length-1]), '| dims:', cont.offsetWidth+'x'+cont.offsetHeight);
               const vals = datos.flatMap(d=>[d.i,d.u]).filter(v=>v!=null&&!isNaN(v));
-              console.log('[DA dibujaCaudal] valores válidos:', vals.length, 'min/max:', vals.length?Math.min(...vals)+'/'+Math.max(...vals):'N/A');
               if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; return; }
               const minV = Math.min(...vals), maxV = Math.max(...vals), rng = maxV-minV||1;
               const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
@@ -1355,12 +1359,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
             // ── Gráfico 2: Consumo eléctrico (barras EDARi + EDARu, 30 días) ──
             function dibujaConsumo(){
-              const dias = ultimasFechasOrdenadas(ST.consumo, 30);
+              const dias = ultimosDiasConDatos(ST.consumo, 30, v => v && ((+v.edari>0)||(+v.edaru>0)));
               const cont = document.getElementById('da-c-chart');
-              if(!cont){ console.warn('[DA dibujaConsumo] #da-c-chart NO en DOM'); return; }
+              if(!cont){ return; }
               if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-c-v','— '); setText('da-c-sub','total mes · —'); return; }
               const datos = dias.map(f=>({f, i:(ST.consumo[f]||{}).edari||0, u:(ST.consumo[f]||{}).edaru||0}));
-              console.log('[DA dibujaConsumo] primer:', JSON.stringify(datos[0]), '| último:', JSON.stringify(datos[datos.length-1]), '| dims:', cont.offsetWidth+'x'+cont.offsetHeight);
               const totales = datos.map(d=>d.i+d.u);
               const maxT = Math.max(...totales,1);
               const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
@@ -1402,14 +1405,13 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               return M/sal;
             }
             function dibujaEdadFango(){
-              const dias = ultimasFechasOrdenadas(ST.reactor, 30);
+              // Considerar día válido si tiene los campos mínimos para el cálculo
+              const dias = ultimosDiasConDatos(ST.reactor, 30,
+                v => v && (+v.ss_reactor_gl>0) && (+v.vol_reactor>0) && (+v.q_purga>0) && (+v.ss_recirc_gl>0));
               const cont = document.getElementById('da-ef-chart');
-              if(!cont){ console.warn('[DA dibujaEdadFango] #da-ef-chart NO en DOM'); return; }
-              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-ef-v','— '); setText('da-ef-sub','último valor · —'); return; }
+              if(!cont){ return; }
+              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos del reactor</div>'; setText('da-ef-v','— '); setText('da-ef-sub','último valor · —'); return; }
               const datos = dias.map(f=>({f, v:calcEdadFango(ST.reactor[f])}));
-              console.log('[DA dibujaEdadFango] '+datos.length+' días | ejemplo último:', dias[dias.length-1], JSON.stringify(ST.reactor[dias[dias.length-1]]), '→ θc=', datos[datos.length-1].v);
-              const validos = datos.filter(d=>d.v!=null&&!isNaN(d.v)&&d.v>0);
-              console.log('[DA dibujaEdadFango] válidos:', validos.length, '| ejemplo válido:', validos.length?JSON.stringify(validos[0]):'NINGUNO');
               const vals = datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v)&&v>0);
               if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Datos del reactor incompletos</div>'; setText('da-ef-v','— '); return; }
               const minV = Math.min(...vals, 5), maxV = Math.max(...vals, 15), rng = maxV-minV||1;
@@ -1440,11 +1442,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
             // ── Gráfico 4: Rendimiento DQO mensual (anillo) ──
             function dibujaRendDQO(){
-              const dias = ultimasFechasOrdenadas(ST.sms, 30);
+              const dias = ultimosDiasConDatos(ST.sms, 30,
+                v => v && v.edari && (+v.edari.dqo_ent>0) && (+v.edari.dqo_sal>=0));
               const cont = document.getElementById('da-r-chart');
-              if(!cont){ console.warn('[DA dibujaRendDQO] #da-r-chart NO en DOM'); return; }
-              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-r-v','— '); setText('da-r-sub','— días'); return; }
-              console.log('[DA dibujaRendDQO] '+dias.length+' días | ejemplo edari último:', JSON.stringify((ST.sms[dias[dias.length-1]]||{}).edari));
+              if(!cont){ return; }
+              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos SMS</div>'; setText('da-r-v','— '); setText('da-r-sub','— días'); return; }
               let sumE=0, sumS=0, n=0;
               dias.forEach(f=>{
                 const e = (ST.sms[f]||{}).edari;
@@ -1510,15 +1512,14 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             }
 
             function suscribir(){
-              if(ST.init||!window._fb||!window._fb.onValue){ console.warn('[DA] No se puede suscribir. _fb:', !!window._fb); setText('da-meta','⚠ Firebase no disponible'); return; }
+              if(ST.init||!window._fb||!window._fb.onValue) return;
               ST.init=true;
               const {ref,db,onValue}=window._fb;
-              console.log('[DA] Suscribiendo listeners Firebase...');
-              try{ onValue(ref(db,'caudales'),     s=>{const v=s.val()||{};ST.caudales=v; console.log('[DA] caudales:', Object.keys(v).length,'días'); dibujaCaudal();}); }catch(e){console.warn('[DA] caudales:',e);}
-              try{ onValue(ref(db,'consumo'),      s=>{const v=s.val()||{};ST.consumo=v;  console.log('[DA] consumo:',  Object.keys(v).length,'días'); dibujaConsumo();}); }catch(e){console.warn('[DA] consumo:',e);}
-              try{ onValue(ref(db,'reactor'),      s=>{const v=s.val()||{};ST.reactor=v;  console.log('[DA] reactor:',  Object.keys(v).length,'días'); dibujaEdadFango(); actualizaKpiSst();}); }catch(e){console.warn('[DA] reactor:',e);}
-              try{ onValue(ref(db,'sms_datos'),    s=>{const v=s.val()||{};ST.sms=v;      console.log('[DA] sms_datos:',Object.keys(v).length,'días'); dibujaRendDQO();}); }catch(e){console.warn('[DA] sms:',e);}
-              try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; console.log('[DA] meta:', ST.meta); actualizaMeta();}); }catch(e){console.warn('[DA] meta:',e);}
+              try{ onValue(ref(db,'caudales'),     s=>{ST.caudales=s.val()||{}; dibujaCaudal();}); }catch(e){}
+              try{ onValue(ref(db,'consumo'),      s=>{ST.consumo=s.val()||{};  dibujaConsumo();}); }catch(e){}
+              try{ onValue(ref(db,'reactor'),      s=>{ST.reactor=s.val()||{};  dibujaEdadFango(); actualizaKpiSst();}); }catch(e){}
+              try{ onValue(ref(db,'sms_datos'),    s=>{ST.sms=s.val()||{};      dibujaRendDQO();}); }catch(e){}
+              try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; actualizaMeta();}); }catch(e){}
             }
 
             // Esperar a Firebase
@@ -1533,17 +1534,14 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             }
             // Gancho usado por la carga: relee datos de Firebase y redibuja todo
             window.cargaActualizarGraficos = function(){
-              console.log('[DA] cargaActualizarGraficos llamado. ST:',
-                {caudales:Object.keys(ST.caudales||{}).length, consumo:Object.keys(ST.consumo||{}).length,
-                 reactor:Object.keys(ST.reactor||{}).length, sms:Object.keys(ST.sms||{}).length});
               renderTodo();
               actualizaMeta();
-              // Fallback: si algún nodo está vacío en ST pero Firebase tiene get, leemos directo
+              // Fallback defensivo: si algún nodo está vacío en ST pero Firebase está disponible, re-leer
               if(window._fb && window._fb.get){
                 const {ref,db,get}=window._fb;
                 const refetch = (path, target, after) => {
                   if(Object.keys(ST[target]||{}).length===0){
-                    get(ref(db,path)).then(s=>{const v=s.val()||{}; ST[target]=v; console.log('[DA] refetch '+path+':', Object.keys(v).length); after();}).catch(e=>console.warn('[DA] refetch '+path,e));
+                    get(ref(db,path)).then(s=>{ST[target]=s.val()||{}; after();}).catch(()=>{});
                   }
                 };
                 refetch('caudales','caudales', dibujaCaudal);
