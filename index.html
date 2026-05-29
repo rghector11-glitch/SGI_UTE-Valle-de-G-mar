@@ -1021,7 +1021,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div class="kpi-r-data">
                 <div class="kpi-r-v" id="kpi-sst">— <span class="ku">mg/L</span></div>
               </div>
-              <div class="kpi-r-foot" id="kpi-sst-s">Simulador EDARi</div>
+              <div class="kpi-r-foot" id="kpi-sst-s">Reactor biológico</div>
             </div>
 
             <!-- Próximas calibraciones -->
@@ -1061,6 +1061,473 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             </div>
 
           </div>
+
+
+          <!-- ═══ Dashboard analítico (lee de Firebase: caudales, consumo, reactor, sms_datos) ═══ -->
+          <style>
+          .da-panel{margin:0 0 16px;}
+          .da-h{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px;padding:0 2px;}
+          .da-h-t{font-family:var(--cond,'Barlow Condensed');font-size:13px;font-weight:600;color:var(--light,#fff);letter-spacing:.04em;text-transform:uppercase;}
+          .da-h-s{font-family:var(--mono,monospace);font-size:9px;color:var(--muted,#5d7390);letter-spacing:.05em;}
+          .da-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;}
+          @media (max-width:780px){.da-grid{grid-template-columns:1fr;}}
+          .da-card{background:linear-gradient(135deg,var(--panel,#111c2f),var(--card,#162236));border:1px solid var(--border,#1f3252);border-radius:9px;padding:11px 13px 9px;position:relative;overflow:hidden;min-height:148px;display:flex;flex-direction:column;}
+          .da-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--accent));opacity:.7;}
+          .da-card-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;}
+          .da-card-ti{display:flex;align-items:center;gap:7px;}
+          .da-card-ic{width:22px;height:22px;border-radius:5px;background:rgba(255,255,255,.04);border:1px solid var(--border-l,#2c4368);display:flex;align-items:center;justify-content:center;color:var(--c,var(--accent));font-size:13px;}
+          .da-card-t{font-family:var(--cond,'Barlow Condensed');font-size:12px;font-weight:600;color:var(--light,#fff);letter-spacing:.03em;}
+          .da-card-sub{font-family:var(--mono,monospace);font-size:7.5px;color:var(--muted,#5d7390);letter-spacing:.05em;margin-top:1px;}
+          .da-card-v{font-family:var(--mono,monospace);font-size:16px;font-weight:700;color:var(--c,var(--accent));text-align:right;line-height:1;}
+          .da-card-v .u{font-size:8px;color:var(--text-d,#8ba0bd);margin-left:3px;font-weight:400;}
+          .da-card-v-sub{font-family:var(--mono,monospace);font-size:8px;color:var(--muted,#5d7390);text-align:right;margin-top:2px;letter-spacing:.04em;}
+          .da-chart{flex:1;min-height:74px;margin-top:6px;position:relative;}
+          .da-chart svg{width:100%;height:100%;display:block;}
+          .da-noinfo{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted,#5d7390);font-family:var(--mono,monospace);font-size:9px;letter-spacing:.04em;opacity:.6;}
+          .da-legend{display:flex;gap:9px;font-family:var(--mono,monospace);font-size:7px;color:var(--muted,#5d7390);letter-spacing:.04em;text-transform:uppercase;}
+          .da-legend span{display:inline-flex;align-items:center;gap:3px;}
+          .da-legend i{width:7px;height:7px;border-radius:2px;display:inline-block;}
+          </style>
+          <style>
+          /* ── Layout 2-col: KPIs arriba (full), módulos izq 50%, gráficos der 50% ── */
+          #panel-portal{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            grid-template-areas:"kpis kpis" "modulos analitica";
+            column-gap:14px; row-gap:14px;
+            align-content:start;
+          }
+          #panel-portal > .kpi-strip{grid-area:kpis; margin-bottom:0;}
+          #panel-portal > .modules-grid{grid-area:modulos; grid-template-columns:repeat(2,1fr); flex:none; overflow:visible;}
+          #panel-portal > .da-panel{grid-area:analitica; margin:0;}
+          #panel-portal .da-grid{grid-template-columns:1fr;}
+
+          /* KPIs compactos */
+          .kpi-strip{gap:10px;}
+          .kpi-r{padding:9px 12px;}
+          .kpi-r-hd{gap:7px; margin-bottom:6px;}
+          .kpi-r-ic{width:24px; height:24px; font-size:12px; border-radius:6px;}
+          .kpi-r-lbl{font-size:8.5px; letter-spacing:.1em;}
+          .kpi-r-v{font-size:22px;}
+          .kpi-r-v .ku{font-size:10px;}
+          .kpi-r-foot{font-size:8.5px; margin-top:4px;}
+          .kpi-r-obj{gap:12px;}
+          .kpi-r-ring{width:58px; height:58px;}
+          .kpi-r-ring svg{width:58px; height:58px;}
+          .kpi-r-ring-c .pct{font-size:16px;}
+          .kpi-r-ring-c .sub{font-size:8.5px;}
+
+          /* Tarjetas de módulo compactas (caben 2 cols × 4 filas) */
+          .mc{min-height:80px;}
+          .mc-body{padding:7px 10px; gap:2px;}
+          .mc-title{font-size:12.5px; line-height:1.1;}
+          .mc-desc{font-size:9px; line-height:1.25;}
+          .mc-foot{padding:5px 10px;}
+          .mc-stat{font-size:8.5px;}
+          .mc-num{font-size:6.5px;}
+          .mc-badge{font-size:6.5px; padding:1.5px 5px;}
+
+          /* Tarjetas analíticas (1 columna, más estrechas) */
+          .da-card{min-height:128px; padding:9px 11px 7px;}
+          .da-card-t{font-size:11.5px;}
+          .da-card-sub{font-size:7px;}
+          .da-card-v{font-size:14px;}
+          .da-card-v .u{font-size:7.5px;}
+          .da-card-v-sub{font-size:7.5px;}
+          .da-chart{min-height:62px;}
+
+          /* Responsive: en pantallas estrechas vuelve a 1 columna apilada */
+          @media (max-width:1100px){
+            #panel-portal{grid-template-columns:1fr; grid-template-areas:"kpis" "analitica" "modulos";}
+            #panel-portal > .modules-grid{grid-template-columns:repeat(2,1fr);}
+          }
+          @media (max-width:640px){
+            #panel-portal > .modules-grid{grid-template-columns:1fr;}
+          }
+
+          /* ── No scroll vertical: aprovechar 100% del alto disponible ── */
+          #panel-portal{
+            grid-template-rows:auto 1fr;
+            row-gap:10px; column-gap:12px;
+            min-height:0;
+            height:100%;
+            overflow:hidden;
+          }
+          #panel-portal > .kpi-strip{margin-bottom:0; gap:9px;}
+          #panel-portal > .modules-grid{
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            grid-template-rows:repeat(4,1fr);
+            row-gap:7px; column-gap:8px;
+            min-height:0;
+            height:100%;
+            overflow:hidden;
+          }
+          #panel-portal > .modules-grid > .mc{min-height:0; height:100%; overflow:hidden;}
+          #panel-portal > .da-panel{
+            display:flex; flex-direction:column;
+            min-height:0; height:100%;
+            overflow:hidden;
+          }
+          #panel-portal > .da-panel > .da-h{margin-bottom:6px;}
+          #panel-portal > .da-panel > .da-grid{
+            display:grid;
+            grid-template-columns:1fr;
+            grid-template-rows:repeat(4,1fr);
+            row-gap:7px;
+            flex:1; min-height:0;
+          }
+          #panel-portal > .da-panel > .da-grid > .da-card{
+            min-height:0;
+            padding:7px 11px 5px;
+            overflow:hidden;
+          }
+          .da-card-h{margin-bottom:4px;}
+          .da-chart{min-height:0; flex:1; margin-top:3px;}
+          .da-legend{margin-top:2px; font-size:6.5px;}
+
+          /* KPIs un pelín más bajos para liberar espacio vertical */
+          .kpi-r{padding:7px 11px;}
+          .kpi-r-hd{margin-bottom:4px;}
+          .kpi-r-v{font-size:20px;}
+          .kpi-r-foot{font-size:8px; margin-top:3px;}
+          .kpi-r-ring{width:52px; height:52px;}
+          .kpi-r-ring svg{width:52px; height:52px;}
+          .kpi-r-ring-c .pct{font-size:14px;}
+          .kpi-r-obj{gap:10px;}
+
+          /* Tarjetas de módulo más compactas en altura */
+          .mc-body{padding:5px 9px; gap:1px;}
+          .mc-title{font-size:11.5px; line-height:1.08;}
+          .mc-desc{font-size:8.5px; line-height:1.22;}
+          .mc-foot{padding:4px 9px;}
+          .mc-stat{font-size:8px;}
+          .mc-ilu{padding:5px;}
+          </style>
+          <div class="da-panel">
+            <div class="da-h">
+              <div class="da-h-t">▸ Análisis operacional</div>
+              <div class="da-h-s" id="da-meta">— sin carga reciente</div>
+            </div>
+            <div class="da-grid">
+              <!-- 1. Caudal entrada 7d -->
+              <div class="da-card" style="--c:var(--accent,#3aafe8);">
+                <div class="da-card-h">
+                  <div class="da-card-ti">
+                    <div class="da-card-ic"><i class="ti ti-droplet"></i></div>
+                    <div>
+                      <div class="da-card-t">Caudal entrada</div>
+                      <div class="da-card-sub">EDARi · EDARu · últimos 7 días</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="da-card-v" id="da-q-v">— <span class="u">m³/d</span></div>
+                    <div class="da-card-v-sub" id="da-q-sub">media · —</div>
+                  </div>
+                </div>
+                <div class="da-chart" id="da-q-chart"><div class="da-noinfo">Sin datos</div></div>
+                <div class="da-legend">
+                  <span><i style="background:var(--accent,#3aafe8)"></i> EDARi</span>
+                  <span><i style="background:var(--purple,#9788e6)"></i> EDARu</span>
+                </div>
+              </div>
+              <!-- 2. Consumo 30d -->
+              <div class="da-card" style="--c:var(--purple,#9788e6);">
+                <div class="da-card-h">
+                  <div class="da-card-ti">
+                    <div class="da-card-ic"><i class="ti ti-bolt"></i></div>
+                    <div>
+                      <div class="da-card-t">Consumo eléctrico</div>
+                      <div class="da-card-sub">EDARi + EDARu · 30 días</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="da-card-v" id="da-c-v">— <span class="u">kWh</span></div>
+                    <div class="da-card-v-sub" id="da-c-sub">total mes · —</div>
+                  </div>
+                </div>
+                <div class="da-chart" id="da-c-chart"><div class="da-noinfo">Sin datos</div></div>
+                <div class="da-legend">
+                  <span><i style="background:var(--accent,#3aafe8)"></i> EDARi</span>
+                  <span><i style="background:var(--purple,#9788e6)"></i> EDARu</span>
+                </div>
+              </div>
+              <!-- 3. Edad fango 30d -->
+              <div class="da-card" style="--c:var(--warn,#f0b033);">
+                <div class="da-card-h">
+                  <div class="da-card-ti">
+                    <div class="da-card-ic"><i class="ti ti-flask"></i></div>
+                    <div>
+                      <div class="da-card-t">Edad de fango</div>
+                      <div class="da-card-sub">Reactor biológico · 30 días</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="da-card-v" id="da-ef-v">— <span class="u">d</span></div>
+                    <div class="da-card-v-sub" id="da-ef-sub">último valor · —</div>
+                  </div>
+                </div>
+                <div class="da-chart" id="da-ef-chart"><div class="da-noinfo">Sin datos</div></div>
+                <div class="da-legend">
+                  <span><i style="background:var(--warn,#f0b033)"></i> θc</span>
+                  <span style="opacity:.7"><i style="background:var(--accent2,#22c995);opacity:.4"></i> banda 5–15 d</span>
+                </div>
+              </div>
+              <!-- 4. Rendimiento DQO -->
+              <div class="da-card" style="--c:var(--accent2,#22c995);">
+                <div class="da-card-h">
+                  <div class="da-card-ti">
+                    <div class="da-card-ic"><i class="ti ti-trending-up"></i></div>
+                    <div>
+                      <div class="da-card-t">Rendimiento DQO</div>
+                      <div class="da-card-sub">EDARi · promedio último mes</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="da-card-v" id="da-r-v">— <span class="u">%</span></div>
+                    <div class="da-card-v-sub" id="da-r-sub">— días</div>
+                  </div>
+                </div>
+                <div class="da-chart" id="da-r-chart"><div class="da-noinfo">Sin datos</div></div>
+                <div class="da-legend">
+                  <span style="opacity:.8">DQO entrada → DQO salida</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <script>
+          // ══ DASHBOARD ANALÍTICO ══════════════════════════════════════════════════════
+          (function(){
+            const ST = { caudales:{}, consumo:{}, reactor:{}, sms:{}, meta:null, init:false };
+
+            // helpers
+            const _fmt   = n => (n==null||isNaN(n))?'—':(Math.abs(n)>=1000?Math.round(n).toLocaleString('es-ES'):(+n).toFixed(Math.abs(n)>=10?0:1));
+            const _fmtK  = n => (n==null||isNaN(n))?'—':Math.round(n).toLocaleString('es-ES');
+            const _fmtDM = iso => { if(!iso) return ''; const p=iso.split('-'); return p[2]+'/'+p[1]; };
+
+            function ultimasFechasOrdenadas(obj, n){
+              const ks = Object.keys(obj||{}).sort();
+              return ks.slice(-n);
+            }
+            function setText(id,t){const e=document.getElementById(id);if(e)e.textContent=t;}
+            function setHTML(id,h){const e=document.getElementById(id);if(e)e.innerHTML=h;}
+            const _esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+            // ── Gráfico 1: Caudal entrada (líneas EDARi y EDARu, 7 días) ──
+            function dibujaCaudal(){
+              const dias = ultimasFechasOrdenadas(ST.caudales, 7);
+              const cont = document.getElementById('da-q-chart');
+              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-q-v','— '); setText('da-q-sub','media · —'); return; }
+              const datos = dias.map(f=>({f, i:(ST.caudales[f]||{}).edari, u:(ST.caudales[f]||{}).edaru}));
+              const vals = datos.flatMap(d=>[d.i,d.u]).filter(v=>v!=null&&!isNaN(v));
+              if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; return; }
+              const minV = Math.min(...vals), maxV = Math.max(...vals), rng = maxV-minV||1;
+              const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+              const x = i => PL + (datos.length>1 ? i/(datos.length-1)*gW : gW/2);
+              const y = v => v==null||isNaN(v) ? null : PT+gH-(v-minV)/rng*gH;
+              function poly(key){ return datos.map((d,i)=>{const yy=y(d[key]); return yy==null?null:x(i)+','+yy.toFixed(1);}).filter(Boolean).join(' '); }
+              const polyI = poly('i'), polyU = poly('u');
+              function pts(key,color){ return datos.map((d,i)=>{const yy=y(d[key]); return yy==null?'':`<circle cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2.2" fill="${color}" stroke="var(--surface,#0c1424)" stroke-width="1"/>`;}).join(''); }
+              // Etiquetas Y
+              const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(maxV)}</text>
+                          <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(minV)}</text>`;
+              // Etiquetas X (primera, mitad, última)
+              const idxs = [0, Math.floor((datos.length-1)/2), datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+              const xL = idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtDM(datos[i].f)}</text>`).join('');
+              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+                <line x1="${PL}" y1="${PT+gH/2}" x2="${W-PR}" y2="${PT+gH/2}" stroke="var(--border,#1f3252)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.6"/>
+                ${polyI?`<polyline points="${polyI}" fill="none" stroke="var(--accent,#3aafe8)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
+                ${polyU?`<polyline points="${polyU}" fill="none" stroke="var(--purple,#9788e6)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
+                ${pts('i','var(--accent,#3aafe8)')}${pts('u','var(--purple,#9788e6)')}
+                ${yL}${xL}
+              </svg>`;
+              // KPI
+              const lastI = [...datos].reverse().find(d=>d.i!=null);
+              const mediaI = datos.filter(d=>d.i!=null).reduce((a,d,_,arr)=>a+d.i/arr.length,0);
+              const mediaU = datos.filter(d=>d.u!=null).reduce((a,d,_,arr)=>a+d.u/arr.length,0);
+              setHTML('da-q-v', _fmtK(lastI?lastI.i:null)+' <span class="u">m³/d</span>');
+              setText('da-q-sub','media · '+_fmtK(mediaI)+' / '+_fmtK(mediaU));
+            }
+
+            // ── Gráfico 2: Consumo eléctrico (barras EDARi + EDARu, 30 días) ──
+            function dibujaConsumo(){
+              const dias = ultimasFechasOrdenadas(ST.consumo, 30);
+              const cont = document.getElementById('da-c-chart');
+              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-c-v','— '); setText('da-c-sub','total mes · —'); return; }
+              const datos = dias.map(f=>({f, i:(ST.consumo[f]||{}).edari||0, u:(ST.consumo[f]||{}).edaru||0}));
+              const totales = datos.map(d=>d.i+d.u);
+              const maxT = Math.max(...totales,1);
+              const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+              const bw = gW/datos.length;
+              const barras = datos.map((d,k)=>{
+                const xx = PL + k*bw + 0.5;
+                const w = Math.max(1, bw-1.2);
+                const hI = (d.i/maxT)*gH;
+                const hU = (d.u/maxT)*gH;
+                const yI = PT+gH-hI;
+                const yU = PT+gH-hI-hU;
+                return `<rect x="${xx.toFixed(1)}" y="${yI.toFixed(1)}" width="${w.toFixed(1)}" height="${hI.toFixed(1)}" fill="var(--accent,#3aafe8)" opacity="0.75"/>
+                        <rect x="${xx.toFixed(1)}" y="${yU.toFixed(1)}" width="${w.toFixed(1)}" height="${hU.toFixed(1)}" fill="var(--purple,#9788e6)" opacity="0.75"/>`;
+              }).join('');
+              const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(maxT)}</text>
+                          <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">0</text>`;
+              const idxs = [0, Math.floor((datos.length-1)/2), datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+              const xL = idxs.map(i=>`<text x="${(PL + i*bw + bw/2).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtDM(datos[i].f)}</text>`).join('');
+              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+                ${barras}${yL}${xL}
+              </svg>`;
+              const totMes = datos.reduce((a,d)=>a+d.i+d.u,0);
+              const media = totMes/datos.length;
+              setHTML('da-c-v', _fmtK(totMes)+' <span class="u">kWh</span>');
+              setText('da-c-sub','media · '+_fmtK(media)+' kWh/d · '+datos.length+' d');
+            }
+
+            // ── Gráfico 3: Edad fango (línea + banda 5-15d, 30 días) ──
+            function calcEdadFango(r){
+              if(!r) return null;
+              const SSr = r.ss_reactor_gl, SSrc = r.ss_recirc_gl, Vol = r.vol_reactor;
+              const Qp = r.q_purga, Qb = r.caudal_bio, SSef = r.ss_efluente;
+              if(SSr==null||Vol==null||Qp==null||SSrc==null) return null;
+              const M = SSr * Vol;                          // kg (g/L × m³ = kg)
+              const sal_purga = Qp * SSrc;                  // kg/d
+              const sal_ef = (Qb!=null&&SSef!=null)?Qb*SSef/1000:0; // SSef en mg/L
+              const sal = sal_purga + sal_ef;
+              if(!sal||sal<=0) return null;
+              return M/sal;
+            }
+            function dibujaEdadFango(){
+              const dias = ultimasFechasOrdenadas(ST.reactor, 30);
+              const cont = document.getElementById('da-ef-chart');
+              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-ef-v','— '); setText('da-ef-sub','último valor · —'); return; }
+              const datos = dias.map(f=>({f, v:calcEdadFango(ST.reactor[f])}));
+              const vals = datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v)&&v>0);
+              if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Datos del reactor incompletos</div>'; setText('da-ef-v','— '); return; }
+              const minV = Math.min(...vals, 5), maxV = Math.max(...vals, 15), rng = maxV-minV||1;
+              const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+              const x = i => PL + (datos.length>1 ? i/(datos.length-1)*gW : gW/2);
+              const y = v => v==null||isNaN(v) ? null : PT+gH-(v-minV)/rng*gH;
+              // Banda objetivo 5-15
+              const y5 = y(5), y15 = y(15);
+              const banda = (y5!=null&&y15!=null) ? `<rect x="${PL}" y="${Math.min(y5,y15).toFixed(1)}" width="${gW}" height="${Math.abs(y15-y5).toFixed(1)}" fill="var(--accent2,#22c995)" opacity="0.07"/>
+                              <line x1="${PL}" y1="${y5.toFixed(1)}" x2="${W-PR}" y2="${y5.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
+                              <line x1="${PL}" y1="${y15.toFixed(1)}" x2="${W-PR}" y2="${y15.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>` : '';
+              const poly = datos.map((d,i)=>{const yy=y(d.v); return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
+              const pts = datos.map((d,i)=>{const yy=y(d.v); return yy==null?'':`<circle cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="var(--warn,#f0b033)" stroke="var(--surface,#0c1424)" stroke-width="1"/>`;}).join('');
+              const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${maxV.toFixed(0)}</text>
+                          <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${minV.toFixed(0)}</text>`;
+              const idxs = [0, Math.floor((datos.length-1)/2), datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+              const xL = idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtDM(datos[i].f)}</text>`).join('');
+              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+                ${banda}
+                ${poly?`<polyline points="${poly}" fill="none" stroke="var(--warn,#f0b033)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
+                ${pts}${yL}${xL}
+              </svg>`;
+              const ult = [...datos].reverse().find(d=>d.v!=null);
+              const ok = ult && ult.v>=5 && ult.v<=15;
+              setHTML('da-ef-v', (ult?ult.v.toFixed(1):'—')+' <span class="u">d</span>');
+              setText('da-ef-sub', ult?(_fmtDM(ult.f)+' · '+(ok?'en banda':'fuera')):'—');
+            }
+
+            // ── Gráfico 4: Rendimiento DQO mensual (anillo) ──
+            function dibujaRendDQO(){
+              const dias = ultimasFechasOrdenadas(ST.sms, 30);
+              const cont = document.getElementById('da-r-chart');
+              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-r-v','— '); setText('da-r-sub','— días'); return; }
+              let sumE=0, sumS=0, n=0;
+              dias.forEach(f=>{
+                const e = (ST.sms[f]||{}).edari;
+                if(!e) return;
+                if(e.dqo_ent!=null && e.dqo_sal!=null && e.dqo_ent>0){
+                  sumE += e.dqo_ent; sumS += e.dqo_sal; n++;
+                }
+              });
+              if(!n){ cont.innerHTML='<div class="da-noinfo">Sin pares entrada/salida DQO</div>'; setText('da-r-v','— '); setText('da-r-sub','0 días'); return; }
+              const rend = Math.max(0, Math.min(100, (sumE-sumS)/sumE*100));
+              const col = rend>=85?'var(--accent2,#22c995)':rend>=70?'var(--warn,#f0b033)':'var(--danger,#e54a64)';
+              const r=28, cx=44, cy=40, perim=2*Math.PI*r;
+              const dash=(rend/100)*perim;
+              cont.innerHTML = `<svg viewBox="0 0 200 80" preserveAspectRatio="xMidYMid meet">
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border,#1f3252)" stroke-width="6"/>
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round"
+                  stroke-dasharray="${dash.toFixed(1)} ${perim.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>
+                <text x="${cx}" y="${cy+1}" text-anchor="middle" dominant-baseline="middle" fill="${col}" font-size="14" font-weight="700" font-family="var(--mono,monospace)">${rend.toFixed(0)}%</text>
+                <text x="90" y="28" fill="var(--text-d,#8ba0bd)" font-size="8" font-family="var(--mono,monospace)">Entrada media</text>
+                <text x="90" y="40" fill="var(--accent,#3aafe8)" font-size="11" font-weight="700" font-family="var(--mono,monospace)">${(sumE/n).toFixed(0)} <tspan font-size="7" fill="var(--muted,#5d7390)">mg/L</tspan></text>
+                <text x="90" y="55" fill="var(--text-d,#8ba0bd)" font-size="8" font-family="var(--mono,monospace)">Salida media</text>
+                <text x="90" y="67" fill="${col}" font-size="11" font-weight="700" font-family="var(--mono,monospace)">${(sumS/n).toFixed(0)} <tspan font-size="7" fill="var(--muted,#5d7390)">mg/L</tspan></text>
+              </svg>`;
+              setHTML('da-r-v', rend.toFixed(1)+' <span class="u">%</span>');
+              setText('da-r-sub', n+' días con pares válidos');
+            }
+
+            function renderTodo(){
+              try{ dibujaCaudal(); }catch(e){console.warn('da q',e);}
+              try{ dibujaConsumo(); }catch(e){console.warn('da c',e);}
+              try{ dibujaEdadFango(); }catch(e){console.warn('da ef',e);}
+              try{ dibujaRendDQO(); }catch(e){console.warn('da r',e);}
+            }
+
+            // ── KPI SST del topbar: último valor real cargado (g/L → mg/L) ──
+            function actualizaKpiSst(){
+              const dias = Object.keys(ST.reactor||{}).sort();
+              if(!dias.length) return;
+              let val=null, fechaUlt=null;
+              for(let i=dias.length-1; i>=0; i--){
+                const r = ST.reactor[dias[i]];
+                if(r && r.ss_reactor_gl!=null && !isNaN(r.ss_reactor_gl) && r.ss_reactor_gl>0){
+                  val = r.ss_reactor_gl * 1000;   // g/L → mg/L
+                  fechaUlt = dias[i];
+                  break;
+                }
+              }
+              if(val==null) return;
+              const elV = document.getElementById('kpi-sst');
+              const elS = document.getElementById('kpi-sst-s');
+              if(elV) elV.innerHTML = Math.round(val).toLocaleString('es-ES') + ' <span class="ku">mg/L</span>';
+              if(elS && fechaUlt){
+                const p = fechaUlt.split('-');
+                elS.textContent = 'Reactor · ' + p[2]+'/'+p[1]+'/'+p[0].slice(2);
+              }
+            }
+
+            function actualizaMeta(){
+              const m = ST.meta;
+              if(!m||!m.ultima_carga){ setText('da-meta','— sin carga reciente'); return; }
+              const d = new Date(m.ultima_carga);
+              setText('da-meta','Última carga: '+d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · '+(m.dias||'?')+' días');
+            }
+
+            function suscribir(){
+              if(ST.init||!window._fb||!window._fb.onValue) return;
+              ST.init=true;
+              const {ref,db,onValue}=window._fb;
+              try{ onValue(ref(db,'caudales'),     s=>{ST.caudales=s.val()||{}; dibujaCaudal();}); }catch(e){}
+              try{ onValue(ref(db,'consumo'),      s=>{ST.consumo=s.val()||{};  dibujaConsumo();}); }catch(e){}
+              try{ onValue(ref(db,'reactor'),      s=>{ST.reactor=s.val()||{};  dibujaEdadFango(); actualizaKpiSst();}); }catch(e){}
+              try{ onValue(ref(db,'sms_datos'),    s=>{ST.sms=s.val()||{};      dibujaRendDQO();}); }catch(e){}
+              try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; actualizaMeta();}); }catch(e){}
+            }
+
+            // Esperar a Firebase
+            function arranca(){
+              if(typeof waitForFirebase==='function'){
+                waitForFirebase().then(suscribir).catch(()=>{});
+              } else if(window._fb){
+                suscribir();
+              } else {
+                setTimeout(arranca, 400);
+              }
+            }
+            // Gancho usado por la carga: redibuja con los nuevos datos al terminar la carga
+            window.cargaActualizarGraficos = function(){ renderTodo(); actualizaMeta(); };
+
+            if(document.readyState==='loading'){
+              document.addEventListener('DOMContentLoaded', arranca);
+            } else { arranca(); }
+          })();
+          </script>
+          <!-- ═══ /Dashboard analítico ═══ -->
 
           <!-- Modules grid -->
           <div class="modules-grid">
