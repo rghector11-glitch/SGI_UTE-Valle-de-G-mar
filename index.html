@@ -2169,9 +2169,39 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <!-- ── PANEL: GESTIÓN SUPERVISOR ── -->
         <div class="p-panel" id="panel-gestion">
           <div class="p-panel-header"><i class="ti ti-shield-check" aria-hidden="true"></i>Gestión Supervisor</div>
-          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;flex:1;padding:2rem;">
-            <i class="ti ti-tools" style="font-size:48px;color:var(--muted);opacity:.4;"></i>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Panel consolidado · Histórico de turnos · Auditoría de acceso</span></div>
+          <style>
+            .gs-container{padding:14px 18px;display:flex;flex-direction:column;gap:12px;height:100%;overflow:hidden;min-height:0;}
+            .gs-h-row{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:10px;flex-wrap:wrap;}
+            .gs-h-tit{font-family:var(--cond,'Barlow Condensed');font-size:14px;font-weight:600;color:var(--light,#fff);letter-spacing:.04em;}
+            .gs-h-cnt{font-family:var(--mono,monospace);font-size:10px;color:var(--muted,#5d7390);letter-spacing:.05em;}
+            .gs-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;min-height:0;}
+            .gs-list::-webkit-scrollbar{width:6px;}
+            .gs-list::-webkit-scrollbar-thumb{background:var(--border,#1f3252);border-radius:3px;}
+            .gs-empty{text-align:center;color:var(--muted,#5d7390);font-family:var(--mono,monospace);font-size:11px;padding:36px 12px;letter-spacing:.05em;}
+            .gs-user{background:linear-gradient(135deg,var(--panel,#111c2f),var(--card,#162236));border:1px solid var(--border,#1f3252);border-radius:8px;padding:11px 13px;}
+            .gs-user-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px;gap:10px;}
+            .gs-user-info{display:flex;flex-direction:column;gap:1px;}
+            .gs-user-name{font-family:var(--cond,'Barlow Condensed');font-size:13.5px;font-weight:700;color:var(--light,#fff);display:flex;align-items:center;gap:7px;}
+            .gs-user-name .gs-av{display:inline-flex;width:20px;height:20px;background:linear-gradient(135deg,var(--accent,#3aafe8),var(--purple,#9788e6));border-radius:50%;align-items:center;justify-content:center;color:var(--surface,#0c1424);font-size:9px;font-weight:800;letter-spacing:0;}
+            .gs-user-cnt{font-family:var(--mono,monospace);font-size:9px;color:var(--muted,#5d7390);letter-spacing:.05em;margin-left:27px;}
+            .gs-copy{background:transparent;border:1px solid var(--accent,#3aafe8);color:var(--accent,#3aafe8);border-radius:5px;padding:5px 11px;font-family:var(--mono,monospace);font-size:9.5px;font-weight:600;cursor:pointer;letter-spacing:.04em;display:inline-flex;align-items:center;gap:5px;transition:background .12s, border-color .12s, color .12s;white-space:nowrap;}
+            .gs-copy:hover{background:rgba(58,175,232,.12);}
+            .gs-copy.ok{border-color:var(--accent2,#22c995);color:var(--accent2,#22c995);background:rgba(34,201,149,.08);}
+            .gs-tasks{display:flex;flex-direction:column;gap:5px;}
+            .gs-task{background:rgba(255,255,255,.025);border-left:3px solid var(--c,#f0b033);border-radius:3px;padding:6px 9px 7px;}
+            .gs-task-tit{font-size:11.5px;color:var(--light,#fff);font-weight:600;line-height:1.25;}
+            .gs-task-desc{font-size:10px;color:var(--text-d,#8ba0bd);margin-top:2px;line-height:1.3;}
+            .gs-task-meta{font-family:var(--mono,monospace);font-size:8.5px;color:var(--muted,#5d7390);margin-top:3px;letter-spacing:.04em;display:flex;gap:9px;flex-wrap:wrap;}
+            .gs-task-meta .gs-pri{color:var(--c,#f0b033);font-weight:700;text-transform:uppercase;}
+          </style>
+          <div class="gs-container">
+            <div class="gs-h-row">
+              <div class="gs-h-tit">▸ Tareas asignadas por persona</div>
+              <div class="gs-h-cnt" id="gs-cnt">— pendientes</div>
+            </div>
+            <div class="gs-list" id="gs-list">
+              <div class="gs-empty">Cargando tareas…</div>
+            </div>
           </div>
         </div>
 
@@ -5069,6 +5099,10 @@ function sbNav(id) {
   if(id === 'tendencias')  loadTendencias();
   if(id === 'alertas')     loadAlertas();
   if(id === 'analitica')   loadAnalitica();
+  if(id === 'gestion'){
+    if(typeof tarIniciar==='function') tarIniciar();   // garantiza suscripción
+    if(typeof gestionRenderTareas==='function') gestionRenderTareas();
+  }
 }
 
 // ══ USER POPOVER ═══════════════════════════════════════════════════════════════
@@ -7328,6 +7362,7 @@ function tarIniciar(){
     window._fb.onValue(window._fb.ref(window._fb.db,'tareas'), snap=>{
       _tar.data=snap.val()||{};
       tarRender(); tarBadge();
+      if(typeof gestionRenderTareas==='function') gestionRenderTareas();
     });
   }catch(e){ console.warn('tareas listen',e); }
 }
@@ -7420,6 +7455,106 @@ function tarRender(){
 }
 window.tarRender=tarRender;
 
+// ═══ Gestión Supervisor: tareas agrupadas por persona ═══
+function _gsFmtFecha(iso){if(!iso)return '';const p=iso.split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2);}
+function gestionRenderTareas(){
+  const cont = document.getElementById('gs-list');
+  const cnt  = document.getElementById('gs-cnt');
+  if(!cont) return;
+  const pend = Object.values(_tar.data||{}).filter(t=>t && !t.completada);
+  if(cnt) cnt.textContent = pend.length + ' pendiente' + (pend.length===1?'':'s');
+  if(!pend.length){
+    cont.innerHTML = '<div class="gs-empty">🎉 No hay tareas pendientes asignadas</div>';
+    return;
+  }
+  // Agrupar por usuario asignado
+  const grupos = {};
+  pend.forEach(t=>{
+    const u = t.asignado_a || '(sin asignar)';
+    if(!grupos[u]) grupos[u]=[];
+    grupos[u].push(t);
+  });
+  const users = Object.keys(grupos).sort();
+  const ordPrio = {alta:0, media:1, baja:2};
+  cont.innerHTML = users.map(u=>{
+    const tareas = grupos[u].slice().sort((a,b)=>(ordPrio[a.prioridad]||1)-(ordPrio[b.prioridad]||1));
+    const ini = (u.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g)||[u]).map(p=>p[0]).join('').slice(0,2).toUpperCase() || u.slice(0,2).toUpperCase();
+    return `
+      <div class="gs-user">
+        <div class="gs-user-h">
+          <div class="gs-user-info">
+            <div class="gs-user-name"><span class="gs-av">${ini}</span>${_esc(u)}</div>
+            <div class="gs-user-cnt">${tareas.length} tarea${tareas.length===1?'':'s'} pendiente${tareas.length===1?'':'s'}</div>
+          </div>
+          <button class="gs-copy" onclick="gsCopiarTareasUsuario(this, ${JSON.stringify(u).replace(/"/g,'&quot;')})">
+            <i class="ti ti-brand-whatsapp"></i> Copiar
+          </button>
+        </div>
+        <div class="gs-tasks">
+          ${tareas.map(t=>{
+            const prio = t.prioridad || 'media';
+            const col = prio==='alta'?'#e54a64':prio==='baja'?'#5d7390':'#f0b033';
+            return `<div class="gs-task" style="--c:${col}">
+              <div class="gs-task-tit">${_esc(t.titulo||'(sin título)')}</div>
+              ${t.descripcion?`<div class="gs-task-desc">${_esc(t.descripcion)}</div>`:''}
+              <div class="gs-task-meta">
+                <span class="gs-pri">● ${prio}</span>
+                ${t.fecha_limite?'<span>📅 '+_gsFmtFecha(t.fecha_limite)+'</span>':''}
+                ${t.asignado_por?'<span>por '+_esc(t.asignado_por)+'</span>':''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+function gsCopiarTareasUsuario(btn, user){
+  const tareas = Object.values(_tar.data||{}).filter(t=>t && !t.completada && t.asignado_a===user);
+  if(!tareas.length){ alert('No hay tareas pendientes para '+user); return; }
+  const ordPrio = {alta:0, media:1, baja:2};
+  tareas.sort((a,b)=>(ordPrio[a.prioridad]||1)-(ordPrio[b.prioridad]||1));
+  let txt = `*📋 Tareas pendientes — ${user}*\n_UTE Valle de Güímar · SGI_\n\n`;
+  tareas.forEach((t,i)=>{
+    const prio = (t.prioridad||'media');
+    const emoji = prio==='alta'?'🔴':prio==='baja'?'⚪':'🟡';
+    txt += `${emoji} *${i+1}. ${t.titulo||'(sin título)'}*\n`;
+    if(t.descripcion) txt += `   ${t.descripcion}\n`;
+    const meta = ['prioridad: '+prio];
+    if(t.fecha_limite) meta.push('plazo: '+_gsFmtFecha(t.fecha_limite));
+    if(t.asignado_por) meta.push('asignada por: '+t.asignado_por);
+    txt += `   _${meta.join(' · ')}_\n\n`;
+  });
+  txt += `Total: ${tareas.length} tarea${tareas.length===1?'':'s'} pendiente${tareas.length===1?'':'s'}`;
+  function feedback(ok){
+    if(!btn) return;
+    const orig = btn.innerHTML;
+    if(ok){
+      btn.classList.add('ok');
+      btn.innerHTML = '<i class="ti ti-check"></i> Copiado';
+    } else {
+      btn.innerHTML = '<i class="ti ti-x"></i> Error';
+    }
+    setTimeout(()=>{ btn.classList.remove('ok'); btn.innerHTML = orig; }, 1800);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>feedback(true)).catch(()=>fallbackCopy());
+  } else {
+    fallbackCopy();
+  }
+  function fallbackCopy(){
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    ta.style.position='fixed'; ta.style.left='-9999px';
+    document.body.appendChild(ta); ta.select();
+    let ok=false;
+    try{ ok=document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    feedback(ok);
+  }
+}
+window.gestionRenderTareas = gestionRenderTareas;
+window.gsCopiarTareasUsuario = gsCopiarTareasUsuario;
+
 async function tarToggle(id,done){
   const s=getSession();
   if(!s){alert('Sesión no iniciada');return;}
@@ -7506,7 +7641,7 @@ if(typeof waitForFirebase==='function'){
   waitForFirebase().then(()=>{
     if(_tar.escuchando||!window._fb||!window._fb.onValue) return;
     _tar.escuchando=true;
-    try{ window._fb.onValue(window._fb.ref(window._fb.db,'tareas'),snap=>{_tar.data=snap.val()||{};tarBadge();const dw=document.getElementById('tareas-drawer');if(dw&&dw.classList.contains('open'))tarRender();}); }catch(e){}
+    try{ window._fb.onValue(window._fb.ref(window._fb.db,'tareas'),snap=>{_tar.data=snap.val()||{};tarBadge();const dw=document.getElementById('tareas-drawer');if(dw&&dw.classList.contains('open'))tarRender();if(typeof gestionRenderTareas==='function')gestionRenderTareas();}); }catch(e){}
   }).catch(()=>{});
 }
 </script>
