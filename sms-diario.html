@@ -242,7 +242,7 @@ html, body { min-height: 100%; font-family: var(--sans); background: var(--bg); 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const firebaseConfig = {
     apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
     authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
@@ -254,7 +254,7 @@ html, body { min-height: 100%; font-family: var(--sans); background: var(--bg); 
   };
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-  window._fb = { db, ref, onValue, set };
+  window._fb = { db, ref, onValue, set, get };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <script>
@@ -307,7 +307,7 @@ if(window.self !== window.top) {
   <!-- Fecha -->
   <div class="date-row">
     <label>Fecha del parte</label>
-    <input type="date" id="report-date" oninput="updateAll(); findDateInExcel()">
+    <input type="date" id="report-date" oninput="updateAll(); findDateInExcel(); findDateInFirebase()">
     <div class="day-badge" id="day-badge">—</div>
   </div>
 
@@ -644,6 +644,48 @@ function setField(id, value) {
   markFilled(el);
 }
 
+// ─── Carga desde Firebase: sms_datos/{fecha} ─────────────────────────────────
+// Si el día seleccionado tiene datos en Firebase (cargados desde el portal),
+// rellena los campos automáticamente.
+function findDateInFirebase() {
+  const iso = document.getElementById('report-date').value;
+  if(!iso || !window._fb || !window._fb.get) return;
+  const statusEl = document.getElementById('excel-status');
+  try {
+    const { db, ref, get } = window._fb;
+    get(ref(db, 'sms_datos/' + iso)).then(snap => {
+      const data = snap.val();
+      if(!data) return;
+      const i = data.edari || {}, u = data.edaru || {};
+      // EDARi
+      if(i.q_ent   != null) setField('ei-Q',   i.q_ent);
+      if(i.dqo_ent != null) setField('ei-DQO', i.dqo_ent);
+      if(i.sst_ent != null) setField('ei-SST', i.sst_ent);
+      if(i.q_sal   != null) setField('eo-Q',   i.q_sal);
+      if(i.dqo_sal != null) setField('eo-DQO', i.dqo_sal);
+      if(i.sst_sal != null) setField('eo-SST', i.sst_sal);
+      if(i.ntu     != null) setField('eo-NTU', i.ntu);
+      if(i.ce      != null) setField('eo-CE',  i.ce);
+      // EDARu
+      if(u.q_ent   != null) setField('ui-Q',   u.q_ent);
+      if(u.dqo_ent != null) setField('ui-DQO', u.dqo_ent);
+      if(u.sst_ent != null) setField('ui-SST', u.sst_ent);
+      if(u.q_sal   != null) setField('uo-Q',   u.q_sal);
+      if(u.dqo_sal != null) setField('uo-DQO', u.dqo_sal);
+      if(u.sst_sal != null) setField('uo-SST', u.sst_sal);
+      if(u.ntu     != null) setField('uo-NTU', u.ntu);
+      if(u.ce      != null) setField('uo-CE',  u.ce);
+      updateAll();
+      // Sólo notificar si el Excel no había cargado ya estos datos
+      if(statusEl && (statusEl.classList.contains('idle') || statusEl.textContent === 'Sin fichero')) {
+        statusEl.className = 'excel-status loaded';
+        const p = iso.split('-');
+        statusEl.textContent = '📡 Datos de Firebase para ' + p[2]+'/'+p[1]+'/'+p[0];
+      }
+    }).catch(e => console.warn('Firebase sms_datos:', e));
+  } catch(e) { console.warn('Firebase get:', e); }
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 let _fbSmsListening = false;
 function load() {
@@ -652,6 +694,10 @@ function load() {
   document.getElementById('report-date').value = today.toISOString().split('T')[0];
   updateAll();
   renderHistory();
+  // Intentar autocargar la fecha actual desde Firebase
+  if(window._fb && window._fb.get) {
+    findDateInFirebase();
+  }
   // Subscribe Firebase
   if(window._fb && !_fbSmsListening) {
     _fbSmsListening = true;
