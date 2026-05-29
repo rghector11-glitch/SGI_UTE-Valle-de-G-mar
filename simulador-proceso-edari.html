@@ -18,6 +18,31 @@ html,body,#app-root{height:100%;overflow:hidden;background:#07090f;}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- ═══ Firebase: autocarga del nodo reactor/ (datos del portal SGI) ═══ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
+    authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
+    databaseURL: "https://sgi-ute-valle-de-guimar-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sgi-ute-valle-de-guimar",
+    storageBucket: "sgi-ute-valle-de-guimar.firebasestorage.app",
+    messagingSenderId: "618175438367",
+    appId: "1:618175438367:web:03831aa0ce60cb355e3f2a"
+  };
+  try{
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+    window.__FB_SIM__ = { db, ref, get };
+    // Pre-carga (no espera): cuando la App de React arranque, ya estará en cache
+    get(ref(db, 'reactor')).then(snap => {
+      window.__FB_REACTOR_CACHE__ = snap.val() || {};
+      window.dispatchEvent(new CustomEvent('fb-reactor-ready'));
+    }).catch(()=>{});
+  }catch(e){ console.warn('Firebase init:', e); }
+</script>
 </head>
 <body>
 <div id="sim-loading">
@@ -1216,6 +1241,59 @@ function App(){
   const [weekSummary,setWeekSummary]=useState(null); // {days, avg}
   const [weekCalc,setWeekCalc]=useState([]); // [{iso, tc, rend_dqo, ...}] per day
   const fileInputRef=useRef(null);
+
+  // ═══ Autocarga desde Firebase (nodo reactor/, cargado por el portal SGI) ═══
+  useEffect(()=>{
+    function fbToExcelRows(data){
+      const fechas = Object.keys(data||{}).sort();
+      return fechas.map(f=>{
+        const r = data[f] || {};
+        return {
+          _fechaISO: f,
+          'Fecha': f,
+          'Caudal entrada Biologico': r.caudal_bio,
+          'DBO5 ENTRADA':             r.dbo_ent,
+          'DQO ENTRADA':              r.dqo_ent,
+          'NT ENTRADA':               r.nt_ent,
+          'PT ENTRADA':               r.pt_ent,
+          'SS REACTOR':               r.ss_reactor_gl,    // g/L → applyRow lo ×1000
+          'SS RECIRCULACIÓN':         r.ss_recirc_gl,
+          'CAUDAL RECIRCULACIÓN':     r.q_recirc,
+          'CAUDAL PURGA':             r.q_purga,
+          'SS EFLUENTE':              r.ss_efluente,
+          'DBO EFLUENTE':             r.dbo_ef,
+          'DQO EFLUENTE':             r.dqo_ef,
+          'NT EFLUENTE':              r.nt_ef,    // ortografía correcta
+          'NT FLUENTE':               r.nt_ef,    // compatibilidad con el bug existente
+          'PT EFLUENTE':              r.pt_ef,
+        };
+      }).filter(r=>r._fechaISO);
+    }
+    function aplicar(data){
+      const parsed = fbToExcelRows(data);
+      if(parsed.length){
+        setExcelData(parsed);
+        setXlsxMsg('📡 '+parsed.length+' días desde Firebase');
+      }
+    }
+    // Si la cache ya está
+    if(window.__FB_REACTOR_CACHE__){
+      aplicar(window.__FB_REACTOR_CACHE__);
+    } else {
+      // Esperar al evento del módulo Firebase
+      const onReady = () => { aplicar(window.__FB_REACTOR_CACHE__||{}); };
+      window.addEventListener('fb-reactor-ready', onReady, {once:true});
+      // Fallback: si Firebase está disponible pero el evento se perdió, intentar get
+      setTimeout(()=>{
+        if(!excelData.length && window.__FB_SIM__){
+          try{
+            const {db,ref,get}=window.__FB_SIM__;
+            get(ref(db,'reactor')).then(snap=>aplicar(snap.val()||{})).catch(()=>{});
+          }catch(e){}
+        }
+      }, 1500);
+    }
+  }, []);
 
   // Convierte número serial Excel a cadena YYYY-MM-DD
   function excelSerialToDate(serial){
