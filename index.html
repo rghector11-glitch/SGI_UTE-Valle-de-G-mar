@@ -1321,8 +1321,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               if(!cont){ console.warn('[DA dibujaCaudal] #da-q-chart NO está en el DOM'); return; }
               if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-q-v','— '); setText('da-q-sub','media · —'); return; }
               const datos = dias.map(f=>({f, i:(ST.caudales[f]||{}).edari, u:(ST.caudales[f]||{}).edaru}));
-              console.log('[DA dibujaCaudal] últimos 7 días, primer/último:', datos[0], datos[datos.length-1], '| dims cont:', cont.offsetWidth+'x'+cont.offsetHeight);
+              console.log('[DA dibujaCaudal] primer:', JSON.stringify(datos[0]), '| último:', JSON.stringify(datos[datos.length-1]), '| dims:', cont.offsetWidth+'x'+cont.offsetHeight);
               const vals = datos.flatMap(d=>[d.i,d.u]).filter(v=>v!=null&&!isNaN(v));
+              console.log('[DA dibujaCaudal] valores válidos:', vals.length, 'min/max:', vals.length?Math.min(...vals)+'/'+Math.max(...vals):'N/A');
               if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; return; }
               const minV = Math.min(...vals), maxV = Math.max(...vals), rng = maxV-minV||1;
               const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
@@ -1359,7 +1360,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               if(!cont){ console.warn('[DA dibujaConsumo] #da-c-chart NO en DOM'); return; }
               if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-c-v','— '); setText('da-c-sub','total mes · —'); return; }
               const datos = dias.map(f=>({f, i:(ST.consumo[f]||{}).edari||0, u:(ST.consumo[f]||{}).edaru||0}));
-              console.log('[DA dibujaConsumo] '+datos.length+' días, primer:', datos[0], '| dims cont:', cont.offsetWidth+'x'+cont.offsetHeight);
+              console.log('[DA dibujaConsumo] primer:', JSON.stringify(datos[0]), '| último:', JSON.stringify(datos[datos.length-1]), '| dims:', cont.offsetWidth+'x'+cont.offsetHeight);
               const totales = datos.map(d=>d.i+d.u);
               const maxT = Math.max(...totales,1);
               const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
@@ -1406,7 +1407,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               if(!cont){ console.warn('[DA dibujaEdadFango] #da-ef-chart NO en DOM'); return; }
               if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-ef-v','— '); setText('da-ef-sub','último valor · —'); return; }
               const datos = dias.map(f=>({f, v:calcEdadFango(ST.reactor[f])}));
-              console.log('[DA dibujaEdadFango] '+datos.length+' días, ejemplo:', dias[dias.length-1], ST.reactor[dias[dias.length-1]], '→ θc=', datos[datos.length-1].v, '| dims:', cont.offsetWidth+'x'+cont.offsetHeight);
+              console.log('[DA dibujaEdadFango] '+datos.length+' días | ejemplo último:', dias[dias.length-1], JSON.stringify(ST.reactor[dias[dias.length-1]]), '→ θc=', datos[datos.length-1].v);
+              const validos = datos.filter(d=>d.v!=null&&!isNaN(d.v)&&d.v>0);
+              console.log('[DA dibujaEdadFango] válidos:', validos.length, '| ejemplo válido:', validos.length?JSON.stringify(validos[0]):'NINGUNO');
               const vals = datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v)&&v>0);
               if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Datos del reactor incompletos</div>'; setText('da-ef-v','— '); return; }
               const minV = Math.min(...vals, 5), maxV = Math.max(...vals, 15), rng = maxV-minV||1;
@@ -1441,7 +1444,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               const cont = document.getElementById('da-r-chart');
               if(!cont){ console.warn('[DA dibujaRendDQO] #da-r-chart NO en DOM'); return; }
               if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-r-v','— '); setText('da-r-sub','— días'); return; }
-              console.log('[DA dibujaRendDQO] '+dias.length+' días, ejemplo edari:', (ST.sms[dias[dias.length-1]]||{}).edari, '| dims:', cont.offsetWidth+'x'+cont.offsetHeight);
+              console.log('[DA dibujaRendDQO] '+dias.length+' días | ejemplo edari último:', JSON.stringify((ST.sms[dias[dias.length-1]]||{}).edari));
               let sumE=0, sumS=0, n=0;
               dias.forEach(f=>{
                 const e = (ST.sms[f]||{}).edari;
