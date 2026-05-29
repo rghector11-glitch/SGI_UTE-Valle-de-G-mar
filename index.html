@@ -1499,14 +1499,15 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             }
 
             function suscribir(){
-              if(ST.init||!window._fb||!window._fb.onValue) return;
+              if(ST.init||!window._fb||!window._fb.onValue){ console.warn('[DA] No se puede suscribir. _fb:', !!window._fb); setText('da-meta','⚠ Firebase no disponible'); return; }
               ST.init=true;
               const {ref,db,onValue}=window._fb;
-              try{ onValue(ref(db,'caudales'),     s=>{ST.caudales=s.val()||{}; dibujaCaudal();}); }catch(e){}
-              try{ onValue(ref(db,'consumo'),      s=>{ST.consumo=s.val()||{};  dibujaConsumo();}); }catch(e){}
-              try{ onValue(ref(db,'reactor'),      s=>{ST.reactor=s.val()||{};  dibujaEdadFango(); actualizaKpiSst();}); }catch(e){}
-              try{ onValue(ref(db,'sms_datos'),    s=>{ST.sms=s.val()||{};      dibujaRendDQO();}); }catch(e){}
-              try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; actualizaMeta();}); }catch(e){}
+              console.log('[DA] Suscribiendo listeners Firebase...');
+              try{ onValue(ref(db,'caudales'),     s=>{const v=s.val()||{};ST.caudales=v; console.log('[DA] caudales:', Object.keys(v).length,'días'); dibujaCaudal();}); }catch(e){console.warn('[DA] caudales:',e);}
+              try{ onValue(ref(db,'consumo'),      s=>{const v=s.val()||{};ST.consumo=v;  console.log('[DA] consumo:',  Object.keys(v).length,'días'); dibujaConsumo();}); }catch(e){console.warn('[DA] consumo:',e);}
+              try{ onValue(ref(db,'reactor'),      s=>{const v=s.val()||{};ST.reactor=v;  console.log('[DA] reactor:',  Object.keys(v).length,'días'); dibujaEdadFango(); actualizaKpiSst();}); }catch(e){console.warn('[DA] reactor:',e);}
+              try{ onValue(ref(db,'sms_datos'),    s=>{const v=s.val()||{};ST.sms=v;      console.log('[DA] sms_datos:',Object.keys(v).length,'días'); dibujaRendDQO();}); }catch(e){console.warn('[DA] sms:',e);}
+              try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; console.log('[DA] meta:', ST.meta); actualizaMeta();}); }catch(e){console.warn('[DA] meta:',e);}
             }
 
             // Esperar a Firebase
@@ -1519,8 +1520,27 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 setTimeout(arranca, 400);
               }
             }
-            // Gancho usado por la carga: redibuja con los nuevos datos al terminar la carga
-            window.cargaActualizarGraficos = function(){ renderTodo(); actualizaMeta(); };
+            // Gancho usado por la carga: relee datos de Firebase y redibuja todo
+            window.cargaActualizarGraficos = function(){
+              console.log('[DA] cargaActualizarGraficos llamado. ST:',
+                {caudales:Object.keys(ST.caudales||{}).length, consumo:Object.keys(ST.consumo||{}).length,
+                 reactor:Object.keys(ST.reactor||{}).length, sms:Object.keys(ST.sms||{}).length});
+              renderTodo();
+              actualizaMeta();
+              // Fallback: si algún nodo está vacío en ST pero Firebase tiene get, leemos directo
+              if(window._fb && window._fb.get){
+                const {ref,db,get}=window._fb;
+                const refetch = (path, target, after) => {
+                  if(Object.keys(ST[target]||{}).length===0){
+                    get(ref(db,path)).then(s=>{const v=s.val()||{}; ST[target]=v; console.log('[DA] refetch '+path+':', Object.keys(v).length); after();}).catch(e=>console.warn('[DA] refetch '+path,e));
+                  }
+                };
+                refetch('caudales','caudales', dibujaCaudal);
+                refetch('consumo','consumo', dibujaConsumo);
+                refetch('reactor','reactor', () => { dibujaEdadFango(); actualizaKpiSst(); });
+                refetch('sms_datos','sms', dibujaRendDQO);
+              }
+            };
 
             if(document.readyState==='loading'){
               document.addEventListener('DOMContentLoaded', arranca);
