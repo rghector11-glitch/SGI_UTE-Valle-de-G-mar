@@ -1087,6 +1087,25 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           .da-legend{display:flex;gap:9px;font-family:var(--mono,monospace);font-size:7px;color:var(--muted,#5d7390);letter-spacing:.04em;text-transform:uppercase;}
           .da-legend span{display:inline-flex;align-items:center;gap:3px;}
           .da-legend i{width:7px;height:7px;border-radius:2px;display:inline-block;}
+          /* Hover en puntos/barras de los gráficos */
+          .da-chart svg circle.pt-int{transition:r .15s ease, stroke-width .15s ease, opacity .15s ease; cursor:pointer;}
+          .da-chart svg circle.pt-int:hover{r:4.5; stroke-width:2;}
+          .da-chart svg rect.br-int{transition:opacity .15s ease, filter .15s ease; cursor:pointer;}
+          .da-chart svg rect.br-int:hover{opacity:1; filter:brightness(1.25);}
+          /* Tooltip flotante de los gráficos */
+          #da-tooltip{
+            position:fixed; pointer-events:none; z-index:99999;
+            background:rgba(11,20,38,.96); color:var(--light,#fff);
+            border:1px solid var(--border-l,#2c4368); border-radius:5px;
+            padding:5px 9px; font-family:var(--mono,monospace);
+            font-size:10px; letter-spacing:.02em; white-space:nowrap;
+            box-shadow:0 4px 14px rgba(0,0,0,.45);
+            opacity:0; transform:translate(-50%,-130%); transition:opacity .1s ease;
+          }
+          #da-tooltip.show{opacity:1;}
+          #da-tooltip .tt-lbl{color:var(--accent,#3aafe8); font-weight:700; margin-right:6px;}
+          #da-tooltip .tt-val{color:var(--light,#fff); font-weight:700;}
+          #da-tooltip .tt-date{color:var(--muted,#8ba0bd); font-size:8.5px; margin-right:6px;}
           </style>
           <style>
           /* ── Layout 2-col: KPIs arriba (full), módulos izq 50%, gráficos der 50% ── */
@@ -1217,7 +1236,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                     <div class="da-card-ic"><i class="ti ti-droplet"></i></div>
                     <div>
                       <div class="da-card-t">Caudal entrada</div>
-                      <div class="da-card-sub">EDARi · EDARu · últimos 7 días</div>
+                      <div class="da-card-sub">EDARi · EDARu · últimos 30 días</div>
                     </div>
                   </div>
                   <div>
@@ -1322,7 +1341,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
             // ── Gráfico 1: Caudal entrada (líneas EDARi y EDARu, 7 días) ──
             function dibujaCaudal(){
-              const dias = ultimosDiasConDatos(ST.caudales, 7, v => v && ((+v.edari>0)||(+v.edaru>0)));
+              const dias = ultimosDiasConDatos(ST.caudales, 30, v => v && ((+v.edari>0)||(+v.edaru>0)));
               const cont = document.getElementById('da-q-chart');
               if(!cont){ return; }
               if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-q-v','— '); setText('da-q-sub','media · —'); return; }
@@ -1335,7 +1354,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               const y = v => v==null||isNaN(v) ? null : PT+gH-(v-minV)/rng*gH;
               function poly(key){ return datos.map((d,i)=>{const yy=y(d[key]); return yy==null?null:x(i)+','+yy.toFixed(1);}).filter(Boolean).join(' '); }
               const polyI = poly('i'), polyU = poly('u');
-              function pts(key,color){ return datos.map((d,i)=>{const yy=y(d[key]); return yy==null?'':`<circle cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2.2" fill="${color}" stroke="var(--surface,#0c1424)" stroke-width="1"/>`;}).join(''); }
+              function pts(key,color,lbl){ return datos.map((d,i)=>{const yy=y(d[key]); const v=d[key]; if(yy==null)return ''; const tip=`${lbl}|${_fmtDM(d.f)}|${_fmtK(v)} m³/d`; return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2.2" fill="${color}" stroke="var(--surface,#0c1424)" stroke-width="1" data-tip="${tip}"/>`;}).join(''); }
               // Etiquetas Y
               const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(maxV)}</text>
                           <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(minV)}</text>`;
@@ -1346,7 +1365,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <line x1="${PL}" y1="${PT+gH/2}" x2="${W-PR}" y2="${PT+gH/2}" stroke="var(--border,#1f3252)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.6"/>
                 ${polyI?`<polyline points="${polyI}" fill="none" stroke="var(--accent,#3aafe8)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
                 ${polyU?`<polyline points="${polyU}" fill="none" stroke="var(--purple,#9788e6)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
-                ${pts('i','var(--accent,#3aafe8)')}${pts('u','var(--purple,#9788e6)')}
+                ${pts('i','var(--accent,#3aafe8)','EDARi')}${pts('u','var(--purple,#9788e6)','EDARu')}
                 ${yL}${xL}
               </svg>`;
               // KPI
@@ -1375,8 +1394,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 const hU = (d.u/maxT)*gH;
                 const yI = PT+gH-hI;
                 const yU = PT+gH-hI-hU;
-                return `<rect x="${xx.toFixed(1)}" y="${yI.toFixed(1)}" width="${w.toFixed(1)}" height="${hI.toFixed(1)}" fill="var(--accent,#3aafe8)" opacity="0.75"/>
-                        <rect x="${xx.toFixed(1)}" y="${yU.toFixed(1)}" width="${w.toFixed(1)}" height="${hU.toFixed(1)}" fill="var(--purple,#9788e6)" opacity="0.75"/>`;
+                return `<rect class="br-int" x="${xx.toFixed(1)}" y="${yI.toFixed(1)}" width="${w.toFixed(1)}" height="${hI.toFixed(1)}" fill="var(--accent,#3aafe8)" opacity="0.75" data-tip="EDARi|${_fmtDM(d.f)}|${_fmtK(d.i)} kWh"/>
+                        <rect class="br-int" x="${xx.toFixed(1)}" y="${yU.toFixed(1)}" width="${w.toFixed(1)}" height="${hU.toFixed(1)}" fill="var(--purple,#9788e6)" opacity="0.75" data-tip="EDARu|${_fmtDM(d.f)}|${_fmtK(d.u)} kWh · Tot ${_fmtK(d.i+d.u)}"/>`;
               }).join('');
               const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(maxT)}</text>
                           <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">0</text>`;
@@ -1424,7 +1443,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                               <line x1="${PL}" y1="${y5.toFixed(1)}" x2="${W-PR}" y2="${y5.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
                               <line x1="${PL}" y1="${y15.toFixed(1)}" x2="${W-PR}" y2="${y15.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>` : '';
               const poly = datos.map((d,i)=>{const yy=y(d.v); return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
-              const pts = datos.map((d,i)=>{const yy=y(d.v); return yy==null?'':`<circle cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="var(--warn,#f0b033)" stroke="var(--surface,#0c1424)" stroke-width="1"/>`;}).join('');
+              const pts = datos.map((d,i)=>{const yy=y(d.v); return yy==null?'':`<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="var(--warn,#f0b033)" stroke="var(--surface,#0c1424)" stroke-width="1" data-tip="Edad fango|${_fmtDM(d.f)}|${d.v.toFixed(1)} d"/>`;}).join('');
               const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${maxV.toFixed(0)}</text>
                           <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${minV.toFixed(0)}</text>`;
               const idxs = [0, Math.floor((datos.length-1)/2), datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
@@ -1522,8 +1541,36 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; actualizaMeta();}); }catch(e){}
             }
 
+            // ── Tooltip flotante para los gráficos ──
+            function initTooltip(){
+              if(document.getElementById('da-tooltip')) return;
+              const tip = document.createElement('div');
+              tip.id = 'da-tooltip';
+              document.body.appendChild(tip);
+              // Event delegation: cualquier .pt-int o .br-int de cualquier .da-chart
+              document.addEventListener('pointerover', e=>{
+                const t = e.target.closest('.pt-int, .br-int');
+                if(!t) return;
+                const raw = t.getAttribute('data-tip');
+                if(!raw) return;
+                const parts = raw.split('|');
+                tip.innerHTML = `<span class="tt-lbl">${parts[0]||''}</span><span class="tt-date">${parts[1]||''}</span><span class="tt-val">${parts[2]||''}</span>`;
+                tip.classList.add('show');
+              });
+              document.addEventListener('pointerout', e=>{
+                const t = e.target.closest('.pt-int, .br-int');
+                if(t) tip.classList.remove('show');
+              });
+              document.addEventListener('pointermove', e=>{
+                if(!tip.classList.contains('show')) return;
+                tip.style.left = e.clientX + 'px';
+                tip.style.top  = (e.clientY - 8) + 'px';
+              });
+            }
+
             // Esperar a Firebase
             function arranca(){
+              initTooltip();
               if(typeof waitForFirebase==='function'){
                 waitForFirebase().then(suscribir).catch(()=>{});
               } else if(window._fb){
