@@ -1177,7 +1177,6 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           body.role-operario #panel-portal > .modules-grid > .m07,
           body.role-operario #sb-proceso,
           body.role-operario #sb-gestion,
-          body.role-operario #sb-cargar-datos,
           body.role-operario #sb-objetivos {
             display:none !important;
           }
@@ -1625,7 +1624,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               const m = ST.meta;
               if(!m||!m.ultima_carga){ setText('da-meta','— sin carga reciente'); return; }
               const d = new Date(m.ultima_carga);
-              setText('da-meta','Última carga: '+d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · '+(m.dias||'?')+' días');
+              const usuario = m.por ? ' · por ' + m.por : '';
+              setText('da-meta','Última carga: '+d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · '+(m.dias||'?')+' días'+usuario);
             }
 
             function suscribir(){
@@ -7129,12 +7129,6 @@ window.toggleCargaPan = toggleCargaPan;
 
 function cdRender(){
   const body=document.getElementById('cd-body-content');
-  const s=getSession();
-  const esSup = s && (s.role==='supervisor' || s.role==='admin');
-  if(!esSup){
-    body.innerHTML='<div class="cd-noperm"><i class="ti ti-lock" style="font-size:28px;display:block;margin-bottom:8px;opacity:.6;"></i>Solo el supervisor o administrador<br>puede cargar los datos diarios.</div>';
-    return;
-  }
   body.innerHTML=`
     <div class="cd-drop" id="cd-drop" onclick="document.getElementById('cd-file').click()">
       <i class="ti ti-file-spreadsheet"></i>
@@ -7239,7 +7233,7 @@ function cdFecha(row){
 
 async function cdProcesar(){
   const s=getSession();
-  if(!s||!(s.role==='supervisor'||s.role==='admin')){ alert('Sin permisos.'); return; }
+  if(!s){ alert('Sesión no iniciada.'); return; }
   if(!_cargaFile){ alert('Selecciona un archivo.'); return; }
   if(!window._fb||!window._fb.update){ alert('Firebase no disponible.'); return; }
 
@@ -7310,12 +7304,31 @@ async function cdProcesar(){
     cdLog('Escribiendo en Firebase…');
 
     // Meta de la carga
+    const ts = Date.now();
+    const usuario = s.username || s.name || '?';
     updates['fuentes_datos/datos_diarios']={
-      ultima_carga:Date.now(),
-      por:s.username||s.name||'?',
+      ultima_carga:ts,
+      por:usuario,
+      rol:s.role||'?',
       archivo:_cargaFile.name,
       dias:nS
     };
+    // Entrada de auditoría: historial completo (cada carga genera un push)
+    if(window._fb.push){
+      try{
+        const histRef = window._fb.push(window._fb.ref(window._fb.db,'fuentes_datos/historial'));
+        updates['fuentes_datos/historial/'+histRef.key] = {
+          ts,
+          por:usuario,
+          rol:s.role||'?',
+          archivo:_cargaFile.name,
+          dias_cargados:nS,
+          n_caudal:nC,
+          n_consumo:nE,
+          n_reactor:nR
+        };
+      }catch(e){ console.warn('historial:', e); }
+    }
 
     await window._fb.update(window._fb.ref(window._fb.db), updates);
 
