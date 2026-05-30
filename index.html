@@ -1172,7 +1172,6 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           */
           body.role-operario .da-panel,
           body.role-operario .kpi-strip,
-          body.role-operario #panel-portal > .modules-grid > .m01,
           body.role-operario #panel-portal > .modules-grid > .m03,
           body.role-operario #panel-portal > .modules-grid > .m06,
           body.role-operario #panel-portal > .modules-grid > .m07,
@@ -1182,14 +1181,14 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           body.role-operario #sb-objetivos {
             display:none !important;
           }
-          /* Layout del portal en modo operario: solo módulos, 2x2 a pantalla completa */
+          /* Layout del portal en modo operario: 5 módulos (M01, M02, M04, M05, M08) en 3 cols × 2 filas */
           body.role-operario #panel-portal.active{
             grid-template-areas:"modulos modulos";
             grid-template-rows:1fr;
           }
           body.role-operario #panel-portal > .modules-grid{
             grid-column:1 / -1;
-            grid-template-columns:repeat(2,1fr);
+            grid-template-columns:repeat(3,1fr);
             grid-template-rows:repeat(2,1fr);
             row-gap:14px; column-gap:14px;
           }
