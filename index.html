@@ -1164,6 +1164,39 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #panel-portal > .modules-grid{grid-template-columns:1fr;}
           }
 
+          /* ══ Visibilidad por rol ══════════════════════════════════════════
+             Operario solo ve los módulos básicos: M02 Procedimientos,
+             M04 SMS Diario, M05 Inventarios y M08 Tareas.
+             Se ocultan además el dashboard analítico, los KPIs del topbar
+             y los items de sidebar reservados a supervisor.
+          */
+          body.role-operario .da-panel,
+          body.role-operario .kpi-strip,
+          body.role-operario #panel-portal > .modules-grid > .m01,
+          body.role-operario #panel-portal > .modules-grid > .m03,
+          body.role-operario #panel-portal > .modules-grid > .m06,
+          body.role-operario #panel-portal > .modules-grid > .m07,
+          body.role-operario #sb-proceso,
+          body.role-operario #sb-gestion,
+          body.role-operario #sb-cargar-datos,
+          body.role-operario #sb-objetivos {
+            display:none !important;
+          }
+          /* Layout del portal en modo operario: solo módulos, 2x2 a pantalla completa */
+          body.role-operario #panel-portal.active{
+            grid-template-areas:"modulos modulos";
+            grid-template-rows:1fr;
+          }
+          body.role-operario #panel-portal > .modules-grid{
+            grid-column:1 / -1;
+            grid-template-columns:repeat(2,1fr);
+            grid-template-rows:repeat(2,1fr);
+            row-gap:14px; column-gap:14px;
+          }
+          body.role-operario #panel-portal > .modules-grid > .mc{
+            min-height:0;
+          }
+
           /* ── No scroll vertical: aprovechar 100% del alto disponible ── */
           #panel-portal.active{
             grid-template-rows:auto 1fr;
@@ -3327,6 +3360,7 @@ function setSession(data) {
 }
 function clearSession() {
   localStorage.removeItem('ute-session');
+  document.body.classList.remove('role-supervisor','role-operario');
 }
 
 // Show / hide screens
@@ -3340,6 +3374,9 @@ function showPortal(session) {
   // Show manage users btn if supervisor
   const mub = document.getElementById('manage-users-btn');
   if(mub) mub.style.display = session.role === 'supervisor' ? 'block' : 'none';
+  // Marcar el body con el rol — el CSS se encarga del resto (módulos visibles, sidebar, etc.)
+  document.body.classList.remove('role-supervisor','role-operario');
+  document.body.classList.add('role-' + (session.role==='supervisor'?'supervisor':'operario'));
 }
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
