@@ -1706,7 +1706,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <div class="modules-grid">
 
             <!-- M01 Calibraciones -->
-            <div class="mc m01" onclick="openApp('calibraciones.html?v=10', 'Calibraciones', 'Módulo 01')" role="button" tabindex="0">
+            <div class="mc m01" onclick="history.replaceState(null,'',location.pathname); window.location.href='calibraciones.html?v=10'" role="button" tabindex="0">
               <div class="mc-ilu">
                 <div class="mc-num">M·01</div>
                 <div class="mc-badge warn" id="mc-cal-badge">CALIBRACIONES</div>
