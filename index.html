@@ -1324,24 +1324,23 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <span style="opacity:.7"><i style="background:var(--accent2,#22c995);opacity:.4"></i> banda 5–15 d</span>
                 </div>
               </div>
-              <!-- 4. Rendimiento DQO -->
+              <!-- 4. Rendimientos del proceso (DQO, DBO5, NT, PT) -->
               <div class="da-card" style="--c:var(--accent2,#22c995);">
                 <div class="da-card-h">
                   <div class="da-card-ti">
                     <div class="da-card-ic"><i class="ti ti-trending-up"></i></div>
                     <div>
-                      <div class="da-card-t">Rendimiento DQO</div>
-                      <div class="da-card-sub">EDARi · promedio último mes</div>
+                      <div class="da-card-t">Rendimientos</div>
+                      <div class="da-card-sub">DQO · DBO₅ · NT · PT · 30 días</div>
                     </div>
                   </div>
                   <div>
-                    <div class="da-card-v" id="da-r-v">— <span class="u">%</span></div>
-                    <div class="da-card-v-sub" id="da-r-sub">— días</div>
+                    <div class="da-card-v-sub" id="da-r-sub" style="font-size:9px;">— días</div>
                   </div>
                 </div>
                 <div class="da-chart" id="da-r-chart"><div class="da-noinfo">Sin datos</div></div>
                 <div class="da-legend">
-                  <span style="opacity:.8">DQO entrada → DQO salida</span>
+                  <span style="opacity:.8">Entrada → Efluente · promedio mes</span>
                 </div>
               </div>
             </div>
@@ -1493,36 +1492,103 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
             // ── Gráfico 4: Rendimiento DQO mensual (anillo) ──
             function dibujaRendDQO(){
-              const dias = ultimosDiasConDatos(ST.sms, 30,
-                v => v && v.edari && (+v.edari.dqo_ent>0) && (+v.edari.dqo_sal>=0));
+              const dias = ultimosDiasConDatos(ST.reactor, 30, v => v && (
+                (+v.dqo_ent>0 && v.dqo_ef!=null) ||
+                (+v.dbo_ent>0 && v.dbo_ef!=null) ||
+                (+v.nt_ent>0  && v.nt_ef !=null) ||
+                (+v.pt_ent>0  && v.pt_ef !=null)
+              ));
               const cont = document.getElementById('da-r-chart');
               if(!cont){ return; }
-              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos SMS</div>'; setText('da-r-v','— '); setText('da-r-sub','— días'); return; }
-              let sumE=0, sumS=0, n=0;
-              dias.forEach(f=>{
-                const e = (ST.sms[f]||{}).edari;
-                if(!e) return;
-                if(e.dqo_ent!=null && e.dqo_sal!=null && e.dqo_ent>0){
-                  sumE += e.dqo_ent; sumS += e.dqo_sal; n++;
+              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos del reactor</div>'; setText('da-r-sub','— días'); return; }
+
+              function calcRend(kEnt, kEf){
+                let sumE=0, sumS=0, n=0;
+                dias.forEach(f=>{
+                  const r = ST.reactor[f]||{};
+                  const e = +r[kEnt], s = +r[kEf];
+                  if(!isNaN(e) && e>0 && !isNaN(s) && s>=0){
+                    sumE += e; sumS += s; n++;
+                  }
+                });
+                if(!n) return null;
+                return {rend: Math.max(0, Math.min(100, (sumE-sumS)/sumE*100)), n, mediaE:sumE/n, mediaS:sumS/n};
+              }
+
+              const params = [
+                {lbl:'DQO',  res:calcRend('dqo_ent','dqo_ef'), tipo:'semi'},
+                {lbl:'DBO₅', res:calcRend('dbo_ent','dbo_ef'), tipo:'semi'},
+                {lbl:'NT',   res:calcRend('nt_ent', 'nt_ef'),  tipo:'bar'},
+                {lbl:'PT',   res:calcRend('pt_ent', 'pt_ef'),  tipo:'bar'},
+              ];
+
+              // SVG: 4 secciones equiespaciadas y muy separadas
+              const W=440, H=100;
+              function colorRend(v){return v>=85?'var(--accent2,#22c995)':v>=70?'var(--warn,#f0b033)':'var(--danger,#e54a64)';}
+
+              // Centros separados (110 px entre cada uno) - cubren casi todo el viewBox
+              const cxAll = [55, 165, 275, 385];
+
+              // ── Semicírculos (DQO, DBO5) ──
+              const rSemi=38, cySemi=58, swSemi=9;
+              const semiPerim = Math.PI * rSemi;
+              const semis = params.slice(0,2).map((p,i)=>{
+                const cx = cxAll[i];
+                const bgPath = `M ${cx-rSemi} ${cySemi} A ${rSemi} ${rSemi} 0 0 1 ${cx+rSemi} ${cySemi}`;
+                if(!p.res){
+                  return `<g>
+                    <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
+                    <text x="${cx}" y="${cySemi-10}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="20" font-family="var(--mono,monospace)">—</text>
+                    <text x="${cx}" y="${cySemi+22}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
+                  </g>`;
                 }
-              });
-              if(!n){ cont.innerHTML='<div class="da-noinfo">Sin pares entrada/salida DQO</div>'; setText('da-r-v','— '); setText('da-r-sub','0 días'); return; }
-              const rend = Math.max(0, Math.min(100, (sumE-sumS)/sumE*100));
-              const col = rend>=85?'var(--accent2,#22c995)':rend>=70?'var(--warn,#f0b033)':'var(--danger,#e54a64)';
-              const r=28, cx=44, cy=40, perim=2*Math.PI*r;
-              const dash=(rend/100)*perim;
-              cont.innerHTML = `<svg viewBox="0 0 200 80" preserveAspectRatio="xMidYMid meet">
-                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border,#1f3252)" stroke-width="6"/>
-                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round"
-                  stroke-dasharray="${dash.toFixed(1)} ${perim.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>
-                <text x="${cx}" y="${cy+1}" text-anchor="middle" dominant-baseline="middle" fill="${col}" font-size="14" font-weight="700" font-family="var(--mono,monospace)">${rend.toFixed(0)}%</text>
-                <text x="90" y="28" fill="var(--text-d,#8ba0bd)" font-size="8" font-family="var(--mono,monospace)">Entrada media</text>
-                <text x="90" y="40" fill="var(--accent,#3aafe8)" font-size="11" font-weight="700" font-family="var(--mono,monospace)">${(sumE/n).toFixed(0)} <tspan font-size="7" fill="var(--muted,#5d7390)">mg/L</tspan></text>
-                <text x="90" y="55" fill="var(--text-d,#8ba0bd)" font-size="8" font-family="var(--mono,monospace)">Salida media</text>
-                <text x="90" y="67" fill="${col}" font-size="11" font-weight="700" font-family="var(--mono,monospace)">${(sumS/n).toFixed(0)} <tspan font-size="7" fill="var(--muted,#5d7390)">mg/L</tspan></text>
-              </svg>`;
-              setHTML('da-r-v', rend.toFixed(1)+' <span class="u">%</span>');
-              setText('da-r-sub', n+' días con pares válidos');
+                const v = p.res.rend;
+                const col = colorRend(v);
+                const dash = (v/100) * semiPerim;
+                const tipText = `${p.lbl}|${p.res.n} d|${v.toFixed(1)}% · ent ${p.res.mediaE.toFixed(0)} → sal ${p.res.mediaS.toFixed(0)} mg/L`;
+                return `<g class="pt-int" data-tip="${tipText}" style="cursor:pointer">
+                  <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
+                  <path d="${bgPath}" fill="none" stroke="${col}" stroke-width="${swSemi}" stroke-linecap="round"
+                    stroke-dasharray="${dash.toFixed(1)} ${semiPerim.toFixed(1)}"/>
+                  <text x="${cx}" y="${cySemi-10}" text-anchor="middle" fill="${col}" font-size="22" font-weight="700" font-family="var(--mono,monospace)">${v.toFixed(0)}%</text>
+                  <text x="${cx}" y="${cySemi+22}" text-anchor="middle" fill="var(--light,#fff)" font-size="14" font-weight="600" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
+                </g>`;
+              }).join('');
+
+              // ── Barras horizontales (NT, PT) alineadas con los semicírculos ──
+              const barW=80, barH=16, barY=54;   // y de barra alineada con el "ecuador" del semicírculo
+              const yPct = 42, yLbl = 80;        // % arriba y etiqueta abajo (igual nivel que los semicírculos)
+              const bars = params.slice(2).map((p,k)=>{
+                const cx = cxAll[2+k];
+                const bx = cx - barW/2;
+                if(!p.res){
+                  return `<g>
+                    <text x="${cx}" y="${yPct}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="20" font-family="var(--mono,monospace)">—</text>
+                    <rect x="${bx}" y="${barY}" width="${barW}" height="${barH}" rx="5" fill="var(--border,#1f3252)" opacity="0.6"/>
+                    <text x="${cx}" y="${yLbl}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
+                  </g>`;
+                }
+                const v = p.res.rend;
+                const col = colorRend(v);
+                const fillW = (v/100) * barW;
+                const tipText = `${p.lbl}|${p.res.n} d|${v.toFixed(1)}% · ent ${p.res.mediaE.toFixed(0)} → sal ${p.res.mediaS.toFixed(0)} mg/L`;
+                return `<g class="pt-int" data-tip="${tipText}" style="cursor:pointer">
+                  <text x="${cx}" y="${yPct}" text-anchor="middle" fill="${col}" font-size="22" font-weight="700" font-family="var(--mono,monospace)">${v.toFixed(0)}%</text>
+                  <rect x="${bx}" y="${barY}" width="${barW}" height="${barH}" rx="5" fill="var(--border,#1f3252)"/>
+                  <rect x="${bx}" y="${barY}" width="${fillW.toFixed(1)}" height="${barH}" rx="5" fill="${col}"/>
+                  <text x="${cx}" y="${yLbl}" text-anchor="middle" fill="var(--light,#fff)" font-size="14" font-weight="600" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
+                </g>`;
+              }).join('');
+
+              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="height:100%;width:100%">${semis}${bars}</svg>`;
+
+              // KPI del header: nº de días y parámetros con datos
+              const principal = params[0].res || params.find(p=>p.res);
+              if(principal){
+                setText('da-r-sub', principal.n+' d · '+params.filter(p=>p.res).length+'/4 parámetros');
+              } else {
+                setText('da-r-sub','sin datos');
+              }
             }
 
             function renderTodo(){
@@ -1568,8 +1634,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               const {ref,db,onValue}=window._fb;
               try{ onValue(ref(db,'caudales'),     s=>{ST.caudales=s.val()||{}; dibujaCaudal();}); }catch(e){}
               try{ onValue(ref(db,'consumo'),      s=>{ST.consumo=s.val()||{};  dibujaConsumo();}); }catch(e){}
-              try{ onValue(ref(db,'reactor'),      s=>{ST.reactor=s.val()||{};  dibujaEdadFango(); actualizaKpiSst();}); }catch(e){}
-              try{ onValue(ref(db,'sms_datos'),    s=>{ST.sms=s.val()||{};      dibujaRendDQO();}); }catch(e){}
+              try{ onValue(ref(db,'reactor'),      s=>{ST.reactor=s.val()||{};  dibujaEdadFango(); dibujaRendDQO(); actualizaKpiSst();}); }catch(e){}
+              try{ onValue(ref(db,'sms_datos'),    s=>{ST.sms=s.val()||{};}); }catch(e){}
               try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; actualizaMeta();}); }catch(e){}
             }
 
@@ -1625,8 +1691,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 };
                 refetch('caudales','caudales', dibujaCaudal);
                 refetch('consumo','consumo', dibujaConsumo);
-                refetch('reactor','reactor', () => { dibujaEdadFango(); actualizaKpiSst(); });
-                refetch('sms_datos','sms', dibujaRendDQO);
+                refetch('reactor','reactor', () => { dibujaEdadFango(); dibujaRendDQO(); actualizaKpiSst(); });
               }
             };
 
@@ -1641,7 +1706,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <div class="modules-grid">
 
             <!-- M01 Calibraciones -->
-            <div class="mc m01" onclick="window.location.href='calibraciones.html?v=10'" role="button" tabindex="0">
+            <div class="mc m01" onclick="openApp('calibraciones.html?v=10', 'Calibraciones', 'Módulo 01')" role="button" tabindex="0">
               <div class="mc-ilu">
                 <div class="mc-num">M·01</div>
                 <div class="mc-badge warn" id="mc-cal-badge">CALIBRACIONES</div>
