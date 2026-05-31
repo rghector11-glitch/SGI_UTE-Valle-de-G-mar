@@ -316,9 +316,9 @@ if(window.self !== window.top) {
 <div class="shell">
 
   <header class="app-header">
-    <button class="hdr-btn" onclick="window.location.href='index.html'">
+    <button class="hdr-btn" id="btn-volver" onclick="volverAtras()">
       <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Inicio
+      <span id="btn-volver-txt">Inicio</span>
     </button>
     <div class="hdr-logo">
       <svg viewBox="0 0 34 34" fill="none">
@@ -327,7 +327,7 @@ if(window.self !== window.top) {
       </svg>
     </div>
     <div class="hdr-brand">
-      <div class="co">Ruta Colector EDARu</div>
+      <div class="co" id="hdr-co">Ruta Colector EDARu</div>
       <div class="mo">UTE Valle de Güímar · Tasagaya, Tenerife</div>
     </div>
     <div class="hdr-stats" id="hdr-stats"></div>
@@ -582,7 +582,50 @@ const SEED = [
 ];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
+// ─── PARÁMETROS URL (multi-ruta) ──────────────────────────────────────────────
+// ?ruta=ID  → usa colectores/{ID}/ en Firebase y localStorage propios.
+// Sin parámetro → ruta original EDARu, mantiene compatibilidad con colector/
+// ?from=mapa → mostrar botón "Volver al mapa general"
+const _RUTA_PARAMS = new URLSearchParams(location.search);
+const _RUTA_ID  = _RUTA_PARAMS.get('ruta');
+const _FROM_MAPA = _RUTA_PARAMS.get('from') === 'mapa';
+const _FB_PATH  = _RUTA_ID ? 'colectores/'+_RUTA_ID : 'colector';
+const _LS_W     = _RUTA_ID ? 'ute-c-'+_RUTA_ID+'-wells'  : 'ute-c-wells';
+const _LS_R     = _RUTA_ID ? 'ute-c-'+_RUTA_ID+'-recs'   : 'ute-c-recs';
+const _LS_P     = _RUTA_ID ? 'ute-c-'+_RUTA_ID+'-photos' : 'ute-c-photos';
+
 let wells=[], records={}, photos={};
+
+// Volver atrás: si vienes del mapa general, regresa al mapa; si no, al portal.
+function volverAtras(){
+  if(_FROM_MAPA){
+    window.location.href = 'mapa-colectores.html';
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+window.volverAtras = volverAtras;
+
+// Personalizar el header según la ruta abierta
+window.addEventListener('DOMContentLoaded', () => {
+  if(_FROM_MAPA){
+    const txt = document.getElementById('btn-volver-txt');
+    if(txt) txt.textContent = 'Mapa general';
+  }
+  if(_RUTA_ID){
+    // Si tenemos id de ruta, intentar leer su nombre de Firebase para mostrarlo
+    if(window._fb && window._fb.get){
+      window._fb.get(window._fb.ref(window._fb.db, 'rutas_colector/'+_RUTA_ID)).then(snap=>{
+        const info = snap.val();
+        if(info && info.nombre){
+          const co = document.getElementById('hdr-co');
+          if(co) co.textContent = info.nombre;
+          document.title = info.nombre + ' · UTE Valle de Güímar';
+        }
+      }).catch(()=>{});
+    }
+  }
+});
 let selectedId=null, editWellId=null;
 let leafletMarkers={}, routeLine=null, pickingCoords=false;
 let pendingPhotos=[]; // base64 strings for current modal
@@ -592,30 +635,32 @@ function uid(){ return 'x'+Date.now()+Math.random().toString(36).slice(2,6); }
 
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
 function save(){
-  localStorage.setItem('ute-c-wells', JSON.stringify(wells));
-  localStorage.setItem('ute-c-recs', JSON.stringify(records));
-  try{ localStorage.setItem('ute-c-photos', JSON.stringify(photos)); }catch(e){ console.warn('Storage full for photos'); }
+  localStorage.setItem(_LS_W, JSON.stringify(wells));
+  localStorage.setItem(_LS_R, JSON.stringify(records));
+  try{ localStorage.setItem(_LS_P, JSON.stringify(photos)); }catch(e){ console.warn('Storage full for photos'); }
   // Sync wells + records to Firebase (photos stay local — too large for RTDB)
   if(window._fb) {
-    window._fb.set(window._fb.ref(window._fb.db, 'colector'), {
+    window._fb.set(window._fb.ref(window._fb.db, _FB_PATH), {
       wells, records, updated: Date.now()
     }).catch(e=>console.warn('Firebase write error:', e));
   }
 }
 let _fbColectorListening = false;
 function load(){
-  try{ const d=localStorage.getItem('ute-c-wells'); if(d) wells=JSON.parse(d); }catch(e){}
-  try{ const d=localStorage.getItem('ute-c-recs');  if(d) records=JSON.parse(d); }catch(e){}
-  try{ const d=localStorage.getItem('ute-c-photos'); if(d) photos=JSON.parse(d); }catch(e){}
-  if(!wells.length){ wells=SEED.map(w=>({...w})); records={}; photos={}; save(); }
+  try{ const d=localStorage.getItem(_LS_W); if(d) wells=JSON.parse(d); }catch(e){}
+  try{ const d=localStorage.getItem(_LS_R);  if(d) records=JSON.parse(d); }catch(e){}
+  try{ const d=localStorage.getItem(_LS_P); if(d) photos=JSON.parse(d); }catch(e){}
+  // Solo la ruta original (sin ?ruta) arranca con el SEED de pozos predefinidos.
+  // Las rutas nuevas arrancan vacías para que el supervisor las pueble manualmente.
+  if(!wells.length && !_RUTA_ID){ wells=SEED.map(w=>({...w})); records={}; photos={}; save(); }
   // Subscribe Firebase once
   if(window._fb && !_fbColectorListening) {
     _fbColectorListening = true;
-    window._fb.onValue(window._fb.ref(window._fb.db, 'colector'), snap => {
+    window._fb.onValue(window._fb.ref(window._fb.db, _FB_PATH), snap => {
       const d = snap.val();
       if(d) {
-        if(d.wells)   { wells   = d.wells;   localStorage.setItem('ute-c-wells', JSON.stringify(wells)); }
-        if(d.records) { records = d.records; localStorage.setItem('ute-c-recs',  JSON.stringify(records)); }
+        if(d.wells)   { wells   = d.wells;   localStorage.setItem(_LS_W, JSON.stringify(wells)); }
+        if(d.records) { records = d.records; localStorage.setItem(_LS_R, JSON.stringify(records)); }
         renderAll();
         if(selectedId) selectWell(selectedId);
       }

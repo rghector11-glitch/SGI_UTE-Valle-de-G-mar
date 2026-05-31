@@ -338,7 +338,10 @@ async function recargarRutas(){
 function abrirRutaDetalle(rutaId, nombre){
   const st = rutasState[rutaId];
   if(!st || !st.info.archivo){ alert('Esta ruta no tiene editor configurado.'); return; }
-  window.location.href = st.info.archivo;
+  // Añadir from=mapa para que el editor muestre "Volver al mapa" en lugar de "Inicio"
+  let url = st.info.archivo;
+  url += (url.includes('?') ? '&' : '?') + 'from=mapa';
+  window.location.href = url;
 }
 
 // ── Carga inicial ──
