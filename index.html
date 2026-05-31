@@ -8066,6 +8066,506 @@ if(typeof waitForFirebase==='function'){
 }
 </script>
 
+<!-- ═══════════════════════════════════════════════════
+     ASISTENTE SGI — Chatbot flotante con Claude API
+════════════════════════════════════════════════════ -->
+<style>
+/* ── Botón flotante ── */
+#sgi-chat-fab {
+  position: fixed; bottom: 22px; right: 22px; z-index: 9800;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, #0077c2, #005b99);
+  border: 1.5px solid rgba(255,255,255,.25);
+  box-shadow: 0 4px 20px rgba(0,0,0,.45), 0 0 0 0 rgba(0,180,255,.4);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: transform .2s, box-shadow .2s;
+  animation: sgi-pulse 3s ease-in-out infinite;
+}
+#sgi-chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(0,0,0,.5); animation: none; }
+#sgi-chat-fab svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#sgi-chat-fab .sgi-fab-badge {
+  position: absolute; top: -3px; right: -3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent,#f0a500); border: 2px solid #003e6b;
+  font-size: 8px; font-weight: 700; color: #003e6b;
+  display: none; align-items: center; justify-content: center;
+  font-family: 'Barlow', sans-serif;
+}
+@keyframes sgi-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,.45), 0 0 0 0 rgba(0,180,255,.35); }
+  50%       { box-shadow: 0 4px 20px rgba(0,0,0,.45), 0 0 0 8px rgba(0,180,255,.0); }
+}
+
+/* ── Panel del chat ── */
+#sgi-chat-panel {
+  position: fixed; bottom: 84px; right: 22px; z-index: 9801;
+  width: min(400px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - 110px));
+  background: #08192b;
+  border: 1px solid rgba(0,180,255,.18);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: scale(.92) translateY(12px);
+  opacity: 0; pointer-events: none;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+}
+#sgi-chat-panel.open {
+  transform: scale(1) translateY(0);
+  opacity: 1; pointer-events: all;
+}
+
+/* ── Cabecera ── */
+#sgi-chat-head {
+  background: linear-gradient(135deg, #003e6b, #005b99);
+  padding: .7rem 1rem;
+  display: flex; align-items: center; gap: .65rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.sgi-chat-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,180,255,.15); border: 1.5px solid rgba(0,180,255,.4);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sgi-chat-avatar svg { width: 16px; height: 16px; stroke: #5dd3ff; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#sgi-chat-head-info { flex: 1; min-width: 0; }
+#sgi-chat-head-info h4 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: .95rem;
+  font-weight: 700; color: white; line-height: 1.1;
+}
+#sgi-chat-head-info span {
+  font-size: .68rem; color: rgba(255,255,255,.45);
+  font-family: 'JetBrains Mono', monospace;
+}
+#sgi-chat-status { display: flex; align-items: center; gap: 5px; }
+.sgi-status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #22c995;
+  box-shadow: 0 0 6px rgba(34,201,149,.6);
+  animation: sgi-blink 2.5s ease-in-out infinite;
+}
+@keyframes sgi-blink {
+  0%,100% { opacity: 1; } 50% { opacity: .4; }
+}
+#sgi-chat-close {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 7px; color: white; cursor: pointer;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: background .15s; flex-shrink: 0;
+}
+#sgi-chat-close:hover { background: rgba(255,255,255,.2); }
+
+/* ── Área de mensajes ── */
+#sgi-chat-msgs {
+  flex: 1; overflow-y: auto; padding: .85rem .9rem;
+  display: flex; flex-direction: column; gap: .6rem;
+  scroll-behavior: smooth;
+}
+#sgi-chat-msgs::-webkit-scrollbar { width: 4px; }
+#sgi-chat-msgs::-webkit-scrollbar-track { background: transparent; }
+#sgi-chat-msgs::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 4px; }
+
+/* Burbujas */
+.sgi-msg {
+  display: flex; align-items: flex-end; gap: 7px; max-width: 88%;
+  animation: sgi-msg-in .22s ease;
+}
+@keyframes sgi-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sgi-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.sgi-msg.bot  { align-self: flex-start; }
+
+.sgi-msg-avatar {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 11px;
+}
+.sgi-msg.bot .sgi-msg-avatar  { background: rgba(0,180,255,.12); border: 1px solid rgba(0,180,255,.3); }
+.sgi-msg.user .sgi-msg-avatar { background: rgba(240,165,0,.15); border: 1px solid rgba(240,165,0,.35); font-size: 9px; font-weight: 700; font-family:'Barlow Condensed',sans-serif; color: var(--accent,#f0a500); }
+
+.sgi-msg-bubble {
+  padding: .55rem .8rem; border-radius: 12px;
+  font-size: .82rem; line-height: 1.55; font-family: 'Barlow', sans-serif;
+  max-width: 100%;
+}
+.sgi-msg.bot .sgi-msg-bubble {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.9); border-bottom-left-radius: 4px;
+}
+.sgi-msg.user .sgi-msg-bubble {
+  background: linear-gradient(135deg, #005b99, #0077c2);
+  border: 1px solid rgba(0,180,255,.25); color: white;
+  border-bottom-right-radius: 4px;
+}
+.sgi-msg-bubble strong { color: #5dd3ff; font-weight: 600; }
+.sgi-msg-bubble em { color: rgba(255,255,255,.6); font-style: normal; font-size: .77rem; }
+.sgi-msg-bubble ul { padding-left: 1.1rem; margin: .3rem 0; }
+.sgi-msg-bubble li { margin-bottom: .2rem; }
+
+/* Typing indicator */
+.sgi-typing { display: flex; align-items: center; gap: 4px; padding: .4rem .2rem; }
+.sgi-typing span {
+  width: 6px; height: 6px; border-radius: 50%; background: rgba(0,180,255,.6);
+  animation: sgi-typing-dot .9s ease-in-out infinite;
+}
+.sgi-typing span:nth-child(2) { animation-delay: .15s; }
+.sgi-typing span:nth-child(3) { animation-delay: .30s; }
+@keyframes sgi-typing-dot {
+  0%,80%,100% { transform: scale(.7); opacity: .4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Sugerencias rápidas ── */
+#sgi-chat-chips {
+  padding: .4rem .9rem .35rem;
+  display: flex; flex-wrap: wrap; gap: .35rem;
+  border-top: 1px solid rgba(255,255,255,.05);
+  flex-shrink: 0;
+}
+.sgi-chip {
+  font-size: .7rem; font-family: 'Barlow', sans-serif;
+  padding: 3px 10px; border-radius: 99px;
+  background: rgba(0,120,200,.15); border: 1px solid rgba(0,180,255,.25);
+  color: rgba(255,255,255,.75); cursor: pointer;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+.sgi-chip:hover { background: rgba(0,120,200,.3); border-color: rgba(0,180,255,.5); color: white; }
+
+/* ── Input ── */
+#sgi-chat-input-row {
+  padding: .6rem .9rem .75rem;
+  display: flex; gap: .5rem; align-items: flex-end;
+  border-top: 1px solid rgba(255,255,255,.07); flex-shrink: 0;
+}
+#sgi-chat-input {
+  flex: 1; background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.14); border-radius: 10px;
+  color: white; font-family: 'Barlow', sans-serif; font-size: .82rem;
+  padding: .5rem .75rem; resize: none; outline: none;
+  min-height: 36px; max-height: 100px;
+  transition: border-color .15s;
+  line-height: 1.4;
+}
+#sgi-chat-input::placeholder { color: rgba(255,255,255,.3); }
+#sgi-chat-input:focus { border-color: rgba(0,180,255,.45); }
+#sgi-chat-send {
+  width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+  background: linear-gradient(135deg, #0077c2, #005b99);
+  border: 1px solid rgba(0,180,255,.3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .15s, transform .1s;
+}
+#sgi-chat-send:hover { opacity: .9; }
+#sgi-chat-send:active { transform: scale(.95); }
+#sgi-chat-send svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#sgi-chat-send:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Modo claro (si aplica) */
+body.theme-light #sgi-chat-panel { background: #f0f4f8; border-color: rgba(0,90,160,.15); }
+body.theme-light .sgi-msg.bot .sgi-msg-bubble { background: white; border-color: #e2e8f0; color: #1e3a5f; }
+body.theme-light #sgi-chat-input { background: white; border-color: #cbd5e1; color: #1e3a5f; }
+body.theme-light .sgi-chip { background: rgba(0,90,160,.08); color: #1e3a5f; }
+</style>
+
+<!-- Botón flotante -->
+<button id="sgi-chat-fab" onclick="sgiChatToggle()" title="Asistente SGI" aria-label="Abrir asistente">
+  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <div class="sgi-fab-badge" id="sgi-fab-badge">1</div>
+</button>
+
+<!-- Panel del chat -->
+<div id="sgi-chat-panel" role="dialog" aria-label="Asistente SGI">
+  <!-- Cabecera -->
+  <div id="sgi-chat-head">
+    <div class="sgi-chat-avatar">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+    </div>
+    <div id="sgi-chat-head-info">
+      <h4>Asistente SGI</h4>
+      <span>UTE Valle de Güímar · EDARi</span>
+    </div>
+    <div id="sgi-chat-status"><div class="sgi-status-dot"></div></div>
+    <button id="sgi-chat-close" onclick="sgiChatToggle()" aria-label="Cerrar">✕</button>
+  </div>
+
+  <!-- Mensajes -->
+  <div id="sgi-chat-msgs"></div>
+
+  <!-- Chips de acceso rápido -->
+  <div id="sgi-chat-chips">
+    <button class="sgi-chip" onclick="sgiChip(this)">📋 Mis tareas</button>
+    <button class="sgi-chip" onclick="sgiChip(this)">⚗️ Rangos normales</button>
+    <button class="sgi-chip" onclick="sgiChip(this)">🔬 Edad del fango</button>
+    <button class="sgi-chip" onclick="sgiChip(this)">📄 Procedimiento IVF</button>
+    <button class="sgi-chip" onclick="sgiChip(this)">🚨 Alarma turbidez</button>
+  </div>
+
+  <!-- Input -->
+  <div id="sgi-chat-input-row">
+    <textarea id="sgi-chat-input" placeholder="Pregunta algo sobre la planta…" rows="1"
+      onkeydown="sgiChatKey(event)" oninput="sgiAutoResize(this)"></textarea>
+    <button id="sgi-chat-send" onclick="sgiChatSend()" aria-label="Enviar">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ══ ASISTENTE SGI ═══════════════════════════════════════════════════════════
+
+(function(){
+  // ── Estado ──────────────────────────────────────────────────────────────
+  const _chat = {
+    open: false,
+    loading: false,
+    history: [],   // {role, content}
+    welcomed: false
+  };
+
+  // ── System prompt ────────────────────────────────────────────────────────
+  const SYSTEM = `Eres el Asistente SGI de UTE Valle de Güímar, un chatbot especializado integrado en el portal de gestión interna de la EDAR (Estación Depuradora de Aguas Residuales) e EDARi (industrial) de Valle de Güímar, Tenerife.
+
+Tu misión es ayudar al personal operativo —operarios y supervisores— con consultas técnicas, procedimientos y seguimiento de tareas. Responde siempre en español, de forma concisa y práctica.
+
+━━ DATOS DE LA PLANTA ━━
+• Reactor biológico: volumen 2.304 m³, proceso de fangos activos
+• Parámetros de control principales:
+  - Edad del fango (θc): 8-20 días (óptimo: 12-15 días)
+  - IVF (Índice Volumétrico de Fangos): 50-150 mL/g (óptimo: 80-120 mL/g)
+  - SSLM (Sólidos Suspendidos Licor Mezcla): 2.500-4.000 mg/L
+  - OD (Oxígeno Disuelto) en reactor: 1,5-3,0 mg/L
+  - F/M (relación alimento/microorganismo): 0,05-0,25 kgDBO/kgSSLM·d
+• Vertido regulado por RD 509/1996:
+  - DBO₅ efluente: ≤ 25 mg/L (o rendimiento ≥ 70%)
+  - DQO efluente: ≤ 125 mg/L (o rendimiento ≥ 75%)
+  - SST efluente: ≤ 35 mg/L (o rendimiento ≥ 90%)
+  - N total: ≤ 15 mg/L
+  - P total: ≤ 2 mg/L
+
+━━ MÓDULOS DEL PORTAL SGI ━━
+• M01 Calibraciones — Registro de calibraciones de equipos analíticos
+• M02 Procedimientos — 7 guías con ilustraciones SVG (IVF, DBO respirométrica, microscopía, etc.)
+• M04 SMS Diario — Informe diario de explotación vía WhatsApp
+• M05 Inventarios — Gestión de almacenes (Lab, Taller EDARu, Almacén EDARu, Almacén EDARi)
+• M06 Simulador — Simulador del proceso biológico EDARi
+• M07 Buzón — Sugerencias del personal
+• M08 Tareas — Asignación supervisor → operario con seguimiento
+
+━━ REGLAS DE COMPORTAMIENTO ━━
+1. Respuestas cortas y directas. Si hay cálculos, muéstralos paso a paso.
+2. Si preguntan por tareas pendientes o datos en tiempo real, indica que puedes ver los datos cargados del sistema cuando estén disponibles.
+3. Para procedimientos, da los pasos numerados y claros.
+4. Usa emojis con moderación para mejorar la legibilidad (✅ ⚠️ 🔬 📋).
+5. Si no sabes algo específico de la planta, dilo claramente y sugiere consultar al supervisor.
+6. Nunca inventes valores analíticos ni datos de la planta.`;
+
+  // ── Contexto dinámico del portal ─────────────────────────────────────────
+  function buildContext() {
+    const ctx = [];
+    // Sesión activa
+    const s = (typeof getSession === 'function') ? getSession() : null;
+    if(s) ctx.push(`Usuario activo: ${s.username} (rol: ${s.role})`);
+    // Tareas pendientes
+    if(window._tar && window._tar.data) {
+      const propias = Object.values(window._tar.data).filter(t => t && (
+        !s || s.role === 'supervisor' || s.role === 'admin' || t.asignado_a === s.username
+      ));
+      const pend = propias.filter(t => !t.completada);
+      const comp = propias.filter(t => t.completada);
+      ctx.push(`Tareas: ${pend.length} pendientes, ${comp.length} completadas de ${propias.length} total.`);
+      if(pend.length > 0 && pend.length <= 5) {
+        ctx.push('Tareas pendientes: ' + pend.map(t =>
+          `"${t.titulo}" (${t.prioridad||'media'}, asignada a ${t.asignado_a})`
+        ).join('; '));
+      }
+    }
+    // Tendencias del simulador si hay datos
+    try {
+      const tend = localStorage.getItem('sgi-tendencias-semana');
+      if(tend) {
+        const d = JSON.parse(tend);
+        if(d && d.length) {
+          const last = d[d.length-1];
+          ctx.push(`Último registro simulador: edad fango ${last.edadFango||'—'} días, IVF ${last.ivf||'—'} mL/g, SSLM ${last.sslm||'—'} mg/L`);
+        }
+      }
+    } catch(e){}
+    return ctx.length ? '\n\n━━ CONTEXTO ACTUAL ━━\n' + ctx.join('\n') : '';
+  }
+
+  // ── Toggle panel ─────────────────────────────────────────────────────────
+  window.sgiChatToggle = function() {
+    _chat.open = !_chat.open;
+    document.getElementById('sgi-chat-panel').classList.toggle('open', _chat.open);
+    // Ocultar badge al abrir
+    if(_chat.open) {
+      document.getElementById('sgi-fab-badge').style.display = 'none';
+      if(!_chat.welcomed) { _chat.welcomed = true; sgiWelcome(); }
+      setTimeout(() => document.getElementById('sgi-chat-input').focus(), 280);
+    }
+  };
+
+  // ── Mensaje de bienvenida ─────────────────────────────────────────────────
+  function sgiWelcome() {
+    const s = (typeof getSession === 'function') ? getSession() : null;
+    const nombre = s ? s.username : 'operario';
+    const hora = new Date().getHours();
+    const saludo = hora < 13 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
+    // Tareas pendientes para saludo
+    let extra = '';
+    if(window._tar && window._tar.data) {
+      const pend = Object.values(window._tar.data).filter(t => t && !t.completada &&
+        (!s || s.role==='supervisor' || s.role==='admin' || t.asignado_a === s.username));
+      if(pend.length > 0) {
+        extra = ` Tienes **${pend.length} tarea${pend.length>1?'s':''} pendiente${pend.length>1?'s':''}**.`;
+      }
+    }
+    appendMsg('bot', `${saludo}, **${nombre}**. 👋\n\nSoy el asistente del SGI. Puedo ayudarte con procedimientos, parámetros de la planta, cálculos de proceso y gestión de tareas.${extra}\n\n¿En qué puedo ayudarte?`);
+  }
+
+  // ── Chips de acceso rápido ────────────────────────────────────────────────
+  window.sgiChip = function(btn) {
+    const txt = btn.textContent.replace(/^[^\w]+/, '').trim();
+    document.getElementById('sgi-chat-input').value = txt;
+    sgiChatSend();
+  };
+
+  // ── Enviar mensaje ────────────────────────────────────────────────────────
+  window.sgiChatSend = async function() {
+    const input = document.getElementById('sgi-chat-input');
+    const text = input.value.trim();
+    if(!text || _chat.loading) return;
+    input.value = '';
+    sgiAutoResize(input);
+
+    appendMsg('user', text);
+    _chat.history.push({ role: 'user', content: text });
+
+    // Mostrar typing
+    const typingEl = appendTyping();
+    _chat.loading = true;
+    document.getElementById('sgi-chat-send').disabled = true;
+
+    try {
+      const sysWithCtx = SYSTEM + buildContext();
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: sysWithCtx,
+          messages: _chat.history.slice(-12) // últimos 12 turnos
+        })
+      });
+      const data = await resp.json();
+      typingEl.remove();
+      if(data.content && data.content[0]) {
+        const reply = data.content.map(b => b.text||'').join('');
+        _chat.history.push({ role: 'assistant', content: reply });
+        appendMsg('bot', reply);
+      } else {
+        appendMsg('bot', '⚠️ Sin respuesta del servidor. Comprueba la conexión.');
+      }
+    } catch(err) {
+      typingEl.remove();
+      appendMsg('bot', '⚠️ Error de conexión. Inténtalo de nuevo.');
+    } finally {
+      _chat.loading = false;
+      document.getElementById('sgi-chat-send').disabled = false;
+    }
+  };
+
+  // ── Tecla Enter ──────────────────────────────────────────────────────────
+  window.sgiChatKey = function(e) {
+    if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sgiChatSend(); }
+  };
+
+  // ── Auto-resize textarea ─────────────────────────────────────────────────
+  window.sgiAutoResize = function(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  };
+
+  // ── Renderizar burbuja ───────────────────────────────────────────────────
+  function appendMsg(role, text) {
+    const msgs = document.getElementById('sgi-chat-msgs');
+    const s = (typeof getSession === 'function') ? getSession() : null;
+    const initials = s ? s.username.slice(0,2).toUpperCase() : 'OP';
+
+    const div = document.createElement('div');
+    div.className = `sgi-msg ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'sgi-msg-avatar';
+    if(role === 'bot') {
+      avatar.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" stroke="#5dd3ff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg>`;
+    } else {
+      avatar.textContent = initials;
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'sgi-msg-bubble';
+    bubble.innerHTML = formatMsg(text);
+
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  // ── Typing indicator ─────────────────────────────────────────────────────
+  function appendTyping() {
+    const msgs = document.getElementById('sgi-chat-msgs');
+    const div = document.createElement('div');
+    div.className = 'sgi-msg bot';
+    div.innerHTML = `
+      <div class="sgi-msg-avatar">
+        <svg viewBox="0 0 24 24" width="12" height="12" stroke="#5dd3ff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg>
+      </div>
+      <div class="sgi-msg-bubble"><div class="sgi-typing"><span></span><span></span><span></span></div></div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  // ── Formateo markdown básico ─────────────────────────────────────────────
+  function formatMsg(text) {
+    return text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/^(\d+)\. (.+)$/gm,'<strong>$1.</strong> $2')
+      .replace(/^[-•] (.+)$/gm,'• $1')
+      .replace(/\n\n/g,'</p><p>')
+      .replace(/\n/g,'<br>')
+      .replace(/^(.+)$/,'<p>$1</p>');
+  }
+
+  // ── Escape cierra el panel ───────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && _chat.open) sgiChatToggle();
+  });
+
+  // ── Mostrar badge si hay tareas al cargar ────────────────────────────────
+  setTimeout(() => {
+    if(window._tar && window._tar.data) {
+      const s = (typeof getSession === 'function') ? getSession() : null;
+      const pend = Object.values(window._tar.data).filter(t => t && !t.completada &&
+        (!s || s.role==='supervisor' || s.role==='admin' || t.asignado_a === s.username));
+      if(pend.length > 0 && !_chat.open) {
+        const badge = document.getElementById('sgi-fab-badge');
+        badge.textContent = pend.length;
+        badge.style.display = 'flex';
+      }
+    }
+  }, 3000);
+})();
+</script>
 
 </body>
 </html>
