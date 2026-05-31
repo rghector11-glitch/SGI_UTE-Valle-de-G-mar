@@ -69,6 +69,21 @@ html,body{height:100%;width:100%;font-family:var(--sans);background:#0a1a14;colo
 .rd-item .rd-d{font-size:10px;color:var(--text2);margin-top:1px;}
 .rd-item .rd-c{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;}
 .rd-empty{text-align:center;color:var(--muted);font-family:var(--mono);font-size:10.5px;padding:24px 8px;letter-spacing:.04em;}
+/* Botón añadir ruta + formulario */
+.rd-add{background:rgba(74,222,128,.08);border:1px dashed var(--accent);color:var(--accent);border-radius:7px;padding:10px;font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.05em;transition:background .12s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.rd-add:hover{background:rgba(74,222,128,.18);}
+.rd-form{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:7px;padding:11px;display:flex;flex-direction:column;gap:7px;}
+.rd-form .rd-flbl{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
+.rd-form input, .rd-form textarea{background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:7px 10px;font-family:var(--sans);font-size:12px;}
+.rd-form input:focus, .rd-form textarea:focus{outline:none;border-color:var(--accent);}
+.rd-form textarea{resize:vertical;min-height:44px;}
+.rd-form-row{display:flex;gap:6px;margin-top:2px;}
+.rd-form-row button{flex:1;border:none;border-radius:5px;padding:7px;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;}
+.rd-form-row .save{background:var(--accent);color:#0a1a14;}
+.rd-form-row .save:hover{opacity:.85;}
+.rd-form-row .cancel{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.rd-form-row .cancel:hover{color:var(--text);border-color:var(--muted);}
+.rd-form .hint{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.04em;line-height:1.4;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -113,7 +128,7 @@ html,body{height:100%;width:100%;font-family:var(--sans);background:#0a1a14;colo
 <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, get, set, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const firebaseConfig = {
     apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
     authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
@@ -125,7 +140,7 @@ html,body{height:100%;width:100%;font-family:var(--sans);background:#0a1a14;colo
   };
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-  window._fb = { db, ref, get };
+  window._fb = { db, ref, get, set, push };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <script>
@@ -220,10 +235,15 @@ function toggleRutasDrawer(open){
 function renderRutasDrawer(){
   const list = document.getElementById('rd-list');
   const ids = Object.keys(rutasState);
-  if(!ids.length){ list.innerHTML='<div class="rd-empty">No hay rutas disponibles</div>'; return; }
-  list.innerHTML = ids.map(id=>{
+  // Comprobar sesión del portal (compartida vía localStorage)
+  let sesion = null;
+  try{ const d = localStorage.getItem('ute-session'); if(d) sesion = JSON.parse(d); }catch(e){}
+  const esSup = sesion && (sesion.role==='supervisor' || sesion.role==='admin');
+
+  const itemsHTML = ids.length ? ids.map(id=>{
     const st = rutasState[id];
     const n = (st.wells||[]).length;
+    const delBtn = (esSup && id !== '_edaru') ? `<button onclick="event.stopPropagation();borrarRuta('${id}','${_esc(st.info.nombre)}')" style="background:transparent;border:1px solid rgba(229,74,100,.4);color:var(--av);border-radius:4px;padding:3px 7px;font-size:11px;cursor:pointer;line-height:1;margin-left:6px;" title="Eliminar ruta">✕</button>` : '';
     return `<div class="rd-item" onclick="abrirRutaDetalle('${id}','${_esc(st.info.nombre)}')">
       <div class="rd-sw" style="background:${st.info.color}"></div>
       <div class="rd-info">
@@ -231,8 +251,89 @@ function renderRutasDrawer(){
         ${st.info.descripcion?`<div class="rd-d">${_esc(st.info.descripcion)}</div>`:''}
         <div class="rd-c">${n} pozo${n===1?'':'s'}${st.info.archivo?' · '+_esc(st.info.archivo):''}</div>
       </div>
+      ${delBtn}
     </div>`;
-  }).join('');
+  }).join('') : '<div class="rd-empty">No hay rutas todavía</div>';
+
+  const addBlock = esSup ? `
+    <button class="rd-add" id="rd-add-btn" onclick="rdShowForm()">
+      <span style="font-size:14px">+</span> Añadir nueva ruta
+    </button>
+    <div class="rd-form" id="rd-form" style="display:none;">
+      <div class="rd-flbl">Nueva ruta de colector</div>
+      <input id="rd-nombre" placeholder="Nombre · ej: Colector Norte" maxlength="60">
+      <textarea id="rd-desc" placeholder="Descripción (opcional)" maxlength="200"></textarea>
+      <input id="rd-archivo" placeholder="Archivo HTML · ej: ruta-colector-norte.html" maxlength="100">
+      <div class="hint">El archivo HTML debe estar subido a GitHub Pages. Si no lo tienes, puedes dejar 'ruta-colector-edaru.html?ruta=ID' para reutilizar el editor existente con datos separados.</div>
+      <div class="rd-form-row">
+        <button class="cancel" onclick="rdHideForm()">Cancelar</button>
+        <button class="save" onclick="guardarNuevaRuta()">Guardar</button>
+      </div>
+    </div>` : (sesion ? '' : '<div class="rd-empty" style="font-size:9.5px;opacity:.6;">Inicia sesión como supervisor para crear rutas</div>');
+
+  list.innerHTML = itemsHTML + addBlock;
+}
+
+function rdShowForm(){
+  const f = document.getElementById('rd-form');
+  const b = document.getElementById('rd-add-btn');
+  if(f) f.style.display='flex';
+  if(b) b.style.display='none';
+  const i = document.getElementById('rd-nombre'); if(i) i.focus();
+}
+function rdHideForm(){
+  const f = document.getElementById('rd-form');
+  const b = document.getElementById('rd-add-btn');
+  if(f) f.style.display='none';
+  if(b) b.style.display='flex';
+  ['rd-nombre','rd-desc','rd-archivo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+
+async function guardarNuevaRuta(){
+  const nombre = document.getElementById('rd-nombre').value.trim();
+  const desc   = document.getElementById('rd-desc').value.trim();
+  let archivo  = document.getElementById('rd-archivo').value.trim();
+  if(!nombre){ alert('Pon un nombre a la ruta.'); return; }
+  if(!window._fb || !window._fb.push || !window._fb.set){ alert('Firebase no disponible.'); return; }
+  let sesion = null;
+  try{ const d = localStorage.getItem('ute-session'); if(d) sesion = JSON.parse(d); }catch(e){}
+  if(!sesion){ alert('Sesión no iniciada.'); return; }
+  try{
+    const {db,ref,push,set} = window._fb;
+    const newRef = push(ref(db,'rutas_colector'));
+    // Si no se especifica archivo, generar URL al editor existente con ?ruta=ID
+    if(!archivo) archivo = 'ruta-colector-edaru.html?ruta=' + newRef.key;
+    await set(newRef, {
+      nombre, descripcion: desc, archivo,
+      creada: Date.now(),
+      por: sesion.username || sesion.name || '?',
+      rol: sesion.role || '?'
+    });
+    rdHideForm();
+    // Recargar todas las rutas para que la nueva aparezca en el mapa
+    recargarRutas();
+  }catch(e){ alert('Error guardando la ruta: '+e.message); }
+}
+
+async function borrarRuta(rutaId, nombre){
+  if(!confirm('¿Eliminar la ruta "'+nombre+'"?\nLos archivos HTML no se borran, solo se quita del listado y del mapa.')) return;
+  try{
+    const {db,ref,set} = window._fb;
+    await set(ref(db,'rutas_colector/'+rutaId), null);
+    recargarRutas();
+  }catch(e){ alert('Error eliminando: '+e.message); }
+}
+
+// Recargar todo: limpia capas y vuelve a cargar
+async function recargarRutas(){
+  // Quitar capas del mapa
+  Object.keys(layerGroups).forEach(id=>{
+    try{ map.removeLayer(layerGroups[id]); }catch(e){}
+  });
+  layerGroups = {};
+  rutasState = {};
+  await cargarTodo();
+  renderRutasDrawer();
 }
 function abrirRutaDetalle(rutaId, nombre){
   const st = rutasState[rutaId];
@@ -306,6 +407,10 @@ window.toggleLeyenda = toggleLeyenda;
 window.toggleRutasDrawer = toggleRutasDrawer;
 window.abrirRutaDetalle = abrirRutaDetalle;
 window.volverPortal = volverPortal;
+window.rdShowForm = rdShowForm;
+window.rdHideForm = rdHideForm;
+window.guardarNuevaRuta = guardarNuevaRuta;
+window.borrarRuta = borrarRuta;
 
 // Esperar Firebase y arrancar
 window.addEventListener('DOMContentLoaded', ()=>{
