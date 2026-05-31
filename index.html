@@ -636,6 +636,13 @@ body.theme-light .p-user-btn{color:#0f172a;}
 .mc-foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:rgba(0,0,0,.15);}
 .mc-stat{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:.03em;}
 .mc-stat b{color:var(--accent2);font-weight:500;}
+/* Gráfico de anillo M08 Tareas */
+.mc-tareas-ring-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.mc-tareas-donut-svg{width:44px;height:44px;flex-shrink:0;}
+.mc-tareas-ring-info{min-width:0;line-height:1.3;}
+.mc-tareas-ring-sub{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;}
+.mc-tareas-ring-pend{font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:600;color:rgba(255,255,255,.9);}
+.mc-tareas-ring-pend b{color:var(--accent,#f0a500);}
 .mc-arr{color:var(--muted);font-size:13px;transition:transform .2s,color .2s;}
 .mc:hover .mc-arr{color:var(--accent);transform:translateX(3px);}
 
@@ -1191,6 +1198,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           .mc-stat{font-size:8.5px;}
           .mc-num{font-size:6.5px;}
           .mc-badge{font-size:6.5px; padding:1.5px 5px;}
+          .mc-tareas-ring-row{gap:6px; margin-top:4px;}
+          .mc-tareas-donut-svg{width:38px; height:38px;}
+          .mc-tareas-ring-sub{font-size:7.5px;}
+          .mc-tareas-ring-pend{font-size:10px;}
 
           /* Tarjetas analíticas (1 columna, más estrechas) */
           .da-card{min-height:128px; padding:9px 11px 7px;}
@@ -1299,6 +1310,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           .mc-foot{padding:4px 9px;}
           .mc-stat{font-size:8px;}
           .mc-ilu{padding:5px;}
+          .mc-tareas-ring-row{gap:5px; margin-top:3px;}
+          .mc-tareas-donut-svg{width:34px; height:34px;}
+          .mc-tareas-ring-sub{font-size:7px;}
+          .mc-tareas-ring-pend{font-size:9.5px;}
           </style>
           <div class="da-panel">
             <div class="da-h">
@@ -1975,9 +1990,27 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div class="mc-right"><div class="mc-body">
                 <div class="mc-title">Tareas</div>
                 <div class="mc-desc">Asignación supervisor → operario</div>
+                <!-- Gráfico de anillo de progreso de tareas -->
+                <div class="mc-tareas-ring-row">
+                  <svg viewBox="0 0 36 36" class="mc-tareas-donut-svg" aria-hidden="true">
+                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.8"/>
+                    <circle id="mc-tareas-donut-arc" cx="18" cy="18" r="15.9155" fill="none"
+                      stroke="var(--accent2,#22c995)" stroke-width="3.8"
+                      stroke-dasharray="0 100" stroke-dashoffset="25"
+                      stroke-linecap="round"
+                      style="transition:stroke-dasharray .6s ease, stroke .4s ease;"/>
+                    <text x="18" y="20.5" text-anchor="middle" font-size="7.5"
+                      font-family="'Barlow Condensed',sans-serif" font-weight="700"
+                      fill="white" id="mc-tareas-donut-label">—</text>
+                  </svg>
+                  <div class="mc-tareas-ring-info">
+                    <div class="mc-tareas-ring-sub">completadas</div>
+                    <div class="mc-tareas-ring-pend"><b id="mc-tareas-pend">—</b> pend.</div>
+                  </div>
+                </div>
               </div>
               <div class="mc-foot">
-                <div class="mc-stat"><b id="mc-tareas-pend">—</b> pend · <b id="mc-tareas-pct" style="color:var(--accent2);">—%</b> hechas</div>
+                <div style="width:1px;"></div>
                 <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
               </div>
             </div></div>
@@ -8003,13 +8036,18 @@ function tarBadge(){
   const pct     = total ? Math.round((compl/total)*100) : 0;
   // Actualizar UI
   const stat   = document.getElementById('mc-tareas-pend');  if(stat)   stat.textContent = pend;
-  const pctEl  = document.getElementById('mc-tareas-pct');   if(pctEl){
-    pctEl.textContent = pct + '%';
-    // Color del % según progreso
-    pctEl.style.color = pct>=80 ? 'var(--accent2,#22c995)' :
-                        pct>=50 ? 'var(--warn,#f0b033)' :
-                        total===0 ? 'var(--muted,#5d7390)' : 'var(--danger,#e54a64)';
+  // Color según progreso
+  const arcColor = pct>=80 ? 'var(--accent2,#22c995)' :
+                   pct>=50 ? 'var(--warn,#f0b033)' :
+                   total===0 ? 'rgba(255,255,255,0.25)' : 'var(--danger,#e54a64)';
+  // Actualizar gráfico de anillo
+  const donutArc = document.getElementById('mc-tareas-donut-arc');
+  const donutLbl = document.getElementById('mc-tareas-donut-label');
+  if(donutArc){
+    donutArc.setAttribute('stroke-dasharray', pct + ' ' + (100-pct));
+    donutArc.setAttribute('stroke', arcColor);
   }
+  if(donutLbl){ donutLbl.textContent = total===0 ? '—' : pct+'%'; }
   const badge = document.getElementById('mc-tareas-badge');
   if(badge){ if(pend>0){badge.textContent=pend;badge.style.display='block';} else badge.style.display='none'; }
 }
