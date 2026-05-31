@@ -1977,7 +1977,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="mc-desc">Asignación supervisor → operario</div>
               </div>
               <div class="mc-foot">
-                <div class="mc-stat"><b id="mc-tareas-pend">—</b> pendientes</div>
+                <div class="mc-stat"><b id="mc-tareas-pend">—</b> pend · <b id="mc-tareas-pct" style="color:var(--accent2);">—%</b> hechas</div>
                 <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
               </div>
             </div></div>
@@ -7990,14 +7990,27 @@ async function tarBorrar(id){
 }
 window.tarBorrar=tarBorrar;
 
-// Badge + contador en la tarjeta M08
+// Badge + contador + porcentaje en la tarjeta M08
 function tarBadge(){
   const s=getSession();
   const esSup = s && (s.role==='supervisor'||s.role==='admin');
   const user = s ? s.username : '';
-  const pend=Object.values(_tar.data||{}).filter(t=>t && !t.completada && (esSup||t.asignado_a===user)).length;
-  const stat=document.getElementById('mc-tareas-pend'); if(stat) stat.textContent=pend;
-  const badge=document.getElementById('mc-tareas-badge');
+  // Operario: solo sus tareas. Supervisor: todas.
+  const propias = Object.values(_tar.data||{}).filter(t => t && (esSup || t.asignado_a===user));
+  const total   = propias.length;
+  const compl   = propias.filter(t => t.completada).length;
+  const pend    = total - compl;
+  const pct     = total ? Math.round((compl/total)*100) : 0;
+  // Actualizar UI
+  const stat   = document.getElementById('mc-tareas-pend');  if(stat)   stat.textContent = pend;
+  const pctEl  = document.getElementById('mc-tareas-pct');   if(pctEl){
+    pctEl.textContent = pct + '%';
+    // Color del % según progreso
+    pctEl.style.color = pct>=80 ? 'var(--accent2,#22c995)' :
+                        pct>=50 ? 'var(--warn,#f0b033)' :
+                        total===0 ? 'var(--muted,#5d7390)' : 'var(--danger,#e54a64)';
+  }
+  const badge = document.getElementById('mc-tareas-badge');
   if(badge){ if(pend>0){badge.textContent=pend;badge.style.display='block';} else badge.style.display='none'; }
 }
 window.tarBadge=tarBadge;
