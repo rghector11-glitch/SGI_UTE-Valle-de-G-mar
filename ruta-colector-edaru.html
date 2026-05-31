@@ -599,8 +599,18 @@ let wells=[], records={}, photos={};
 // Volver atrás: si vienes del mapa general, regresa al mapa; si no, al portal.
 function volverAtras(){
   if(_FROM_MAPA){
-    window.location.href = 'mapa-colectores.html';
+    // Volver al mapa general con cache buster (evita caché del SW/navegador)
+    window.location.href = 'mapa-colectores.html?v=' + Date.now();
   } else {
+    // Si estamos en iframe del portal, pedirle que cierre el viewer
+    try{
+      if(window.parent && window.parent !== window && typeof window.parent.closeRutaColector === 'function'){
+        window.parent.closeRutaColector();
+        return;
+      }
+    }catch(e){}
+    // Fallback (página suelta): navegar al portal limpio
+    history.replaceState(null,'',location.pathname);
     window.location.href = 'index.html';
   }
 }

@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Mapa general de colectores · UTE Valle de Güímar</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -23,11 +26,7 @@ html,body{height:100%;width:100%;font-family:var(--sans);background:#0a1a14;colo
 #bar .meta{font-family:var(--mono);font-size:.7rem;color:rgba(255,255,255,.7);letter-spacing:.05em;}
 #map{position:absolute;top:48px;left:0;right:0;bottom:0;background:#0a1a14;}
 .coords-bar{position:absolute;bottom:8px;left:8px;z-index:400;background:rgba(0,0,0,.55);color:white;font-family:var(--mono);font-size:.65rem;padding:3px 8px;border-radius:6px;pointer-events:none;}
-.well-marker{width:24px;height:24px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;color:white;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;}
-.well-marker.Operativo{background:var(--ok);}
-.well-marker.Avería{background:var(--av);}
-.well-marker.Reparación{background:var(--rep);}
-.well-marker.Mantenimiento{background:var(--mant);}
+.well-marker{width:24px;height:24px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;color:white;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.5);}
 /* Leyenda flotante */
 #leyenda{position:absolute;top:64px;right:12px;z-index:400;background:rgba(15,30,24,.92);backdrop-filter:blur(8px);border:1px solid rgba(74,222,128,.35);border-radius:9px;padding:10px 13px 11px;font-family:var(--mono);font-size:10px;color:var(--text);min-width:200px;max-width:240px;box-shadow:0 4px 16px rgba(0,0,0,.5);}
 #leyenda .leyenda-h{font-family:var(--cond);font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
@@ -42,7 +41,7 @@ html,body{height:100%;width:100%;font-family:var(--sans);background:#0a1a14;colo
 .leyenda-sep{height:1px;background:rgba(255,255,255,.08);margin:7px 0 5px;}
 .leyenda-estado{display:flex;gap:8px;flex-wrap:wrap;font-size:9px;color:var(--muted);}
 .leyenda-estado span{display:inline-flex;align-items:center;gap:3px;}
-.leyenda-estado i{width:9px;height:9px;border-radius:50%;border:1.5px solid white;display:inline-block;}
+.leyenda-estado i{width:11px;height:11px;border-radius:50%;border:2.5px solid white;display:inline-block;}
 /* Popup */
 .leaflet-popup-content-wrapper{background:#152b20;color:var(--text);border:1px solid var(--border);border-radius:7px;}
 .leaflet-popup-tip{background:#152b20;}
@@ -108,11 +107,12 @@ html,body{height:100%;width:100%;font-family:var(--sans);background:#0a1a14;colo
   </div>
   <div id="ley-rutas"><div style="color:var(--muted);font-size:10px;">Cargando…</div></div>
   <div class="leyenda-sep"></div>
+  <div style="font-family:var(--mono);font-size:8.5px;color:var(--muted);letter-spacing:.04em;margin-bottom:4px;">Estado (borde del marcador)</div>
   <div class="leyenda-estado">
-    <span><i style="background:var(--ok)"></i>Operativo</span>
-    <span><i style="background:var(--av)"></i>Avería</span>
-    <span><i style="background:var(--rep)"></i>Reparación</span>
-    <span><i style="background:var(--mant)"></i>Mantenimiento</span>
+    <span><i style="border-color:#fff !important;background:#666;"></i>Operativo</span>
+    <span><i style="border-color:var(--av);background:#666;"></i>Avería</span>
+    <span><i style="border-color:var(--rep);background:#666;"></i>Reparación</span>
+    <span><i style="border-color:var(--mant);background:#666;"></i>Mantenimiento</span>
   </div>
 </div>
 <!-- Drawer Lista de rutas -->
@@ -152,13 +152,24 @@ const PALETA = ['#3aafe8','#22c995','#f0b033','#e54a64','#9788e6','#06b6d4','#ec
 let map, rutasState = {}, layerGroups = {}, leyendaCollapsed = false;
 
 function volverPortal(){
+  // Si estamos en iframe del portal, pedirle que cierre el viewer
+  try{
+    if(window.parent && window.parent !== window && typeof window.parent.closeRutaColector === 'function'){
+      window.parent.closeRutaColector();
+      return;
+    }
+  }catch(e){}
+  // Fallback (página suelta): navegar a index
   history.replaceState(null,'',location.pathname);
   window.location.href = 'index.html';
 }
-function makeIcon(w){
+function makeIcon(w, color){
+  const borderCol = w.state==='Avería' ? 'var(--av)' :
+                    w.state==='Reparación' ? 'var(--rep)' :
+                    w.state==='Mantenimiento' ? 'var(--mant)' : 'white';
   return L.divIcon({
     className:'',
-    html:`<div class="well-marker ${w.state||'Operativo'}" title="${w.name||''}">${(w.num!=null&&w.num<=99)?w.num:'?'}</div>`,
+    html:`<div class="well-marker" style="background:${color};border-color:${borderCol};" title="${(w.name||'').replace(/"/g,'&quot;')}">${(w.num!=null&&w.num<=99)?w.num:'?'}</div>`,
     iconSize:[24,24], iconAnchor:[12,12]
   });
 }
@@ -171,7 +182,7 @@ function addRutaLayer(rutaId, info, wells){
   const coords = [];
   (wells||[]).forEach(w=>{
     if(typeof w.lat!=='number' || typeof w.lon!=='number') return;
-    const m = L.marker([w.lat,w.lon],{icon:makeIcon(w)});
+    const m = L.marker([w.lat,w.lon],{icon:makeIcon(w, color)});
     const popup = `
       <div>
         <span class="ruta-tag" style="background:${color}">${_esc(info.nombre)}</span>
