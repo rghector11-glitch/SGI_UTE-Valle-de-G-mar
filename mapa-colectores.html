@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa general de colectores · UTE Valle de Güímar</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --bg:#0d1f1a; --panel:#152b20; --border:#2a4d38; --accent:#4ade80;
+  --text:#e8f5ec; --text2:#a8c9b0; --muted:#6a9878;
+  --ok:#22c55e; --av:#ef4444; --rep:#f59e0b; --mant:#9ca3af;
+  --mono:'JetBrains Mono',monospace; --sans:'Barlow',sans-serif; --cond:'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;font-family:var(--sans);background:#0a1a14;color:var(--text);overflow:hidden;}
+#bar{background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);position:fixed;top:0;left:0;right:0;z-index:1000;height:48px;}
+#bar .btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:var(--sans);display:flex;align-items:center;gap:5px;font-weight:600;}
+#bar .btn:hover{background:rgba(255,255,255,.25);}
+#bar .ico{width:14px;height:14px;}
+#bar h1{font-family:var(--cond);font-weight:700;color:white;font-size:1rem;flex:1;letter-spacing:.04em;}
+#bar .meta{font-family:var(--mono);font-size:.7rem;color:rgba(255,255,255,.7);letter-spacing:.05em;}
+#map{position:absolute;top:48px;left:0;right:0;bottom:0;background:#0a1a14;}
+.coords-bar{position:absolute;bottom:8px;left:8px;z-index:400;background:rgba(0,0,0,.55);color:white;font-family:var(--mono);font-size:.65rem;padding:3px 8px;border-radius:6px;pointer-events:none;}
+.well-marker{width:24px;height:24px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;color:white;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;}
+.well-marker.Operativo{background:var(--ok);}
+.well-marker.Avería{background:var(--av);}
+.well-marker.Reparación{background:var(--rep);}
+.well-marker.Mantenimiento{background:var(--mant);}
+/* Leyenda flotante */
+#leyenda{position:absolute;top:64px;right:12px;z-index:400;background:rgba(15,30,24,.92);backdrop-filter:blur(8px);border:1px solid rgba(74,222,128,.35);border-radius:9px;padding:10px 13px 11px;font-family:var(--mono);font-size:10px;color:var(--text);min-width:200px;max-width:240px;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+#leyenda .leyenda-h{font-family:var(--cond);font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+#leyenda .leyenda-h .tog{cursor:pointer;background:transparent;border:none;color:var(--muted);font-size:14px;padding:0;line-height:1;}
+.leyenda-item{display:flex;align-items:center;gap:7px;padding:3px 0;cursor:pointer;border-radius:3px;padding:3px 5px;}
+.leyenda-item:hover{background:rgba(255,255,255,.04);}
+.leyenda-item .sw{width:18px;height:4px;border-radius:2px;flex-shrink:0;}
+.leyenda-item .lname{flex:1;color:var(--text);font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.02em;}
+.leyenda-item .lcount{font-size:9px;color:var(--muted);}
+.leyenda-item.off{opacity:.4;}
+.leyenda-item.off .sw{opacity:.3;}
+.leyenda-sep{height:1px;background:rgba(255,255,255,.08);margin:7px 0 5px;}
+.leyenda-estado{display:flex;gap:8px;flex-wrap:wrap;font-size:9px;color:var(--muted);}
+.leyenda-estado span{display:inline-flex;align-items:center;gap:3px;}
+.leyenda-estado i{width:9px;height:9px;border-radius:50%;border:1.5px solid white;display:inline-block;}
+/* Popup */
+.leaflet-popup-content-wrapper{background:#152b20;color:var(--text);border:1px solid var(--border);border-radius:7px;}
+.leaflet-popup-tip{background:#152b20;}
+.leaflet-popup-content{font-family:var(--sans);font-size:12px;margin:8px 12px;}
+.leaflet-popup-content h4{font-family:var(--cond);font-size:14px;color:var(--accent);margin-bottom:4px;}
+.leaflet-popup-content .ruta-tag{display:inline-block;font-size:9px;font-family:var(--mono);padding:1px 6px;border-radius:3px;color:white;margin-bottom:5px;letter-spacing:.05em;}
+.leaflet-popup-content .pop-meta{font-size:10px;color:var(--text2);font-family:var(--mono);margin-top:3px;}
+.leaflet-popup-content .pop-btn{margin-top:6px;background:var(--accent);color:#0a1a14;border:none;padding:5px 9px;border-radius:4px;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.05em;}
+.leaflet-popup-content .pop-btn:hover{opacity:.85;}
+/* Drawer de rutas (botón Lista de rutas) */
+#rutas-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:5000;}
+#rutas-overlay.open{display:block;}
+#rutas-drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:var(--panel);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .25s ease;z-index:5001;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.6);}
+#rutas-drawer.open{transform:translateX(0);}
+#rutas-drawer .rd-h{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+#rutas-drawer .rd-h h3{font-family:var(--cond);font-size:15px;color:var(--accent);letter-spacing:.04em;flex:1;}
+#rutas-drawer .rd-close{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;cursor:pointer;padding:4px 9px;font-size:12px;}
+#rutas-drawer .rd-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:9px;}
+.rd-item{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:7px;padding:11px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .12s, background .12s;}
+.rd-item:hover{border-color:var(--accent);background:rgba(74,222,128,.05);}
+.rd-item .rd-sw{width:8px;align-self:stretch;border-radius:3px;flex-shrink:0;}
+.rd-item .rd-info{flex:1;}
+.rd-item .rd-n{font-family:var(--cond);font-size:13.5px;font-weight:700;color:var(--text);letter-spacing:.03em;}
+.rd-item .rd-d{font-size:10px;color:var(--text2);margin-top:1px;}
+.rd-item .rd-c{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;}
+.rd-empty{text-align:center;color:var(--muted);font-family:var(--mono);font-size:10.5px;padding:24px 8px;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div id="bar">
+  <button class="btn" onclick="volverPortal()">
+    <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Inicio
+  </button>
+  <h1>🗺️ Mapa general de colectores</h1>
+  <div class="meta" id="meta">— rutas</div>
+  <button class="btn" onclick="toggleRutasDrawer(true)">
+    <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M2 4h12M2 8h12M2 12h12" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Lista de rutas
+  </button>
+</div>
+<div id="map"></div>
+<div class="coords-bar" id="coords-bar">28.3185°N  16.3980°W</div>
+<div id="leyenda">
+  <div class="leyenda-h">
+    <span>Rutas</span>
+    <button class="tog" id="ley-tog" onclick="toggleLeyenda()" title="Ocultar/mostrar">−</button>
+  </div>
+  <div id="ley-rutas"><div style="color:var(--muted);font-size:10px;">Cargando…</div></div>
+  <div class="leyenda-sep"></div>
+  <div class="leyenda-estado">
+    <span><i style="background:var(--ok)"></i>Operativo</span>
+    <span><i style="background:var(--av)"></i>Avería</span>
+    <span><i style="background:var(--rep)"></i>Reparación</span>
+    <span><i style="background:var(--mant)"></i>Mantenimiento</span>
+  </div>
+</div>
+<!-- Drawer Lista de rutas -->
+<div id="rutas-overlay" onclick="toggleRutasDrawer(false)"></div>
+<div id="rutas-drawer">
+  <div class="rd-h">
+    <h3>📋 Rutas disponibles</h3>
+    <button class="rd-close" onclick="toggleRutasDrawer(false)">✕</button>
+  </div>
+  <div class="rd-body" id="rd-list"><div class="rd-empty">Cargando rutas…</div></div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
+    authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
+    databaseURL: "https://sgi-ute-valle-de-guimar-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sgi-ute-valle-de-guimar",
+    storageBucket: "sgi-ute-valle-de-guimar.firebasestorage.app",
+    messagingSenderId: "618175438367",
+    appId: "1:618175438367:web:03831aa0ce60cb355e3f2a"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window._fb = { db, ref, get };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// MAPA COMBINADO DE COLECTORES
+// ════════════════════════════════════════════════════════════════════════════
+// Paleta de colores para las rutas (se asignan en orden)
+const PALETA = ['#3aafe8','#22c995','#f0b033','#e54a64','#9788e6','#06b6d4','#ec4899','#f97316'];
+let map, rutasState = {}, layerGroups = {}, leyendaCollapsed = false;
+
+function volverPortal(){
+  history.replaceState(null,'',location.pathname);
+  window.location.href = 'index.html';
+}
+function makeIcon(w){
+  return L.divIcon({
+    className:'',
+    html:`<div class="well-marker ${w.state||'Operativo'}" title="${w.name||''}">${(w.num!=null&&w.num<=99)?w.num:'?'}</div>`,
+    iconSize:[24,24], iconAnchor:[12,12]
+  });
+}
+function _esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Crea capa de una ruta a partir de sus wells
+function addRutaLayer(rutaId, info, wells){
+  const color = info.color;
+  const group = L.layerGroup();
+  const coords = [];
+  (wells||[]).forEach(w=>{
+    if(typeof w.lat!=='number' || typeof w.lon!=='number') return;
+    const m = L.marker([w.lat,w.lon],{icon:makeIcon(w)});
+    const popup = `
+      <div>
+        <span class="ruta-tag" style="background:${color}">${_esc(info.nombre)}</span>
+        <h4>${_esc(w.name||('Pozo '+(w.num||'')))}</h4>
+        <div class="pop-meta">Estado: <strong>${_esc(w.state||'Operativo')}</strong></div>
+        ${w.depth?`<div class="pop-meta">Profundidad: ${_esc(w.depth)}</div>`:''}
+        <div class="pop-meta">${w.lat.toFixed(5)}°N · ${Math.abs(w.lon).toFixed(5)}°W</div>
+        <button class="pop-btn" onclick="abrirRutaDetalle('${rutaId}','${_esc(info.nombre)}')">Abrir esta ruta</button>
+      </div>`;
+    m.bindPopup(popup);
+    m.addTo(group);
+    coords.push([w.lat,w.lon]);
+  });
+  if(coords.length>=2){
+    L.polyline(coords,{color:color,weight:4,opacity:.85,lineJoin:'round'}).addTo(group);
+  }
+  group.addTo(map);
+  layerGroups[rutaId] = group;
+  rutasState[rutaId] = {info, wells, visible:true};
+}
+
+function toggleRuta(rutaId){
+  const st = rutasState[rutaId]; if(!st) return;
+  st.visible = !st.visible;
+  if(st.visible) layerGroups[rutaId].addTo(map);
+  else map.removeLayer(layerGroups[rutaId]);
+  renderLeyenda();
+}
+
+function renderLeyenda(){
+  const cont = document.getElementById('ley-rutas');
+  const ids = Object.keys(rutasState);
+  if(!ids.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;">Sin rutas con pozos</div>'; return; }
+  cont.innerHTML = ids.map(id=>{
+    const st = rutasState[id];
+    const n = (st.wells||[]).length;
+    return `<div class="leyenda-item ${st.visible?'':'off'}" onclick="toggleRuta('${id}')">
+      <div class="sw" style="background:${st.info.color}"></div>
+      <div class="lname">${_esc(st.info.nombre)}</div>
+      <div class="lcount">${n}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('meta').textContent = ids.length + ' ruta'+(ids.length===1?'':'s')+' · '+
+    ids.reduce((a,id)=>a+(rutasState[id].wells||[]).length,0)+' pozos';
+}
+function toggleLeyenda(){
+  leyendaCollapsed = !leyendaCollapsed;
+  document.getElementById('ley-rutas').style.display = leyendaCollapsed?'none':'';
+  document.querySelector('.leyenda-sep').style.display = leyendaCollapsed?'none':'';
+  document.querySelector('.leyenda-estado').style.display = leyendaCollapsed?'none':'';
+  document.getElementById('ley-tog').textContent = leyendaCollapsed?'+':'−';
+}
+
+function toggleRutasDrawer(open){
+  const ov = document.getElementById('rutas-overlay');
+  const dr = document.getElementById('rutas-drawer');
+  if(open === undefined) open = !dr.classList.contains('open');
+  if(open){ ov.classList.add('open'); dr.classList.add('open'); renderRutasDrawer(); }
+  else { ov.classList.remove('open'); dr.classList.remove('open'); }
+}
+function renderRutasDrawer(){
+  const list = document.getElementById('rd-list');
+  const ids = Object.keys(rutasState);
+  if(!ids.length){ list.innerHTML='<div class="rd-empty">No hay rutas disponibles</div>'; return; }
+  list.innerHTML = ids.map(id=>{
+    const st = rutasState[id];
+    const n = (st.wells||[]).length;
+    return `<div class="rd-item" onclick="abrirRutaDetalle('${id}','${_esc(st.info.nombre)}')">
+      <div class="rd-sw" style="background:${st.info.color}"></div>
+      <div class="rd-info">
+        <div class="rd-n">${_esc(st.info.nombre)}</div>
+        ${st.info.descripcion?`<div class="rd-d">${_esc(st.info.descripcion)}</div>`:''}
+        <div class="rd-c">${n} pozo${n===1?'':'s'}${st.info.archivo?' · '+_esc(st.info.archivo):''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function abrirRutaDetalle(rutaId, nombre){
+  const st = rutasState[rutaId];
+  if(!st || !st.info.archivo){ alert('Esta ruta no tiene editor configurado.'); return; }
+  window.location.href = st.info.archivo;
+}
+
+// ── Carga inicial ──
+function ajustarBounds(){
+  const bounds = [];
+  Object.values(rutasState).forEach(st=>{
+    (st.wells||[]).forEach(w=>{ if(typeof w.lat==='number') bounds.push([w.lat,w.lon]); });
+  });
+  if(bounds.length){
+    map.fitBounds(L.latLngBounds(bounds), {padding:[40,40], maxZoom:16});
+  }
+}
+
+async function cargarTodo(){
+  if(!window._fb || !window._fb.get){
+    setTimeout(cargarTodo, 500);
+    return;
+  }
+  const {db,ref,get} = window._fb;
+  let colorIdx = 0;
+
+  // 1. Ruta original "EDARu" desde colector/
+  try{
+    const snap = await get(ref(db,'colector'));
+    const data = snap.val();
+    if(data && data.wells && data.wells.length){
+      addRutaLayer('_edaru',
+        {nombre:'Colector EDARu', descripcion:'Ruta original — red EDARu', archivo:'ruta-colector-edaru.html', color:PALETA[colorIdx++%PALETA.length]},
+        data.wells);
+    }
+  }catch(e){ console.warn('Error cargando colector:',e); }
+
+  // 2. Rutas adicionales registradas en rutas_colector/
+  try{
+    const snapMeta = await get(ref(db,'rutas_colector'));
+    const rutas = snapMeta.val() || {};
+    for(const [id, info] of Object.entries(rutas)){
+      try{
+        const snapData = await get(ref(db,'colectores/'+id));
+        const wells = (snapData.val()||{}).wells || [];
+        addRutaLayer(id,
+          {nombre:info.nombre, descripcion:info.descripcion, archivo:info.archivo||('ruta-colector-edaru.html?ruta='+id), color:PALETA[colorIdx++%PALETA.length]},
+          wells);
+      }catch(e){ console.warn('Error cargando ruta '+id+':',e); }
+    }
+  }catch(e){ console.warn('Error cargando metadata rutas:',e); }
+
+  renderLeyenda();
+  ajustarBounds();
+}
+
+// ── Init mapa ──
+function initMap(){
+  map = L.map('map',{zoomControl:true}).setView([28.3185,-16.3980],14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(map);
+  map.on('mousemove', e=>{
+    document.getElementById('coords-bar').textContent =
+      e.latlng.lat.toFixed(5)+'°N  '+Math.abs(e.latlng.lng).toFixed(5)+'°W';
+  });
+}
+
+window.toggleRuta = toggleRuta;
+window.toggleLeyenda = toggleLeyenda;
+window.toggleRutasDrawer = toggleRutasDrawer;
+window.abrirRutaDetalle = abrirRutaDetalle;
+window.volverPortal = volverPortal;
+
+// Esperar Firebase y arrancar
+window.addEventListener('DOMContentLoaded', ()=>{
+  initMap();
+  if(window._fb) cargarTodo();
+  else window.addEventListener('firebase-ready', cargarTodo, {once:true});
+});
+</script>
+</body>
+</html>

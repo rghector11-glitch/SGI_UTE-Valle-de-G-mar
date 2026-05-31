@@ -482,6 +482,50 @@ body::before {
 
 /* ── TOPBAR ── */
 .p-topbar{height:var(--top-h);background:linear-gradient(90deg,#080f1d 0%,var(--surface) 100%);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
+
+/* Botones del header (fullscreen + tema) */
+.p-hbtn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;color:var(--text-d);cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;transition:background .12s, color .12s, border-color .12s;padding:0;}
+.p-hbtn:hover{background:rgba(255,255,255,.08);color:var(--accent);border-color:var(--accent);}
+.p-hbtn i{font-size:15px;}
+
+/* ── TEMA CLARO ── (toggle por .theme-light en <body>) */
+body.theme-light{
+  --ink:#eef2f7;
+  --surface:#ffffff;
+  --panel:#ffffff;
+  --card:#f1f5f9;
+  --border:#dbe2eb;
+  --border-l:#c8d2df;
+  --text:#1e293b;
+  --muted:#64748b;
+  --light:#0f172a;
+  --text-d:#475569;
+  --card-hi:#e2e8f0;
+}
+body.theme-light #portal-shell{background:#eef2f7;color:#1e293b;}
+body.theme-light #portal-shell::before{display:none;}
+body.theme-light .p-topbar{background:linear-gradient(90deg,#f8fafc 0%,#ffffff 100%);}
+body.theme-light .p-sidebar{background:#ffffff;}
+body.theme-light .p-brand-l,
+body.theme-light .p-brand-n{color:#0f172a;}
+body.theme-light .p-bc em{color:#0f172a;}
+body.theme-light .sb-btn i{color:#64748b;}
+body.theme-light .sb-btn:hover{background:#f1f5f9;}
+body.theme-light .sb-btn.active{background:rgba(58,175,232,.15);border:1px solid rgba(58,175,232,.35);}
+body.theme-light .kpi-r,
+body.theme-light .da-card,
+body.theme-light .mc{background:linear-gradient(135deg,#ffffff,#f8fafc);}
+body.theme-light .da-chart svg text[fill="var(--light,#fff)"]{fill:#0f172a;}
+body.theme-light .mc-title{color:#0f172a;}
+body.theme-light .mc-desc{color:#475569;}
+body.theme-light .kpi-r-v{color:#0f172a;}
+body.theme-light .kpi-r-lbl{color:#475569;}
+body.theme-light .da-card-t{color:#0f172a;}
+body.theme-light #app-viewer{background:#f8fafc;}
+body.theme-light input,
+body.theme-light textarea,
+body.theme-light select{background:#ffffff;color:#1e293b;border-color:#dbe2eb;}
+body.theme-light .p-user-btn{color:#0f172a;}
 .p-brand{display:flex;align-items:center;gap:9px;padding-right:14px;border-right:1px solid var(--border);}
 .p-brand-mark{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,rgba(58,175,232,.15),rgba(58,175,232,.04));border:1px solid rgba(58,175,232,.3);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px;}
 .p-brand-txt{display:flex;flex-direction:column;line-height:1.1;}
@@ -999,6 +1043,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <div class="p-bc">SGI <i class="ti ti-chevron-right" aria-hidden="true"></i> <em id="p-bc-section">Portal</em></div>
         <div class="p-spacer"></div>
         <div class="p-stat"><div class="p-dot ok" id="p-dot-fb"></div><span id="p-fb-label">FIREBASE OK</span></div>
+        <button class="p-hbtn" id="p-theme-btn" onclick="toggleTheme()" title="Modo claro/oscuro" aria-label="Cambiar tema"><i class="ti ti-sun" id="p-theme-ic"></i></button>
+        <button class="p-hbtn" id="p-fs-btn" onclick="toggleFullscreen()" title="Pantalla completa" aria-label="Pantalla completa"><i class="ti ti-arrows-maximize" id="p-fs-ic"></i></button>
         <button class="p-user-btn" id="p-user-btn" onclick="toggleUserPop()">—</button>
         <div class="p-cl" id="p-clock">--/-- · --:--</div>
         <div class="p-ver">v1.0.0<br>H.Hernández</div>
@@ -1785,7 +1831,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Ruta Colector EDARu</div>
+                <div class="mc-title">Ruta Colectores</div>
                 <div class="mc-desc">Inspección red colectores</div>
               </div>
               <div class="mc-foot">
@@ -3427,6 +3473,43 @@ function clearSession() {
   document.body.classList.remove('role-supervisor','role-operario');
 }
 
+// ── Tema claro / oscuro (toggle en header) ──
+function toggleTheme(){
+  const isLight = document.body.classList.toggle('theme-light');
+  localStorage.setItem('ute-theme', isLight ? 'light' : 'dark');
+  const ic = document.getElementById('p-theme-ic');
+  if(ic) ic.className = isLight ? 'ti ti-moon' : 'ti ti-sun';
+}
+function aplicarTemaInicial(){
+  const saved = localStorage.getItem('ute-theme');
+  if(saved === 'light'){
+    document.body.classList.add('theme-light');
+    const ic = document.getElementById('p-theme-ic');
+    if(ic) ic.className = 'ti ti-moon';
+  }
+}
+// Aplicar al cargar
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', aplicarTemaInicial);
+} else { aplicarTemaInicial(); }
+
+// ── Pantalla completa ──
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if(req) req.call(el).catch(e=>console.warn('FS:', e));
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if(exit) exit.call(document);
+  }
+}
+// Actualizar icono según estado
+document.addEventListener('fullscreenchange', () => {
+  const ic = document.getElementById('p-fs-ic');
+  if(ic) ic.className = document.fullscreenElement ? 'ti ti-arrows-minimize' : 'ti ti-arrows-maximize';
+});
+
 // Show / hide screens
 function showPortal(session) {
   document.getElementById('login-screen').style.display = 'none';
@@ -3663,25 +3746,39 @@ document.addEventListener('fullscreenchange', () => {
 
 
 // ── RUTA COLECTOR VIEWER (M03) ───────────────────────────────────────────────
+// M03 ahora abre directamente el mapa GENERAL con todas las rutas superpuestas.
+// El mapa-colectores.html tiene su propio botón "Lista de rutas" para entrar a una concreta.
 function openRutaColector() {
+  openRutaColectorIframe('mapa-colectores.html', 'Mapa general de colectores');
+}
+// Abrir una ruta específica (archivo HTML) en pantalla completa con su título
+function openRutaColectorIframe(archivo, titulo) {
   const shell = document.getElementById('portal-shell');
   if(shell) shell.style.display = 'none';
+  // Cerrar drawer si está abierto
+  const ov = document.getElementById('rc-overlay'); if(ov) ov.classList.remove('open');
+  const dr = document.getElementById('rc-drawer'); if(dr) dr.classList.remove('open');
+  // Recrear viewer si la URL cambia
   let viewer = document.getElementById('ruta-viewer');
+  if(viewer && viewer.dataset.archivo !== archivo){
+    viewer.remove(); viewer = null;
+  }
   if(!viewer) {
     viewer = document.createElement('div');
     viewer.id = 'ruta-viewer';
+    viewer.dataset.archivo = archivo;
     viewer.style.cssText = 'position:fixed;inset:0;z-index:9100;display:flex;flex-direction:column;background:#f4f6f9;';
     const bar = document.createElement('div');
     bar.style.cssText = 'background:linear-gradient(135deg,#003e6b,#005b99);display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);';
     bar.innerHTML = '<button onclick="closeRutaColector()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;font-weight:600;"><svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Inicio</button>'
-      + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;flex:1;">\u{1F5FA}\uFE0F Ruta Colector EDARu</div>'
+      + '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;color:white;font-size:1rem;flex:1;">\u{1F5FA}\uFE0F '+titulo+'</div>'
       + '<button onclick="rutaExportXLS()" style="border:none;border-radius:7px;background:rgba(46,125,50,.85);color:white;cursor:pointer;padding:5px 11px;font-size:.75rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:4px;font-weight:700;">'
       + '<svg viewBox="0 0 16 16" fill="none" style="width:13px;height:13px;stroke:currentColor"><path d="M8 10V3M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Excel</button>'
       + '<button onclick="rutaExportPDF()" style="border:none;border-radius:7px;background:rgba(185,28,28,.8);color:white;cursor:pointer;padding:5px 11px;font-size:.75rem;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:4px;font-weight:700;">'
       + '<svg viewBox="0 0 16 16" fill="none" style="width:13px;height:13px;stroke:currentColor"><path d="M4 2h6l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke-width="1.4"/><path d="M9 2v4h4M6 9h4M6 11h2" stroke-width="1.4" stroke-linecap="round"/></svg> PDF</button>';
     const frame = document.createElement('iframe');
     frame.id = 'ruta-frame';
-    frame.src = 'ruta-colector-edaru.html';
+    frame.src = archivo;
     frame.style.cssText = 'flex:1;border:none;width:100%;background:#f4f6f9;';
     frame.allowFullscreen = true;
     viewer.appendChild(bar);
@@ -3691,6 +3788,7 @@ function openRutaColector() {
     viewer.style.display = 'flex';
   }
 }
+window.openRutaColectorIframe = openRutaColectorIframe;
 function closeRutaColector() {
   const viewer = document.getElementById('ruta-viewer');
   if(viewer) viewer.style.display = 'none';
@@ -7415,6 +7513,171 @@ document.addEventListener('keydown',e=>{
 .tar-meta .venc{color:var(--danger);}
 .tar-foot{padding:7px 14px;border-top:1px solid var(--border);font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;flex-shrink:0;background:rgba(0,0,0,.12);}
 </style>
+
+<!-- ═══ DRAWER RUTAS COLECTORES ═══ -->
+<style>
+#rc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:9000;backdrop-filter:blur(2px);}
+#rc-overlay.open{display:block;}
+#rc-drawer{position:fixed;top:0;right:0;bottom:0;width:440px;max-width:92vw;background:var(--surface);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .25s ease;z-index:9001;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.4);}
+#rc-drawer.open{transform:translateX(0);}
+.rc-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(58,175,232,.07),transparent);flex-shrink:0;}
+.rc-h-ic{width:34px;height:34px;border-radius:8px;background:rgba(58,175,232,.1);border:1px solid rgba(58,175,232,.3);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.rc-h-tit h3{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--light);margin:0;letter-spacing:.04em;}
+.rc-h-tit p{font-family:var(--mono);font-size:9px;color:var(--muted);margin:1px 0 0;letter-spacing:.05em;}
+.rc-h-tit{flex:1;}
+.rc-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;}
+.rc-empty{text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;padding:30px 8px;letter-spacing:.04em;}
+.rc-item{background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:11px 13px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .12s, background .12s;position:relative;}
+.rc-item:hover{border-color:var(--accent);background:linear-gradient(135deg,var(--card),var(--card-hi));}
+.rc-item.fija{border-left:3px solid var(--accent);}
+.rc-ic{width:34px;height:34px;border-radius:6px;background:rgba(58,175,232,.08);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.rc-info{flex:1;min-width:0;}
+.rc-n{font-family:var(--cond);font-size:13.5px;font-weight:700;color:var(--light);letter-spacing:.03em;}
+.rc-d{font-size:10px;color:var(--text-d);margin-top:1px;line-height:1.3;}
+.rc-meta{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.04em;}
+.rc-del{background:transparent;border:1px solid rgba(229,74,100,.4);color:var(--danger);border-radius:4px;padding:3px 7px;font-size:11px;cursor:pointer;line-height:1;}
+.rc-del:hover{background:rgba(229,74,100,.12);}
+.rc-add-btn{background:rgba(58,175,232,.08);border:1px dashed var(--accent);color:var(--accent);border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.05em;transition:background .12s;}
+.rc-add-btn:hover{background:rgba(58,175,232,.16);}
+.rc-form{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.rc-form input,.rc-form textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:7px 10px;font-family:var(--sans);font-size:12px;}
+.rc-form input:focus,.rc-form textarea:focus{outline:none;border-color:var(--accent);}
+.rc-form textarea{resize:vertical;min-height:50px;}
+.rc-form-row{display:flex;gap:6px;}
+.rc-form-row button{flex:1;}
+.rc-btn{border:none;border-radius:5px;padding:7px 12px;font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.04em;transition:opacity .12s;}
+.rc-btn.primary{background:var(--accent);color:var(--surface);}
+.rc-btn.primary:hover{opacity:.85;}
+.rc-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.rc-btn.ghost:hover{border-color:var(--muted);color:var(--text);}
+</style>
+<div id="rc-overlay" onclick="toggleRutaColectorDrawer(false)"></div>
+<div id="rc-drawer">
+  <div class="rc-h">
+    <div class="rc-h-ic"><i class="ti ti-map-pin"></i></div>
+    <div class="rc-h-tit"><h3>Rutas de colectores</h3><p id="rc-sub">— rutas disponibles</p></div>
+    <button onclick="toggleRutaColectorDrawer(false)" style="background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;padding:4px 9px;font-size:12px;">✕</button>
+  </div>
+  <div class="rc-body" id="rc-body">
+    <div id="rc-list"></div>
+    <button class="rc-add-btn" id="rc-add-btn" onclick="rcShowForm()" style="display:none;"><i class="ti ti-plus" style="vertical-align:middle;margin-right:4px;"></i>Añadir nueva ruta</button>
+    <div class="rc-form" id="rc-form" style="display:none;">
+      <input id="rc-nombre" placeholder="Nombre · ej: Colector Norte" maxlength="60">
+      <textarea id="rc-desc" placeholder="Descripción (opcional)" maxlength="200"></textarea>
+      <input id="rc-archivo" placeholder="Archivo HTML · ej: ruta-colector-norte.html" maxlength="100">
+      <div class="rc-form-row">
+        <button class="rc-btn ghost" onclick="rcHideForm()">Cancelar</button>
+        <button class="rc-btn primary" onclick="rcCrearRuta()">Guardar ruta</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const _RUTAS_FIJAS = [
+  {id:'_edaru', nombre:'Colector EDARu', descripcion:'Ruta original de inspección — red de colectores EDARu', archivo:'ruta-colector-edaru.html', fija:true}
+];
+function toggleRutaColectorDrawer(open){
+  const ov = document.getElementById('rc-overlay');
+  const dr = document.getElementById('rc-drawer');
+  const isOpen = dr.classList.contains('open');
+  if(open === undefined) open = !isOpen;
+  if(open){
+    ov.classList.add('open'); dr.classList.add('open');
+    rcRender();
+  } else {
+    ov.classList.remove('open'); dr.classList.remove('open');
+    rcHideForm();
+  }
+}
+function rcShowForm(){
+  document.getElementById('rc-form').style.display='flex';
+  document.getElementById('rc-add-btn').style.display='none';
+  document.getElementById('rc-nombre').focus();
+}
+function rcHideForm(){
+  document.getElementById('rc-form').style.display='none';
+  const s = (typeof getSession==='function') ? getSession() : null;
+  const esSup = s && (s.role==='supervisor' || s.role==='admin');
+  document.getElementById('rc-add-btn').style.display = esSup ? 'block' : 'none';
+  document.getElementById('rc-nombre').value='';
+  document.getElementById('rc-desc').value='';
+  document.getElementById('rc-archivo').value='';
+}
+function rcRender(){
+  const list = document.getElementById('rc-list');
+  const sub = document.getElementById('rc-sub');
+  const s = (typeof getSession==='function') ? getSession() : null;
+  const esSup = s && (s.role==='supervisor' || s.role==='admin');
+  function renderRutas(rutasFB){
+    const todas = [..._RUTAS_FIJAS, ...rutasFB];
+    sub.textContent = todas.length + ' ruta' + (todas.length===1?'':'s') + ' disponible' + (todas.length===1?'':'s');
+    list.innerHTML = todas.map(r=>{
+      const fija = r.fija ? ' fija' : '';
+      const meta = r.por ? `<div class="rc-meta">añadida por ${_esc(r.por)}</div>` : (r.fija ? '<div class="rc-meta">ruta predefinida</div>' : '');
+      const del = (esSup && !r.fija) ? `<button class="rc-del" onclick="event.stopPropagation();rcEliminar('${r.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>` : '';
+      return `<div class="rc-item${fija}" onclick="rcAbrirRuta('${(r.archivo||'').replace(/'/g,"\\'")}','${(r.nombre||'').replace(/'/g,"\\'")}')">
+        <div class="rc-ic"><i class="ti ti-map-pin"></i></div>
+        <div class="rc-info">
+          <div class="rc-n">${_esc(r.nombre||'(sin nombre)')}</div>
+          ${r.descripcion?`<div class="rc-d">${_esc(r.descripcion)}</div>`:''}
+          ${meta}
+        </div>
+        ${del}
+      </div>`;
+    }).join('');
+    document.getElementById('rc-add-btn').style.display = esSup ? 'block' : 'none';
+  }
+  if(window._fb && window._fb.get){
+    window._fb.get(window._fb.ref(window._fb.db,'rutas_colector')).then(snap=>{
+      const data = snap.val() || {};
+      const arr = Object.entries(data).map(([id,r])=>({...r, id}));
+      renderRutas(arr);
+    }).catch(()=>renderRutas([]));
+  } else {
+    renderRutas([]);
+  }
+}
+function rcAbrirRuta(archivo, titulo){
+  if(!archivo){ alert('Esta ruta no tiene archivo asignado.'); return; }
+  toggleRutaColectorDrawer(false);
+  openRutaColectorIframe(archivo, titulo || 'Ruta Colector');
+}
+async function rcCrearRuta(){
+  const nombre = document.getElementById('rc-nombre').value.trim();
+  const desc   = document.getElementById('rc-desc').value.trim();
+  const archivo= document.getElementById('rc-archivo').value.trim();
+  if(!nombre || !archivo){ alert('El nombre y el archivo son obligatorios.'); return; }
+  if(!window._fb || !window._fb.push){ alert('Firebase no disponible.'); return; }
+  const s = (typeof getSession==='function') ? getSession() : null;
+  if(!s){ alert('Sesión no iniciada.'); return; }
+  try{
+    const newRef = window._fb.push(window._fb.ref(window._fb.db,'rutas_colector'));
+    await window._fb.set(newRef, {
+      nombre, descripcion: desc, archivo,
+      creada: Date.now(),
+      por: s.username || s.name || '?',
+      rol: s.role || '?'
+    });
+    rcHideForm();
+    rcRender();
+  }catch(e){ alert('Error guardando: '+e.message); }
+}
+async function rcEliminar(id){
+  if(!confirm('¿Eliminar esta ruta?\nLos archivos HTML no se borran, solo se quitan del listado.')) return;
+  try{
+    await window._fb.set(window._fb.ref(window._fb.db,'rutas_colector/'+id), null);
+    rcRender();
+  }catch(e){ alert('Error eliminando: '+e.message); }
+}
+window.toggleRutaColectorDrawer = toggleRutaColectorDrawer;
+window.rcShowForm = rcShowForm;
+window.rcHideForm = rcHideForm;
+window.rcCrearRuta = rcCrearRuta;
+window.rcEliminar = rcEliminar;
+window.rcAbrirRuta = rcAbrirRuta;
+</script>
+<!-- ═══ /DRAWER RUTAS ═══ -->
+
 <div id="tareas-overlay" onclick="toggleTareasPan()"></div>
 <div id="tareas-drawer">
   <div class="tar-h">
