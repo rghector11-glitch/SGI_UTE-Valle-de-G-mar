@@ -2200,9 +2200,15 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="bio-lbl">Etiqueta del informe</div>
                 <input type="text" id="bf-etiqueta" class="bio-input" placeholder="ej. Lunes, Miércoles tarde, Muestra 1..." style="width:100%;">
               </div>
-              <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:5px 9px;font-family:var(--mono);font-size:8px;color:var(--muted);">
-                <div style="color:var(--accent);letter-spacing:.06em;margin-bottom:2px;">DATOS SIMULADOR (auto)</div>
-                <span>Edad: <b id="bio-sim-edad" style="color:var(--text);">—</b> d &nbsp;·&nbsp; SST: <b id="bio-sim-sst" style="color:var(--text);">—</b> mg/L &nbsp;·&nbsp; DQO: <b id="bio-sim-dqo" style="color:var(--text);">—</b>%</span>
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:3px;padding:5px 9px;font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div>
+                  <div style="color:var(--accent);letter-spacing:.06em;margin-bottom:2px;">DATOS SIMULADOR</div>
+                  <span>Edad: <b id="bio-sim-edad" style="color:var(--text);">—</b> d &nbsp;·&nbsp; SST: <b id="bio-sim-sst" style="color:var(--text);">—</b> mg/L &nbsp;·&nbsp; DQO: <b id="bio-sim-dqo" style="color:var(--text);">—</b>%</span>
+                </div>
+                <button onclick="bioCargarDatosSimulador()" title="Cargar datos del simulador para la fecha seleccionada"
+                  style="margin-left:auto;background:rgba(0,200,240,.12);border:1px solid rgba(0,200,240,.35);border-radius:4px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:8px;padding:3px 9px;white-space:nowrap;flex-shrink:0;">
+                  <i class="ti ti-refresh" aria-hidden="true"></i> Cargar
+                </button>
               </div>
               <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
                 <div id="bio-save-st" style="font-family:var(--mono);font-size:8px;color:var(--muted);"></div>
@@ -5548,35 +5554,24 @@ function bioFechaChange(input) {
   if(elD) elD.textContent = '…';
 
   waitForFirebase().then(() => {
-    window._fb.get(window._fb.ref(window._fb.db, 'reactor/' + fecha))
+    // Intentar sms_datos/{fecha} primero (tiene los campos exactos del SMS Diario)
+    window._fb.get(window._fb.ref(window._fb.db, 'sms_datos/' + fecha))
       .then(snap => {
         const d = snap.val();
-        if(d) {
-          // Calcular edad de fango desde los datos del reactor
-          const sst_r   = Number(d['SS REACTOR'] || d.sst_reactor || 0);
-          const vol      = 2304; // m³ fijo de la planta
-          const sst_rc  = Number(d['SS RECIRCULACION'] || d.sst_recirculacion || 8000);
-          const sst_ef  = Number(d['SS EFLUENTE'] || d.sst_efluente || 15);
-          const qpurga  = Number(d['CAUDAL PURGA'] || d.caudal_purga || 0);
-          const qbio    = Number(d['Caudal entrada Biologico'] || d.caudal || 500);
-          const sslm_gL = sst_r; // en g/L desde el Excel → convertir a mg/L
-          const sslm_mgL = sslm_gL < 20 ? sslm_gL * 1000 : sslm_gL;
-          const M        = sslm_mgL * vol / 1000; // kgSS
-          const FQwXw    = qpurga * (sst_rc < 20 ? sst_rc * 1000 : sst_rc) / 1000;
-          const FQeXe    = qbio   * sst_ef / 1000;
-          const tc       = (FQwXw + FQeXe) > 0 ? M / (FQwXw + FQeXe) : null;
-
-          // DQO rendimiento
-          const dqo_in = Number(d['DQO ENTRADA'] || d.dqo_entrada || 0);
-          const dqo_ef = Number(d['DQO EFLUENTE'] || d.dqo_efluente || 0);
-          const rend_dqo = dqo_in > 0 ? Math.max(0, (dqo_in - dqo_ef) / dqo_in * 100) : null;
-
-          if(elE) elE.textContent = tc   != null ? tc.toFixed(1)       : '—';
-          if(elS) elS.textContent = sslm_mgL > 0 ? Math.round(sslm_mgL) : '—';
-          if(elD) elD.textContent = rend_dqo != null ? rend_dqo.toFixed(1) : '—';
+        const calc = bioCalcSimFromReactor(d);
+        if(calc && (calc.tc || calc.sst)) {
+          if(elE) elE.textContent = calc.tc   ?? '—';
+          if(elS) elS.textContent = calc.sst  ?? '—';
+          if(elD) elD.textContent = calc.rend_dqo ?? '—';
         } else {
-          // Sin dato en Firebase para esa fecha → usar valor del simulador activo
-          _bioSimFallback(elE, elS, elD);
+          // Fallback a reactor/{fecha}
+          return window._fb.get(window._fb.ref(window._fb.db, 'reactor/' + fecha))
+            .then(snap2 => {
+              const calc2 = bioCalcSimFromReactor(snap2.val());
+              if(elE) elE.textContent = calc2?.tc   ?? '—';
+              if(elS) elS.textContent = calc2?.sst  ?? '—';
+              if(elD) elD.textContent = calc2?.rend_dqo ?? '—';
+            });
         }
       })
       .catch(() => _bioSimFallback(elE, elS, elD));
@@ -5595,6 +5590,52 @@ function _bioSimFallback(elE, elS, elD) {
     if(elD) elD.textContent = '—';
   }
 }
+
+// ── Botón "Cargar" datos del simulador para la fecha del formulario ──────────
+function bioCargarDatosSimulador() {
+  const fechaEl = document.getElementById('bf-fecha');
+  const fecha   = fechaEl ? fechaEl.value : '';
+  const elE = document.getElementById('bio-sim-edad');
+  const elS = document.getElementById('bio-sim-sst');
+  const elD = document.getElementById('bio-sim-dqo');
+
+  if(!fecha) {
+    if(elE) elE.textContent = '—';
+    if(elS) elS.textContent = '—';
+    if(elD) elD.textContent = '—';
+    return;
+  }
+
+  if(elE) elE.textContent = '…';
+  if(elS) elS.textContent = '…';
+  if(elD) elD.textContent = '…';
+
+  waitForFirebase().then(() => {
+    // Intentar primero sms_datos/{fecha} (datos completos del SMS Diario)
+    window._fb.get(window._fb.ref(window._fb.db, 'sms_datos/' + fecha))
+      .then(snap => {
+        const d = snap.val();
+        if(d) {
+          // sms_datos tiene los campos tal como los introdujo el operario
+          const calc = bioCalcSimFromReactor(d);
+          if(elE) elE.textContent = calc?.tc   ?? '—';
+          if(elS) elS.textContent = calc?.sst  ?? '—';
+          if(elD) elD.textContent = calc?.rend_dqo ?? '—';
+        } else {
+          // Fallback: reactor/{fecha}
+          return window._fb.get(window._fb.ref(window._fb.db, 'reactor/' + fecha))
+            .then(snap2 => {
+              const calc = bioCalcSimFromReactor(snap2.val());
+              if(elE) elE.textContent = calc?.tc   ?? '—';
+              if(elS) elS.textContent = calc?.sst  ?? '—';
+              if(elD) elD.textContent = calc?.rend_dqo ?? '—';
+            });
+        }
+      })
+      .catch(() => _bioSimFallback(elE, elS, elD));
+  }).catch(() => _bioSimFallback(elE, elS, elD));
+}
+window.bioCargarDatosSimulador = bioCargarDatosSimulador;
 window.bioFechaChange = bioFechaChange;
 
 function loadAnalitica() {
@@ -6137,20 +6178,27 @@ function bioBuildCard(entry) {
 // ── Rellena las cajas SIMULADOR de cada tarjeta en tiempo real desde reactor/{fecha} ──
 function bioCalcSimFromReactor(d) {
   if(!d) return null;
-  const sst_r   = Number(d['SS REACTOR']   || d.sst_reactor   || 0);
-  const sst_rc  = Number(d['SS RECIRCULACION'] || d['SS RECIRCULACIÓN'] || d.sst_recirculacion || 8000);
-  const sst_ef  = Number(d['SS EFLUENTE']  || d.sst_efluente  || 15);
-  const qpurga  = Number(d['CAUDAL PURGA'] || d.caudal_purga  || 0);
-  const qbio    = Number(d['Caudal entrada Biologico'] || d.caudal || 500);
-  const dqo_in  = Number(d['DQO ENTRADA']  || d.dqo_entrada   || 0);
-  const dqo_ef  = Number(d['DQO EFLUENTE'] || d.dqo_efluente  || 0);
-  const sslm_mgL = sst_r < 20 ? sst_r * 1000 : sst_r;
-  const M        = sslm_mgL * 2304 / 1000;
-  const xw_mgL   = sst_rc < 20 ? sst_rc * 1000 : sst_rc;
+  // Soporta campos de sms_datos (ss_reactor_gl, q_purga...) y de reactor/{fecha} (SS REACTOR, CAUDAL PURGA...)
+  const sst_r_raw = Number(d.ss_reactor_gl  || d['SS REACTOR']        || d.sst_reactor   || 0);
+  const sst_rc_raw= Number(d.ss_recirc_gl   || d['SS RECIRCULACION']  || d['SS RECIRCULACIÓN'] || d.sst_recirculacion || 0);
+  const sst_ef    = Number(d.ss_efluente    || d['SS EFLUENTE']       || d.sst_efluente  || 15);
+  const qpurga    = Number(d.q_purga        || d['CAUDAL PURGA']      || d.caudal_purga  || 0);
+  const qbio      = Number(d.caudal_bio     || d['Caudal entrada Biologico'] || d.caudal || 500);
+  const dqo_in    = Number(d.dqo_ent        || d['DQO ENTRADA']       || d.dqo_entrada   || 0);
+  const dqo_ef    = Number(d.dqo_ef         || d['DQO EFLUENTE']      || d.dqo_efluente  || 0);
+
+  // Convertir a mg/L si viene en g/L (valores < 20 = g/L)
+  const sslm_mgL = sst_r_raw  < 20 && sst_r_raw  > 0 ? sst_r_raw  * 1000 : sst_r_raw;
+  const xw_mgL   = sst_rc_raw < 20 && sst_rc_raw > 0 ? sst_rc_raw * 1000 : (sst_rc_raw || 8000);
+
+  if(sslm_mgL === 0) return null;
+
+  const M        = sslm_mgL * 2304 / 1000; // kgSS reactor (volumen fijo 2304 m³)
   const FQwXw    = qpurga * xw_mgL / 1000;
   const FQeXe    = qbio   * sst_ef / 1000;
   const tc       = (FQwXw + FQeXe) > 0 ? M / (FQwXw + FQeXe) : null;
   const rend_dqo = dqo_in > 0 ? Math.max(0, (dqo_in - dqo_ef) / dqo_in * 100) : null;
+
   return {
     tc:       tc        != null ? tc.toFixed(1)        : null,
     sst:      sslm_mgL  > 0    ? Math.round(sslm_mgL) : null,
