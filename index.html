@@ -2237,11 +2237,6 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div style="position:relative;height:130px;"><canvas id="bio-chart-od" role="img" aria-label="OD semanal en mg/L">OD en mg/L por semana</canvas></div>
                 </div>
                 <div>
-                  <div style="font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.06em;margin-bottom:2px;">Edad de fango (días)</div>
-                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">Simulador · edad alta → más filamentosos</div>
-                  <div style="position:relative;height:130px;"><canvas id="bio-chart-edad" role="img" aria-label="Edad de fango semanal en días">Edad de fango en días por semana</canvas></div>
-                </div>
-                <div>
                   <div style="font-family:var(--mono);font-size:8px;color:#a78bfa;letter-spacing:.06em;margin-bottom:2px;">SSLM (mg/L)</div>
                   <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">Óptimo: 2500–4000 mg/L</div>
                   <div style="position:relative;height:130px;"><canvas id="bio-chart-sslm" role="img" aria-label="SSLM semanal en mg/L">SSLM en mg/L por semana</canvas></div>
@@ -6027,7 +6022,7 @@ window.rellenarConIA = rellenarConIA;
 
 function bioBuildCharts(entries) {
   // entries = lista plana de informes individuales, cada uno con _label (DD/MM)
-  ['bio-chart-ivf','bio-chart-fil','bio-chart-od','bio-chart-edad'].forEach(id => {
+  ['bio-chart-ivf','bio-chart-fil','bio-chart-od'].forEach(id => {
     const existing = Chart.getChart(id);
     if(existing) existing.destroy();
   });
@@ -6084,9 +6079,6 @@ function bioBuildCharts(entries) {
 
   mkChart('bio-chart-od',
     mkDataset(e=>e.datos?.od??null, '#a78bfa', 'OD'), 'mg/L');
-
-  mkChart('bio-chart-edad',
-    mkDataset(e=>e.sim?.edad_fango??null, '#00c8f0', 'Edad fango'), 'd');
 
   mkChart('bio-chart-sslm',
     mkDataset(e=>{
@@ -6259,7 +6251,7 @@ window.buildSimEdadChart = buildSimEdadChart;
 function limpiarHistorialBio() {
   if(!confirm("¿Borrar todos los informes biológicos guardados? Esta acción no se puede deshacer.")) return;
   // Limpiar gráficos y lista inmediatamente
-  ['bio-chart-ivf','bio-chart-fil','bio-chart-od','bio-chart-edad'].forEach(id => {
+  ['bio-chart-ivf','bio-chart-fil','bio-chart-od'].forEach(id => {
     const ch = Chart.getChart(id); if(ch) ch.destroy();
     const canvas = document.getElementById(id);
     if(canvas) { const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); }
@@ -6308,9 +6300,10 @@ function exportBioInforme() {
   }
 
   // ── SVG chart helper ─────────────────────────────────────────────────────
-  function svgLine(raw, color, refV, unit) {
+  function svgLine(raw, color, refV, unit, customLabels) {
+    const labels = customLabels || fechas;
     const vals = interpolate(raw);
-    const W = Math.max(680, entries.length * 42), H = 100, PL = 38, PR = 8, PT = 12, PB = 20;
+    const W = Math.max(680, vals.length * 42), H = 100, PL = 38, PR = 8, PT = 12, PB = 20;
     const gW = W-PL-PR, gH = H-PT-PB;
     const minV = Math.max(0, Math.min(...vals) * 0.88);
     const maxV = Math.max(...vals) * 1.1 || 1;
@@ -6333,8 +6326,8 @@ function exportBioInforme() {
     [minV, (minV+maxV)/2, maxV].forEach((v, i) => {
       s += `<text x="${PL-3}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="6.5" font-family="monospace">${v.toFixed(1)}</text>`;
     });
-    fechas.forEach((f, i) => {
-      s += `<text x="${pts[i].x.toFixed(1)}" y="${H-3}" text-anchor="middle" fill="#7a8fa8" font-size="6" font-family="monospace">${f}</text>`;
+    labels.forEach((f, i) => {
+      if (i < pts.length) s += `<text x="${pts[i].x.toFixed(1)}" y="${H-3}" text-anchor="middle" fill="#7a8fa8" font-size="6" font-family="monospace">${f}</text>`;
     });
     s += `<text x="${PL-3}" y="${PT-2}" text-anchor="end" fill="#7a8fa8" font-size="5.5">${unit}</text>`;
     s += `</svg>`;
@@ -6345,7 +6338,6 @@ function exportBioInforme() {
   const ivfVals   = entries.map(e => e.licor?.ivf   ?? 0);
   const filVals   = entries.map(e => e.filamentosos?.grado ?? 0);
   const odVals    = entries.map(e => e.datos?.od    ?? 0);
-  const edadVals  = entries.map(e => e.sim?.edad_fango ?? 0);
   // SSLM: puede venir en g/L (datos.sslm) o mg/L (sim.sst); normalizar a mg/L
   const sslmVals  = entries.map(e => {
     const v = e.datos?.sslm ?? e.sim?.sst ?? null;
@@ -6353,6 +6345,18 @@ function exportBioInforme() {
     const n = Number(v);
     return n < 20 ? n * 1000 : n; // g/L → mg/L si es menor de 20
   });
+
+  // Edad de fango — desde el gráfico grande del simulador (sgi-tendencias-semana)
+  let edadSimSvg = '<p style="color:#999;font-size:11px;">Sin datos del simulador. Carga una semana en el Simulador para ver la evolución aquí.</p>';
+  try {
+    const semData = JSON.parse(localStorage.getItem('sgi-tendencias-semana') || 'null');
+    if (semData && semData.days && semData.days.length >= 2) {
+      const edadDays   = semData.days;
+      const edadRaw    = edadDays.map(d => Number(d.tc) || 0);
+      const edadLabels = edadDays.map(d => d.fecha || (d.iso||'').slice(5).replace('-','/'));
+      edadSimSvg = svgLine(edadRaw, '#ffb300', 15, 'd', edadLabels);
+    }
+  } catch(e2) {}
 
   // ── Tabla resumen por informe ─────────────────────────────────────────────
   const filColor = g => g <= 1 ? '#22c55e' : g <= 3 ? '#f59e0b' : '#ef4444';
@@ -6411,7 +6415,7 @@ function exportBioInforme() {
   <div class="chart-box"><div class="chart-lbl" style="color:#00e87a;">IVF — Índice Volumétrico de Fangos (ml/g)</div>${svgLine(ivfVals,'#00a855',150,'ml/g')}</div>
   <div class="chart-box"><div class="chart-lbl" style="color:#f59e0b;">Filamentosos (grado 0–5)</div>${svgLine(filVals,'#d97706',3,'')}</div>
   <div class="chart-box"><div class="chart-lbl" style="color:#a78bfa;">Oxígeno disuelto — OD (mg/L)</div>${svgLine(odVals,'#7c3aed',2,'mg/L')}</div>
-  <div class="chart-box"><div class="chart-lbl" style="color:#00c8f0;">Edad de Fango (días)</div>${svgLine(edadVals,'#0284c7',15,'d')}</div>
+  <div class="chart-box"><div class="chart-lbl" style="color:#ffb300;">Edad de Fango — datos del Simulador (días)</div>${edadSimSvg}</div>
   <div class="chart-box"><div class="chart-lbl" style="color:#8b5cf6;">SSLM — Sólidos Suspendidos Licor Mezcla (mg/L)</div>${svgLine(sslmVals,'#7c3aed',3500,'mg/L')}</div>
 
   <h2>Resumen de informes</h2>
