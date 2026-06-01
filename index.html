@@ -2241,6 +2241,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">Simulador · edad alta → más filamentosos</div>
                   <div style="position:relative;height:130px;"><canvas id="bio-chart-edad" role="img" aria-label="Edad de fango semanal en días">Edad de fango en días por semana</canvas></div>
                 </div>
+                <div>
+                  <div style="font-family:var(--mono);font-size:8px;color:#a78bfa;letter-spacing:.06em;margin-bottom:2px;">SSLM (mg/L)</div>
+                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:6px;">Óptimo: 2500–4000 mg/L</div>
+                  <div style="position:relative;height:130px;"><canvas id="bio-chart-sslm" role="img" aria-label="SSLM semanal en mg/L">SSLM en mg/L por semana</canvas></div>
+                </div>
               </div>
               <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
                 <span style="font-family:var(--mono);font-size:8px;color:var(--muted);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;"></span>Fin de semana</span>
@@ -5534,24 +5539,85 @@ function isoWeekLabel(d) {
 function bioFechaChange(input) {
   const semEl = document.getElementById('bf-semana');
   if(semEl && input.value) semEl.value = isoWeekLabel(new Date(input.value + 'T12:00:00'));
+
+  // Buscar datos del simulador para esa fecha exacta en Firebase reactor/{fecha}
+  const fecha = input.value; // YYYY-MM-DD
+  if(!fecha) return;
+  const elE = document.getElementById('bio-sim-edad');
+  const elS = document.getElementById('bio-sim-sst');
+  const elD = document.getElementById('bio-sim-dqo');
+
+  // Indicar que está cargando
+  if(elE) elE.textContent = '…';
+  if(elS) elS.textContent = '…';
+  if(elD) elD.textContent = '…';
+
+  waitForFirebase().then(() => {
+    window._fb.get(window._fb.ref(window._fb.db, 'reactor/' + fecha))
+      .then(snap => {
+        const d = snap.val();
+        if(d) {
+          // Calcular edad de fango desde los datos del reactor
+          const sst_r   = Number(d['SS REACTOR'] || d.sst_reactor || 0);
+          const vol      = 2304; // m³ fijo de la planta
+          const sst_rc  = Number(d['SS RECIRCULACION'] || d.sst_recirculacion || 8000);
+          const sst_ef  = Number(d['SS EFLUENTE'] || d.sst_efluente || 15);
+          const qpurga  = Number(d['CAUDAL PURGA'] || d.caudal_purga || 0);
+          const qbio    = Number(d['Caudal entrada Biologico'] || d.caudal || 500);
+          const sslm_gL = sst_r; // en g/L desde el Excel → convertir a mg/L
+          const sslm_mgL = sslm_gL < 20 ? sslm_gL * 1000 : sslm_gL;
+          const M        = sslm_mgL * vol / 1000; // kgSS
+          const FQwXw    = qpurga * (sst_rc < 20 ? sst_rc * 1000 : sst_rc) / 1000;
+          const FQeXe    = qbio   * sst_ef / 1000;
+          const tc       = (FQwXw + FQeXe) > 0 ? M / (FQwXw + FQeXe) : null;
+
+          // DQO rendimiento
+          const dqo_in = Number(d['DQO ENTRADA'] || d.dqo_entrada || 0);
+          const dqo_ef = Number(d['DQO EFLUENTE'] || d.dqo_efluente || 0);
+          const rend_dqo = dqo_in > 0 ? Math.max(0, (dqo_in - dqo_ef) / dqo_in * 100) : null;
+
+          if(elE) elE.textContent = tc   != null ? tc.toFixed(1)       : '—';
+          if(elS) elS.textContent = sslm_mgL > 0 ? Math.round(sslm_mgL) : '—';
+          if(elD) elD.textContent = rend_dqo != null ? rend_dqo.toFixed(1) : '—';
+        } else {
+          // Sin dato en Firebase para esa fecha → usar valor del simulador activo
+          _bioSimFallback(elE, elS, elD);
+        }
+      })
+      .catch(() => _bioSimFallback(elE, elS, elD));
+  }).catch(() => _bioSimFallback(elE, elS, elD));
+}
+
+function _bioSimFallback(elE, elS, elD) {
+  try {
+    const d = JSON.parse(localStorage.getItem('sgi-kpi-sim') || '{}');
+    if(elE) elE.textContent = d.edad || '—';
+    if(elS) elS.textContent = d.sst  || '—';
+    if(elD) elD.textContent = d.dqo  || '—';
+  } catch(e) {
+    if(elE) elE.textContent = '—';
+    if(elS) elS.textContent = '—';
+    if(elD) elD.textContent = '—';
+  }
 }
 window.bioFechaChange = bioFechaChange;
 
 function loadAnalitica() {
-  const simData = localStorage.getItem('sgi-kpi-sim');
-  if(simData) {
-    try {
-      const d = JSON.parse(simData);
-      if(d.edad) { const el=document.getElementById('bio-sim-edad'); if(el) el.textContent=d.edad; }
-      if(d.sst)  { const el=document.getElementById('bio-sim-sst');  if(el) el.textContent=d.sst; }
-      if(d.dqo)  { const el=document.getElementById('bio-sim-dqo');  if(el) el.textContent=d.dqo; }
-    } catch(e){}
-  }
   const fechaEl = document.getElementById('bf-fecha');
   const semEl   = document.getElementById('bf-semana');
   if(fechaEl && !fechaEl.value) fechaEl.value = new Date().toISOString().slice(0,10);
   if(semEl && !semEl.value && fechaEl && fechaEl.value)
     semEl.value = isoWeekLabel(new Date(fechaEl.value + 'T12:00:00'));
+  // Cargar datos del simulador para la fecha activa
+  if(fechaEl && fechaEl.value) {
+    bioFechaChange(fechaEl);
+  } else {
+    _bioSimFallback(
+      document.getElementById('bio-sim-edad'),
+      document.getElementById('bio-sim-sst'),
+      document.getElementById('bio-sim-dqo')
+    );
+  }
 }
 window.loadAnalitica = loadAnalitica;
 
@@ -6021,6 +6087,14 @@ function bioBuildCharts(entries) {
 
   mkChart('bio-chart-edad',
     mkDataset(e=>e.sim?.edad_fango??null, '#00c8f0', 'Edad fango'), 'd');
+
+  mkChart('bio-chart-sslm',
+    mkDataset(e=>{
+      const v = e.datos?.sslm ?? e.sim?.sst ?? null;
+      if(v == null) return null;
+      const n = Number(v);
+      return n < 20 ? n * 1000 : n; // g/L → mg/L
+    }, '#a78bfa', 'SSLM'), 'mg/L');
 }
 
 function bioBuildCard(entry) {
@@ -6272,6 +6346,13 @@ function exportBioInforme() {
   const filVals   = entries.map(e => e.filamentosos?.grado ?? 0);
   const odVals    = entries.map(e => e.datos?.od    ?? 0);
   const edadVals  = entries.map(e => e.sim?.edad_fango ?? 0);
+  // SSLM: puede venir en g/L (datos.sslm) o mg/L (sim.sst); normalizar a mg/L
+  const sslmVals  = entries.map(e => {
+    const v = e.datos?.sslm ?? e.sim?.sst ?? null;
+    if (v == null) return 0;
+    const n = Number(v);
+    return n < 20 ? n * 1000 : n; // g/L → mg/L si es menor de 20
+  });
 
   // ── Tabla resumen por informe ─────────────────────────────────────────────
   const filColor = g => g <= 1 ? '#22c55e' : g <= 3 ? '#f59e0b' : '#ef4444';
@@ -6331,6 +6412,7 @@ function exportBioInforme() {
   <div class="chart-box"><div class="chart-lbl" style="color:#f59e0b;">Filamentosos (grado 0–5)</div>${svgLine(filVals,'#d97706',3,'')}</div>
   <div class="chart-box"><div class="chart-lbl" style="color:#a78bfa;">Oxígeno disuelto — OD (mg/L)</div>${svgLine(odVals,'#7c3aed',2,'mg/L')}</div>
   <div class="chart-box"><div class="chart-lbl" style="color:#00c8f0;">Edad de Fango (días)</div>${svgLine(edadVals,'#0284c7',15,'d')}</div>
+  <div class="chart-box"><div class="chart-lbl" style="color:#8b5cf6;">SSLM — Sólidos Suspendidos Licor Mezcla (mg/L)</div>${svgLine(sslmVals,'#7c3aed',3500,'mg/L')}</div>
 
   <h2>Resumen de informes</h2>
   <table>
