@@ -6372,11 +6372,11 @@ function loadTendencias() {
   const start = semana.start || '';
 
   const charts = [
-    {key:'tc',       label:'Edad de Fango', unit:'días', color:'#ffb300', ref:15,  rng:'Óptimo 5-30 d'},
-    {key:'rend_dqo', label:'Rend. DQO',     unit:'%',   color:'#00c8ff', ref:75,  rng:'Objetivo >75%'},
-    {key:'rend_dbo', label:'Rend. DBO₅',    unit:'%',   color:'#2ecc71', ref:80,  rng:'Objetivo >80%'},
-    {key:'rend_nh4', label:'Rend. NT',       unit:'%',   color:'#b388ff', ref:70,  rng:'Objetivo >70%'},
-    {key:'rend_pt',  label:'Rend. PT',       unit:'%',   color:'#ff8c42', ref:70,  rng:'Objetivo >70%'},
+    {key:'sslm',     label:'SSLM',           unit:'mg/L', color:'#a78bfa', ref:3500, rng:'Óptimo 2500-4000'},
+    {key:'rend_dqo', label:'Rend. DQO',      unit:'%',    color:'#00c8ff', ref:75,   rng:'Objetivo >75%'},
+    {key:'rend_dbo', label:'Rend. DBO₅',     unit:'%',    color:'#2ecc71', ref:80,   rng:'Objetivo >80%'},
+    {key:'rend_nh4', label:'Rend. NT',        unit:'%',    color:'#b388ff', ref:70,   rng:'Objetivo >70%'},
+    {key:'rend_pt',  label:'Rend. PT',        unit:'%',    color:'#ff8c42', ref:70,   rng:'Objetivo >70%'},
   ];
 
   function svgChart(data, key, color, refLine) {
@@ -6475,10 +6475,14 @@ function cargarTendenciasFecha() {
 
       const days = entries.map(e => {
         const fechaLocal = e._iso.slice(5).replace('-','/');
+        // SSLM: leer de datos.sslm (g/L → mg/L ×1000) o de sim
+        const sslmRaw = e.datos?.sslm ?? e.sim?.sst ?? null;
+        const sslmVal = sslmRaw !== null ? Number(sslmRaw) * (Number(sslmRaw) < 20 ? 1000 : 1) : 0;
         return {
           iso:      e._iso,
           fecha:    fechaLocal,
           tc:       Number(e.sim?.edad_fango) || 0,
+          sslm:     sslmVal,
           rend_dqo: Number(e.sim?.rend_dqo)  || 0,
           rend_dbo: 0,
           rend_nh4: 0,
@@ -8314,203 +8318,234 @@ body.theme-light .sgi-chip { background: rgba(0,90,160,.08); color: #1e3a5f; }
 </div>
 
 <script>
-// ══ ASISTENTE SGI ═══════════════════════════════════════════════════════════
+// ══ ASISTENTE SGI — Motor local (sin API) ══════════════════════════════════
 
 (function(){
-  // ── Estado ──────────────────────────────────────────────────────────────
-  const _chat = {
-    open: false,
-    loading: false,
-    history: [],   // {role, content}
-    welcomed: false
-  };
+  const _chat = { open: false, welcomed: false };
 
-  // ── System prompt ────────────────────────────────────────────────────────
-  const SYSTEM = `Eres el Asistente SGI de UTE Valle de Güímar, un chatbot especializado integrado en el portal de gestión interna de la EDAR (Estación Depuradora de Aguas Residuales) e EDARi (industrial) de Valle de Güímar, Tenerife.
+  // ── Base de conocimiento ────────────────────────────────────────────────
+  const KB = [
 
-Tu misión es ayudar al personal operativo —operarios y supervisores— con consultas técnicas, procedimientos y seguimiento de tareas. Responde siempre en español, de forma concisa y práctica.
-
-━━ DATOS DE LA PLANTA ━━
-• Reactor biológico: volumen 2.304 m³, proceso de fangos activos
-• Parámetros de control principales:
-  - Edad del fango (θc): 8-20 días (óptimo: 12-15 días)
-  - IVF (Índice Volumétrico de Fangos): 50-150 mL/g (óptimo: 80-120 mL/g)
-  - SSLM (Sólidos Suspendidos Licor Mezcla): 2.500-4.000 mg/L
-  - OD (Oxígeno Disuelto) en reactor: 1,5-3,0 mg/L
-  - F/M (relación alimento/microorganismo): 0,05-0,25 kgDBO/kgSSLM·d
-• Vertido regulado por RD 509/1996:
-  - DBO₅ efluente: ≤ 25 mg/L (o rendimiento ≥ 70%)
-  - DQO efluente: ≤ 125 mg/L (o rendimiento ≥ 75%)
-  - SST efluente: ≤ 35 mg/L (o rendimiento ≥ 90%)
-  - N total: ≤ 15 mg/L
-  - P total: ≤ 2 mg/L
-
-━━ MÓDULOS DEL PORTAL SGI ━━
-• M01 Calibraciones — Registro de calibraciones de equipos analíticos
-• M02 Procedimientos — 7 guías con ilustraciones SVG (IVF, DBO respirométrica, microscopía, etc.)
-• M04 SMS Diario — Informe diario de explotación vía WhatsApp
-• M05 Inventarios — Gestión de almacenes (Lab, Taller EDARu, Almacén EDARu, Almacén EDARi)
-• M06 Simulador — Simulador del proceso biológico EDARi
-• M07 Buzón — Sugerencias del personal
-• M08 Tareas — Asignación supervisor → operario con seguimiento
-
-━━ REGLAS DE COMPORTAMIENTO ━━
-1. Respuestas cortas y directas. Si hay cálculos, muéstralos paso a paso.
-2. Si preguntan por tareas pendientes o datos en tiempo real, indica que puedes ver los datos cargados del sistema cuando estén disponibles.
-3. Para procedimientos, da los pasos numerados y claros.
-4. Usa emojis con moderación para mejorar la legibilidad (✅ ⚠️ 🔬 📋).
-5. Si no sabes algo específico de la planta, dilo claramente y sugiere consultar al supervisor.
-6. Nunca inventes valores analíticos ni datos de la planta.`;
-
-  // ── Contexto dinámico del portal ─────────────────────────────────────────
-  function buildContext() {
-    const ctx = [];
-    // Sesión activa
-    const s = (typeof getSession === 'function') ? getSession() : null;
-    if(s) ctx.push(`Usuario activo: ${s.username} (rol: ${s.role})`);
-    // Tareas pendientes
-    if(window._tar && window._tar.data) {
-      const propias = Object.values(window._tar.data).filter(t => t && (
-        !s || s.role === 'supervisor' || s.role === 'admin' || t.asignado_a === s.username
-      ));
-      const pend = propias.filter(t => !t.completada);
-      const comp = propias.filter(t => t.completada);
-      ctx.push(`Tareas: ${pend.length} pendientes, ${comp.length} completadas de ${propias.length} total.`);
-      if(pend.length > 0 && pend.length <= 5) {
-        ctx.push('Tareas pendientes: ' + pend.map(t =>
-          `"${t.titulo}" (${t.prioridad||'media'}, asignada a ${t.asignado_a})`
-        ).join('; '));
+    // ── TAREAS ─────────────────────────────────────────────────────────────
+    { k:['mis tareas','tareas pendientes','qué tengo que hacer','trabajo pendiente'],
+      r: () => {
+        const s = (typeof getSession==='function') ? getSession() : null;
+        if(!s) return '⚠️ Inicia sesión para ver tus tareas.';
+        const data = window._tar && window._tar.data ? Object.values(window._tar.data) : [];
+        const esSup = s.role==='supervisor'||s.role==='admin';
+        const propias = data.filter(t=>t && (esSup || t.asignado_a===s.username));
+        const pend = propias.filter(t=>!t.completada);
+        if(!pend.length) return '✅ No tienes tareas pendientes. ¡Todo al día!';
+        const ord = {alta:0,media:1,baja:2};
+        pend.sort((a,b)=>(ord[a.prioridad]||1)-(ord[b.prioridad]||1));
+        return '📋 **Tareas pendientes:**\n\n' + pend.map((t,i)=>{
+          const ico = t.prioridad==='alta'?'🔴':t.prioridad==='baja'?'⚪':'🟡';
+          return `${ico} **${i+1}. ${t.titulo}**${t.descripcion?' — '+t.descripcion:''}${t.fecha_limite?' 📅 '+t.fecha_limite:''}`;
+        }).join('\n');
       }
-    }
-    // Tendencias del simulador si hay datos
-    try {
-      const tend = localStorage.getItem('sgi-tendencias-semana');
-      if(tend) {
-        const d = JSON.parse(tend);
-        if(d && d.length) {
-          const last = d[d.length-1];
-          ctx.push(`Último registro simulador: edad fango ${last.edadFango||'—'} días, IVF ${last.ivf||'—'} mL/g, SSLM ${last.sslm||'—'} mg/L`);
+    },
+
+    // ── IVF ────────────────────────────────────────────────────────────────
+    { k:['ivf','índice volumétrico','volumen de fangos','sedimentabilidad'],
+      r:'🔬 **IVF — Índice Volumétrico de Fangos**\n\n**Rangos:**\n• < 50 mL/g → fango muy compacto, posible bulking por selector\n• 50–120 mL/g → ✅ óptimo\n• 120–150 mL/g → ⚠️ vigilar, inicio de bulking\n• > 150 mL/g → 🔴 bulking filamentoso, revisar aireación y carga\n\n**Procedimiento rápido:**\n1. Tomar muestra del reactor en cono Imhoff de 1 L\n2. Dejar sedimentar **30 minutos** exactos\n3. Leer el volumen de fango sedimentado (mL)\n4. Calcular: IVF = Volumen sedimentado (mL) / SSLM (g/L)\n\n**Causas de IVF alto:** sobrecarga orgánica, déficit de OD, ratio N/P desequilibrado, temperaturas bajas.'
+    },
+
+    // ── EDAD DEL FANGO ─────────────────────────────────────────────────────
+    { k:['edad del fango','edad fango','tiempo de retención celular','trc','θc'],
+      r:'⏱️ **Edad del Fango (θc)**\n\n**Rangos planta Valle de Güímar:**\n• Óptimo: **12–15 días**\n• Mínimo operativo: 8 días\n• Máximo recomendado: 20 días\n\n**Cálculo:**\nθc = M_reactor (kg SST) / [M_purga (kg/d) + M_efluente (kg/d)]\n\n**Interpretación:**\n• θc < 8d → 🔴 lavado de fango, pérdida de nitrificación\n• θc 8–20d → ✅ correcto\n• θc > 20d → ⚠️ fango viejo, posible deflocalización\n\n**Acción:** si θc es alto, aumentar purga. Si es bajo, reducirla.'
+    },
+
+    // ── SSLM ───────────────────────────────────────────────────────────────
+    { k:['sslm','sólidos suspendidos','sst reactor','concentración fango','mlss'],
+      r:'⚗️ **SSLM — Sólidos Suspendidos en Licor Mezcla**\n\n**Rango operativo:** 2.500–4.000 mg/L\n• Óptimo: ~3.000–3.500 mg/L\n\n**Si SSLM baja de 2.500 mg/L:**\n→ Reducir o parar purga temporalmente\n→ Verificar que no hay arrastre por efluente\n\n**Si SSLM sube de 4.000 mg/L:**\n→ Aumentar purga de fangos\n→ Revisar IVF — puede haber bulking\n\n**Medición:** analítica de laboratorio (filtro, secado 105°C, pesada) o sonda en línea si disponible.'
+    },
+
+    // ── OXÍGENO DISUELTO ───────────────────────────────────────────────────
+    { k:['oxígeno disuelto','od','oxígeno','aireación','soplante'],
+      r:'💨 **Oxígeno Disuelto (OD) en Reactor**\n\n**Rango:** 1,5–3,0 mg/L\n• Por debajo de 1,0 mg/L → 🔴 riesgo de bulking filamentoso y fallo nitrificación\n• Por encima de 4,0 mg/L → desperdicio energético\n\n**Puntos de medición:** medir en zona de mezcla activa, no junto a difusores.\n\n**Si OD bajo:**\n1. Aumentar caudal de soplantes\n2. Revisar colmatación de difusores\n3. Comprobar si hay sobrecarga orgánica puntual\n\n**Si OD alto con carga baja:** reducir tiempo de aireación o caudal de aire.'
+    },
+
+    // ── DQO / DBO ──────────────────────────────────────────────────────────
+    { k:['dqo','dbo','demanda química','demanda biológica','materia orgánica','rendimiento'],
+      r:'📊 **Límites de vertido RD 509/1996**\n\n| Parámetro | Límite | Rendimiento mín. |\n|-----------|--------|------------------|\n| DBO₅ | ≤ 25 mg/L | ≥ 70% |\n| DQO | ≤ 125 mg/L | ≥ 75% |\n| SST | ≤ 35 mg/L | ≥ 90% |\n| N total | ≤ 15 mg/L | — |\n| P total | ≤ 2 mg/L | — |\n\n**Rendimiento DQO** = (DQO entrada - DQO salida) / DQO entrada × 100\n\n⚠️ Si el efluente supera estos límites hay que notificar al supervisor inmediatamente.'
+    },
+
+    // ── NITRÓGENO ──────────────────────────────────────────────────────────
+    { k:['nitrógeno','nitrificación','amonio','nh4','nitrato','no3','desnitrificación'],
+      r:'🧪 **Control de Nitrógeno**\n\n**Límite vertido:** N total ≤ 15 mg/L\n\n**Nitrificación** (NH₄ → NO₃):\n• Requiere OD > 1,5 mg/L\n• Temperatura óptima: 15–35°C\n• θc mínimo para nitrificantes: 8–10 días\n• pH óptimo: 7,2–8,0\n\n**Si NH₄ en efluente sube:**\n1. Verificar OD en reactor ≥ 1,5 mg/L\n2. Comprobar pH (no debe bajar de 6,8)\n3. Verificar edad de fango suficiente\n4. Revisar si hay tóxicos en el influente\n\n**Desnitrificación:** si hay zona anóxica, mantener recirculación interna adecuada.'
+    },
+
+    // ── FÓSFORO ────────────────────────────────────────────────────────────
+    { k:['fósforo','fosfato','po4','pt','eliminación fósforo'],
+      r:'🧫 **Control de Fósforo**\n\n**Límite vertido:** P total ≤ 2 mg/L\n\n**Eliminación biológica (EBPR):**\n• Requiere zona anaerobia antes de la aerobia\n• Organismos PAO acumulan polifosfato\n\n**Eliminación química (si hay dosificación):**\n• Sales de hierro (FeCl₃, FeSO₄) o aluminio (Al₂(SO₄)₃)\n• Dosis típica: 1–3 mol metal / mol P a eliminar\n• Punto de adición: afluente al reactor o recirculación\n\n⚠️ Si Pt en efluente supera 2 mg/L notificar a supervisor para ajuste de dosis.'
+    },
+
+    // ── MICROSCOPÍA ────────────────────────────────────────────────────────
+    { k:['microscopía','microscopio','microorganismos','floc','filamentos','protozoarios'],
+      r:'🔭 **Microscopía del Fango**\n\n**Procedimiento:**\n1. Tomar muestra fresca del reactor (no centrifugar)\n2. Depositar una gota en portaobjetos\n3. Cubrir con cubreobjetos sin burbujas\n4. Observar a 100x y 400x\n\n**Indicadores de buen funcionamiento:**\n✅ Flóculos compactos y bien definidos\n✅ Presencia de ciliados pedunculados (Vorticella, Epistylis)\n✅ Rotíferos presentes → fango maduro y estable\n\n**Señales de alerta:**\n🔴 Filamentos dominantes → bulking\n🔴 Solo flagelados → fango joven o sobrecarga\n🔴 Amebas testáceas → condiciones desfavorables\n⚠️ Nematodos → fango muy viejo'
+    },
+
+    // ── SEQUEDAD FANGOS ────────────────────────────────────────────────────
+    { k:['sequedad','materia seca','deshidratación','centrífuga','filtro banda','torta'],
+      r:'💧 **Determinación de Sequedad de Fangos**\n\n**Procedimiento:**\n1. Pesar crisol vacío (m₁)\n2. Añadir muestra de fango (~10 g) → pesar (m₂)\n3. Secar en estufa a **105°C durante 24h**\n4. Dejar enfriar en desecador 30 min\n5. Pesar crisol seco (m₃)\n\n**Cálculo:**\nSequedad (%) = (m₃ - m₁) / (m₂ - m₁) × 100\n\n**Valores orientativos tras deshidratación:**\n• Centrífuga: 18–25% MS\n• Filtro banda: 20–28% MS\n• Filtro prensa: 30–45% MS\n\n⚠️ Anotar resultado en el registro diario.'
+    },
+
+    // ── TURBIDEZ ───────────────────────────────────────────────────────────
+    { k:['turbidez','ntu','efluente turbio','sólidos efluente','alarma turbidez'],
+      r:'⚠️ **Turbidez alta en efluente — Protocolo de actuación**\n\n**Causas más frecuentes:**\n1. **Bulking filamentoso** → IVF > 150 mL/g\n2. **Sobrecarga hidráulica** → exceso de caudal en decantador\n3. **Fango joven** (θc < 8d) → mala floculación\n4. **Tóxicos en influente** → muerte masiva de microorganismos\n5. **Problemas mecánicos** → rasquetas decantador averiadas\n\n**Pasos a seguir:**\n1. Medir IVF y SSLM de inmediato\n2. Comprobar OD en reactor\n3. Revisar caudal de entrada (¿evento de lluvia?)\n4. Inspeccionar decantador visualmente\n5. Notificar a supervisor si persiste > 2h\n\n**Límite vertido SST:** ≤ 35 mg/L'
+    },
+
+    // ── DBO RESPIROMÉTRICO ─────────────────────────────────────────────────
+    { k:['dbo','dbo5','respirométrico','respirómetro','oxitop','demanda biológica oxígeno'],
+      r:'🧪 **Determinación DBO₅ (Método Respirométrico OxiTop)**\n\n**Preparación:**\n1. Determinar DQO aproximada de la muestra\n2. Calcular volumen de muestra según tabla OxiTop\n3. Añadir inhibidor de nitrificación (ATU) si necesario: 2 mL/L de solución 0,5%\n4. Ajustar pH a 6,5–8,5 si es necesario\n5. Añastar pastilla de NaOH en la cámara superior (absorbe CO₂)\n\n**Incubación:**\n• Temperatura: **20°C exactos** durante **5 días**\n• En oscuridad, sin agitación\n\n**Lectura:**\n• El sistema mide la presión de O₂ consumido\n• DBO₅ = valor leído × factor de dilución\n\n⚠️ Blanco de dilución obligatorio en cada serie.'
+    },
+
+    // ── CLORO LIBRE ────────────────────────────────────────────────────────
+    { k:['cloro','cloro libre','desinfección','hipoclorito','cloración'],
+      r:'🧴 **Determinación de Cloro Libre Residual**\n\n**Método DPD (colorimétrico):**\n1. Enjuagar célula con agua de muestra\n2. Añadir reactivo DPD Nº1 (tableta o polvo)\n3. Homogeneizar suavemente hasta disolución\n4. Leer en fotómetro inmediatamente (máx. 1 min)\n5. Comparar con el blanco de agua destilada\n\n**Rangos orientativos agua reutilizada (RD 1620/2007):**\n• Calidad 1: cloro libre ≥ 1 mg/L\n• Calidad 2: cloro libre ≥ 0,5 mg/L\n\n⚠️ Leer siempre en menos de 1 minuto — el cloro libre se degrada rápidamente.\n⚠️ No exponer la muestra a luz solar directa.'
+    },
+
+    // ── V30 / SÓLIDOS ──────────────────────────────────────────────────────
+    { k:['v30','volumen sedimentado','sólidos suspendidos','ss totales'],
+      r:'⚗️ **V30 y Sólidos Suspendidos Totales**\n\n**V30 (volumen sedimentado en 30 min):**\n1. Llenar cono Imhoff con 1 L de licor mezcla del reactor\n2. Dejar sedimentar exactamente **30 minutos**\n3. Leer volumen de fango en mL\n4. Calcular IVF = V30 / SSLM\n\n**SST por gravimetría:**\n1. Filtrar muestra por filtro GF/C previamente tarado\n2. Secar filtro a **105°C, 2 horas mínimo**\n3. Enfriar en desecador 15 min, pesar\n4. SST (mg/L) = (m_final - m_inicial) × 1000 / V_muestra(L)\n\n**Frecuencia recomendada:** SSLM diario en reactor, SST efluente en cada analítica.'
+    },
+
+    // ── CALIBRACIONES ──────────────────────────────────────────────────────
+    { k:['calibración','calibrar','sonda','electrodo','ph metro','oxímetro','vencida'],
+      r:'🔧 **Calibraciones de Equipos**\n\n**Frecuencias mínimas recomendadas:**\n• pH-metro: **diario** (antes de usar)\n• Oxímetro/sonda OD: **diario**\n• Conductivímetro: semanal\n• Turbidímetro: semanal\n• Espectrofotómetro (verificación): mensual\n\n**Procedimiento pH-metro:**\n1. Enjuagar electrodo con agua destilada\n2. Calibrar con tampón pH 7,00 → Aceptar\n3. Calibrar con tampón pH 4,00 o 10,00 según rango\n4. Verificar pendiente (slope): 95–105% aceptable\n5. Enjuagar con agua destilada antes de medir\n\n📋 Registrar toda calibración en **M01 Calibraciones** del portal SGI.'
+    },
+
+    // ── MÓDULOS SGI ────────────────────────────────────────────────────────
+    { k:['módulos','portal','sgi','m01','m02','m03','m04','m05','m06','m07','m08','qué hace'],
+      r:'📱 **Módulos del Portal SGI**\n\n• **M01 Calibraciones** — Registro y alertas de calibraciones vencidas\n• **M02 Procedimientos** — 7 guías analíticas ilustradas\n• **M03 Ruta Colectores** — Mapa de rutas de colectores\n• **M04 SMS Diario** — Informe diario de explotación\n• **M05 Inventarios** — Almacenes Lab, Taller y EDARu\n• **M06 Simulador** — Simulador del proceso biológico EDARi\n• **M07 Buzón** — Sugerencias del personal\n• **M08 Tareas** — Asignación supervisor → operario\n\n¿Quieres información sobre algún módulo concreto?'
+    },
+
+    // ── PURGA DE FANGOS ────────────────────────────────────────────────────
+    { k:['purga','purgar','extraer fango','wasting','control purga'],
+      r:'🚿 **Control de Purga de Fangos**\n\n**Cálculo de caudal de purga diario:**\nQ_purga = M_reactor / (θc × C_purga)\n\nDonde:\n• M_reactor = SSLM (g/L) × Volumen reactor (m³) × 1000\n• θc = edad de fango objetivo (días)\n• C_purga = concentración fango recirculado (mg/L)\n\n**Ejemplo (vuestra planta):**\nSi SSLM = 3.000 mg/L, V = 2.304 m³, θc objetivo = 14 días, C_purga = 8.000 mg/L:\nQ_purga = (3.000 × 2.304) / (14 × 8.000) ≈ **62 m³/día**\n\n⚠️ Ajustar purga gradualmente — cambios bruscos desestabilizan el proceso.'
+    },
+
+    // ── RECIRCULACIÓN ──────────────────────────────────────────────────────
+    { k:['recirculación','recircular','ratio recirculación','rr','fango recirculado'],
+      r:'🔄 **Recirculación de Fangos**\n\n**Ratio de recirculación (RR):**\nRR = Q_recirculación / Q_entrada\n\n**Rango típico:** 0,5–1,5 (50–150% del caudal de entrada)\n\n**Cálculo por balance de masas:**\nRR = SSLM / (C_recirculado - SSLM)\n\n**Si el decantador no clarifica bien:**\n→ Aumentar RR para reducir tiempo de retención en decantador\n→ Verificar que el SSLM no sea demasiado alto\n\n**Si IVF sube:** reducir levemente RR para no sobrecargar decantador.'
+    },
+
+    // ── SALUDO / AYUDA ─────────────────────────────────────────────────────
+    { k:['hola','buenos días','buenas','ayuda','qué puedes hacer','qué sabes','opciones'],
+      r:'👋 ¡Hola! Soy el asistente local del SGI.\n\nPuedo ayudarte con:\n\n📋 **Tareas** → "mis tareas pendientes"\n⚗️ **Parámetros** → IVF, SSLM, OD, edad del fango\n🔬 **Procedimientos** → microscopía, DBO, cloro, turbidez, sequedad\n📊 **Normativa** → límites de vertido RD 509/1996\n🔧 **Calibraciones** → frecuencias y procedimiento\n🚿 **Proceso** → purga, recirculación, nitrificación, fósforo\n\nEscríbeme en lenguaje normal, por ejemplo:\n*"¿qué hago si el IVF sube de 150?"* o *"procedimiento DBO5"*'
+    },
+
+    // ── GRACIAS ────────────────────────────────────────────────────────────
+    { k:['gracias','perfecto','muy bien','ok','entendido','genial'],
+      r:'✅ De nada. Si tienes cualquier otra duda sobre la planta, aquí estoy.'
+    },
+  ];
+
+  // ── Motor de búsqueda ────────────────────────────────────────────────────
+  function findAnswer(query) {
+    const q = query.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // quitar acentos
+      .replace(/[¿?¡!]/g,'').trim();
+
+    let bestScore = 0;
+    let bestEntry = null;
+
+    for(const entry of KB) {
+      let score = 0;
+      for(const kw of entry.k) {
+        const kwNorm = kw.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        if(q.includes(kwNorm)) {
+          score += kwNorm.split(' ').length; // más palabras = más relevante
         }
       }
-    } catch(e){}
-    return ctx.length ? '\n\n━━ CONTEXTO ACTUAL ━━\n' + ctx.join('\n') : '';
+      if(score > bestScore) { bestScore = score; bestEntry = entry; }
+    }
+
+    if(bestScore > 0 && bestEntry) {
+      return typeof bestEntry.r === 'function' ? bestEntry.r() : bestEntry.r;
+    }
+
+    // Respuesta por defecto
+    return '🤔 No tengo información específica sobre eso. Prueba a preguntar sobre:\n\n• IVF, SSLM, OD, edad del fango\n• DBO, DQO, turbidez, cloro\n• Microscopía, sequedad, calibraciones\n• Purga, recirculación, nitrificación\n• Mis tareas pendientes\n\nO consulta con tu supervisor.';
   }
 
   // ── Toggle panel ─────────────────────────────────────────────────────────
   window.sgiChatToggle = function() {
     _chat.open = !_chat.open;
     document.getElementById('sgi-chat-panel').classList.toggle('open', _chat.open);
-    // Ocultar badge al abrir
     if(_chat.open) {
       document.getElementById('sgi-fab-badge').style.display = 'none';
       if(!_chat.welcomed) { _chat.welcomed = true; sgiWelcome(); }
-      setTimeout(() => document.getElementById('sgi-chat-input').focus(), 280);
+      setTimeout(()=>document.getElementById('sgi-chat-input').focus(), 280);
     }
   };
 
-  // ── Mensaje de bienvenida ─────────────────────────────────────────────────
+  // ── Bienvenida ────────────────────────────────────────────────────────────
   function sgiWelcome() {
-    const s = (typeof getSession === 'function') ? getSession() : null;
+    const s = (typeof getSession==='function') ? getSession() : null;
     const nombre = s ? s.username : 'operario';
     const hora = new Date().getHours();
-    const saludo = hora < 13 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
-    // Tareas pendientes para saludo
+    const saludo = hora<13?'Buenos días':hora<20?'Buenas tardes':'Buenas noches';
     let extra = '';
     if(window._tar && window._tar.data) {
-      const pend = Object.values(window._tar.data).filter(t => t && !t.completada &&
-        (!s || s.role==='supervisor' || s.role==='admin' || t.asignado_a === s.username));
-      if(pend.length > 0) {
-        extra = ` Tienes **${pend.length} tarea${pend.length>1?'s':''} pendiente${pend.length>1?'s':''}**.`;
-      }
+      const pend = Object.values(window._tar.data).filter(t=>t&&!t.completada&&
+        (!s||s.role==='supervisor'||s.role==='admin'||t.asignado_a===s.username));
+      if(pend.length) extra = ` Tienes **${pend.length} tarea${pend.length>1?'s':''} pendiente${pend.length>1?'s':''}**.`;
     }
-    appendMsg('bot', `${saludo}, **${nombre}**. 👋\n\nSoy el asistente del SGI. Puedo ayudarte con procedimientos, parámetros de la planta, cálculos de proceso y gestión de tareas.${extra}\n\n¿En qué puedo ayudarte?`);
+    appendMsg('bot', `${saludo}, **${nombre}**. 👋\n\nSoy el asistente local del SGI. Puedo ayudarte con parámetros, procedimientos y tareas de la planta.${extra}\n\n¿En qué puedo ayudarte?`);
   }
 
-  // ── Chips de acceso rápido ────────────────────────────────────────────────
+  // ── Chips ─────────────────────────────────────────────────────────────────
   window.sgiChip = function(btn) {
-    const txt = btn.textContent.replace(/^[^\w]+/, '').trim();
+    const txt = btn.textContent.replace(/^[^\w]+/,'').trim();
     document.getElementById('sgi-chat-input').value = txt;
     sgiChatSend();
   };
 
-  // ── Enviar mensaje ────────────────────────────────────────────────────────
-  window.sgiChatSend = async function() {
+  // ── Enviar ────────────────────────────────────────────────────────────────
+  window.sgiChatSend = function() {
     const input = document.getElementById('sgi-chat-input');
     const text = input.value.trim();
-    if(!text || _chat.loading) return;
+    if(!text) return;
     input.value = '';
     sgiAutoResize(input);
-
     appendMsg('user', text);
-    _chat.history.push({ role: 'user', content: text });
 
-    // Mostrar typing
+    // Simular pequeño delay para que se sienta natural
     const typingEl = appendTyping();
-    _chat.loading = true;
-    document.getElementById('sgi-chat-send').disabled = true;
-
-    try {
-      const sysWithCtx = SYSTEM + buildContext();
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: sysWithCtx,
-          messages: _chat.history.slice(-12) // últimos 12 turnos
-        })
-      });
-      const data = await resp.json();
+    setTimeout(()=>{
       typingEl.remove();
-      if(data.content && data.content[0]) {
-        const reply = data.content.map(b => b.text||'').join('');
-        _chat.history.push({ role: 'assistant', content: reply });
-        appendMsg('bot', reply);
-      } else {
-        appendMsg('bot', '⚠️ Sin respuesta del servidor. Comprueba la conexión.');
-      }
-    } catch(err) {
-      typingEl.remove();
-      appendMsg('bot', '⚠️ Error de conexión. Inténtalo de nuevo.');
-    } finally {
-      _chat.loading = false;
-      document.getElementById('sgi-chat-send').disabled = false;
-    }
+      const answer = findAnswer(text);
+      appendMsg('bot', answer);
+    }, 420 + Math.random()*300);
   };
 
-  // ── Tecla Enter ──────────────────────────────────────────────────────────
   window.sgiChatKey = function(e) {
-    if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sgiChatSend(); }
+    if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sgiChatSend(); }
   };
 
-  // ── Auto-resize textarea ─────────────────────────────────────────────────
   window.sgiAutoResize = function(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    el.style.height='auto';
+    el.style.height=Math.min(el.scrollHeight,100)+'px';
   };
 
-  // ── Renderizar burbuja ───────────────────────────────────────────────────
+  // ── Burbuja ───────────────────────────────────────────────────────────────
   function appendMsg(role, text) {
     const msgs = document.getElementById('sgi-chat-msgs');
-    const s = (typeof getSession === 'function') ? getSession() : null;
+    const s = (typeof getSession==='function') ? getSession() : null;
     const initials = s ? s.username.slice(0,2).toUpperCase() : 'OP';
-
     const div = document.createElement('div');
     div.className = `sgi-msg ${role}`;
-
     const avatar = document.createElement('div');
     avatar.className = 'sgi-msg-avatar';
-    if(role === 'bot') {
+    if(role==='bot') {
       avatar.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" stroke="#5dd3ff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg>`;
     } else {
       avatar.textContent = initials;
     }
-
     const bubble = document.createElement('div');
     bubble.className = 'sgi-msg-bubble';
     bubble.innerHTML = formatMsg(text);
-
     div.appendChild(avatar);
     div.appendChild(bubble);
     msgs.appendChild(div);
@@ -8518,52 +8553,46 @@ Tu misión es ayudar al personal operativo —operarios y supervisores— con co
     return div;
   }
 
-  // ── Typing indicator ─────────────────────────────────────────────────────
   function appendTyping() {
     const msgs = document.getElementById('sgi-chat-msgs');
     const div = document.createElement('div');
     div.className = 'sgi-msg bot';
-    div.innerHTML = `
-      <div class="sgi-msg-avatar">
-        <svg viewBox="0 0 24 24" width="12" height="12" stroke="#5dd3ff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg>
-      </div>
-      <div class="sgi-msg-bubble"><div class="sgi-typing"><span></span><span></span><span></span></div></div>`;
+    div.innerHTML = `<div class="sgi-msg-avatar"><svg viewBox="0 0 24 24" width="12" height="12" stroke="#5dd3ff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg></div><div class="sgi-msg-bubble"><div class="sgi-typing"><span></span><span></span><span></span></div></div>`;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
     return div;
   }
 
-  // ── Formateo markdown básico ─────────────────────────────────────────────
+  // ── Formato markdown básico ───────────────────────────────────────────────
   function formatMsg(text) {
     return text
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
       .replace(/\*(.+?)\*/g,'<em>$1</em>')
       .replace(/^(\d+)\. (.+)$/gm,'<strong>$1.</strong> $2')
-      .replace(/^[-•] (.+)$/gm,'• $1')
-      .replace(/\n\n/g,'</p><p>')
-      .replace(/\n/g,'<br>')
-      .replace(/^(.+)$/,'<p>$1</p>');
+      .replace(/^[•→] (.+)$/gm,'&bull; $1')
+      .replace(/\n/g,'<br>');
   }
 
-  // ── Escape cierra el panel ───────────────────────────────────────────────
-  document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && _chat.open) sgiChatToggle();
+  // ── Escape cierra ─────────────────────────────────────────────────────────
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape'&&_chat.open) sgiChatToggle();
   });
 
-  // ── Mostrar badge si hay tareas al cargar ────────────────────────────────
-  setTimeout(() => {
-    if(window._tar && window._tar.data) {
-      const s = (typeof getSession === 'function') ? getSession() : null;
-      const pend = Object.values(window._tar.data).filter(t => t && !t.completada &&
-        (!s || s.role==='supervisor' || s.role==='admin' || t.asignado_a === s.username));
-      if(pend.length > 0 && !_chat.open) {
-        const badge = document.getElementById('sgi-fab-badge');
-        badge.textContent = pend.length;
-        badge.style.display = 'flex';
+  // ── Badge de tareas al cargar ─────────────────────────────────────────────
+  setTimeout(()=>{
+    if(window._tar&&window._tar.data){
+      const s=(typeof getSession==='function')?getSession():null;
+      const pend=Object.values(window._tar.data).filter(t=>t&&!t.completada&&
+        (!s||s.role==='supervisor'||s.role==='admin'||t.asignado_a===s.username));
+      if(pend.length&&!_chat.open){
+        const badge=document.getElementById('sgi-fab-badge');
+        badge.textContent=pend.length;
+        badge.style.display='flex';
       }
     }
   }, 3000);
+
 })();
 </script>
 
