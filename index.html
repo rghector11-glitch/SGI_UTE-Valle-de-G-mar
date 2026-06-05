@@ -477,8 +477,227 @@ body::before {
 .sb-bottom{padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .sb-badge{position:absolute;top:5px;right:5px;min-width:14px;height:14px;background:var(--danger);border-radius:99px;font-size:8px;font-family:var(--mono);color:white;display:flex;align-items:center;justify-content:center;padding:0 3px;}
 
-/* ── MAIN ── */
-.p-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤900px) + MÓVIL (≤600px)
+   Estrategia:
+   · Tablet: sidebar se oculta tras botón hamburguesa, contenido 100%
+   · Móvil:  todo en columna, módulos en grid 1 col, paneles full-screen
+══════════════════════════════════════════════════════════════════ */
+
+/* ── Botón hamburguesa (visible solo en ≤900px) ── */
+#mob-ham-btn {
+  display: none;
+  background: rgba(255,255,255,.07);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-d);
+  cursor: pointer;
+  width: 32px; height: 32px;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+#mob-ham-btn:hover { background: rgba(255,255,255,.14); color: var(--accent); }
+#mob-ham-btn i { font-size: 18px; }
+
+/* ── Overlay para cerrar sidebar en móvil ── */
+#mob-sb-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 149;
+  backdrop-filter: blur(2px);
+}
+#mob-sb-overlay.open { display: block; }
+
+/* ══ TABLET ≤900px ══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  /* Mostrar hamburguesa */
+  #mob-ham-btn { display: flex; }
+
+  /* Sidebar: oculto por defecto, drawer desde la izquierda */
+  .p-sidebar {
+    position: fixed !important;
+    top: 0; left: 0; bottom: 0;
+    z-index: 150;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,.5);
+    width: var(--sb-w) !important;
+  }
+  .p-sidebar.mob-open { transform: translateX(0); }
+
+  /* Main ocupa todo el ancho */
+  .p-main { width: 100%; }
+
+  /* Topbar: más compacto */
+  .p-topbar { padding: 0 12px; gap: 8px; }
+  .p-brand-n { font-size: .78rem; }
+  .p-brand-l { font-size: .6rem; }
+
+  /* KPI strip: scroll horizontal */
+  .kpi-strip {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 8px !important;
+    padding: 6px 10px !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+  .kpi-strip::-webkit-scrollbar { display: none; }
+  .kpi-r {
+    min-width: 150px !important;
+    flex-shrink: 0 !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Portal grid: columna única apilada */
+  #panel-portal.active {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "kpis" "modulos" "analitica" !important;
+    grid-template-rows: auto auto auto !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 8px !important;
+    gap: 10px !important;
+  }
+
+  /* Módulos: 2 columnas */
+  #panel-portal > .modules-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #panel-portal > .modules-grid > .mc {
+    height: auto !important;
+    min-height: 88px !important;
+    overflow: visible !important;
+  }
+
+  /* Da panel: altura automática */
+  #panel-portal > .da-panel {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #panel-portal > .da-panel > .da-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+  }
+  #panel-portal > .da-panel > .da-grid > .da-card {
+    min-height: 130px !important;
+    overflow: visible !important;
+  }
+  .da-chart { min-height: 70px !important; }
+
+  /* Paneles secundarios: full height con scroll */
+  .p-content > div[id^="panel-"]:not(#panel-portal) {
+    overflow-y: auto;
+  }
+}
+
+/* ══ MÓVIL ≤600px ══════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  /* Variables de tamaño */
+  :root { --top-h: 46px; }
+
+  /* Topbar aún más compacto */
+  .p-topbar { padding: 0 10px; gap: 6px; height: var(--top-h); }
+  .p-brand-n { font-size: .72rem; }
+  .p-brand-l { display: none; }
+  .p-hbtn { width: 28px; height: 28px; }
+  .p-hbtn i { font-size: 13px; }
+
+  /* Sesión: ocultar nombre largo */
+  #top-session-info > span:first-child { display: none; }
+
+  /* KPI strip: chips muy compactos */
+  .kpi-strip { padding: 5px 8px !important; gap: 6px !important; }
+  .kpi-r { min-width: 130px !important; padding: 5px 8px !important; }
+  .kpi-r-v { font-size: 16px !important; }
+  .kpi-r-lbl { font-size: 7px !important; }
+  .kpi-r-ring { width: 44px !important; height: 44px !important; }
+  .kpi-r-ring svg { width: 44px !important; height: 44px !important; }
+  .kpi-r-ring-c .pct { font-size: 12px !important; }
+  .kpi-r-foot { font-size: 7px !important; }
+
+  /* Portal: padding mínimo */
+  #panel-portal.active {
+    padding: 6px !important;
+    gap: 8px !important;
+  }
+
+  /* Módulos: 1 columna en móvil */
+  #panel-portal > .modules-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #panel-portal > .modules-grid > .mc {
+    min-height: 76px !important;
+  }
+
+  /* Da panel: 1 columna */
+  #panel-portal > .da-panel > .da-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Paneles secundarios full-screen */
+  .p-content { padding: 0 !important; }
+  .p-content > div[id^="panel-"] {
+    padding: 10px !important;
+  }
+
+  /* Tarjetas de módulo más compactas */
+  .mc-body { padding: 6px 9px !important; gap: 1px !important; }
+  .mc-title { font-size: 12px !important; }
+  .mc-desc { font-size: 8.5px !important; }
+  .mc-ilu { padding: 6px !important; }
+  .mc-ilu i { font-size: 22px !important; }
+  .mc-foot { padding: 4px 9px !important; }
+
+  /* Gráfico de anillo tareas: más pequeño */
+  .mc-tareas-donut-svg { width: 36px !important; height: 36px !important; }
+  .mc-tareas-ring-row { margin-top: 4px !important; gap: 6px !important; }
+
+  /* Drawers: ancho completo en móvil */
+  #obj-drawer,
+  #carga-drawer,
+  #rc-drawer,
+  #tareas-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border) !important;
+  }
+
+  /* Chatbot: ocupa más pantalla */
+  #sgi-chat-panel {
+    width: calc(100vw - 16px) !important;
+    right: 8px !important;
+    bottom: 76px !important;
+    height: min(520px, calc(100vh - 100px)) !important;
+  }
+  #sgi-chat-fab { bottom: 14px !important; right: 14px !important; }
+
+  /* Tablas y grids internos de paneles */
+  .bio-grid-3 { grid-template-columns: 1fr !important; }
+  .da-card-h { flex-wrap: wrap !important; gap: 4px !important; }
+
+  /* Scroll horizontal para tablas anchas */
+  .scroll-x-mob { overflow-x: auto !important; }
+  table { min-width: 500px; }
+}
+
+/* ══ MÓVIL MUY PEQUEÑO ≤380px ══════════════════════════════════ */
+@media (max-width: 380px) {
+  .p-brand-n { display: none; }
+  .kpi-r { min-width: 115px !important; }
+  .mc-title { font-size: 11px !important; }
+}
+
 
 /* ── TOPBAR ── */
 .p-topbar{height:var(--top-h);background:linear-gradient(90deg,#080f1d 0%,var(--surface) 100%);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
@@ -934,6 +1153,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
 
 <!-- ═══ PORTAL INDUSTRIAL ═══ -->
+<!-- Overlay para cerrar sidebar en móvil -->
+<div id="mob-sb-overlay" onclick="mobToggleSidebar()"></div>
+
 <div id="portal-shell">
   <!-- Downloads overlay -->
   <div class="dl-overlay" id="dl-overlay" onclick="toggleDownloads()"></div>
@@ -1040,6 +1262,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
     <div class="p-main">
       <!-- Topbar -->
       <div class="p-topbar">
+        <!-- Hamburguesa: solo visible en ≤900px -->
+        <button id="mob-ham-btn" onclick="mobToggleSidebar()" aria-label="Menú" title="Menú">
+          <i class="ti ti-menu-2"></i>
+        </button>
         <div class="p-brand">
           <div class="p-brand-mark"><i class="ti ti-droplet" aria-hidden="true"></i></div>
           <div class="p-brand-txt">
@@ -8260,9 +8486,28 @@ if(typeof waitForFirebase==='function'){
 }
 </script>
 
-<!-- ═══════════════════════════════════════════════════
-     ASISTENTE SGI — Chatbot flotante con Claude API
-════════════════════════════════════════════════════ -->
+// ══ RESPONSIVE MÓVIL — Toggle sidebar ══════════════════════════════════════
+function mobToggleSidebar() {
+  const sb  = document.querySelector('.p-sidebar');
+  const ov  = document.getElementById('mob-sb-overlay');
+  if(!sb || !ov) return;
+  const open = sb.classList.toggle('mob-open');
+  ov.classList.toggle('open', open);
+}
+window.mobToggleSidebar = mobToggleSidebar;
+
+// Cerrar sidebar al navegar a un panel (en móvil)
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.sb-btn');
+  if(!btn) return;
+  if(window.innerWidth <= 900) {
+    const sb = document.querySelector('.p-sidebar');
+    const ov = document.getElementById('mob-sb-overlay');
+    if(sb) sb.classList.remove('mob-open');
+    if(ov) ov.classList.remove('open');
+  }
+});
+
 <style>
 /* ── Botón flotante ── */
 #sgi-chat-fab {
