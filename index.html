@@ -477,10 +477,6 @@ body::before {
 .sb-bottom{padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .sb-badge{position:absolute;top:5px;right:5px;min-width:14px;height:14px;background:var(--danger);border-radius:99px;font-size:8px;font-family:var(--mono);color:white;display:flex;align-items:center;justify-content:center;padding:0 3px;}
 
-  .kpi-r { min-width: 115px !important; }
-  .mc-title { font-size: 11px !important; }
-}
-
 
 /* ── TOPBAR ── */
 .p-topbar{height:var(--top-h);background:linear-gradient(90deg,#080f1d 0%,var(--surface) 100%);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
@@ -1163,72 +1159,119 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           #da-tooltip .tt-date{color:var(--muted,#8ba0bd); font-size:8.5px; margin-right:6px;}
           </style>
           <style>
-          /* ── Layout 2-col: KPIs arriba (full), módulos izq 50%, gráficos der 50% ── */
+          /* ── Layout principal del portal: ocupa 100% sin scroll ── */
           #panel-portal.active{
             display:grid;
             grid-template-columns:1fr 1fr;
+            grid-template-rows:auto 1fr;
             grid-template-areas:"kpis kpis" "modulos analitica";
-            column-gap:14px; row-gap:14px;
-            align-content:start;
+            column-gap:12px; row-gap:10px;
+            height:100%;
+            min-height:0;
+            overflow:hidden;
           }
-          #panel-portal > .kpi-strip{grid-area:kpis; margin-bottom:0;}
-          #panel-portal > .modules-grid{grid-area:modulos; grid-template-columns:repeat(2,1fr); flex:none; overflow:visible;}
-          #panel-portal > .da-panel{grid-area:analitica; margin:0;}
-          #panel-portal .da-grid{grid-template-columns:1fr;}
+          #panel-portal > .kpi-strip{
+            grid-area:kpis;
+            margin-bottom:0; gap:9px;
+          }
+          #panel-portal > .modules-grid{
+            grid-area:modulos;
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            grid-template-rows:repeat(4,1fr);
+            row-gap:7px; column-gap:8px;
+            min-height:0; height:100%;
+            overflow:hidden;
+          }
+          #panel-portal > .modules-grid > .mc{
+            min-height:0; height:100%; overflow:hidden;
+          }
+          #panel-portal > .da-panel{
+            grid-area:analitica;
+            display:flex; flex-direction:column;
+            min-height:0; height:100%;
+            overflow:hidden; margin:0;
+          }
+          #panel-portal > .da-panel > .da-h{margin-bottom:6px; flex-shrink:0;}
+          #panel-portal > .da-panel > .da-grid{
+            display:grid;
+            grid-template-columns:1fr;
+            grid-template-rows:repeat(4,1fr);
+            row-gap:7px;
+            flex:1; min-height:0;
+          }
+          #panel-portal > .da-panel > .da-grid > .da-card{
+            min-height:0; padding:7px 11px 5px; overflow:hidden;
+          }
+          .da-card-h{margin-bottom:4px;}
+          .da-chart{min-height:0; flex:1; margin-top:3px;}
+          .da-legend{margin-top:2px; font-size:6.5px;}
 
           /* KPIs compactos */
-          .kpi-strip{gap:10px;}
-          .kpi-r{padding:9px 12px;}
-          .kpi-r-hd{gap:7px; margin-bottom:6px;}
+          .kpi-strip{gap:9px;}
+          .kpi-r{padding:7px 11px;}
+          .kpi-r-hd{gap:7px; margin-bottom:4px;}
           .kpi-r-ic{width:24px; height:24px; font-size:12px; border-radius:6px;}
           .kpi-r-lbl{font-size:8.5px; letter-spacing:.1em;}
-          .kpi-r-v{font-size:22px;}
+          .kpi-r-v{font-size:20px;}
           .kpi-r-v .ku{font-size:10px;}
-          .kpi-r-foot{font-size:8.5px; margin-top:4px;}
-          .kpi-r-obj{gap:12px;}
-          .kpi-r-ring{width:58px; height:58px;}
-          .kpi-r-ring svg{width:58px; height:58px;}
-          .kpi-r-ring-c .pct{font-size:16px;}
+          .kpi-r-foot{font-size:8px; margin-top:3px;}
+          .kpi-r-obj{gap:10px;}
+          .kpi-r-ring{width:52px; height:52px;}
+          .kpi-r-ring svg{width:52px; height:52px;}
+          .kpi-r-ring-c .pct{font-size:14px;}
           .kpi-r-ring-c .sub{font-size:8.5px;}
 
-          /* Tarjetas de módulo compactas (caben 2 cols × 4 filas) */
-          .mc{min-height:80px;}
-          .mc-body{padding:7px 10px; gap:2px;}
-          .mc-title{font-size:12.5px; line-height:1.1;}
-          .mc-desc{font-size:9px; line-height:1.25;}
-          .mc-foot{padding:5px 10px;}
-          .mc-stat{font-size:8.5px;}
+          /* Tarjetas de módulo compactas */
+          .mc{min-height:0;}
+          .mc-body{padding:5px 9px; gap:1px;}
+          .mc-title{font-size:11.5px; line-height:1.08;}
+          .mc-desc{font-size:8.5px; line-height:1.22;}
+          .mc-foot{padding:4px 9px;}
+          .mc-stat{font-size:8px;}
           .mc-num{font-size:6.5px;}
           .mc-badge{font-size:6.5px; padding:1.5px 5px;}
-          .mc-tareas-ring-row{gap:6px; margin-top:4px;}
-          .mc-tareas-donut-svg{width:38px; height:38px;}
-          .mc-tareas-ring-sub{font-size:7.5px;}
-          .mc-tareas-ring-pend{font-size:10px;}
+          .mc-ilu{padding:5px;}
+          .mc-tareas-ring-row{gap:5px; margin-top:3px;}
+          .mc-tareas-donut-svg{width:34px; height:34px;}
+          .mc-tareas-ring-sub{font-size:7px;}
+          .mc-tareas-ring-pend{font-size:9.5px;}
 
-          /* Tarjetas analíticas (1 columna, más estrechas) */
-          .da-card{min-height:128px; padding:9px 11px 7px;}
+          /* Tarjetas analíticas */
+          .da-card{min-height:0; padding:7px 11px 5px;}
           .da-card-t{font-size:11.5px;}
           .da-card-sub{font-size:7px;}
           .da-card-v{font-size:14px;}
           .da-card-v .u{font-size:7.5px;}
           .da-card-v-sub{font-size:7.5px;}
-          .da-chart{min-height:62px;}
 
-          /* Responsive: en pantallas estrechas vuelve a 1 columna apilada */
+          /* Responsive: pantallas ≤1100px → 1 columna con scroll */
           @media (max-width:1100px){
-            #panel-portal.active{grid-template-columns:1fr; grid-template-areas:"kpis" "analitica" "modulos";}
-            #panel-portal > .modules-grid{grid-template-columns:repeat(2,1fr);}
+            #panel-portal.active{
+              grid-template-columns:1fr;
+              grid-template-rows:auto auto auto;
+              grid-template-areas:"kpis" "modulos" "analitica";
+              height:auto; overflow-y:auto; overflow-x:hidden;
+            }
+            #panel-portal > .modules-grid{
+              height:auto; overflow:visible;
+              grid-template-rows:auto;
+              grid-template-columns:repeat(2,1fr);
+            }
+            #panel-portal > .modules-grid > .mc{height:auto; min-height:80px; overflow:hidden;}
+            #panel-portal > .da-panel{height:auto; overflow:visible;}
+            #panel-portal > .da-panel > .da-grid{
+              grid-template-rows:auto;
+              grid-template-columns:repeat(2,1fr);
+            }
+            #panel-portal > .da-panel > .da-grid > .da-card{min-height:130px;}
           }
           @media (max-width:640px){
             #panel-portal > .modules-grid{grid-template-columns:1fr;}
+            #panel-portal > .da-panel > .da-grid{grid-template-columns:1fr;}
           }
 
-          /* ══ Visibilidad por rol ══════════════════════════════════════════
-             Operario solo ve los módulos básicos: M02 Procedimientos,
-             M04 SMS Diario, M05 Inventarios y M08 Tareas.
-             Se ocultan además el dashboard analítico, los KPIs del topbar
-             y los items de sidebar reservados a supervisor.
-          */
+          /* ══ Visibilidad por rol ════════════════════════════════════════ */
           body.role-operario .da-panel,
           body.role-operario .kpi-strip,
           body.role-operario #panel-portal > .modules-grid > .m03,
@@ -1239,9 +1282,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           body.role-operario #sb-objetivos {
             display:none !important;
           }
-          /* Layout del portal en modo operario: 5 módulos (M01, M02, M04, M05, M08) en 3 cols × 2 filas */
           body.role-operario #panel-portal.active{
-            grid-template-areas:"modulos modulos";
+            grid-template-columns:1fr;
+            grid-template-areas:"modulos";
             grid-template-rows:1fr;
           }
           body.role-operario #panel-portal > .modules-grid{
@@ -1250,72 +1293,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             grid-template-rows:repeat(2,1fr);
             row-gap:14px; column-gap:14px;
           }
-          body.role-operario #panel-portal > .modules-grid > .mc{
-            min-height:0;
-          }
-
-          /* ── No scroll vertical: aprovechar 100% del alto disponible ── */
-          #panel-portal.active{
-            grid-template-rows:auto 1fr;
-            row-gap:10px; column-gap:12px;
-            min-height:0;
-            height:100%;
-            overflow:hidden;
-          }
-          #panel-portal > .kpi-strip{margin-bottom:0; gap:9px;}
-          #panel-portal > .modules-grid{
-            display:grid;
-            grid-template-columns:repeat(2,1fr);
-            grid-template-rows:repeat(4,1fr);
-            row-gap:7px; column-gap:8px;
-            min-height:0;
-            height:100%;
-            overflow:hidden;
-          }
-          #panel-portal > .modules-grid > .mc{min-height:0; height:100%; overflow:hidden;}
-          #panel-portal > .da-panel{
-            display:flex; flex-direction:column;
-            min-height:0; height:100%;
-            overflow:hidden;
-          }
-          #panel-portal > .da-panel > .da-h{margin-bottom:6px;}
-          #panel-portal > .da-panel > .da-grid{
-            display:grid;
-            grid-template-columns:1fr;
-            grid-template-rows:repeat(4,1fr);
-            row-gap:7px;
-            flex:1; min-height:0;
-          }
-          #panel-portal > .da-panel > .da-grid > .da-card{
-            min-height:0;
-            padding:7px 11px 5px;
-            overflow:hidden;
-          }
-          .da-card-h{margin-bottom:4px;}
-          .da-chart{min-height:0; flex:1; margin-top:3px;}
-          .da-legend{margin-top:2px; font-size:6.5px;}
-
-          /* KPIs un pelín más bajos para liberar espacio vertical */
-          .kpi-r{padding:7px 11px;}
-          .kpi-r-hd{margin-bottom:4px;}
-          .kpi-r-v{font-size:20px;}
-          .kpi-r-foot{font-size:8px; margin-top:3px;}
-          .kpi-r-ring{width:52px; height:52px;}
-          .kpi-r-ring svg{width:52px; height:52px;}
-          .kpi-r-ring-c .pct{font-size:14px;}
-          .kpi-r-obj{gap:10px;}
-
-          /* Tarjetas de módulo más compactas en altura */
-          .mc-body{padding:5px 9px; gap:1px;}
-          .mc-title{font-size:11.5px; line-height:1.08;}
-          .mc-desc{font-size:8.5px; line-height:1.22;}
-          .mc-foot{padding:4px 9px;}
-          .mc-stat{font-size:8px;}
-          .mc-ilu{padding:5px;}
-          .mc-tareas-ring-row{gap:5px; margin-top:3px;}
-          .mc-tareas-donut-svg{width:34px; height:34px;}
-          .mc-tareas-ring-sub{font-size:7px;}
-          .mc-tareas-ring-pend{font-size:9.5px;}
+          body.role-operario #panel-portal > .modules-grid > .mc{ min-height:0; }
           </style>
           <div class="da-panel">
             <div class="da-h">
