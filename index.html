@@ -449,13 +449,14 @@ body::before {
   --text:#cfdbed; --muted:#5d7390; --light:#ffffff;
   --border-l:#2c4368; --text-d:#8ba0bd; --card-hi:#1d2c44;
   --mono:'JetBrains Mono',monospace; --cond:'Barlow Condensed',sans-serif; --sans:'Barlow',sans-serif;
-  --sb-w:60px; --top-h:52px;
+  --sb-w:60px; --top-h:44px;
 }
 
 /* ── SHELL ── */
-#portal-shell{display:none;width:100%;height:100vh;background:var(--ink);font-family:var(--sans);color:var(--text);overflow:hidden;position:relative;}
+#portal-shell{display:none;width:100%;height:100vh;box-sizing:border-box;background:var(--ink);font-family:var(--sans);color:var(--text);overflow:hidden;position:relative;}
 #portal-shell::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,200,240,.006) 3px,rgba(0,200,240,.006) 4px);pointer-events:none;z-index:0;}
-.p-layout{display:flex;height:100%;position:relative;z-index:1;}
+.p-layout{display:flex;height:100%;flex:1;min-height:0;position:relative;z-index:1;}
+.p-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;}
 
 /* ── SIDEBAR ── */
 .p-sidebar{width:var(--sb-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;z-index:5;}
@@ -546,7 +547,7 @@ body.theme-light .p-user-btn{color:#0f172a;}
 .p-ver{font-family:var(--mono);font-size:7.5px;color:var(--muted);opacity:.5;letter-spacing:.04em;line-height:1.3;text-align:right;flex-shrink:0;}
 
 /* ── CONTENT AREA ── */
-.p-content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px;}
+.p-content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:7px;}
 
 /* ── PANELS (process, analytics, reports, etc.) ── */
 .p-panel{display:none;flex:1;flex-direction:column;overflow:auto;}
@@ -1159,119 +1160,113 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           #da-tooltip .tt-date{color:var(--muted,#8ba0bd); font-size:8.5px; margin-right:6px;}
           </style>
           <style>
-          /* ── Layout principal del portal: ocupa 100% sin scroll ── */
+          /* ── Layout 2-col optimizado 1920×1080 ── */
           #panel-portal.active{
             display:grid;
             grid-template-columns:1fr 1fr;
             grid-template-rows:auto 1fr;
             grid-template-areas:"kpis kpis" "modulos analitica";
-            column-gap:12px; row-gap:10px;
-            height:100%;
-            min-height:0;
+            column-gap:10px; row-gap:8px;
+            height:100%; min-height:0;
             overflow:hidden;
+            padding:0;
           }
+
+          /* KPI strip */
           #panel-portal > .kpi-strip{
-            grid-area:kpis;
-            margin-bottom:0; gap:9px;
+            grid-area:kpis; margin-bottom:0; gap:7px;
           }
+          .kpi-strip{gap:7px;}
+          .kpi-r{padding:5px 10px;}
+          .kpi-r-hd{gap:6px; margin-bottom:3px;}
+          .kpi-r-ic{width:20px; height:20px; font-size:10px; border-radius:5px;}
+          .kpi-r-lbl{font-size:7.5px; letter-spacing:.08em;}
+          .kpi-r-v{font-size:17px; line-height:1;}
+          .kpi-r-v .ku{font-size:9px;}
+          .kpi-r-foot{font-size:7px; margin-top:2px;}
+          .kpi-r-obj{gap:8px;}
+          .kpi-r-ring{width:44px; height:44px;}
+          .kpi-r-ring svg{width:44px; height:44px;}
+          .kpi-r-ring-c .pct{font-size:12px;}
+          .kpi-r-ring-c .sub{font-size:7.5px;}
+
+          /* Grid de módulos */
           #panel-portal > .modules-grid{
             grid-area:modulos;
             display:grid;
             grid-template-columns:repeat(2,1fr);
             grid-template-rows:repeat(4,1fr);
-            row-gap:7px; column-gap:8px;
-            min-height:0; height:100%;
-            overflow:hidden;
-          }
-          #panel-portal > .modules-grid > .mc{
+            row-gap:5px; column-gap:6px;
             min-height:0; height:100%; overflow:hidden;
           }
+          #panel-portal > .modules-grid > .mc{min-height:0; height:100%; overflow:hidden;}
+
+          /* Tarjetas de módulo */
+          .mc{min-height:0;}
+          .mc-body{padding:4px 8px; gap:1px;}
+          .mc-title{font-size:10.5px; line-height:1.05;}
+          .mc-desc{font-size:7.5px; line-height:1.18;}
+          .mc-foot{padding:3px 8px;}
+          .mc-stat{font-size:7px;}
+          .mc-num{font-size:6px;}
+          .mc-badge{font-size:6px; padding:1px 4px;}
+          .mc-ilu{padding:4px;}
+          .mc-ilu i{font-size:20px;}
+          .mc-tareas-ring-row{gap:4px; margin-top:2px;}
+          .mc-tareas-donut-svg{width:30px; height:30px;}
+          .mc-tareas-ring-sub{font-size:6.5px;}
+          .mc-tareas-ring-pend{font-size:8.5px;}
+
+          /* Panel analítico */
           #panel-portal > .da-panel{
-            grid-area:analitica;
+            grid-area:analitica; margin:0;
             display:flex; flex-direction:column;
-            min-height:0; height:100%;
-            overflow:hidden; margin:0;
+            min-height:0; height:100%; overflow:hidden;
           }
-          #panel-portal > .da-panel > .da-h{margin-bottom:6px; flex-shrink:0;}
+          #panel-portal > .da-panel > .da-h{
+            margin-bottom:3px; flex-shrink:0; padding:0 2px;
+          }
+          .da-h-t{font-size:10px;}
+          .da-h-s{font-size:7px;}
           #panel-portal > .da-panel > .da-grid{
             display:grid;
             grid-template-columns:1fr;
             grid-template-rows:repeat(4,1fr);
-            row-gap:7px;
+            row-gap:5px;
             flex:1; min-height:0;
           }
           #panel-portal > .da-panel > .da-grid > .da-card{
-            min-height:0; padding:7px 11px 5px; overflow:hidden;
+            min-height:0; padding:5px 10px 4px; overflow:hidden;
           }
-          .da-card-h{margin-bottom:4px;}
-          .da-chart{min-height:0; flex:1; margin-top:3px;}
-          .da-legend{margin-top:2px; font-size:6.5px;}
+          .da-card-h{margin-bottom:2px; flex-shrink:0;}
+          .da-card-t{font-size:10px;}
+          .da-card-sub{font-size:6.5px;}
+          .da-card-v{font-size:13px; line-height:1;}
+          .da-card-v .u{font-size:7px;}
+          .da-card-v-sub{font-size:7px;}
+          .da-chart{min-height:0; flex:1; margin-top:2px;}
+          .da-legend{margin-top:1px; font-size:6px;}
 
-          /* KPIs compactos */
-          .kpi-strip{gap:9px;}
-          .kpi-r{padding:7px 11px;}
-          .kpi-r-hd{gap:7px; margin-bottom:4px;}
-          .kpi-r-ic{width:24px; height:24px; font-size:12px; border-radius:6px;}
-          .kpi-r-lbl{font-size:8.5px; letter-spacing:.1em;}
-          .kpi-r-v{font-size:20px;}
-          .kpi-r-v .ku{font-size:10px;}
-          .kpi-r-foot{font-size:8px; margin-top:3px;}
-          .kpi-r-obj{gap:10px;}
-          .kpi-r-ring{width:52px; height:52px;}
-          .kpi-r-ring svg{width:52px; height:52px;}
-          .kpi-r-ring-c .pct{font-size:14px;}
-          .kpi-r-ring-c .sub{font-size:8.5px;}
-
-          /* Tarjetas de módulo compactas */
-          .mc{min-height:0;}
-          .mc-body{padding:5px 9px; gap:1px;}
-          .mc-title{font-size:11.5px; line-height:1.08;}
-          .mc-desc{font-size:8.5px; line-height:1.22;}
-          .mc-foot{padding:4px 9px;}
-          .mc-stat{font-size:8px;}
-          .mc-num{font-size:6.5px;}
-          .mc-badge{font-size:6.5px; padding:1.5px 5px;}
-          .mc-ilu{padding:5px;}
-          .mc-tareas-ring-row{gap:5px; margin-top:3px;}
-          .mc-tareas-donut-svg{width:34px; height:34px;}
-          .mc-tareas-ring-sub{font-size:7px;}
-          .mc-tareas-ring-pend{font-size:9.5px;}
-
-          /* Tarjetas analíticas */
-          .da-card{min-height:0; padding:7px 11px 5px;}
-          .da-card-t{font-size:11.5px;}
-          .da-card-sub{font-size:7px;}
-          .da-card-v{font-size:14px;}
-          .da-card-v .u{font-size:7.5px;}
-          .da-card-v-sub{font-size:7.5px;}
-
-          /* Responsive: pantallas ≤1100px → 1 columna con scroll */
           @media (max-width:1100px){
             #panel-portal.active{
               grid-template-columns:1fr;
-              grid-template-rows:auto auto auto;
+              grid-template-rows:auto auto 1fr;
               grid-template-areas:"kpis" "modulos" "analitica";
-              height:auto; overflow-y:auto; overflow-x:hidden;
+              height:auto; overflow-y:auto;
             }
-            #panel-portal > .modules-grid{
-              height:auto; overflow:visible;
-              grid-template-rows:auto;
-              grid-template-columns:repeat(2,1fr);
-            }
-            #panel-portal > .modules-grid > .mc{height:auto; min-height:80px; overflow:hidden;}
-            #panel-portal > .da-panel{height:auto; overflow:visible;}
-            #panel-portal > .da-panel > .da-grid{
-              grid-template-rows:auto;
-              grid-template-columns:repeat(2,1fr);
-            }
-            #panel-portal > .da-panel > .da-grid > .da-card{min-height:130px;}
+            #panel-portal > .modules-grid{height:auto; grid-template-rows:auto;}
+            #panel-portal > .da-panel{height:auto;}
           }
           @media (max-width:640px){
             #panel-portal > .modules-grid{grid-template-columns:1fr;}
-            #panel-portal > .da-panel > .da-grid{grid-template-columns:1fr;}
           }
 
-          /* ══ Visibilidad por rol ════════════════════════════════════════ */
+          /* ══ Visibilidad por rol ══════════════════════════════════════════
+             Operario solo ve los módulos básicos: M02 Procedimientos,
+             M04 SMS Diario, M05 Inventarios y M08 Tareas.
+             Se ocultan además el dashboard analítico, los KPIs del topbar
+             y los items de sidebar reservados a supervisor.
+          */
           body.role-operario .da-panel,
           body.role-operario .kpi-strip,
           body.role-operario #panel-portal > .modules-grid > .m03,
@@ -1282,9 +1277,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           body.role-operario #sb-objetivos {
             display:none !important;
           }
+          /* Layout del portal en modo operario: 5 módulos (M01, M02, M04, M05, M08) en 3 cols × 2 filas */
           body.role-operario #panel-portal.active{
-            grid-template-columns:1fr;
-            grid-template-areas:"modulos";
+            grid-template-areas:"modulos modulos";
             grid-template-rows:1fr;
           }
           body.role-operario #panel-portal > .modules-grid{
@@ -1293,8 +1288,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             grid-template-rows:repeat(2,1fr);
             row-gap:14px; column-gap:14px;
           }
-          body.role-operario #panel-portal > .modules-grid > .mc{ min-height:0; }
-          </style>
+          body.role-operario #panel-portal > .modules-grid > .mc{
+            min-height:0;
+          }
+
+
+                    </style>
           <div class="da-panel">
             <div class="da-h">
               <div class="da-h-t">▸ Análisis operacional</div>
@@ -2397,7 +2396,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 <!-- ═══════════════════ SIMULADOR PROCESO EDARi (inline) ═══════════════════ -->
 <div id="app-simulador-proceso" style="display:none;position:fixed;inset:0;z-index:9100;background:#07090f;overflow:hidden;flex-direction:column;">
   <div class="inline-back-bar">
-    <button class="inline-back-btn" onclick="document.getElementById('app-simulador-proceso').style.display='none';const s=document.getElementById('portal-shell');if(s)s.style.display='block';sbNav('portal');">
+    <button class="inline-back-btn" onclick="document.getElementById('app-simulador-proceso').style.display='none';const s=document.getElementById('portal-shell');if(s){ s.style.display='flex'; s.style.flexDirection='column'; }sbNav('portal');">
       <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Inicio
     </button>
@@ -2691,7 +2690,7 @@ function closeProcViewer() {
   const viewer = document.getElementById('proc-viewer');
   if(viewer) viewer.style.display = 'none';
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   sbNav('portal');
 }
 function openProc(id) { openProcInline(id); }
@@ -3804,7 +3803,7 @@ function closeRutaColector() {
   const viewer = document.getElementById('ruta-viewer');
   if(viewer) viewer.style.display = 'none';
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   sbNav('portal');
 }
 function rutaExportXLS() {
@@ -3849,7 +3848,7 @@ function closeInventarios() {
   const viewer = document.getElementById('inv-viewer');
   if(viewer) viewer.style.display = 'none';
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   sbNav('portal');
 }
 window.openInventarios  = openInventarios;
@@ -3870,7 +3869,7 @@ function closeSmsViewer() {
   const frame = document.getElementById('sms-viewer-frame');
   if(frame) frame.src = '';
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   sbNav('portal');
 }
 window.openSmsViewer = openSmsViewer;
@@ -4285,7 +4284,7 @@ function closeApp(){
   if(titleEl) titleEl.textContent = '—';
   // Show new portal shell
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   sbNav('portal');
   history.pushState({}, '', window.location.pathname);
 }
@@ -4415,7 +4414,7 @@ function closeProcViewer() {
   const viewer = document.getElementById('proc-viewer');
   if(viewer) viewer.style.display = 'none';
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   sbNav('portal');
 }
 function openProc(id) { openProcInline(id); }
@@ -5257,7 +5256,7 @@ function closeSimuladorProceso() {
   const viewer = document.getElementById('sim-proceso-viewer');
   if(viewer) viewer.style.display = 'none';
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   sbNav('portal');
 }
 window.openSimuladorProceso = openSimuladorProceso;
@@ -6935,7 +6934,7 @@ function showPortalShell() {
   const oldPortal = document.querySelector('.portal-main, .portal-container, #portal-old');
   if(oldPortal) oldPortal.style.display = 'none';
   const shell = document.getElementById('portal-shell');
-  if(shell) shell.style.display = 'block';
+  if(shell){ shell.style.display='flex'; shell.style.flexDirection='column'; }
   // Init user button
   const s = getSession();
   const ub = document.getElementById('p-user-btn');
