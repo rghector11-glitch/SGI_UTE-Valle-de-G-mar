@@ -1612,8 +1612,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </a>
               </div>
             </div>
-            <!-- BODY: 3 columnas -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1;min-height:0;overflow:hidden">
+            <!-- BODY: 2 columnas -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:0;overflow:hidden">
 
               <!-- COL 1: CLIMA ACTUAL + PRONÓSTICO -->
               <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
@@ -1634,7 +1634,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
               </div>
 
-              <!-- COL 2: CALIDAD AIRE + META PORTAL -->
+              <!-- COL 2: CALIDAD AIRE + RELEVANCIA OPERACIONAL -->
               <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
                 <!-- Calidad Aire -->
                 <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px">
@@ -1646,39 +1646,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                     <a href="https://apalmet.es/observacion/calidad_aire_municipio/Guimar" target="_blank" style="color:var(--accent)">Datos completos en Apalmet ↗</a>
                   </div>
                 </div>
-                <!-- KPIs clima relevantes para EDAR -->
+                <!-- Relevancia operacional EDAR -->
                 <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex:1">
                   <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Relevancia operacional</div>
                   <div id="px-edar-wx" style="display:flex;flex-direction:column;gap:5px">
                     <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳</div>
                   </div>
-                </div>
-              </div>
-
-              <!-- COL 3: EXPORTAR INFORME PDF -->
-              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex:1;display:flex;flex-direction:column">
-                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">▸ Exportar Informe PDF</div>
-                  <!-- Selector mes -->
-                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:4px">Mes:</div>
-                  <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px" id="px-month-picker"></div>
-                  <!-- Secciones -->
-                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:4px">Incluir:</div>
-                  <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;flex:1;overflow-y:auto">
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr1" checked style="accent-color:var(--accent)">Caudales <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">media + total</span></label>
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr2" checked style="accent-color:var(--accent)">Consumo eléctrico <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">kWh+FV</span></label>
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr3" checked style="accent-color:var(--accent)">Analítica efluente <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">DBO DQO NT PT</span></label>
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr4" checked style="accent-color:var(--accent)">Rendimientos <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">vs RD 509/96</span></label>
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr5" style="accent-color:var(--accent)">Reactivos <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">stocks</span></label>
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr6" style="accent-color:var(--accent)">Edad fango + TRH <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">reactor</span></label>
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr7" style="accent-color:var(--accent)">Calibraciones <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">M-01</span></label>
-                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr8" style="accent-color:var(--accent)">Incidencias <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">tareas M-08</span></label>
-                  </div>
-                  <button onclick="pxGenerarPDF()" id="px-pdf-btn"
-                    style="width:100%;padding:7px;border-radius:6px;background:var(--accent2);color:#000;font-weight:700;font-size:10px;letter-spacing:.4px;border:none;cursor:pointer;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:5px">
-                    ↓ Generar informe PDF
-                  </button>
-                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);text-align:center;margin-top:4px">Logo · firma · RD 509/1996</div>
                 </div>
               </div>
 
@@ -2136,7 +2109,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-wx-rain{font-size:8px;color:#60a5fa;margin-top:2px;text-align:center;}
             .cq-calima{display:flex;align-items:center;gap:5px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:5px;padding:4px 8px;font-size:9px;color:#f59e0b;margin-top:5px;font-family:var(--mono);}
             /* PDF panel */
-            .cq-pdf-wrap{padding:12px 14px;}
+            .cq-pdf-wrap{padding:12px 14px;flex:1;display:flex;flex-direction:column;overflow:hidden;}
             .cq-months{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
             .cq-month-btn{font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);transition:all .15s;font-family:var(--mono);}
             .cq-month-btn.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700;}
@@ -2150,9 +2123,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-pdf-btn:hover{opacity:.85;}
             .cq-pdf-btn:disabled{opacity:.4;cursor:not-allowed;}
             /* 2-col layout */
-            #cq-body{display:grid;grid-template-columns:1fr 320px;flex:1;overflow:hidden;min-height:0;}
-            #cq-left{overflow:hidden;border-right:1px solid var(--border);min-height:0;display:grid;grid-template-rows:auto 1fr;}
-            #cq-right{overflow-y:auto;min-height:0;}
+            #cq-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,260px);flex:1;overflow:hidden;min-height:0;}
+            #cq-left{overflow:hidden;border-right:1px solid var(--border);min-height:0;display:flex;flex-direction:column;}
+            #cq-right{display:flex;flex-direction:column;overflow:hidden;min-height:0;border-left:1px solid var(--border);}
             @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{display:none;}}
           </style>
 
@@ -2178,11 +2151,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div class="cq-kpi-val" style="color:#10b981" id="cq-kpi-dbo">— <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span></div>
               <div class="cq-kpi-sub">Límite RD: 25 mg/L</div>
             </div>
-            <div class="cq-kpi">
-              <div class="cq-kpi-lbl">Temperatura</div>
-              <div class="cq-kpi-val" id="cq-kpi-temp" style="color:#f59e0b">-- <span style="font-size:11px;font-weight:400;color:var(--muted)">°C</span></div>
-              <div class="cq-kpi-sub">Güímar ahora</div>
-            </div>
+
           </div>
 
           <!-- BODY grid -->
@@ -2200,11 +2169,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
               </div>
 
-              <!-- Grid interno: gráficas izquierda | rend+reactivos derecha -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;overflow:hidden;min-height:0">
-
-                <!-- COL A: Gráficas -->
-                <div style="overflow-y:auto;border-right:1px solid var(--border)">
+                <!-- Gráficas -->
+                <div style="display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;">
 
               <!-- Caudal chart -->
               <div class="cq-chart-block">
@@ -2244,10 +2210,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div id="cq-fango-chart" style="height:70px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
-                </div><!-- /col A -->
+                </div><!-- /graficas -->
+            </div><!-- /#cq-left -->
 
-                <!-- COL B: Rendimientos + Reactivos -->
-                <div style="overflow-y:auto;display:flex;flex-direction:column">
+            <!-- CENTRO: Rendimientos + Reactivos -->
+            <div id="cq-center" style="overflow:hidden;display:flex;flex-direction:column;border-right:1px solid var(--border);min-height:0;">
 
               <!-- Rendimientos -->
               <div class="cq-sec-hd" style="position:relative">
@@ -2271,11 +2238,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
               </div>
               <!-- Vista tanques -->
-              <div id="cq-rq-tanks" style="padding:6px 10px;border-bottom:1px solid var(--border)">
+              <div id="cq-rq-tanks" style="padding:6px 10px;flex:1;overflow-y:auto;min-height:0;">
                 <!-- generado por JS -->
               </div>
               <!-- Vista tabla edición -->
-              <div id="cq-rq-table-wrap" style="display:none;padding:4px 6px;border-bottom:1px solid var(--border);overflow-x:auto">
+              <div id="cq-rq-table-wrap" style="display:none;padding:4px 6px;overflow:auto;flex:1;min-height:0;">
                 <table class="cq-table" id="cq-reactivos-table">
                   <thead>
                     <tr>
@@ -2287,9 +2254,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
 
 
-                </div><!-- /col B -->
-              </div><!-- /grid interno -->
-            </div><!-- /#cq-left -->
+            </div><!-- /#cq-center -->
 
             <!-- RIGHT: PDF -->
             <div id="cq-right">
@@ -2299,11 +2264,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="cq-sec-dot" style="background:#ef4444"></div>
                 <div class="cq-sec-title">Exportar Informe PDF</div>
               </div>
-              <div class="cq-pdf-wrap">
+              <div class="cq-pdf-wrap" style="flex:1;display:flex;flex-direction:column;overflow-y:auto;">
                 <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-family:var(--mono)">Mes a exportar:</div>
                 <div class="cq-months" id="cq-month-picker"></div>
                 <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-family:var(--mono)">Secciones a incluir:</div>
-                <div class="cq-secs">
+                <div class="cq-secs" style="flex:1;overflow-y:auto;">
                   <label class="cq-sec-row"><input type="checkbox" id="cqr1" checked><span class="cq-sec-lbl">Resumen de caudales</span><span class="cq-sec-sub">Media + totales</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr2" checked><span class="cq-sec-lbl">Consumo eléctrico</span><span class="cq-sec-sub">kWh + fotovoltaica</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr3" checked><span class="cq-sec-lbl">Parámetros analíticos</span><span class="cq-sec-sub">DBO, DQO, NT, PT, SST</span></label>
@@ -8285,89 +8250,12 @@ if(typeof waitForFirebase==='function'){
     }
   }
 
-  /* ─── Mes picker PDF portal ──────────────────────────────────────────────── */
-  const MESES_PX=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  let pxSelMes=new Date().getMonth();
-  function pxInitMonthPicker(){
-    const mp=document.getElementById('px-month-picker');
-    if(!mp||mp.childElementCount>0) return;
-    MESES_PX.slice(0,new Date().getMonth()+1).forEach((m,i)=>{
-      const b=document.createElement('button');
-      b.style.cssText='font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:var(--mono);transition:all .15s';
-      b.textContent=m.slice(0,3);
-      if(i===pxSelMes){b.style.background='var(--accent2)';b.style.color='#000';b.style.fontWeight='700';}
-      b.onclick=()=>{
-        pxSelMes=i;
-        document.querySelectorAll('#px-month-picker button').forEach((x,j)=>{
-          x.style.background=j===i?'var(--accent2)':'var(--card)';
-          x.style.color=j===i?'#000':'var(--muted)';
-          x.style.fontWeight=j===i?'700':'400';
-        });
-      };
-      mp.appendChild(b);
-    });
-  }
-
-  /* ─── PDF portal ─────────────────────────────────────────────────────────── */
-  window.pxGenerarPDF=function(){
-    const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
-    const btn=document.getElementById('px-pdf-btn');
-    if(btn){btn.disabled=true;btn.textContent='Generando…';}
-    const mesLabel=MESES_PX[pxSelMes]+' 2026';
-    function ultimosDias(obj,n,pred){return Object.keys(obj||{}).sort().filter(k=>pred(obj[k])).slice(-n);}
-    function calcRend(kEnt,kEf,dias){
-      let sE=0,sS=0,n=0;
-      dias.forEach(f=>{const r=ST.reactor[f]||{},e=+r[kEnt],s=+r[kEf];if(!isNaN(e)&&e>0&&!isNaN(s)&&s>=0){sE+=e;sS+=s;n++;}});
-      return n?{rend:Math.max(0,Math.min(100,(sE-sS)/sE*100)),n,mE:sE/n,mS:sS/n}:null;
-    }
-    const diasQ=ultimosDias(ST.caudales,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
-    const diasC=ultimosDias(ST.consumo,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
-    const diasR=ultimosDias(ST.reactor,30,v=>v&&(+v.dqo_ent>0||+v.dbo_ent>0));
-    const mediaQ=diasQ.length?diasQ.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edari||0),0)/diasQ.length:null;
-    const totalKwh=diasC.reduce((a,f)=>{const c=ST.consumo[f]||{};return a+(+c.edari||0)+(+c.edaru||0);},0);
-    const rDQO=calcRend('dqo_ent','dqo_ef',diasR), rDBO=calcRend('dbo_ent','dbo_ef',diasR);
-    const rNT=calcRend('nt_ent','nt_ef',diasR), rPT=calcRend('pt_ent','pt_ef',diasR);
-    const fmtN=n=>(n==null||isNaN(n))?'—':Math.round(n).toLocaleString('es-ES');
-    const secciones=[
-      {id:'pxr1',t:'1. Resumen de caudales',h:`<p>Caudal medio EDARI: <strong>${mediaQ?fmtN(mediaQ)+' m³/día':'Sin datos'}</strong>. Días registrados: ${diasQ.length}.</p>`},
-      {id:'pxr2',t:'2. Consumo eléctrico',h:`<p>Total período: <strong>${fmtN(totalKwh)} kWh</strong>. Días registrados: ${diasC.length}.</p>`},
-      {id:'pxr3',t:'3. Analítica efluente',h:`<table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
-        <tr style="background:#f1f5f9"><th>Parámetro</th><th>Entrada media</th><th>Salida media</th><th>Límite RD</th><th>Conformidad</th></tr>
-        ${rDQO?`<tr><td>DQO</td><td>${rDQO.mE.toFixed(0)} mg/L</td><td>${rDQO.mS.toFixed(0)} mg/L</td><td>125</td><td style="color:${rDQO.mS<=125?'green':'red'}">${rDQO.mS<=125?'✓':'✗'}</td></tr>`:''}
-        ${rDBO?`<tr><td>DBO₅</td><td>${rDBO.mE.toFixed(0)} mg/L</td><td>${rDBO.mS.toFixed(0)} mg/L</td><td>25</td><td style="color:${rDBO.mS<=25?'green':'red'}">${rDBO.mS<=25?'✓':'✗'}</td></tr>`:''}
-        ${rNT?`<tr><td>NT</td><td>${rNT.mE.toFixed(0)} mg/L</td><td>${rNT.mS.toFixed(0)} mg/L</td><td>15</td><td style="color:${rNT.mS<=15?'green':'red'}">${rNT.mS<=15?'✓':'✗'}</td></tr>`:''}
-        ${rPT?`<tr><td>PT</td><td>${rPT.mE.toFixed(0)} mg/L</td><td>${rPT.mS.toFixed(0)} mg/L</td><td>2</td><td style="color:${rPT.mS<=2?'green':'red'}">${rPT.mS<=2?'✓':'✗'}</td></tr>`:''}
-      </table>`},
-      {id:'pxr4',t:'4. Rendimientos',h:`<p>${[rDQO&&`DQO: <strong>${rDQO.rend.toFixed(1)}%</strong>`,rDBO&&`DBO₅: <strong>${rDBO.rend.toFixed(1)}%</strong>`,rNT&&`NT: <strong>${rNT.rend.toFixed(1)}%</strong>`,rPT&&`PT: <strong>${rPT.rend.toFixed(1)}%</strong>`].filter(Boolean).join(' | ')||'Sin datos'}</p>`},
-      {id:'pxr5',t:'5. Reactivos',h:`<p>Ver módulo SGI Control de Calidad para stocks y proyecciones actualizadas.</p>`},
-      {id:'pxr6',t:'6. Edad fango + TRH',h:`<p>Ver módulo SGI Control de Calidad para parámetros biológicos del reactor.</p>`},
-      {id:'pxr7',t:'7. Calibraciones',h:`<p>Ver módulo M-01 Calibraciones para estado actualizado de instrumentación.</p>`},
-      {id:'pxr8',t:'8. Incidencias',h:`<p>Ver módulo M-08 Tareas para registro de incidencias del período.</p>`},
-    ];
-    let body='';
-    secciones.forEach(s=>{const el=document.getElementById(s.id);if(el&&el.checked) body+=`<div style="margin-bottom:18px"><div style="font-size:13px;font-weight:700;color:#0f1f3a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px">${s.t}</div>${s.h}</div>`;});
-    const now=new Date(), fechaGen=now.toLocaleDateString('es-ES')+' '+now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-    const div=document.createElement('div');
-    div.style.cssText='font-family:sans-serif;padding:28px;max-width:700px;margin:0 auto;color:#1a1a2e;background:#fff';
-    div.innerHTML=`<div style="display:flex;justify-content:space-between;border-bottom:3px solid #3aafe8;padding-bottom:14px;margin-bottom:18px"><div><div style="font-size:20px;font-weight:700;color:#0f1f3a">INFORME MENSUAL DE EXPLOTACIÓN</div><div style="font-size:12px;color:#64748b;margin-top:2px">EDAR UTE Valle de Güímar · ${mesLabel}</div></div><div style="text-align:right;font-size:9px;color:#94a3b8"><div>SGI Portal · ${fechaGen}</div></div></div><div style="font-size:12px;line-height:1.7;color:#334155">${body||'<p>Sin secciones seleccionadas.</p>'}</div><div style="margin-top:36px;border-top:1px solid #e2e8f0;padding-top:14px;display:flex;justify-content:space-between"><div><div style="font-size:10px;color:#94a3b8">Responsable de explotación</div><div style="margin-top:22px;border-top:1px solid #94a3b8;width:180px;font-size:9px;color:#94a3b8">Firma y sello</div></div><div style="text-align:right;font-size:9px;color:#94a3b8"><div>RD 509/1996 · SGI UTE Valle de Güímar</div></div></div>`;
-    document.body.appendChild(div);
-    if(typeof html2pdf!=='undefined'){
-      html2pdf().set({margin:10,filename:`SGI_Informe_${MESES_PX[pxSelMes]}_2026.pdf`,html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(div).save().then(()=>{
-        document.body.removeChild(div);
-        if(btn){btn.disabled=false;btn.textContent='↓ Generar informe PDF';}
-      });
-    } else {
-      const w=window.open('','_blank'); w.document.write('<!DOCTYPE html><html><body>'+div.outerHTML+'</body></html>'); w.document.close(); setTimeout(()=>w.print(),400);
-      document.body.removeChild(div); if(btn){btn.disabled=false;btn.textContent='↓ Generar informe PDF';}
-    }
-  };
-
-  /* ─── Hook sbNav para inicializar portal-clima ───────────────────────────── */
+    /* ─── Hook sbNav para inicializar portal-clima ───────────────────────────── */
   const _pxOrig=window.sbNav;
   window.sbNav=function(id){
     _pxOrig(id);
     if(id==='portal'){
-      setTimeout(()=>{pxInitMonthPicker();pxLoadWeather();},80);
+      setTimeout(()=>{pxLoadWeather();},80);
     }
   };
 
@@ -8375,7 +8263,7 @@ if(typeof waitForFirebase==='function'){
   window.addEventListener('load',()=>{
     const panel=document.getElementById('panel-portal');
     if(panel&&panel.classList.contains('active')){
-      setTimeout(()=>{pxInitMonthPicker();pxLoadWeather();},500);
+      setTimeout(()=>{pxLoadWeather();},500);
     }
   });
 
@@ -8517,29 +8405,47 @@ if(typeof waitForFirebase==='function'){
     const datos=dias.map(f=>({f,v:calcEdadFango(ST.reactor[f])}));
     const vals=datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v)&&v>0);
     if(!vals.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Datos incompletos</div>'; return; }
-    const minV=Math.min(...vals,5), maxV=Math.max(...vals,15), rng=maxV-minV||1;
+    // Banda óptima 15-20 días
+    const BAND_LO=15, BAND_HI=20;
+    const minV=Math.min(...vals,BAND_LO-2), maxV=Math.max(...vals,BAND_HI+2), rng=maxV-minV||1;
     const W=360,H=95,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
     const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
     const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
-    const y5=y(5), y15=y(15);
-    const banda=y5!=null&&y15!=null?`<rect x="${PL}" y="${Math.min(y5,y15).toFixed(1)}" width="${gW}" height="${Math.abs(y15-y5).toFixed(1)}" fill="var(--accent2,#22c995)" opacity="0.07"/>
-      <line x1="${PL}" y1="${y5.toFixed(1)}" x2="${W-PR}" y2="${y5.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
-      <line x1="${PL}" y1="${y15.toFixed(1)}" x2="${W-PR}" y2="${y15.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>`:'' ;
-    const poly=datos.map((d,i)=>{const yy=y(d.v);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
-    const pts=datos.map((d,i)=>{const yy=y(d.v);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="var(--warn,#f0b033)" stroke="var(--surface)" stroke-width="1" data-tip="Edad fango|${_fmtDM(d.f)}|${d.v!=null?d.v.toFixed(1):'—'} d"/>`;}).join('');
+    const yLo=y(BAND_LO), yHi=y(BAND_HI);
+    // Banda: rectángulo amarillo suave entre 15 y 20 d
+    const banda=yLo!=null&&yHi!=null?`
+      <rect x="${PL}" y="${Math.min(yLo,yHi).toFixed(1)}" width="${gW}" height="${Math.abs(yHi-yLo).toFixed(1)}" fill="#f59e0b" opacity="0.10"/>
+      <line x1="${PL}" y1="${yHi.toFixed(1)}" x2="${W-PR}" y2="${yHi.toFixed(1)}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.6"/>
+      <line x1="${PL}" y1="${yLo.toFixed(1)}" x2="${W-PR}" y2="${yLo.toFixed(1)}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.6"/>
+      <text x="${(W-PR-2).toFixed(1)}" y="${(Math.min(yLo,yHi)-2).toFixed(1)}" text-anchor="end" fill="#f59e0b" font-size="6" font-family="var(--mono)" opacity="0.8">${BAND_HI}d</text>
+      <text x="${(W-PR-2).toFixed(1)}" y="${(Math.max(yLo,yHi)+7).toFixed(1)}" text-anchor="end" fill="#f59e0b" font-size="6" font-family="var(--mono)" opacity="0.8">${BAND_LO}d</text>`:'' ;
+    // Área rellena amarilla suave bajo la línea
+    const polyPts=datos.map((d,i)=>{const yy=y(d.v);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean);
+    const poly=polyPts.join(' ');
+    // Polygon: línea + cierre por el fondo del gráfico
+    let areaPath='';
+    if(polyPts.length>=2){
+      const firstX=polyPts[0].split(',')[0];
+      const lastX=polyPts[polyPts.length-1].split(',')[0];
+      const yBottom=(PT+gH).toFixed(1);
+      areaPath=`<polygon points="${poly} ${lastX},${yBottom} ${firstX},${yBottom}" fill="#f59e0b" opacity="0.10"/>`;
+    }
+    const pts=datos.map((d,i)=>{const yy=y(d.v);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2.2" fill="#f59e0b" stroke="var(--surface)" stroke-width="1" data-tip="Edad fango|${_fmtDM(d.f)}|${d.v!=null?d.v.toFixed(1):'—'} d"/>`;}).join('');
     const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
     const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${maxV.toFixed(0)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${minV.toFixed(0)}</text>`;
     const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
     cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
       ${banda}
-      ${poly?`<polyline points="${poly}" fill="none" stroke="var(--warn,#f0b033)" stroke-width="1.6" stroke-linejoin="round"/>`:''} 
+      ${areaPath}
+      ${poly?`<polyline points="${poly}" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`:''} 
       ${pts}${yL}${xL}
     </svg>`;
     const ult=[...datos].reverse().find(d=>d.v!=null);
+    const enBanda=ult&&ult.v>=BAND_LO&&ult.v<=BAND_HI;
     const tv=document.getElementById('cq-fango-val');
     if(tv) tv.innerHTML=(ult?ult.v.toFixed(1):'—')+' <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span>';
     const tm=document.getElementById('cq-fango-meta');
-    if(tm) tm.textContent=`Reactor biológico · ${dias.length} días · ${ult?_fmtDM(ult.f)+' · '+(ult.v>=5&&ult.v<=15?'en banda ✓':'fuera de banda ⚠'):'—'}`;
+    if(tm) tm.textContent=`Reactor biológico · ${dias.length} días · ${ult?_fmtDM(ult.f)+' · '+(enBanda?'en banda ✓ (15-20d)':'fuera de banda ⚠'):'—'}`;
   }
 
   function cqDibujaRendimientos(){
@@ -8649,8 +8555,7 @@ if(typeof waitForFirebase==='function'){
       if(!dboOk && r&&r.dbo_ef!=null){ const el=document.getElementById('cq-kpi-dbo'); if(el) el.innerHTML=Math.round(+r.dbo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; dboOk=true; }
       if(dqoOk&&dboOk) break;
     }
-    // Temperatura
-    // (se carga por weather, no hace falta aquí)
+
   }
 
   function cqRedibujarTodo(){
@@ -8729,8 +8634,7 @@ if(typeof waitForFirebase==='function'){
       const temp=Math.round(c.temperature_2m), feels=Math.round(c.apparent_temperature);
       const hum=Math.round(c.relative_humidity_2m), viento=Math.round(c.wind_speed_10m);
       const prec=(c.precipitation||0).toFixed(1), dust=c.dust;
-      const kt=document.getElementById('cq-kpi-temp');
-      if(kt) kt.innerHTML=temp+' <span style="font-size:11px;font-weight:400;color:var(--muted)">°C</span>';
+      // cq-kpi-temp eliminado
       let calimaHTML='';
       if(dust&&dust>200) calimaHTML=`<div class="cq-calima">⚠ Calima · Polvo: ${Math.round(dust)} µg/m³ · Puede afectar turbidez</div>`;
       const forecast=daily.time.slice(0,6).map((t,i)=>{
@@ -9175,7 +9079,42 @@ if(typeof waitForFirebase==='function'){
 
   window.addEventListener('load',function(){setTimeout(function(){cqRQRender();cqRQRenderTanks();},200);});
 
-
+  /* ── Tooltips gráficas Calidad ─────────────────────────────────────────── */
+  (function(){
+    var tt=null;
+    function getTT(){
+      if(tt) return tt;
+      tt=document.createElement('div');
+      tt.style.cssText='position:fixed;pointer-events:none;z-index:9990;background:rgba(8,18,34,.96);border:1px solid #1e3a5f;border-radius:6px;padding:5px 10px;font-family:var(--mono,monospace);font-size:9px;color:#e2e8f0;white-space:nowrap;opacity:0;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);';
+      document.body.appendChild(tt);
+      return tt;
+    }
+    function show(e,tip){
+      var t=getTT(),parts=(tip||'').split('|');
+      t.innerHTML='<span style="color:var(--accent,#3aafe8);font-weight:700;margin-right:6px">'+(parts[0]||'')+'</span>'+
+        '<span style="color:#8ba0bd;margin-right:6px">'+(parts[1]||'')+'</span>'+
+        '<span style="color:#fff;font-weight:700">'+(parts[2]||'')+'</span>';
+      t.style.opacity='1'; move(e);
+    }
+    function move(e){
+      var t=getTT(),x=e.clientX+14,y=e.clientY-30;
+      t.style.left=Math.min(x,window.innerWidth-t.offsetWidth-10)+'px';
+      t.style.top=Math.max(y,4)+'px';
+    }
+    function hide(){ getTT().style.opacity='0'; }
+    document.addEventListener('pointerover',function(e){
+      var el=e.target.closest?e.target.closest('[data-tip]'):null;
+      if(!el||!el.closest('#panel-calidad')) return;
+      show(e,el.getAttribute('data-tip'));
+    });
+    document.addEventListener('pointermove',function(e){
+      if(getTT().style.opacity==='1') move(e);
+    });
+    document.addEventListener('pointerout',function(e){
+      var el=e.target.closest?e.target.closest('[data-tip]'):null;
+      if(el&&el.closest('#panel-calidad')) hide();
+    });
+  })();
 
     window.addEventListener('message',function(e){
     if(!e.data||e.data.type!=='sim-kpi') return;
