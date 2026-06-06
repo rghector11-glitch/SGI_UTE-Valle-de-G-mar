@@ -8672,37 +8672,37 @@ if(typeof waitForFirebase==='function'){
   }
 
   /* ─── Suscripción directa Firebase para Calidad ─────────────────────────── */
-  // El da-panel original fue eliminado. Calidad se suscribe ella misma.
   let _cqFbSuscrito = false;
   function cqSuscribirFirebase(){
     if(_cqFbSuscrito) return;
     if(!window._fb || !window._fb.onValue) return;
     _cqFbSuscrito = true;
     const {ref, db, onValue} = window._fb;
-    // Asegurar que _ST_dash existe
-    if(!window._ST_dash) window._ST_dash = {caudales:{}, consumo:{}, reactor:{}, sms:{}, meta:null};
-    try{ onValue(ref(db,'caudales'), s=>{
-      window._ST_dash.caudales = s.val()||{};
+    if(!window._ST_dash) window._ST_dash = {caudales:{}, consumo:{}, reactor:{}, sms_datos:{}, meta:null};
+
+    function notify(){
       const panel=document.getElementById('panel-calidad');
-      if(panel&&panel.classList.contains('active')) cqRedibujarTodo();
-    }); }catch(e){}
-    try{ onValue(ref(db,'consumo'), s=>{
-      window._ST_dash.consumo = s.val()||{};
-      const panel=document.getElementById('panel-calidad');
-      if(panel&&panel.classList.contains('active')) cqRedibujarTodo();
-    }); }catch(e){}
-    try{ onValue(ref(db,'reactor'), s=>{
-      window._ST_dash.reactor = s.val()||{};
-      const panel=document.getElementById('panel-calidad');
-      if(panel&&panel.classList.contains('active')) cqRedibujarTodo();
+      if(panel&&panel.classList.contains('active')) setTimeout(cqRedibujarTodo, 50);
+    }
+    try{ onValue(ref(db,'caudales'), s=>{ window._ST_dash.caudales=s.val()||{}; notify(); }); }catch(e){}
+    try{ onValue(ref(db,'consumo'),  s=>{ window._ST_dash.consumo=s.val()||{};  notify(); }); }catch(e){}
+    try{ onValue(ref(db,'reactor'),  s=>{ window._ST_dash.reactor=s.val()||{};  notify(); }); }catch(e){}
+    // sms_datos contiene los campos analíticos reales (dqo_ent, dbo_ent, nt_ent, pt_ent, etc.)
+    try{ onValue(ref(db,'sms_datos'), s=>{
+      const raw = s.val()||{};
+      window._ST_dash.sms_datos = raw;
+      // Fusionar sms_datos en reactor para que las funciones de dibujo lo encuentren
+      Object.keys(raw).forEach(fecha=>{
+        if(!window._ST_dash.reactor[fecha]) window._ST_dash.reactor[fecha] = {};
+        Object.assign(window._ST_dash.reactor[fecha], raw[fecha]);
+      });
+      notify();
     }); }catch(e){}
   }
-  // Intentar suscribir tan pronto Firebase esté listo
   if(window._fb && window._fb.onValue){
     cqSuscribirFirebase();
   } else {
     window.addEventListener('firebase-ready', cqSuscribirFirebase, {once:true});
-    // También intentar con delay por si firebase-ready ya se disparó
     setTimeout(cqSuscribirFirebase, 2000);
   }
 
