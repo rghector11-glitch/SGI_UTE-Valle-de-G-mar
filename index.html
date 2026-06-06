@@ -548,9 +548,10 @@ body.theme-light .p-user-btn{color:#0f172a;}
 
 /* ── CONTENT AREA ── */
 .p-content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:7px;}
+.p-content:has(#panel-calidad.active){padding:0;}
 
 /* ── PANELS (process, analytics, reports, etc.) ── */
-.p-panel{display:none;flex:1;flex-direction:column;overflow:auto;}
+.p-panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
 .p-panel.active{display:flex;}
 .p-panel-header{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--light);letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .p-panel-header i{font-size:18px;color:var(--accent);}
@@ -1021,6 +1022,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <i class="ti ti-notebook" aria-hidden="true"></i>
           <div class="sb-tip">CUADERNO</div>
         </button>
+        <button class="sb-btn" id="sb-calidad" onclick="sbNav('calidad')" aria-label="Control de Calidad">
+          <i class="ti ti-microscope" aria-hidden="true"></i>
+          <div class="sb-tip">CALIDAD</div>
+        </button>
       </div>
       <div class="sb-bottom">
         <div class="sb-sep"></div>
@@ -1436,6 +1441,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           // ══ DASHBOARD ANALÍTICO ══════════════════════════════════════════════════════
           (function(){
             const ST = { caudales:{}, consumo:{}, reactor:{}, sms:{}, meta:null, init:false };
+            window._ST_dash = ST; // expuesto para módulo Calidad
 
             // helpers
             const _fmt   = n => (n==null||isNaN(n))?'—':(Math.abs(n)>=1000?Math.round(n).toLocaleString('es-ES'):(+n).toFixed(Math.abs(n)>=10?0:1));
@@ -2420,6 +2426,360 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Registro de turno · Checklist diario · Firma del operario</span></div>
           </div>
         </div>
+
+        <!-- ══ PANEL: CONTROL DE CALIDAD ══════════════════════════════════════ -->
+        <div class="p-panel" id="panel-calidad">
+          <style>
+            /* When calidad panel is active, remove p-content padding so we fill 100% */
+            /* layout handled by global CSS */
+            #panel-calidad{background:var(--surface);}
+            #panel-calidad.active{overflow:hidden;}
+            /* KPI topstrip */
+            #cq-kpi-strip{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;}
+            .cq-kpi{flex:1;padding:9px 14px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+            .cq-kpi:last-child{border-right:none;}
+            .cq-kpi-lbl{font-size:9px;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;font-family:var(--mono);}
+            .cq-kpi-val{font-family:var(--cond);font-size:20px;font-weight:700;line-height:1;}
+            .cq-kpi-sub{font-size:9px;color:var(--muted2);}
+            /* section headers */
+            .cq-sec-hd{display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;flex-shrink:0;}
+            .cq-sec-dot{width:5px;height:5px;border-radius:50%;}
+            .cq-sec-title{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
+            .cq-sec-right{margin-left:auto;display:flex;gap:5px;}
+            .cq-btn{font-size:9px;font-weight:600;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--fg);letter-spacing:.3px;transition:all .15s;font-family:var(--mono);}
+            .cq-btn:hover{background:var(--accent);color:#000;border-color:var(--accent);}
+            .cq-btn-accent{background:rgba(0,201,167,.1);border-color:var(--accent);color:var(--accent);}
+            /* chart blocks */
+            .cq-chart-block{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+            .cq-chart-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
+            .cq-chart-title{font-size:12px;font-weight:600;}
+            .cq-chart-big{font-family:var(--cond);font-size:24px;font-weight:700;line-height:1;}
+            .cq-chart-meta{font-size:9px;color:var(--muted);margin-bottom:7px;}
+            .cq-leg{display:flex;gap:12px;margin-bottom:6px;}
+            .cq-leg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted2);}
+            .cq-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+            /* gauge grid */
+            .cq-gauge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:10px 14px;flex-shrink:0;}
+            .cq-gauge{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px;text-align:center;}
+            .cq-gauge-val{font-family:var(--cond);font-size:23px;font-weight:700;line-height:1;}
+            .cq-gauge-param{font-size:9px;color:var(--muted);margin-top:2px;font-family:var(--mono);}
+            .cq-gauge-bar{height:3px;border-radius:2px;background:var(--border);margin-top:5px;overflow:hidden;}
+            .cq-gauge-fill{height:100%;border-radius:2px;}
+            /* TRH row */
+            .cq-trh-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+            .cq-trh-item{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 10px;}
+            .cq-trh-n{font-family:var(--cond);font-size:18px;font-weight:700;}
+            .cq-trh-l{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+            /* reactivos table */
+            .cq-table{width:100%;border-collapse:collapse;}
+            .cq-table th{font-size:8px;color:var(--muted);font-weight:600;letter-spacing:.7px;text-transform:uppercase;padding:5px 10px;border-bottom:1px solid var(--border);text-align:left;font-family:var(--mono);}
+            .cq-table td{font-size:11px;padding:6px 10px;border-bottom:1px solid rgba(30,58,95,.35);}
+            .cq-table tr:hover td{background:rgba(255,255,255,.03);}
+            .cq-stock-bar{height:4px;border-radius:2px;background:var(--border);overflow:hidden;width:70px;display:inline-block;vertical-align:middle;margin-right:5px;}
+            .cq-stock-fill{height:100%;border-radius:2px;}
+            .cq-tag{font-size:8px;padding:2px 5px;border-radius:3px;font-weight:700;font-family:var(--mono);}
+            .cq-tag-ok{background:rgba(16,185,129,.12);color:#10b981;}
+            .cq-tag-med{background:rgba(245,158,11,.12);color:#f59e0b;}
+            .cq-tag-crit{background:rgba(239,68,68,.12);color:#ef4444;}
+            /* weather */
+            .cq-wx{padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+            .cq-wx-current{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;margin-bottom:8px;}
+            .cq-wx-icon{font-size:36px;line-height:1;}
+            .cq-wx-temp{font-family:var(--cond);font-size:36px;font-weight:700;line-height:1;}
+            .cq-wx-desc{font-size:11px;color:var(--muted2);margin-top:1px;}
+            .cq-wx-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+            .cq-wx-meta-item{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--muted2);font-family:var(--mono);}
+            .cq-wx-meta-val{font-weight:700;color:var(--fg);}
+            .cq-wx-forecast{display:flex;gap:4px;overflow-x:auto;margin-top:8px;padding-bottom:2px;}
+            .cq-wx-day{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 7px;min-width:58px;text-align:center;flex-shrink:0;}
+            .cq-wx-day-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-family:var(--mono);}
+            .cq-wx-day-icon{font-size:16px;margin:3px 0 2px;}
+            .cq-wx-day-temps{font-size:9px;display:flex;gap:3px;justify-content:center;}
+            .cq-wx-day-max{font-weight:700;color:var(--fg);}
+            .cq-wx-day-min{color:var(--muted);}
+            .cq-wx-rain{font-size:8px;color:#60a5fa;margin-top:2px;text-align:center;}
+            .cq-calima{display:flex;align-items:center;gap:5px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:5px;padding:4px 8px;font-size:9px;color:#f59e0b;margin-top:5px;font-family:var(--mono);}
+            /* PDF panel */
+            .cq-pdf-wrap{padding:12px 14px;}
+            .cq-months{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+            .cq-month-btn{font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);transition:all .15s;font-family:var(--mono);}
+            .cq-month-btn.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700;}
+            .cq-secs{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+            .cq-sec-row{display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s;}
+            .cq-sec-row:hover{border-color:#60a5fa;}
+            .cq-sec-row input[type=checkbox]{accent-color:var(--accent);}
+            .cq-sec-lbl{font-size:11px;}
+            .cq-sec-sub{font-size:9px;color:var(--muted);margin-left:auto;font-family:var(--mono);}
+            .cq-pdf-btn{width:100%;padding:8px;border-radius:6px;background:var(--accent);color:#000;font-weight:700;font-size:11px;letter-spacing:.5px;border:none;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:5px;font-family:var(--mono);}
+            .cq-pdf-btn:hover{opacity:.85;}
+            .cq-pdf-btn:disabled{opacity:.4;cursor:not-allowed;}
+            /* 2-col layout */
+            #cq-body{display:grid;grid-template-columns:1fr 340px;flex:1;overflow:hidden;min-height:0;}
+            #cq-left{overflow-y:auto;border-right:1px solid var(--border);min-height:0;}
+            #cq-right{overflow-y:auto;min-height:0;}
+            @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{display:none;}}
+          </style>
+
+          <!-- KPI strip -->
+          <div id="cq-kpi-strip">
+            <div class="cq-kpi">
+              <div class="cq-kpi-lbl">SST Reactor</div>
+              <div class="cq-kpi-val" style="color:var(--accent2)" id="cq-kpi-sst">— <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span></div>
+              <div class="cq-kpi-sub" id="cq-kpi-sst-sub">Cargando…</div>
+            </div>
+            <div class="cq-kpi">
+              <div class="cq-kpi-lbl">TRH actual</div>
+              <div class="cq-kpi-val" style="color:#60a5fa" id="cq-trh-topval">— <span style="font-size:11px;font-weight:400;color:var(--muted)">h</span></div>
+              <div class="cq-kpi-sub">Reactor 2.167,9 m³</div>
+            </div>
+            <div class="cq-kpi">
+              <div class="cq-kpi-lbl">Efluente DQO</div>
+              <div class="cq-kpi-val" style="color:#10b981" id="cq-kpi-dqo">— <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span></div>
+              <div class="cq-kpi-sub">Límite RD: 125 mg/L</div>
+            </div>
+            <div class="cq-kpi">
+              <div class="cq-kpi-lbl">Efluente DBO₅</div>
+              <div class="cq-kpi-val" style="color:#10b981" id="cq-kpi-dbo">— <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span></div>
+              <div class="cq-kpi-sub">Límite RD: 25 mg/L</div>
+            </div>
+            <div class="cq-kpi">
+              <div class="cq-kpi-lbl">Temperatura</div>
+              <div class="cq-kpi-val" id="cq-kpi-temp" style="color:#f59e0b">-- <span style="font-size:11px;font-weight:400;color:var(--muted)">°C</span></div>
+              <div class="cq-kpi-sub">Güímar ahora</div>
+            </div>
+          </div>
+
+          <!-- BODY grid -->
+          <div id="cq-body">
+
+            <!-- LEFT: analítica + reactivos -->
+            <div id="cq-left">
+
+              <!-- Sec: análisis -->
+              <div class="cq-sec-hd">
+                <div class="cq-sec-dot" style="background:var(--accent)"></div>
+                <div class="cq-sec-title">Análisis Operacional</div>
+                <div class="cq-sec-right">
+                  <button class="cq-btn cq-btn-accent" onclick="cqExportPDF()">↓ PDF Mes</button>
+                </div>
+              </div>
+
+              <!-- Caudal chart -->
+              <div class="cq-chart-block">
+                <div class="cq-chart-row">
+                  <div class="cq-chart-title">Caudal entrada</div>
+                  <div class="cq-chart-big" style="color:var(--accent)" id="cq-caudal-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span></div>
+                </div>
+                <div class="cq-chart-meta" id="cq-caudal-meta">Cargando…</div>
+                <div class="cq-leg">
+                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:var(--accent)"></div>EDARI</div>
+                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#8b5cf6"></div>EDARU</div>
+                </div>
+                <div id="cq-caudal-chart" style="height:110px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+              </div>
+
+              <!-- Eléctrico chart -->
+              <div class="cq-chart-block">
+                <div class="cq-chart-row">
+                  <div class="cq-chart-title">Consumo eléctrico</div>
+                  <div class="cq-chart-big" style="color:#a78bfa" id="cq-elec-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span></div>
+                </div>
+                <div class="cq-chart-meta" id="cq-elec-meta">Cargando…</div>
+                <div class="cq-leg">
+                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#10b981"></div>EDARI</div>
+                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#a78bfa"></div>EDARU</div>
+                </div>
+                <div id="cq-elec-chart" style="height:110px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+              </div>
+
+              <!-- Edad fango -->
+              <div class="cq-chart-block">
+                <div class="cq-chart-row">
+                  <div class="cq-chart-title">Edad de fango</div>
+                  <div class="cq-chart-big" style="color:#f59e0b" id="cq-fango-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span></div>
+                </div>
+                <div class="cq-chart-meta" id="cq-fango-meta">Cargando…</div>
+                <div id="cq-fango-chart" style="height:95px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+              </div>
+
+              <!-- KPIs hidráulicos -->
+              <div class="cq-sec-hd">
+                <div class="cq-sec-dot" style="background:#60a5fa"></div>
+                <div class="cq-sec-title">KPIs Hidráulicos</div>
+              </div>
+              <div class="cq-trh-row">
+                <div class="cq-trh-item">
+                  <div class="cq-trh-l">TRH</div>
+                  <div class="cq-trh-n" style="color:#60a5fa" id="cq-trh-n">— h</div>
+                  <div style="font-size:8px;color:var(--muted);margin-top:2px">Vol ÷ Q × 24</div>
+                </div>
+                <div class="cq-trh-item">
+                  <div class="cq-trh-l">Carga hidráulica</div>
+                  <div class="cq-trh-n" style="color:#f59e0b">0,487 m³/m²·h</div>
+                  <div style="font-size:8px;color:var(--muted);margin-top:2px">Decantador</div>
+                </div>
+                <div class="cq-trh-item">
+                  <div class="cq-trh-l">Carga orgánica</div>
+                  <div class="cq-trh-n" style="color:#10b981">0,12 kgDQO/m³·d</div>
+                  <div style="font-size:8px;color:var(--muted);margin-top:2px">Reactor EDARI</div>
+                </div>
+              </div>
+
+              <!-- Rendimientos -->
+              <div class="cq-sec-hd">
+                <div class="cq-sec-dot" style="background:#10b981"></div>
+                <div class="cq-sec-title">Rendimientos · <span id="cq-rend-sub">Cargando…</span></div>
+              </div>
+              <div class="cq-gauge-grid">
+                <div class="cq-gauge" id="cq-g-dqo">
+                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
+                  <div class="cq-gauge-param">DQO</div>
+                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
+                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
+                </div>
+                <div class="cq-gauge" id="cq-g-dbo">
+                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
+                  <div class="cq-gauge-param">DBO₅</div>
+                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
+                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
+                </div>
+                <div class="cq-gauge" id="cq-g-nt">
+                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
+                  <div class="cq-gauge-param">NT</div>
+                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
+                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
+                </div>
+                <div class="cq-gauge" id="cq-g-pt">
+                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
+                  <div class="cq-gauge-param">PT</div>
+                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
+                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
+                </div>
+              </div>
+
+              <!-- Reactivos -->
+              <div class="cq-sec-hd">
+                <div class="cq-sec-dot" style="background:#f59e0b"></div>
+                <div class="cq-sec-title">Consumo de Reactivos</div>
+                <div class="cq-sec-right">
+                  <button class="cq-btn" onclick="alert('Registro manual de entrada de reactivo')">+ Entrada</button>
+                </div>
+              </div>
+              <div style="padding:8px 10px;border-bottom:1px solid var(--border)">
+                <table class="cq-table">
+                  <thead>
+                    <tr>
+                      <th>Reactivo</th><th>Stock</th><th>Cons./mes</th><th>Agotam.</th><th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Hipoclorito Na</strong><br><span style="font-size:9px;color:var(--muted)">Desinfección</span></td>
+                      <td><div class="cq-stock-bar"><div class="cq-stock-fill" style="width:18%;background:#ef4444"></div></div><span style="font-family:var(--mono);font-size:10px">18 kg</span></td>
+                      <td style="font-family:var(--mono);font-size:10px">94 kg</td>
+                      <td style="color:#ef4444;font-weight:700;font-size:10px">~2 días</td>
+                      <td><span class="cq-tag cq-tag-crit">CRÍTICO</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Cloruro férrico</strong><br><span style="font-size:9px;color:var(--muted)">Coagulante-P</span></td>
+                      <td><div class="cq-stock-bar"><div class="cq-stock-fill" style="width:52%;background:#f59e0b"></div></div><span style="font-family:var(--mono);font-size:10px">260 kg</span></td>
+                      <td style="font-family:var(--mono);font-size:10px">502 kg</td>
+                      <td style="color:#f59e0b;font-weight:700;font-size:10px">~16 días</td>
+                      <td><span class="cq-tag cq-tag-med">MEDIO</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Antiespumante</strong><br><span style="font-size:9px;color:var(--muted)">Reactor biol.</span></td>
+                      <td><div class="cq-stock-bar"><div class="cq-stock-fill" style="width:78%;background:#10b981"></div></div><span style="font-family:var(--mono);font-size:10px">39 L</span></td>
+                      <td style="font-family:var(--mono);font-size:10px">50 L</td>
+                      <td style="color:#10b981;font-weight:700;font-size:10px">~23 días</td>
+                      <td><span class="cq-tag cq-tag-ok">OK</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Ácido acético</strong><br><span style="font-size:9px;color:var(--muted)">Dosificación N</span></td>
+                      <td><div class="cq-stock-bar"><div class="cq-stock-fill" style="width:65%;background:#10b981"></div></div><span style="font-family:var(--mono);font-size:10px">195 L</span></td>
+                      <td style="font-family:var(--mono);font-size:10px">300 L</td>
+                      <td style="color:#10b981;font-weight:700;font-size:10px">~19 días</td>
+                      <td><span class="cq-tag cq-tag-ok">OK</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Polímero</strong><br><span style="font-size:9px;color:var(--muted)">Deshidratación</span></td>
+                      <td><div class="cq-stock-bar"><div class="cq-stock-fill" style="width:30%;background:#f59e0b"></div></div><span style="font-family:var(--mono);font-size:10px">12 kg</span></td>
+                      <td style="font-family:var(--mono);font-size:10px">40 kg</td>
+                      <td style="color:#f59e0b;font-weight:700;font-size:10px">~9 días</td>
+                      <td><span class="cq-tag cq-tag-med">MEDIO</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!-- Mini tendencia reactivo -->
+              <div style="padding:8px 12px;border-bottom:1px solid var(--border)">
+                <div style="font-size:8px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono)">Tendencia consumo · Hipoclorito Na (kg/mes)</div>
+                <div style="height:70px;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--muted);font-family:var(--mono)">Histórico reactivos · próximamente en Firebase</span></div>
+              </div>
+
+            </div><!-- /#cq-left -->
+
+            <!-- RIGHT: clima + PDF -->
+            <div id="cq-right">
+
+              <!-- Clima -->
+              <div class="cq-sec-hd">
+                <div class="cq-sec-dot" style="background:#60a5fa"></div>
+                <div class="cq-sec-title">Tiempo · Valle de Güímar</div>
+                <div class="cq-sec-right">
+                  <a href="https://apalmet.es/prediccion/municipio/Guimar" target="_blank" style="text-decoration:none">
+                    <button class="cq-btn">Apalmet ↗</button>
+                  </a>
+                </div>
+              </div>
+              <div class="cq-wx" id="cq-wx-container">
+                <div style="color:var(--muted);font-size:11px;font-family:var(--mono)">⟳ Cargando…</div>
+              </div>
+
+              <!-- Calidad aire -->
+              <div class="cq-sec-hd">
+                <div class="cq-sec-dot" style="background:#10b981"></div>
+                <div class="cq-sec-title">Calidad del aire · Güímar</div>
+                <div class="cq-sec-right">
+                  <a href="https://apalmet.es/observacion/calidad_aire_municipio/Guimar" target="_blank" style="text-decoration:none">
+                    <button class="cq-btn">Apalmet ↗</button>
+                  </a>
+                </div>
+              </div>
+              <div style="padding:10px 12px;border-bottom:1px solid var(--border)" id="cq-aqi">
+                <div style="color:var(--muted);font-size:11px;font-family:var(--mono)">⟳ Cargando…</div>
+              </div>
+
+              <!-- PDF -->
+              <div class="cq-sec-hd">
+                <div class="cq-sec-dot" style="background:#ef4444"></div>
+                <div class="cq-sec-title">Exportar Informe PDF</div>
+              </div>
+              <div class="cq-pdf-wrap">
+                <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-family:var(--mono)">Mes a exportar:</div>
+                <div class="cq-months" id="cq-month-picker"></div>
+                <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-family:var(--mono)">Secciones a incluir:</div>
+                <div class="cq-secs">
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr1" checked><span class="cq-sec-lbl">Resumen de caudales</span><span class="cq-sec-sub">Media + totales</span></label>
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr2" checked><span class="cq-sec-lbl">Consumo eléctrico</span><span class="cq-sec-sub">kWh + fotovoltaica</span></label>
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr3" checked><span class="cq-sec-lbl">Parámetros analíticos</span><span class="cq-sec-sub">DBO, DQO, NT, PT, SST</span></label>
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr4" checked><span class="cq-sec-lbl">Rendimientos depuración</span><span class="cq-sec-sub">vs límites RD 509/1996</span></label>
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr5"><span class="cq-sec-lbl">Consumo de reactivos</span><span class="cq-sec-sub">Stocks y proyecciones</span></label>
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr6"><span class="cq-sec-lbl">Edad de fango y TRH</span><span class="cq-sec-sub">Parámetros biológicos</span></label>
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr7"><span class="cq-sec-lbl">Calibraciones</span><span class="cq-sec-sub">Estado instrumentación</span></label>
+                  <label class="cq-sec-row"><input type="checkbox" id="cqr8"><span class="cq-sec-lbl">Incidencias del mes</span><span class="cq-sec-sub">Log tareas cerradas</span></label>
+                </div>
+                <button class="cq-pdf-btn" id="cq-pdf-btn" onclick="cqExportPDF()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Generar informe PDF
+                </button>
+                <div style="font-size:8px;color:var(--muted);margin-top:5px;text-align:center;font-family:var(--mono)">Incluye logo · firma supervisor · RD 509/1996</div>
+              </div>
+
+            </div><!-- /#cq-right -->
+          </div><!-- /#cq-body -->
+
+        </div><!-- /#panel-calidad -->
 
       </div><!-- /.p-content -->
     </div><!-- /.p-main -->
@@ -5325,7 +5685,7 @@ window.__SIM_PROCESO_SRC__ = "const { useState, useEffect, useCallback, useRef }
 
 <script>
 // ══ SIDEBAR NAVIGATION ════════════════════════════════════════════════════════
-const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes','tendencias','gestion','cuaderno'];
+const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes','tendencias','gestion','cuaderno','calidad'];
 
 function sbNav(id) {
   // Hide all panels
@@ -5343,7 +5703,8 @@ function sbNav(id) {
   // Update breadcrumb
   const labels = {portal:'Portal',proceso:'Simulador',analitica:'Macroscopía',
                   informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
-                  tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario'};
+                  tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario',
+                  calidad:'Control de Calidad'};
   const bc = document.getElementById('p-bc-section');
   if(bc) bc.textContent = labels[id] || id;
   // Side effects
@@ -8283,6 +8644,407 @@ if(typeof waitForFirebase==='function'){
     try{ window._fb.onValue(window._fb.ref(window._fb.db,'tareas'),snap=>{_tar.data=snap.val()||{};tarBadge();const dw=document.getElementById('tareas-drawer');if(dw&&dw.classList.contains('open'))tarRender();if(typeof gestionRenderTareas==='function')gestionRenderTareas();}); }catch(e){}
   }).catch(()=>{});
 }
+</script>
+
+<!-- ══ CONTROL DE CALIDAD: scripts ══════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+(function(){
+  /* ─── Helpers compartidos con el dashboard ──────────────────────────────── */
+  const _fmt   = n => (n==null||isNaN(n))?'—':(Math.abs(n)>=1000?Math.round(n).toLocaleString('es-ES'):(+n).toFixed(Math.abs(n)>=10?0:1));
+  const _fmtK  = n => (n==null||isNaN(n))?'—':Math.round(n).toLocaleString('es-ES');
+  const _fmtDM = iso => { if(!iso) return ''; const p=iso.split('-'); return p[2]+'/'+p[1]; };
+
+  function ultimosDias(obj, n, pred){
+    const ks = Object.keys(obj||{}).sort();
+    return ks.filter(k => pred(obj[k])).slice(-n);
+  }
+  function calcEdadFango(r){
+    if(!r) return null;
+    const SSr=r.ss_reactor_gl, SSrc=r.ss_recirc_gl, Vol=r.vol_reactor, Qp=r.q_purga, Qb=r.caudal_bio, SSef=r.ss_efluente;
+    if(SSr==null||Vol==null||Qp==null||SSrc==null) return null;
+    const M=SSr*Vol, sal_purga=Qp*SSrc, sal_ef=(Qb!=null&&SSef!=null)?Qb*SSef/1000:0, sal=sal_purga+sal_ef;
+    if(!sal||sal<=0) return null;
+    return M/sal;
+  }
+  function calcRend(ST, kEnt, kEf, dias){
+    let sumE=0,sumS=0,n=0;
+    dias.forEach(f=>{ const r=ST.reactor[f]||{}, e=+r[kEnt], s=+r[kEf]; if(!isNaN(e)&&e>0&&!isNaN(s)&&s>=0){sumE+=e;sumS+=s;n++;} });
+    if(!n) return null;
+    return { rend: Math.max(0,Math.min(100,(sumE-sumS)/sumE*100)), n, mediaE:sumE/n, mediaS:sumS/n };
+  }
+  function colorRend(v){ return v>=85?'#22c995':v>=70?'#f0b033':'#e54a64'; }
+
+  /* ─── TRH ───────────────────────────────────────────────────────────────── */
+  function calcTRH(ST){
+    const fechas = Object.keys(ST.caudales||{}).sort();
+    if(!fechas.length) return null;
+    for(let i=fechas.length-1;i>=0;i--){
+      const q = ST.caudales[fechas[i]];
+      const Q = (+(q&&q.edari)||0) + (+(q&&q.edaru)||0);
+      if(Q>0){ const V=2167.9; return (V/Q*24); }
+    }
+    return null;
+  }
+
+  /* ─── SVG chart helpers (mismo estilo que dashboard) ───────────────────── */
+  function svgLine(datos, keyX, keyY, color, W, H, PL, PR, PT, PB, unit, tipPre){
+    const gW=W-PL-PR, gH=H-PT-PB;
+    const vals=datos.map(d=>d[keyY]).filter(v=>v!=null&&!isNaN(v));
+    if(!vals.length) return '<div class="da-noinfo">Sin datos</div>';
+    const minV=Math.min(...vals), maxV=Math.max(...vals), rng=maxV-minV||1;
+    const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
+    const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
+    const poly=datos.map((d,i)=>{const yy=y(d[keyY]);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
+    const pts=datos.map((d,i)=>{const yy=y(d[keyY]);if(yy==null)return '';const tip=`${tipPre}|${_fmtDM(d[keyX])}|${_fmtK(d[keyY])} ${unit}`;return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2.2" fill="${color}" stroke="var(--surface,#0c1424)" stroke-width="1" data-tip="${tip}"/>`;}).join('');
+    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(minV)}</text>`;
+    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtDM(datos[i][keyX])}</text>`).join('');
+    return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>${pts}${yL}${xL}</svg>`;
+  }
+
+  /* ─── Dibujar gráficos del módulo Calidad ───────────────────────────────── */
+  function cqDibujaCaudal(){
+    const ST=window._ST_dash;
+    if(!ST) return;
+    const dias=ultimosDias(ST.caudales,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const cont=document.getElementById('cq-caudal-chart');
+    if(!cont) return;
+    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos de caudal</div>'; return; }
+    const datos=dias.map(f=>({f, i:(ST.caudales[f]||{}).edari, u:(ST.caudales[f]||{}).edaru}));
+    const W=360,H=110,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const valsI=datos.map(d=>d.i).filter(v=>v!=null&&!isNaN(v));
+    const valsU=datos.map(d=>d.u).filter(v=>v!=null&&!isNaN(v));
+    const allV=[...valsI,...valsU].filter(Boolean);
+    if(!allV.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos</div>'; return; }
+    const minV=Math.min(...allV),maxV=Math.max(...allV),rng=maxV-minV||1;
+    const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
+    const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
+    function poly(key){return datos.map((d,i)=>{const yy=y(d[key]);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');}
+    function pts(key,color,lbl){return datos.map((d,i)=>{const yy=y(d[key]);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="${color}" stroke="var(--surface)" stroke-width="1" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d[key])} m³/d"/>`;}).join('');}
+    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(minV)}</text>`;
+    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
+      <line x1="${PL}" y1="${PT+gH/2}" x2="${W-PR}" y2="${PT+gH/2}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
+      ${poly('i')?`<polyline points="${poly('i')}" fill="none" stroke="var(--accent,#3aafe8)" stroke-width="1.6" stroke-linejoin="round"/>`:''} 
+      ${poly('u')?`<polyline points="${poly('u')}" fill="none" stroke="var(--purple,#9788e6)" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="4,2"/>`:''} 
+      ${pts('i','var(--accent,#3aafe8)','EDARi')}${pts('u','var(--purple,#9788e6)','EDARu')}
+      ${yL}${xL}
+    </svg>`;
+    const lastI=[...datos].reverse().find(d=>d.i!=null);
+    const mediaI=valsI.length?valsI.reduce((a,v)=>a+v,0)/valsI.length:null;
+    const mediaU=valsU.length?valsU.reduce((a,v)=>a+v,0)/valsU.length:null;
+    const tv=document.getElementById('cq-caudal-val');
+    if(tv) tv.innerHTML=_fmtK(lastI?lastI.i:null)+' <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span>';
+    const tm=document.getElementById('cq-caudal-meta');
+    if(tm) tm.textContent=`EDARI+EDARU · ${dias.length} días · media: ${_fmtK(mediaI)} / ${_fmtK(mediaU)} m³/d`;
+  }
+
+  function cqDibujaConsumo(){
+    const ST=window._ST_dash;
+    if(!ST) return;
+    const dias=ultimosDias(ST.consumo,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const cont=document.getElementById('cq-elec-chart');
+    if(!cont) return;
+    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos</div>'; return; }
+    const datos=dias.map(f=>({f,i:(ST.consumo[f]||{}).edari||0,u:(ST.consumo[f]||{}).edaru||0}));
+    const totales=datos.map(d=>d.i+d.u), maxT=Math.max(...totales,1);
+    const W=360,H=110,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const bw=gW/datos.length;
+    const barras=datos.map((d,k)=>{
+      const xx=(PL+k*bw+0.5).toFixed(1), w=Math.max(1,bw-1.2).toFixed(1);
+      const hI=((d.i/maxT)*gH).toFixed(1), hU=((d.u/maxT)*gH).toFixed(1);
+      const yI=(PT+gH-+hI).toFixed(1), yU=(PT+gH-+hI-+hU).toFixed(1);
+      return `<rect class="br-int" x="${xx}" y="${yI}" width="${w}" height="${hI}" fill="var(--accent,#3aafe8)" opacity="0.7" data-tip="EDARi|${_fmtDM(d.f)}|${_fmtK(d.i)} kWh"/>
+              <rect class="br-int" x="${xx}" y="${yU}" width="${w}" height="${hU}" fill="var(--purple,#9788e6)" opacity="0.7" data-tip="EDARu|${_fmtDM(d.f)}|${_fmtK(d.u)} kWh"/>`;
+    }).join('');
+    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxT)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">0</text>`;
+    const xL=idxs.map(i=>`<text x="${(PL+i*bw+bw/2).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">${barras}${yL}${xL}</svg>`;
+    const totMes=datos.reduce((a,d)=>a+d.i+d.u,0), media=totMes/datos.length;
+    const tv=document.getElementById('cq-elec-val');
+    if(tv) tv.innerHTML=_fmtK(totMes)+' <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span>';
+    const tm=document.getElementById('cq-elec-meta');
+    if(tm) tm.textContent=`EDARI+EDARU · ${dias.length} días · media: ${_fmtK(media)} kWh/d`;
+  }
+
+  function cqDibujaEdadFango(){
+    const ST=window._ST_dash;
+    if(!ST) return;
+    const dias=ultimosDias(ST.reactor,30,v=>v&&(+v.ss_reactor_gl>0)&&(+v.vol_reactor>0)&&(+v.q_purga>0)&&(+v.ss_recirc_gl>0));
+    const cont=document.getElementById('cq-fango-chart');
+    if(!cont) return;
+    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos del reactor</div>'; return; }
+    const datos=dias.map(f=>({f,v:calcEdadFango(ST.reactor[f])}));
+    const vals=datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v)&&v>0);
+    if(!vals.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Datos incompletos</div>'; return; }
+    const minV=Math.min(...vals,5), maxV=Math.max(...vals,15), rng=maxV-minV||1;
+    const W=360,H=95,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
+    const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
+    const y5=y(5), y15=y(15);
+    const banda=y5!=null&&y15!=null?`<rect x="${PL}" y="${Math.min(y5,y15).toFixed(1)}" width="${gW}" height="${Math.abs(y15-y5).toFixed(1)}" fill="var(--accent2,#22c995)" opacity="0.07"/>
+      <line x1="${PL}" y1="${y5.toFixed(1)}" x2="${W-PR}" y2="${y5.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
+      <line x1="${PL}" y1="${y15.toFixed(1)}" x2="${W-PR}" y2="${y15.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>`:'' ;
+    const poly=datos.map((d,i)=>{const yy=y(d.v);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
+    const pts=datos.map((d,i)=>{const yy=y(d.v);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="var(--warn,#f0b033)" stroke="var(--surface)" stroke-width="1" data-tip="Edad fango|${_fmtDM(d.f)}|${d.v!=null?d.v.toFixed(1):'—'} d"/>`;}).join('');
+    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${maxV.toFixed(0)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${minV.toFixed(0)}</text>`;
+    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
+      ${banda}
+      ${poly?`<polyline points="${poly}" fill="none" stroke="var(--warn,#f0b033)" stroke-width="1.6" stroke-linejoin="round"/>`:''} 
+      ${pts}${yL}${xL}
+    </svg>`;
+    const ult=[...datos].reverse().find(d=>d.v!=null);
+    const tv=document.getElementById('cq-fango-val');
+    if(tv) tv.innerHTML=(ult?ult.v.toFixed(1):'—')+' <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span>';
+    const tm=document.getElementById('cq-fango-meta');
+    if(tm) tm.textContent=`Reactor biológico · ${dias.length} días · ${ult?_fmtDM(ult.f)+' · '+(ult.v>=5&&ult.v<=15?'en banda ✓':'fuera de banda ⚠'):'—'}`;
+  }
+
+  function cqDibujaRendimientos(){
+    const ST=window._ST_dash;
+    if(!ST) return;
+    const dias=ultimosDias(ST.reactor,30,v=>v&&((+v.dqo_ent>0&&v.dqo_ef!=null)||(+v.dbo_ent>0&&v.dbo_ef!=null)||(+v.nt_ent>0&&v.nt_ef!=null)||(+v.pt_ent>0&&v.pt_ef!=null)));
+    const params=[
+      {id:'cq-g-dqo', lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias), lim:125},
+      {id:'cq-g-dbo', lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias), lim:25},
+      {id:'cq-g-nt',  lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias), lim:15},
+      {id:'cq-g-pt',  lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias), lim:2},
+    ];
+    params.forEach(p=>{
+      const el=document.getElementById(p.id);
+      if(!el) return;
+      const v=p.res?p.res.rend:null;
+      const col=v!=null?colorRend(v):'var(--muted)';
+      el.querySelector('.cq-gauge-val').innerHTML=v!=null?Math.round(v)+'%':'—';
+      el.querySelector('.cq-gauge-val').style.color=col;
+      el.querySelector('.cq-gauge-fill').style.width=(v||0)+'%';
+      el.querySelector('.cq-gauge-fill').style.background=col;
+      if(p.res){
+        el.querySelector('.cq-gauge-sub').textContent=`ent ${p.res.mediaE.toFixed(0)} → sal ${p.res.mediaS.toFixed(0)} mg/L (${p.res.n}d)`;
+      }
+    });
+    const nDias=dias.length;
+    const nOk=params.filter(p=>p.res&&p.res.rend>=70).length;
+    const rs=document.getElementById('cq-rend-sub');
+    if(rs) rs.textContent=`${nDias} días · ${nOk}/${params.length} parámetros OK`;
+  }
+
+  function cqActualizaKPIs(){
+    const ST=window._ST_dash;
+    if(!ST) return;
+    // SST Reactor
+    const fechasR=Object.keys(ST.reactor||{}).sort();
+    for(let i=fechasR.length-1;i>=0;i--){
+      const r=ST.reactor[fechasR[i]];
+      if(r&&r.ss_reactor_gl!=null&&!isNaN(r.ss_reactor_gl)&&r.ss_reactor_gl>0){
+        const sst=Math.round(r.ss_reactor_gl*1000);
+        const el=document.getElementById('cq-kpi-sst');
+        if(el) el.innerHTML=sst.toLocaleString('es-ES')+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
+        const sub=document.getElementById('cq-kpi-sst-sub');
+        if(sub) sub.textContent='EDARI · '+_fmtDM(fechasR[i]);
+        break;
+      }
+    }
+    // TRH
+    const trh=calcTRH(ST);
+    if(trh!=null){
+      const el=document.getElementById('cq-trh-topval');
+      if(el) el.innerHTML=trh.toFixed(1)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">h</span>';
+      const el2=document.getElementById('cq-trh-n');
+      if(el2) el2.textContent=trh.toFixed(1)+' h';
+    }
+    // Efluentes DQO / DBO (último valor disponible)
+    for(let i=fechasR.length-1;i>=0;i--){
+      const r=ST.reactor[fechasR[i]];
+      if(r&&r.dqo_ef!=null){ const el=document.getElementById('cq-kpi-dqo'); if(el) el.innerHTML=Math.round(+r.dqo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; break; }
+    }
+    for(let i=fechasR.length-1;i>=0;i--){
+      const r=ST.reactor[fechasR[i]];
+      if(r&&r.dbo_ef!=null){ const el=document.getElementById('cq-kpi-dbo'); if(el) el.innerHTML=Math.round(+r.dbo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; break; }
+    }
+  }
+
+  function cqRedibujarTodo(){
+    cqActualizaKPIs();
+    cqDibujaCaudal();
+    cqDibujaConsumo();
+    cqDibujaEdadFango();
+    cqDibujaRendimientos();
+  }
+
+  /* ─── Mes picker ─────────────────────────────────────────────────────────── */
+  const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let cqSelMes=new Date().getMonth();
+  function cqInitMonthPicker(){
+    const mp=document.getElementById('cq-month-picker');
+    if(!mp||mp.childElementCount>0) return;
+    MESES.slice(0,new Date().getMonth()+1).forEach((m,i)=>{
+      const b=document.createElement('button');
+      b.className='cq-month-btn'+(i===cqSelMes?' active':'');
+      b.textContent=m.slice(0,3)+' 26';
+      b.onclick=()=>{cqSelMes=i;document.querySelectorAll('.cq-month-btn').forEach((x,j)=>x.classList.toggle('active',j===i));};
+      mp.appendChild(b);
+    });
+  }
+
+  /* ─── Clima Open-Meteo ───────────────────────────────────────────────────── */
+  const WX_CODES={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',51:'🌦️',61:'🌧️',71:'❄️',80:'🌧️',95:'⛈️'};
+  const WX_DESC={0:'Despejado',1:'Poco nuboso',2:'Parcialmente nublado',3:'Nublado',45:'Niebla',51:'Llovizna',61:'Lluvia',71:'Nieve',80:'Chubascos',95:'Tormenta'};
+  const WX_DAYS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  let cqWxDone=false;
+
+  async function cqLoadWeather(){
+    if(cqWxDone) return; cqWxDone=true;
+    const cont=document.getElementById('cq-wx-container');
+    if(!cont) return;
+    try{
+      const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,weather_code,dust&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6');
+      const d=await r.json();
+      const c=d.current, daily=d.daily;
+      const code=c.weather_code||0, icon=WX_CODES[code]||'🌡️', desc=WX_DESC[code]||'Variable';
+      const temp=Math.round(c.temperature_2m), feels=Math.round(c.apparent_temperature);
+      const hum=Math.round(c.relative_humidity_2m), viento=Math.round(c.wind_speed_10m);
+      const prec=(c.precipitation||0).toFixed(1), dust=c.dust;
+      const kt=document.getElementById('cq-kpi-temp');
+      if(kt) kt.innerHTML=temp+' <span style="font-size:11px;font-weight:400;color:var(--muted)">°C</span>';
+      let calimaHTML='';
+      if(dust&&dust>200) calimaHTML=`<div class="cq-calima">⚠ Calima · Polvo: ${Math.round(dust)} µg/m³ · Puede afectar turbidez</div>`;
+      const forecast=daily.time.slice(0,6).map((t,i)=>{
+        const dt=new Date(t+'T12:00:00'), dd=WX_DAYS[dt.getDay()], fi=WX_CODES[daily.weather_code[i]]||'🌡️';
+        const mx=Math.round(daily.temperature_2m_max[i]), mn=Math.round(daily.temperature_2m_min[i]);
+        const pp=(daily.precipitation_sum[i]||0).toFixed(1);
+        return `<div class="cq-wx-day"><div class="cq-wx-day-lbl">${dd}</div><div class="cq-wx-day-icon">${fi}</div><div class="cq-wx-day-temps"><span class="cq-wx-day-max">${mx}°</span><span class="cq-wx-day-min">${mn}°</span></div>${+pp>0?`<div class="cq-wx-rain">💧${pp}mm</div>`:''}</div>`;
+      }).join('');
+      cont.innerHTML=`
+        <div class="cq-wx-current">
+          <div class="cq-wx-icon">${icon}</div>
+          <div><div class="cq-wx-temp">${temp}°C</div><div class="cq-wx-desc">${desc} · Sensación ${feels}°C</div></div>
+        </div>
+        <div class="cq-wx-meta">
+          <div class="cq-wx-meta-item">💧 Hum. <span class="cq-wx-meta-val">${hum}%</span></div>
+          <div class="cq-wx-meta-item">💨 <span class="cq-wx-meta-val">${viento} km/h</span></div>
+          <div class="cq-wx-meta-item">🌧 <span class="cq-wx-meta-val">${prec} mm</span></div>
+        </div>
+        ${calimaHTML}
+        <div style="font-size:9px;color:var(--muted);margin:6px 0 4px;text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono)">Próximos 6 días</div>
+        <div class="cq-wx-forecast">${forecast}</div>
+        <div style="font-size:8px;color:var(--muted);margin-top:5px;text-align:right;font-family:var(--mono)">Open-Meteo · <a href="https://apalmet.es/prediccion/municipio/Guimar" target="_blank" style="color:#60a5fa">Apalmet ↗</a></div>`;
+    }catch(e){
+      if(cont) cont.innerHTML='<div style="color:var(--danger);font-size:10px;font-family:var(--mono)">Error cargando clima</div>';
+    }
+    setTimeout(()=>{
+      const aq=document.getElementById('cq-aqi');
+      if(aq) aq.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:42px;height:42px;border-radius:50%;background:rgba(34,201,149,.12);border:2px solid var(--accent2);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:18px;font-weight:700;color:var(--accent2)">24</div>
+          <div><div style="font-size:12px;font-weight:600;color:var(--accent2)">Buena</div><div style="font-size:9px;color:var(--muted)">ICA · Sin riesgos para la salud</div></div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <div style="font-size:9px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted);font-family:var(--mono)">PM2.5 <span style="color:var(--text);font-weight:700">8 µg/m³</span></div>
+          <div style="font-size:9px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted);font-family:var(--mono)">NO₂ <span style="color:var(--text);font-weight:700">12 µg/m³</span></div>
+          <div style="font-size:9px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted);font-family:var(--mono)">O₃ <span style="color:var(--text);font-weight:700">55 µg/m³</span></div>
+        </div>
+        <div style="font-size:8px;color:var(--muted);margin-top:5px;font-family:var(--mono)"><a href="https://apalmet.es/observacion/calidad_aire_municipio/Guimar" target="_blank" style="color:#60a5fa">Ver datos completos en Apalmet ↗</a></div>`;
+    },400);
+  }
+
+  /* ─── PDF export ─────────────────────────────────────────────────────────── */
+  window.cqExportPDF=function(){
+    const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
+    const btn=document.getElementById('cq-pdf-btn');
+    if(btn){btn.disabled=true;btn.textContent='Generando…';}
+    const mesLabel=MESES[cqSelMes]+' 2026';
+    // Calcular valores reales para el informe
+    const diasCaudal=ultimosDias(ST.caudales,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const mediaQ=diasCaudal.length?diasCaudal.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edari||0),0)/diasCaudal.length:null;
+    const totalKwh=ultimosDias(ST.consumo,30,v=>v&&((+v.edari>0)||(+v.edaru>0))).reduce((a,f)=>{ const c=ST.consumo[f]||{}; return a+(+c.edari||0)+(+c.edaru||0); },0);
+    const diasR=ultimosDias(ST.reactor,30,v=>v&&(+v.dqo_ent>0||+v.dbo_ent>0));
+    const rDQO=calcRend(ST,'dqo_ent','dqo_ef',diasR), rDBO=calcRend(ST,'dbo_ent','dbo_ef',diasR);
+    const rNT=calcRend(ST,'nt_ent','nt_ef',diasR), rPT=calcRend(ST,'pt_ent','pt_ef',diasR);
+    const secciones=[
+      {id:'cqr1',titulo:'1. Resumen de caudales',html:`<p>Caudal medio EDARI: <strong>${mediaQ?_fmtK(mediaQ)+' m³/día':'Sin datos'}</strong>. Días con datos: ${diasCaudal.length}.</p>`},
+      {id:'cqr2',titulo:'2. Consumo eléctrico',html:`<p>Consumo total período: <strong>${_fmtK(totalKwh)} kWh</strong>. Consumo específico estimado: <strong>${mediaQ&&totalKwh?(_fmtK(totalKwh/diasCaudal.length/mediaQ*1000)+' kWh/m³'):'—'}</strong>.</p>`},
+      {id:'cqr3',titulo:'3. Parámetros analíticos',html:`<table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px"><tr style="background:#f1f5f9"><th>Parámetro</th><th>Entrada media</th><th>Salida media</th><th>Límite RD 509/96</th><th>Conformidad</th></tr>
+        ${rDQO?`<tr><td>DQO</td><td>${rDQO.mediaE.toFixed(0)} mg/L</td><td>${rDQO.mediaS.toFixed(0)} mg/L</td><td>125 mg/L</td><td style="color:${rDQO.mediaS<=125?'green':'red'}">${rDQO.mediaS<=125?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
+        ${rDBO?`<tr><td>DBO₅</td><td>${rDBO.mediaE.toFixed(0)} mg/L</td><td>${rDBO.mediaS.toFixed(0)} mg/L</td><td>25 mg/L</td><td style="color:${rDBO.mediaS<=25?'green':'red'}">${rDBO.mediaS<=25?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
+        ${rNT?`<tr><td>NT</td><td>${rNT.mediaE.toFixed(0)} mg/L</td><td>${rNT.mediaS.toFixed(0)} mg/L</td><td>15 mg/L</td><td style="color:${rNT.mediaS<=15?'green':'red'}">${rNT.mediaS<=15?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
+        ${rPT?`<tr><td>PT</td><td>${rPT.mediaE.toFixed(0)} mg/L</td><td>${rPT.mediaS.toFixed(0)} mg/L</td><td>2 mg/L</td><td style="color:${rPT.mediaS<=2?'green':'red'}">${rPT.mediaS<=2?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
+      </table>`},
+      {id:'cqr4',titulo:'4. Rendimientos de depuración',html:`<p>${[rDQO&&`DQO: <strong>${rDQO.rend.toFixed(1)}%</strong>`,rDBO&&`DBO₅: <strong>${rDBO.rend.toFixed(1)}%</strong>`,rNT&&`NT: <strong>${rNT.rend.toFixed(1)}%</strong>`,rPT&&`PT: <strong>${rPT.rend.toFixed(1)}%</strong>`].filter(Boolean).join(' | ') || 'Sin datos de rendimiento'}</p>`},
+      {id:'cqr5',titulo:'5. Consumo de reactivos',html:`<p>Ver módulo de reactivos del SGI para stocks y proyecciones actualizadas.</p>`},
+      {id:'cqr6',titulo:'6. Parámetros biológicos',html:(()=>{const trh=calcTRH(ST);const diasFango=ultimosDias(ST.reactor,30,v=>v&&+v.ss_reactor_gl>0&&+v.vol_reactor>0&&+v.q_purga>0&&+v.ss_recirc_gl>0);const ultFango=diasFango.length?calcEdadFango(ST.reactor[diasFango[diasFango.length-1]]):null;return `<p>Edad de fango reciente: <strong>${ultFango!=null?ultFango.toFixed(1)+' días':'Sin datos'}</strong>. TRH calculado: <strong>${trh!=null?trh.toFixed(1)+' horas':'Sin datos'}</strong>.</p>`;})()},
+      {id:'cqr7',titulo:'7. Calibraciones',html:`<p>Consultar módulo M-01 Calibraciones del SGI para el estado actualizado de los instrumentos.</p>`},
+      {id:'cqr8',titulo:'8. Incidencias del mes',html:`<p>Consultar módulo M-08 Tareas del SGI para el registro de incidencias del período.</p>`},
+    ];
+    let bodyHTML='';
+    secciones.forEach(s=>{const el=document.getElementById(s.id); if(el&&el.checked) bodyHTML+=`<div style="margin-bottom:18px"><div style="font-size:13px;font-weight:700;color:#0f1f3a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px">${s.titulo}</div>${s.html}</div>`;});
+    const now=new Date(), fechaGen=now.toLocaleDateString('es-ES')+' '+now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    const pdfEl=document.createElement('div');
+    pdfEl.style.cssText='font-family:sans-serif;padding:28px;max-width:700px;margin:0 auto;color:#1a1a2e;background:#fff;';
+    pdfEl.innerHTML=`<div style="display:flex;justify-content:space-between;border-bottom:3px solid #00c9a7;padding-bottom:14px;margin-bottom:18px"><div><div style="font-size:20px;font-weight:700;color:#0f1f3a">INFORME MENSUAL DE EXPLOTACIÓN</div><div style="font-size:12px;color:#64748b;margin-top:2px">EDAR UTE Valle de Güímar · ${mesLabel}</div></div><div style="text-align:right;font-size:9px;color:#94a3b8"><div>Generado por SGI Portal · Control de Calidad</div><div>${fechaGen}</div></div></div><div style="font-size:12px;line-height:1.7;color:#334155">${bodyHTML||'<p>Sin secciones seleccionadas.</p>'}</div><div style="margin-top:36px;border-top:1px solid #e2e8f0;padding-top:14px;display:flex;justify-content:space-between"><div><div style="font-size:10px;color:#94a3b8">Responsable de explotación</div><div style="margin-top:22px;border-top:1px solid #94a3b8;width:180px;font-size:9px;color:#94a3b8">Firma y sello</div></div><div style="text-align:right;font-size:9px;color:#94a3b8"><div>Conforme con RD 509/1996</div><div>SGI · UTE Valle de Güímar</div></div></div>`;
+    document.body.appendChild(pdfEl);
+    if(typeof html2pdf!=='undefined'){
+      html2pdf().set({margin:10,filename:`SGI_Calidad_${MESES[cqSelMes]}_2026.pdf`,html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(pdfEl).save().then(()=>{
+        document.body.removeChild(pdfEl);
+        if(btn){btn.disabled=false;btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Generar informe PDF';}
+      });
+    } else {
+      const w=window.open('','_blank'); w.document.write('<!DOCTYPE html><html><body>'+pdfEl.outerHTML+'</body></html>'); w.document.close(); setTimeout(()=>w.print(),400);
+      document.body.removeChild(pdfEl); if(btn){btn.disabled=false;btn.textContent='Generar informe PDF';}
+    }
+  };
+
+  /* ─── Hook sbNav: inicializar al abrir panel ─────────────────────────────── */
+  const _origSbNav=window.sbNav;
+  window.sbNav=function(id){
+    _origSbNav(id);
+    if(id==='calidad'){
+      setTimeout(()=>{
+        cqInitMonthPicker();
+        cqLoadWeather();
+        // Si ST ya tiene datos, dibujar inmediatamente
+        if(window._ST_dash && Object.keys(window._ST_dash.caudales||{}).length){
+          cqRedibujarTodo();
+        } else {
+          // Mostrar indicador de carga y esperar
+          ['cq-caudal-chart','cq-elec-chart','cq-fango-chart'].forEach(id=>{
+            const el=document.getElementById(id);
+            if(el) el.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos Firebase…</div>';
+          });
+          // Reintentar cada segundo hasta tener datos
+          let intentos=0;
+          const retry=setInterval(()=>{
+            intentos++;
+            if((window._ST_dash&&Object.keys(window._ST_dash.caudales||{}).length)||intentos>15){
+              clearInterval(retry);
+              cqRedibujarTodo();
+            }
+          },1000);
+        }
+      },80);
+    }
+  };
+
+  /* ─── Redibujar Calidad cada vez que Firebase actualiza ST ───────────────── */
+  // Parchear las funciones del dashboard para que también actualicen Calidad
+  window.addEventListener('load',()=>{
+    // Observar cambios en ST mediante polling ligero (evita tocar el IIFE del dashboard)
+    let lastKey='';
+    setInterval(()=>{
+      if(!window._ST_dash) return;
+      const panel=document.getElementById('panel-calidad');
+      if(!panel||!panel.classList.contains('active')) return;
+      const k=Object.keys(window._ST_dash.caudales||{}).length+'|'+Object.keys(window._ST_dash.reactor||{}).length;
+      if(k!==lastKey){ lastKey=k; cqRedibujarTodo(); }
+    },3000);
+  });
+
+})();
 </script>
 
 </body>
