@@ -2150,7 +2150,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-pdf-btn:hover{opacity:.85;}
             .cq-pdf-btn:disabled{opacity:.4;cursor:not-allowed;}
             /* 2-col layout */
-            #cq-body{display:grid;grid-template-columns:1fr 340px;flex:1;overflow:hidden;min-height:0;}
+            #cq-body{display:grid;grid-template-columns:1fr 320px;flex:1;overflow:hidden;min-height:0;}
             #cq-left{overflow-y:auto;border-right:1px solid var(--border);min-height:0;}
             #cq-right{overflow-y:auto;min-height:0;}
             @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{display:none;}}
@@ -2333,36 +2333,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
             </div><!-- /#cq-left -->
 
-            <!-- RIGHT: clima + PDF -->
+            <!-- RIGHT: PDF -->
             <div id="cq-right">
-
-              <!-- Clima -->
-              <div class="cq-sec-hd">
-                <div class="cq-sec-dot" style="background:#60a5fa"></div>
-                <div class="cq-sec-title">Tiempo · Valle de Güímar</div>
-                <div class="cq-sec-right">
-                  <a href="https://apalmet.es/prediccion/municipio/Guimar" target="_blank" style="text-decoration:none">
-                    <button class="cq-btn">Apalmet ↗</button>
-                  </a>
-                </div>
-              </div>
-              <div class="cq-wx" id="cq-wx-container">
-                <div style="color:var(--muted);font-size:11px;font-family:var(--mono)">⟳ Cargando…</div>
-              </div>
-
-              <!-- Calidad aire -->
-              <div class="cq-sec-hd">
-                <div class="cq-sec-dot" style="background:#10b981"></div>
-                <div class="cq-sec-title">Calidad del aire · Güímar</div>
-                <div class="cq-sec-right">
-                  <a href="https://apalmet.es/observacion/calidad_aire_municipio/Guimar" target="_blank" style="text-decoration:none">
-                    <button class="cq-btn">Apalmet ↗</button>
-                  </a>
-                </div>
-              </div>
-              <div style="padding:10px 12px;border-bottom:1px solid var(--border)" id="cq-aqi">
-                <div style="color:var(--muted);font-size:11px;font-family:var(--mono)">⟳ Cargando…</div>
-              </div>
 
               <!-- PDF -->
               <div class="cq-sec-hd">
@@ -8725,6 +8697,41 @@ if(typeof waitForFirebase==='function'){
     cqDibujaRendimientos();
   }
 
+  /* ─── Suscripción directa Firebase para Calidad ─────────────────────────── */
+  // El da-panel original fue eliminado. Calidad se suscribe ella misma.
+  let _cqFbSuscrito = false;
+  function cqSuscribirFirebase(){
+    if(_cqFbSuscrito) return;
+    if(!window._fb || !window._fb.onValue) return;
+    _cqFbSuscrito = true;
+    const {ref, db, onValue} = window._fb;
+    // Asegurar que _ST_dash existe
+    if(!window._ST_dash) window._ST_dash = {caudales:{}, consumo:{}, reactor:{}, sms:{}, meta:null};
+    try{ onValue(ref(db,'caudales'), s=>{
+      window._ST_dash.caudales = s.val()||{};
+      const panel=document.getElementById('panel-calidad');
+      if(panel&&panel.classList.contains('active')) cqRedibujarTodo();
+    }); }catch(e){}
+    try{ onValue(ref(db,'consumo'), s=>{
+      window._ST_dash.consumo = s.val()||{};
+      const panel=document.getElementById('panel-calidad');
+      if(panel&&panel.classList.contains('active')) cqRedibujarTodo();
+    }); }catch(e){}
+    try{ onValue(ref(db,'reactor'), s=>{
+      window._ST_dash.reactor = s.val()||{};
+      const panel=document.getElementById('panel-calidad');
+      if(panel&&panel.classList.contains('active')) cqRedibujarTodo();
+    }); }catch(e){}
+  }
+  // Intentar suscribir tan pronto Firebase esté listo
+  if(window._fb && window._fb.onValue){
+    cqSuscribirFirebase();
+  } else {
+    window.addEventListener('firebase-ready', cqSuscribirFirebase, {once:true});
+    // También intentar con delay por si firebase-ready ya se disparó
+    setTimeout(cqSuscribirFirebase, 2000);
+  }
+
   /* ─── Mes picker ─────────────────────────────────────────────────────────── */
   const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   let cqSelMes=new Date().getMonth();
@@ -8854,7 +8861,7 @@ if(typeof waitForFirebase==='function'){
     if(id==='calidad'){
       setTimeout(()=>{
         cqInitMonthPicker();
-        cqLoadWeather();
+        cqSuscribirFirebase();
         cqRedibujarTodo();
         let intentos=0;
         const retry=setInterval(()=>{
