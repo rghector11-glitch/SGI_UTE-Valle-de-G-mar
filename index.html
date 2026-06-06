@@ -2072,13 +2072,13 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #panel-calidad.active{display:flex;flex:1;overflow:hidden;min-height:0;}
             /* KPI topstrip */
             #cq-kpi-strip{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;}
-            .cq-kpi{flex:1;padding:9px 14px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+            .cq-kpi{flex:1;padding:6px 12px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:1px;}
             .cq-kpi:last-child{border-right:none;}
             .cq-kpi-lbl{font-size:9px;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;font-family:var(--mono);}
-            .cq-kpi-val{font-family:var(--cond);font-size:20px;font-weight:700;line-height:1;}
+            .cq-kpi-val{font-family:var(--cond);font-size:17px;font-weight:700;line-height:1;}
             .cq-kpi-sub{font-size:9px;color:var(--muted2);}
             /* section headers */
-            .cq-sec-hd{display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;flex-shrink:0;}
+            .cq-sec-hd{display:flex;align-items:center;gap:7px;padding:5px 12px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;flex-shrink:0;}
             .cq-sec-dot{width:5px;height:5px;border-radius:50%;}
             .cq-sec-title{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);}
             .cq-sec-right{margin-left:auto;display:flex;gap:5px;}
@@ -2086,12 +2086,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-btn:hover{background:var(--accent);color:#000;border-color:var(--accent);}
             .cq-btn-accent{background:rgba(0,201,167,.1);border-color:var(--accent);color:var(--accent);}
             /* chart blocks */
-            .cq-chart-block{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+            .cq-chart-block{padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
             .cq-chart-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
             .cq-chart-title{font-size:12px;font-weight:600;}
-            .cq-chart-big{font-family:var(--cond);font-size:24px;font-weight:700;line-height:1;}
-            .cq-chart-meta{font-size:9px;color:var(--muted);margin-bottom:7px;}
-            .cq-leg{display:flex;gap:12px;margin-bottom:6px;}
+            .cq-chart-big{font-family:var(--cond);font-size:19px;font-weight:700;line-height:1;}
+            .cq-chart-meta{font-size:9px;color:var(--muted);margin-bottom:2px;}
+            .cq-leg{display:flex;gap:10px;margin-bottom:3px;}
             .cq-leg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted2);}
             .cq-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
             /* gauge grid */
@@ -2108,8 +2108,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-trh-l{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
             /* reactivos table */
             .cq-table{width:100%;border-collapse:collapse;}
-            .cq-table th{font-size:8px;color:var(--muted);font-weight:600;letter-spacing:.7px;text-transform:uppercase;padding:5px 10px;border-bottom:1px solid var(--border);text-align:left;font-family:var(--mono);}
-            .cq-table td{font-size:11px;padding:6px 10px;border-bottom:1px solid rgba(30,58,95,.35);}
+            .cq-table th{font-size:8px;color:var(--muted);font-weight:600;letter-spacing:.7px;text-transform:uppercase;padding:3px 8px;border-bottom:1px solid var(--border);text-align:left;font-family:var(--mono);}
+            .cq-table td{font-size:10px;padding:3px 8px;border-bottom:1px solid rgba(30,58,95,.35);}
             .cq-table tr:hover td{background:rgba(255,255,255,.03);}
             .cq-stock-bar{height:4px;border-radius:2px;background:var(--border);overflow:hidden;width:70px;display:inline-block;vertical-align:middle;margin-right:5px;}
             .cq-stock-fill{height:100%;border-radius:2px;}
@@ -2151,7 +2151,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-pdf-btn:disabled{opacity:.4;cursor:not-allowed;}
             /* 2-col layout */
             #cq-body{display:grid;grid-template-columns:1fr 320px;flex:1;overflow:hidden;min-height:0;}
-            #cq-left{overflow-y:auto;border-right:1px solid var(--border);min-height:0;}
+            #cq-left{overflow:hidden;border-right:1px solid var(--border);min-height:0;display:grid;grid-template-rows:auto 1fr;}
             #cq-right{overflow-y:auto;min-height:0;}
             @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{display:none;}}
           </style>
@@ -2200,6 +2200,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
               </div>
 
+              <!-- Grid interno: gráficas izquierda | rend+reactivos derecha -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;overflow:hidden;min-height:0">
+
+                <!-- COL A: Gráficas -->
+                <div style="overflow-y:auto;border-right:1px solid var(--border)">
+
               <!-- Caudal chart -->
               <div class="cq-chart-block">
                 <div class="cq-chart-row">
@@ -2211,7 +2217,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:var(--accent)"></div>EDARI</div>
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#8b5cf6"></div>EDARU</div>
                 </div>
-                <div id="cq-caudal-chart" style="height:110px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+                <div id="cq-caudal-chart" style="height:75px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
               <!-- Eléctrico chart -->
@@ -2225,7 +2231,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#10b981"></div>EDARI</div>
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#a78bfa"></div>EDARU</div>
                 </div>
-                <div id="cq-elec-chart" style="height:110px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+                <div id="cq-elec-chart" style="height:75px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
               <!-- Edad fango -->
@@ -2235,39 +2241,21 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div class="cq-chart-big" style="color:#f59e0b" id="cq-fango-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span></div>
                 </div>
                 <div class="cq-chart-meta" id="cq-fango-meta">Cargando…</div>
-                <div id="cq-fango-chart" style="height:95px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+                <div id="cq-fango-chart" style="height:70px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
-              <!-- KPIs hidráulicos -->
-              <div class="cq-sec-hd">
-                <div class="cq-sec-dot" style="background:#60a5fa"></div>
-                <div class="cq-sec-title">KPIs Hidráulicos</div>
-              </div>
-              <div class="cq-trh-row">
-                <div class="cq-trh-item">
-                  <div class="cq-trh-l">TRH</div>
-                  <div class="cq-trh-n" style="color:#60a5fa" id="cq-trh-n">— h</div>
-                  <div style="font-size:8px;color:var(--muted);margin-top:2px">Vol ÷ Q × 24</div>
-                </div>
-                <div class="cq-trh-item">
-                  <div class="cq-trh-l">Carga hidráulica</div>
-                  <div class="cq-trh-n" style="color:#f59e0b">0,487 m³/m²·h</div>
-                  <div style="font-size:8px;color:var(--muted);margin-top:2px">Decantador</div>
-                </div>
-                <div class="cq-trh-item">
-                  <div class="cq-trh-l">Carga orgánica</div>
-                  <div class="cq-trh-n" style="color:#10b981">0,12 kgDQO/m³·d</div>
-                  <div style="font-size:8px;color:var(--muted);margin-top:2px">Reactor EDARI</div>
-                </div>
-              </div>
+                </div><!-- /col A -->
+
+                <!-- COL B: Rendimientos + Reactivos -->
+                <div style="overflow-y:auto;display:flex;flex-direction:column">
 
               <!-- Rendimientos -->
-              <div class="cq-sec-hd">
+              <div class="cq-sec-hd" style="position:relative">
                 <div class="cq-sec-dot" style="background:#10b981"></div>
                 <div class="cq-sec-title">Rendimientos · <span id="cq-rend-sub">Cargando…</span></div>
               </div>
               <!-- Anillos SVG rendimientos (estilo dashboard) -->
-              <div id="cq-rend-chart" style="padding:8px 14px 4px;flex-shrink:0">
+              <div id="cq-rend-chart" style="padding:4px 12px 2px;flex-shrink:0">
                 <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando rendimientos…</div>
               </div>
 
@@ -2279,7 +2267,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <button class="cq-btn" onclick="alert('Registro manual de entrada de reactivo')">+ Entrada</button>
                 </div>
               </div>
-              <div style="padding:8px 10px;border-bottom:1px solid var(--border)">
+              <div style="padding:4px 8px;border-bottom:1px solid var(--border)">
                 <table class="cq-table">
                   <thead>
                     <tr>
@@ -2325,12 +2313,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   </tbody>
                 </table>
               </div>
-              <!-- Mini tendencia reactivo -->
-              <div style="padding:8px 12px;border-bottom:1px solid var(--border)">
-                <div style="font-size:8px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono)">Tendencia consumo · Hipoclorito Na (kg/mes)</div>
-                <div style="height:70px;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--muted);font-family:var(--mono)">Histórico reactivos · próximamente en Firebase</span></div>
-              </div>
 
+
+                </div><!-- /col B -->
+              </div><!-- /grid interno -->
             </div><!-- /#cq-left -->
 
             <!-- RIGHT: PDF -->
