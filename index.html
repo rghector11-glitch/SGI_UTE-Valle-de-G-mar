@@ -2253,47 +2253,36 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div class="cq-sec-hd" style="position:relative">
                 <div class="cq-sec-dot" style="background:#10b981"></div>
                 <div class="cq-sec-title">Rendimientos · <span id="cq-rend-sub">—</span></div>
-                <div class="cq-sec-right">
-                  <button class="cq-btn" onclick="cqToggleRendManual()" id="cq-rend-manual-btn" title="Introducir valores manualmente">✎ Manual</button>
-                </div>
               </div>
-              <!-- Entrada manual de rendimientos (oculta por defecto) -->
-              <div id="cq-rend-manual" style="display:none;padding:6px 12px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.15)">
-                <div style="font-size:8px;color:var(--muted);font-family:var(--mono);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Valores manuales (%) — se usan si no hay datos Firebase</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
-                  <div><div style="font-size:8px;color:var(--muted);font-family:var(--mono);margin-bottom:2px">DQO</div><input id="cq-rm-dqo" type="number" min="0" max="100" placeholder="%" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 6px;outline:none"></div>
-                  <div><div style="font-size:8px;color:var(--muted);font-family:var(--mono);margin-bottom:2px">DBO₅</div><input id="cq-rm-dbo" type="number" min="0" max="100" placeholder="%" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 6px;outline:none"></div>
-                  <div><div style="font-size:8px;color:var(--muted);font-family:var(--mono);margin-bottom:2px">NT</div><input id="cq-rm-nt" type="number" min="0" max="100" placeholder="%" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 6px;outline:none"></div>
-                  <div><div style="font-size:8px;color:var(--muted);font-family:var(--mono);margin-bottom:2px">PT</div><input id="cq-rm-pt" type="number" min="0" max="100" placeholder="%" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 6px;outline:none"></div>
-                </div>
-                <div style="display:flex;gap:5px;margin-top:5px">
-                  <button onclick="cqRendManualAplicar()" style="font-size:9px;padding:3px 8px;border-radius:4px;background:var(--accent);color:#000;border:none;cursor:pointer;font-weight:700;font-family:var(--mono)">Aplicar</button>
-                  <button onclick="cqRendManualBorrar()" style="font-size:9px;padding:3px 8px;border-radius:4px;background:var(--card);color:var(--muted);border:1px solid var(--border);cursor:pointer;font-family:var(--mono)">Borrar manual</button>
-                </div>
-              </div>
-              <!-- Anillos SVG rendimientos (estilo dashboard) -->
+              <!-- Anillos SVG rendimientos calculados de reactor/{fecha} -->
               <div id="cq-rend-chart" style="padding:4px 12px 2px;flex-shrink:0">
                 <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando rendimientos…</div>
               </div>
 
-              <!-- Reactivos editable -->
+              <!-- Reactivos: tanques visuales + edición -->
               <div class="cq-sec-hd" style="position:relative">
                 <div class="cq-sec-dot" style="background:#f59e0b"></div>
                 <div class="cq-sec-title">Consumo de Reactivos</div>
                 <div class="cq-sec-right">
-                  <button class="cq-btn" onclick="cqReactivoNuevo()" title="Añadir reactivo">+ Añadir</button>
-                  <button class="cq-btn" onclick="cqReactivoGuardar()" style="background:rgba(0,201,167,.1);border-color:var(--accent);color:var(--accent)">✓ Guardar</button>
+                  <button class="cq-btn" id="cq-rq-view-btn" onclick="cqRQSetView('tanks')" style="background:rgba(245,158,11,.1);border-color:#f59e0b;color:#f59e0b">⬡ Tanques</button>
+                  <button class="cq-btn" id="cq-rq-table-btn" onclick="cqRQSetView('table')">☰ Editar</button>
+                  <button class="cq-btn" onclick="cqReactivoNuevo()" id="cq-rq-add-btn" style="display:none" title="Añadir reactivo">+ Añadir</button>
+                  <button class="cq-btn" onclick="cqReactivoGuardar()" id="cq-rq-save-btn" style="display:none;background:rgba(0,201,167,.1);border-color:var(--accent);color:var(--accent)">✓ Guardar</button>
                 </div>
               </div>
-              <div style="padding:4px 6px;border-bottom:1px solid var(--border);overflow-x:auto">
+              <!-- Vista tanques -->
+              <div id="cq-rq-tanks" style="padding:6px 10px;border-bottom:1px solid var(--border)">
+                <!-- generado por JS -->
+              </div>
+              <!-- Vista tabla edición -->
+              <div id="cq-rq-table-wrap" style="display:none;padding:4px 6px;border-bottom:1px solid var(--border);overflow-x:auto">
                 <table class="cq-table" id="cq-reactivos-table">
                   <thead>
                     <tr>
-                      <th>Reactivo</th><th>Unidad</th><th>Stock</th><th>Cons./mes</th><th>Stock máx</th><th>Estado</th><th style="width:24px"></th>
+                      <th>Reactivo</th><th>Tipo</th><th>Ud.</th><th>Cap. total</th><th>Vol. actual</th><th>Estado</th><th style="width:22px"></th>
                     </tr>
                   </thead>
-                  <tbody id="cq-reactivos-body">
-                  </tbody>
+                  <tbody id="cq-reactivos-body"></tbody>
                 </table>
               </div>
 
@@ -8556,16 +8545,19 @@ if(typeof waitForFirebase==='function'){
   function cqDibujaRendimientos(){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
+    const cont=document.getElementById('cq-rend-chart');
+    const nReactor=Object.keys(ST.reactor||{}).length;
+    if(!nReactor){
+      if(cont) cont.innerHTML='<div style="padding:12px;font-size:9px;color:var(--muted);font-family:var(--mono);text-align:center">Sin datos · Carga el SMS Diario (M-04) para calcular rendimientos</div>';
+      const rs=document.getElementById('cq-rend-sub'); if(rs) rs.textContent='Sin datos Firebase';
+      return;
+    }
     const dias=ultimosDias(ST.reactor,30,v=>v&&((+v.dqo_ent>0&&v.dqo_ef!=null)||(+v.dbo_ent>0&&v.dbo_ef!=null)||(+v.nt_ent>0&&v.nt_ef!=null)||(+v.pt_ent>0&&v.pt_ef!=null)));
-    // Fallback: valores manuales desde localStorage
-    let manual={};
-    try{ const rm=localStorage.getItem('sgi-cq-rend-manual'); if(rm) manual=JSON.parse(rm); }catch(e){}
-    function rendManual(key){ const v=manual[key]; return (v!=null&&!isNaN(v)&&+v>0)?{rend:+v,n:0,mE:null,mS:null,manual:true}:null; }
     const params=[
-      {lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias)||rendManual('dqo'), tipo:'semi'},
-      {lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias)||rendManual('dbo'), tipo:'semi'},
-      {lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias)||rendManual('nt'),  tipo:'bar'},
-      {lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias)||rendManual('pt'),  tipo:'bar'},
+      {lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias), tipo:'semi'},
+      {lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias), tipo:'semi'},
+      {lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias), tipo:'bar'},
+      {lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias), tipo:'bar'},
     ];
     function colRend(v){return v>=85?'#22c995':v>=70?'#f0b033':'#e54a64';}
     const W=440, H=100;
@@ -8588,7 +8580,7 @@ if(typeof waitForFirebase==='function'){
         <path d="${bgPath}" fill="none" stroke="${col}" stroke-width="${swSemi}" stroke-linecap="round"
           stroke-dasharray="${dash} ${semiPerim}" style="transition:stroke-dasharray .6s ease"/>
         <text x="${cx}" y="${cySemi-8}" text-anchor="middle" fill="${col}" font-size="22" font-weight="700" font-family="var(--mono,monospace)">${Math.round(v)}%</text>
-        <text x="${cx}" y="${cySemi+12}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="9" font-family="var(--mono,monospace)">${p.res.manual?'valor manual':p.res.mE.toFixed(0)+'→'+p.res.mS.toFixed(0)+' mg/L'}</text>
+        <text x="${cx}" y="${cySemi+12}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="9" font-family="var(--mono,monospace)">${p.res.mE!=null?p.res.mE.toFixed(0)+'→'+p.res.mS.toFixed(0)+' mg/L':p.res.n+'d'}</text>
         <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
       </g>`;
     }).join('');
@@ -8606,16 +8598,14 @@ if(typeof waitForFirebase==='function'){
         <rect x="${cx-barW/2}" y="${yTop}" width="${barW}" height="${barH}" rx="${barR}" fill="var(--border,#1f3252)"/>
         <rect x="${cx-barW/2}" y="${yTop}" width="${fw.toFixed(1)}" height="${barH}" rx="${barR}" fill="${col}" style="transition:width .6s ease"/>
         <text x="${cx}" y="${yTop+barH/2+4}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="var(--mono,monospace)">${Math.round(v)}%</text>
-        <text x="${cx}" y="${yTop+barH+14}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="var(--mono,monospace)">${p.res.manual?'valor manual':p.res.mE.toFixed(0)+'→'+p.res.mS.toFixed(0)+' mg/L'}</text>
+        <text x="${cx}" y="${yTop+barH+14}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="var(--mono,monospace)">${p.res.mE!=null?p.res.mE.toFixed(0)+'→'+p.res.mS.toFixed(0)+' mg/L':p.res.n+'d'}</text>
         <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
       </g>`;
     }).join('');
-    const cont=document.getElementById('cq-rend-chart');
     if(cont) cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:110px" preserveAspectRatio="xMidYMid meet">${semis}${bars}</svg>`;
     const nOk=params.filter(p=>p.res&&p.res.rend>=70).length;
-    const nMan=params.filter(p=>p.res&&p.res.manual).length;
     const rs=document.getElementById('cq-rend-sub');
-    if(rs) rs.textContent=dias.length>0?`${dias.length} días · ${nOk}/${params.length} OK`:(nMan>0?`${nMan} manual${nMan>1?'es':''} · ${nOk}/${params.length} OK`:'Sin datos — usa ✎ Manual');
+    if(rs) rs.textContent=dias.length>0?`${dias.length} días · ${nOk}/${params.length} parámetros OK`:'Sin datos analíticos · carga SMS Diario';
   }
 
   function cqActualizaKPIs(){
@@ -8837,6 +8827,7 @@ if(typeof waitForFirebase==='function'){
         cqInitMonthPicker();
         cqSuscribirFirebase();
         cqRQRender();
+        cqRQRenderTanks();
         cqRedibujarTodo();
         let intentos=0;
         const retry=setInterval(()=>{
@@ -8903,184 +8894,290 @@ if(typeof waitForFirebase==='function'){
 
   /* ─── Escuchar mensajes del simulador ────────────────────────────────────── */
   /* ─── REACTIVOS EDITABLES ────────────────────────────────────────────────── */
+  /* ─── REACTIVOS: depósito con volumen real ────────────────────────────── */
   const CQ_RQ_KEY = 'sgi-cq-reactivos';
+
   const CQ_RQ_DEFAULT = [
-    {nombre:'Hipoclorito Na',  desc:'Desinfección',    unidad:'kg', stock:18,  consumo:94,  max:200},
-    {nombre:'Cloruro férrico', desc:'Coagulante-P',    unidad:'kg', stock:260, consumo:502, max:500},
-    {nombre:'Antiespumante',   desc:'Reactor biol.',   unidad:'L',  stock:39,  consumo:50,  max:50},
-    {nombre:'Ácido acético',   desc:'Dosificación N',  unidad:'L',  stock:195, consumo:300, max:300},
-    {nombre:'Polímero',        desc:'Deshidratación',  unidad:'kg', stock:12,  consumo:40,  max:40},
+    {nombre:'Hipoclorito Na',  desc:'Desinfección',   tipo:'liquido', unidad:'L',  capacidad:1000, volumen_actual:180, historial:[]},
+    {nombre:'Cloruro férrico', desc:'Coagulante-P',   tipo:'liquido', unidad:'L',  capacidad:500,  volumen_actual:260, historial:[]},
+    {nombre:'Antiespumante',   desc:'Reactor biol.',  tipo:'liquido', unidad:'L',  capacidad:200,  volumen_actual:39,  historial:[]},
+    {nombre:'Ácido acético',   desc:'Dosificación N', tipo:'liquido', unidad:'L',  capacidad:500,  volumen_actual:195, historial:[]},
+    {nombre:'Polímero',        desc:'Deshidratación', tipo:'solido',  unidad:'kg', capacidad:50,   volumen_actual:12,  historial:[]},
   ];
 
-  function cqRQLoad(){ try{ const r=localStorage.getItem(CQ_RQ_KEY); return r?JSON.parse(r):JSON.parse(JSON.stringify(CQ_RQ_DEFAULT)); }catch(e){ return JSON.parse(JSON.stringify(CQ_RQ_DEFAULT)); } }
-  function cqRQSave(data){ try{ localStorage.setItem(CQ_RQ_KEY, JSON.stringify(data)); }catch(e){} }
+  function cqRQLoad(){
+    try{
+      const raw=localStorage.getItem(CQ_RQ_KEY);
+      if(raw){
+        const d=JSON.parse(raw);
+        d.forEach(x=>{
+          if(!x.tipo)              x.tipo='liquido';
+          if(!x.historial)         x.historial=[];
+          if(x.capacidad==null)    x.capacidad=x.max||100;
+          if(x.volumen_actual==null) x.volumen_actual=x.stock||0;
+        });
+        return d;
+      }
+      return JSON.parse(JSON.stringify(CQ_RQ_DEFAULT));
+    }catch(e){ return JSON.parse(JSON.stringify(CQ_RQ_DEFAULT)); }
+  }
+  function cqRQSave(data){ try{ localStorage.setItem(CQ_RQ_KEY,JSON.stringify(data)); }catch(e){} }
 
-  function cqRQEstado(stock, max){
-    const pct = max>0 ? (stock/max)*100 : 0;
-    if(pct<=20) return {tag:'CRÍTICO', cls:'cq-tag-crit', col:'#ef4444', pct};
-    if(pct<=50) return {tag:'MEDIO',   cls:'cq-tag-med',  col:'#f59e0b', pct};
-    return              {tag:'OK',     cls:'cq-tag-ok',   col:'#10b981', pct};
+  function cqRQEstado(vol,cap){
+    const pct=cap>0?(vol/cap)*100:0;
+    if(pct<=15) return {tag:'CRÍTICO',cls:'cq-tag-crit',col:'#ef4444',pct};
+    if(pct<=40) return {tag:'BAJO',   cls:'cq-tag-med', col:'#f59e0b',pct};
+    return              {tag:'OK',    cls:'cq-tag-ok',  col:'#10b981',pct};
+  }
+
+  let _cqRQView='tanks';
+  window.cqRQSetView=function(v){
+    _cqRQView=v;
+    const tEl=document.getElementById('cq-rq-tanks');
+    const tbEl=document.getElementById('cq-rq-table-wrap');
+    const vB=document.getElementById('cq-rq-view-btn');
+    const tB=document.getElementById('cq-rq-table-btn');
+    const aB=document.getElementById('cq-rq-add-btn');
+    const sB=document.getElementById('cq-rq-save-btn');
+    const ac='rgba(245,158,11,.1)',bo='#f59e0b',co='#f59e0b';
+    if(v==='tanks'){
+      if(tEl) tEl.style.display=''; if(tbEl) tbEl.style.display='none';
+      if(vB){vB.style.background=ac;vB.style.borderColor=bo;vB.style.color=co;}
+      if(tB){tB.style.background='';tB.style.borderColor='';tB.style.color='';}
+      if(aB) aB.style.display='none'; if(sB) sB.style.display='none';
+      cqRQRenderTanks();
+    }else{
+      if(tEl) tEl.style.display='none'; if(tbEl) tbEl.style.display='';
+      if(tB){tB.style.background=ac;tB.style.borderColor=bo;tB.style.color=co;}
+      if(vB){vB.style.background='';vB.style.borderColor='';vB.style.color='';}
+      if(aB) aB.style.display=''; if(sB) sB.style.display='';
+      cqRQRender();
+    }
+  };
+
+  function _svgTank(pct,col,uid,W,H){
+    const tH=72,tY=18,tW=46,tX=(W-tW)/2,RX=5;
+    const lH=Math.round(tH*Math.min(100,Math.max(0,pct))/100);
+    const lY=tY+tH-lH,wY=lY+2;
+    const wave='M '+tX+' '+wY+' Q '+(tX+tW*.25)+' '+(wY-3)+' '+(tX+tW*.5)+' '+wY+' Q '+(tX+tW*.75)+' '+(wY+3)+' '+(tX+tW)+' '+wY+' L '+(tX+tW)+' '+(tY+tH)+' L '+tX+' '+(tY+tH)+' Z';
+    return '<rect x="'+(tX+2)+'" y="'+(tY+2)+'" width="'+tW+'" height="'+tH+'" rx="'+RX+'" fill="rgba(0,0,0,.25)"/>'+
+      '<rect x="'+tX+'" y="'+tY+'" width="'+tW+'" height="'+tH+'" rx="'+RX+'" fill="var(--card,#0f1e38)" stroke="'+col+'" stroke-width="1.5" stroke-opacity=".5"/>'+
+      (lH>2?'<clipPath id="cp'+uid+'"><rect x="'+tX+'" y="'+tY+'" width="'+tW+'" height="'+tH+'" rx="'+RX+'"/></clipPath>'+
+        '<g clip-path="url(#cp'+uid+')">'+
+          '<rect x="'+tX+'" y="'+lY+'" width="'+tW+'" height="'+lH+'" fill="'+col+'" opacity=".28"/>'+
+          (lH>6?'<path d="'+wave+'" fill="'+col+'" opacity=".5"/>'  :'')+
+        '</g>':'')+
+      '<rect x="'+tX+'" y="'+tY+'" width="'+tW+'" height="'+tH+'" rx="'+RX+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-opacity=".5"/>'+
+      '<rect x="'+(tX+7)+'" y="'+(tY-8)+'" width="'+(tW-14)+'" height="10" rx="2" fill="'+col+'" opacity=".55"/>'+
+      '<line x1="'+(W/2)+'" y1="'+(tY+tH)+'" x2="'+(W/2)+'" y2="'+(tY+tH+6)+'" stroke="'+col+'" stroke-width="2.5" stroke-opacity=".4" stroke-linecap="round"/>'+
+      '<circle cx="'+(W/2)+'" cy="'+(tY+tH+8)+'" r="3.5" fill="'+col+'" opacity=".38"/>'+
+      '<text x="'+(W/2)+'" y="'+(tY+tH/2+4)+'" text-anchor="middle" fill="'+(pct<18?col:'var(--text,#e2e8f0)')+'" font-size="11" font-weight="700" font-family="var(--mono,monospace)">'+Math.round(pct)+'%</text>';
+  }
+
+  function _svgBag(pct,col,W,H){
+    const p=Math.min(100,Math.max(0,pct));
+    const bT=14,bBot=H-26,bW=38,bX=(W-bW)/2,bH=bBot-bT,bR=bX+bW,bbL=bX+4,bbR=bX+bW-4;
+    const fH=Math.round(bH*p/100),fY=bT+bH-fH;
+    const body='M '+bX+' '+bT+' C '+(bX-4)+' '+(bT+bH*.3)+' '+(bbL-4)+' '+(bBot-10)+' '+bbL+' '+bBot+' L '+bbR+' '+bBot+' C '+(bbR+4)+' '+(bBot-10)+' '+(bR+4)+' '+(bT+bH*.3)+' '+bR+' '+bT+' Z';
+    const cid='bg'+Math.random().toString(36).slice(2,6);
+    return '<defs><clipPath id="'+cid+'"><path d="'+body+'"/></clipPath></defs>'+
+      '<path d="'+body+'" fill="var(--card,#0f1e38)" stroke="'+col+'" stroke-width="1.5" stroke-opacity=".55" stroke-linejoin="round"/>'+
+      (fH>2?'<g clip-path="url(#'+cid+')"><rect x="'+(bX-6)+'" y="'+fY+'" width="'+(bW+12)+'" height="'+fH+'" fill="'+col+'" opacity=".32"/></g>':'')+
+      '<path d="'+body+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-opacity=".55"/>'+
+      '<path d="M '+(bX+4)+' '+bT+' L '+(W/2)+' '+(bT-9)+' L '+(bR-4)+' '+bT+'" fill="none" stroke="'+col+'" stroke-width="1.2" stroke-opacity=".4" stroke-linejoin="round"/>'+
+      '<line x1="'+(bX+8)+'" y1="'+bT+'" x2="'+(bR-8)+'" y2="'+bT+'" stroke="'+col+'" stroke-width="2" stroke-opacity=".32"/>'+
+      '<text x="'+(W/2)+'" y="'+(bT+bH*.55)+'" text-anchor="middle" fill="'+(p<20?col:'var(--text,#e2e8f0)')+'" font-size="11" font-weight="700" font-family="var(--mono,monospace)">'+Math.round(p)+'%</text>';
+  }
+
+  function _svgHist(hist,col,W,H){
+    if(!hist||!hist.length) return '<text x="'+(W/2)+'" y="'+(H/2+3)+'" text-anchor="middle" fill="var(--muted)" font-size="7" font-family="var(--mono,monospace)">Sin registros</text>';
+    const last=hist.slice(-7);
+    const maxV=Math.max(...last.map(h=>+h.consumo||0),1);
+    const bw=Math.floor((W-6)/last.length);
+    const mxH=H-16;
+    return last.map(function(h,i){
+      const bh=Math.max(2,Math.round(mxH*(+h.consumo||0)/maxV));
+      const x=3+i*bw,y=H-13-bh;
+      return '<rect x="'+(x+1)+'" y="'+y+'" width="'+(bw-2)+'" height="'+bh+'" rx="1.5" fill="'+col+'" opacity=".6"/>'+
+        '<text x="'+(x+bw/2)+'" y="'+(H-3)+'" text-anchor="middle" fill="var(--muted)" font-size="6" font-family="var(--mono,monospace)">'+(h.semana||('S'+(i+1)))+'</text>'+
+        '<text x="'+(x+bw/2)+'" y="'+(y-2)+'" text-anchor="middle" fill="'+col+'" font-size="5.5" font-family="var(--mono,monospace)">'+h.consumo+'</text>';
+    }).join('');
+  }
+
+  function cqRQRenderTanks(){
+    const cont=document.getElementById('cq-rq-tanks');
+    if(!cont) return;
+    const data=cqRQLoad();
+    if(!data.length){
+      cont.innerHTML='<div style="color:var(--muted);font-size:9px;font-family:var(--mono);padding:12px;text-align:center">Sin reactivos. Pulsa \u2630 Editar para a\u00f1adir.</div>';
+      return;
+    }
+    const COLS=['#00c9a7','#60a5fa','#f59e0b','#a78bfa','#ef4444','#10b981','#fb923c','#e879f9'];
+    const W=84,H=128,cW=84,cH=40;
+    const cards=data.map(function(r,i){
+      const col=COLS[i%COLS.length];
+      const cap=+r.capacidad||1,vol=Math.max(0,+r.volumen_actual||0);
+      const pct=(vol/cap)*100;
+      const est=cqRQEstado(vol,cap);
+      const esLiq=(r.tipo||'liquido')==='liquido';
+      const shape=esLiq?_svgTank(pct,col,'t'+i,W,H):_svgBag(pct,col,W,H);
+      const chart=_svgHist(r.historial||[],col,cW,cH);
+      const hist4=(r.historial||[]).slice(-4);
+      const mediaS=hist4.length?hist4.reduce(function(a,h){return a+(+h.consumo||0);},0)/hist4.length:null;
+      const diasR=mediaS?Math.round(vol/mediaS*7):null;
+      const dCol=diasR!=null?(diasR<=7?'#ef4444':diasR<=21?'#f59e0b':'#10b981'):'var(--muted)';
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;background:var(--card,#0c1a30);border:1px solid var(--border,#1e3a5f);border-radius:8px">'+
+        '<div style="font-size:7px;color:var(--muted);font-family:var(--mono)">'+(esLiq?'\ud83d\udca7 L\u00cdQUIDO':'\ud83d\udce6 S\u00d3LIDO')+'</div>'+
+        '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'+shape+'</svg>'+
+        '<div style="font-size:8px;font-weight:700;color:var(--text);font-family:var(--mono);text-align:center;max-width:'+(W+4)+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.nombre+'</div>'+
+        '<div style="font-size:7px;color:var(--muted);font-family:var(--mono)">'+(r.desc||'')+'</div>'+
+        '<div style="font-size:9px;font-weight:700;color:'+est.col+';font-family:var(--mono)">'+vol.toLocaleString('es-ES')+' / '+cap.toLocaleString('es-ES')+' '+r.unidad+'</div>'+
+        '<span class="cq-tag '+est.cls+'" style="font-size:7px">'+est.tag+' \u00b7 '+Math.round(pct)+'%</span>'+
+        '<div style="font-size:7px;color:'+dCol+';font-family:var(--mono);text-align:center">'+(diasR!=null?'~'+diasR+'d restantes':'Registra consumo semanal')+'</div>'+
+        '<button onclick="cqRQAbrirConsumo('+i+')" style="font-size:8px;padding:2px 8px;border-radius:4px;background:rgba(0,201,167,.12);border:1px solid var(--accent);color:var(--accent);cursor:pointer;font-family:var(--mono);margin-top:1px">+ Consumo sem.</button>'+
+        '<div style="font-size:7px;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);width:100%;text-align:center;padding-top:2px;margin-top:2px">Hist. consumo sem.</div>'+
+        '<svg width="'+cW+'" height="'+cH+'" viewBox="0 0 '+cW+' '+cH+'">'+chart+'</svg>'+
+        '</div>';
+    }).join('');
+    cont.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;align-items:flex-end;padding:4px 2px">'+cards+'</div>';
   }
 
   function cqRQRender(){
-    const tbody = document.getElementById('cq-reactivos-body');
+    const tbody=document.getElementById('cq-reactivos-body');
     if(!tbody) return;
-    const data = cqRQLoad();
-    tbody.innerHTML = data.map((r,i)=>{
-      const est = cqRQEstado(+r.stock, +r.max);
-      const dias = r.consumo>0 ? Math.round((+r.stock/+r.consumo)*30) : '∞';
-      const diasCol = dias<=5?'#ef4444':dias<=15?'#f59e0b':'#10b981';
-      return `<tr data-idx="${i}">
-        <td>
-          <input class="cq-rq-inp" data-field="nombre" value="${r.nombre}" style="font-weight:600;width:90px">
-          <br><input class="cq-rq-inp cq-rq-desc" data-field="desc" value="${r.desc}" style="font-size:8px;color:var(--muted);width:90px">
-        </td>
-        <td><input class="cq-rq-inp" data-field="unidad" value="${r.unidad}" style="width:28px;text-align:center"></td>
-        <td>
-          <div class="cq-stock-bar"><div class="cq-stock-fill" style="width:${Math.min(est.pct,100).toFixed(0)}%;background:${est.col}"></div></div>
-          <input class="cq-rq-inp" data-field="stock" type="number" value="${r.stock}" style="width:48px;font-family:var(--mono)" min="0">
-        </td>
-        <td><input class="cq-rq-inp" data-field="consumo" type="number" value="${r.consumo}" style="width:48px;font-family:var(--mono)" min="0"></td>
-        <td><input class="cq-rq-inp" data-field="max" type="number" value="${r.max}" style="width:48px;font-family:var(--mono)" min="1" title="Stock máximo (para calcular %)" placeholder="Max"></td>
-        <td>
-          <span class="cq-tag ${est.cls}">${est.tag}</span>
-          <div style="font-size:8px;color:${diasCol};font-family:var(--mono);margin-top:2px">~${dias}d</div>
-        </td>
-        <td>
-          <button onclick="cqRQEliminar(${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:2px 4px" title="Eliminar">✕</button>
-        </td>
-      </tr>`;
+    const data=cqRQLoad();
+    tbody.innerHTML=data.map(function(r,i){
+      const cap=+r.capacidad||1,vol=Math.max(0,+r.volumen_actual||0);
+      const est=cqRQEstado(vol,cap);
+      const tipo=r.tipo||'liquido';
+      const hist=r.historial||[];
+      const hist4=hist.slice(-4);
+      const mediaS=hist4.length?hist4.reduce(function(a,h){return a+(+h.consumo||0);},0)/hist4.length:null;
+      const diasR=mediaS?Math.round(vol/mediaS*7):null;
+      const dCol=diasR!=null?(diasR<=7?'#ef4444':diasR<=21?'#f59e0b':'#10b981'):'var(--muted)';
+      return '<tr data-idx="'+i+'">'+
+        '<td>'+
+          '<input class="cq-rq-inp" data-field="nombre" value="'+r.nombre+'" style="font-weight:600;width:92px"><br>'+
+          '<input class="cq-rq-inp" data-field="desc" value="'+(r.desc||'')+'" style="font-size:8px;color:var(--muted);width:92px">'+
+        '</td>'+
+        '<td>'+
+          '<select class="cq-rq-sel" data-field="tipo">'+
+            '<option value="liquido" '+(tipo==='liquido'?'selected':'')+'>&#x1F4A7; L\u00edq.</option>'+
+            '<option value="solido"  '+(tipo==='solido' ?'selected':'')+'>&#x1F4E6; S\u00f3l.</option>'+
+          '</select>'+
+        '</td>'+
+        '<td><input class="cq-rq-inp" data-field="unidad" value="'+r.unidad+'" style="width:22px;text-align:center"></td>'+
+        '<td style="text-align:center">'+
+          '<div style="font-size:8px;color:var(--muted);font-family:var(--mono)">Cap. total</div>'+
+          '<input class="cq-rq-inp" data-field="capacidad" type="number" value="'+r.capacidad+'" style="width:64px;font-family:var(--mono);font-size:11px" placeholder="ej: 1000">'+
+        '</td>'+
+        '<td style="text-align:center">'+
+          '<div style="font-size:8px;color:var(--muted);font-family:var(--mono)">Vol. actual</div>'+
+          '<input class="cq-rq-inp" data-field="volumen_actual" type="number" value="'+vol+'" style="width:64px;font-family:var(--mono);font-size:11px;font-weight:700;color:'+est.col+'" min="0" max="'+r.capacidad+'" placeholder="ej: 500">'+
+          '<div class="cq-stock-bar" style="margin-top:2px"><div class="cq-stock-fill" style="width:'+Math.min(est.pct,100).toFixed(0)+'%;background:'+est.col+'"></div></div>'+
+          '<div><button onclick="cqRQAbrirConsumo('+i+')" style="font-size:8px;margin-top:3px;padding:1px 6px;border-radius:3px;background:rgba(0,201,167,.12);border:1px solid var(--accent);color:var(--accent);cursor:pointer;font-family:var(--mono)">+ Consumo sem.</button></div>'+
+        '</td>'+
+        '<td>'+
+          '<span class="cq-tag '+est.cls+'">'+est.tag+'</span>'+
+          '<div style="font-size:8px;color:'+dCol+';font-family:var(--mono);margin-top:2px">'+(diasR!=null?'~'+diasR+'d':'-')+'</div>'+
+        '</td>'+
+        '<td><button onclick="cqRQEliminar('+i+')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:2px 4px" title="Eliminar">\u2715</button></td>'+
+      '</tr>';
     }).join('');
-    // Estilos inline inputs
-    tbody.querySelectorAll('.cq-rq-inp').forEach(el=>{
-      el.style.cssText += ';background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text,#e2e8f0);font-family:inherit;font-size:10px;outline:none;transition:border-color .15s;padding:1px 2px;';
-      el.addEventListener('focus', e=>e.target.style.borderBottomColor='var(--accent)');
-      el.addEventListener('blur',  e=>e.target.style.borderBottomColor='transparent');
+    tbody.querySelectorAll('.cq-rq-inp').forEach(function(el){
+      el.style.cssText+=';background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text,#e2e8f0);font-family:inherit;font-size:10px;outline:none;transition:border-color .15s;padding:1px 2px;';
+      el.addEventListener('focus',function(e){e.target.style.borderBottomColor='var(--accent)';});
+      el.addEventListener('blur', function(e){e.target.style.borderBottomColor='transparent';});
+    });
+    tbody.querySelectorAll('.cq-rq-sel').forEach(function(el){
+      el.style.cssText+=';background:var(--card);border:1px solid var(--border);border-radius:3px;color:var(--text);outline:none;cursor:pointer;font-size:9px;padding:1px 2px;';
     });
   }
 
-  window.cqReactivoGuardar = function(){
-    const tbody = document.getElementById('cq-reactivos-body');
+  window.cqReactivoGuardar=function(){
+    const tbody=document.getElementById('cq-reactivos-body');
     if(!tbody) return;
-    const data = cqRQLoad();
-    tbody.querySelectorAll('tr[data-idx]').forEach(tr=>{
-      const i = +tr.dataset.idx;
+    const data=cqRQLoad();
+    tbody.querySelectorAll('tr[data-idx]').forEach(function(tr){
+      const i=+tr.dataset.idx;
       if(!data[i]) return;
-      tr.querySelectorAll('.cq-rq-inp').forEach(inp=>{
-        const f = inp.dataset.field;
-        if(f) data[i][f] = inp.type==='number' ? +inp.value : inp.value;
+      tr.querySelectorAll('.cq-rq-inp').forEach(function(inp){
+        const f=inp.dataset.field;
+        if(f) data[i][f]=inp.type==='number'?+inp.value:inp.value;
+      });
+      tr.querySelectorAll('.cq-rq-sel').forEach(function(sel){
+        const f=sel.dataset.field;
+        if(f) data[i][f]=sel.value;
       });
     });
     cqRQSave(data);
     cqRQRender();
-    // Flash feedback en botón
-    const btn = document.querySelector('button[onclick="cqReactivoGuardar()"]');
-    if(btn){ const orig=btn.textContent; btn.textContent='✓ Guardado'; setTimeout(()=>btn.textContent=orig,1500); }
+    cqRQRenderTanks();
+    const btn=document.querySelector('button[onclick="cqReactivoGuardar()"]');
+    if(btn){const orig=btn.textContent;btn.textContent='\u2713 Guardado';setTimeout(function(){btn.textContent=orig;},1500);}
   };
 
-  window.cqReactivoNuevo = function(){
-    const data = cqRQLoad();
-    data.push({nombre:'Nuevo reactivo', desc:'', unidad:'kg', stock:0, consumo:0, max:100});
+  window.cqReactivoNuevo=function(){
+    const data=cqRQLoad();
+    data.push({nombre:'Nuevo reactivo',desc:'',tipo:'liquido',unidad:'L',capacidad:100,volumen_actual:100,historial:[]});
     cqRQSave(data);
     cqRQRender();
-    // Enfocar el nombre del nuevo
-    const rows = document.querySelectorAll('#cq-reactivos-body tr');
+    const rows=document.querySelectorAll('#cq-reactivos-body tr');
     if(rows.length) rows[rows.length-1].querySelector('.cq-rq-inp').focus();
   };
 
-  window.cqRQEliminar = function(i){
-    const data = cqRQLoad();
-    const nombre = data[i] ? data[i].nombre : 'este reactivo';
-    if(!confirm(`¿Eliminar "${nombre}"?\nEsta acción no se puede deshacer.`)) return;
+  window.cqRQEliminar=function(i){
+    const data=cqRQLoad();
+    const nombre=data[i]?data[i].nombre:'este reactivo';
+    if(!confirm('\u00bfEliminar "'+nombre+'"?\nEsta acci\u00f3n no se puede deshacer.')) return;
     data.splice(i,1);
     cqRQSave(data);
     cqRQRender();
+    cqRQRenderTanks();
   };
 
-  // Inicializar tabla al cargar
-  window.addEventListener('load', ()=>{ setTimeout(cqRQRender, 200); });
-
-  /* ── Tooltip para gráficas del módulo Calidad ──────────────────────────── */
-  (function(){
-    // Reutilizar #da-tooltip si existe, o crear uno propio
-    function getCQTooltip(){
-      let tt=document.getElementById('cq-tt');
-      if(!tt){
-        tt=document.createElement('div');
-        tt.id='cq-tt';
-        tt.style.cssText='position:fixed;pointer-events:none;z-index:9999;background:rgba(10,20,36,.95);border:1px solid #1e3a5f;border-radius:6px;padding:5px 9px;font-family:var(--mono,monospace);font-size:9px;color:#e2e8f0;white-space:nowrap;opacity:0;transition:opacity .12s;box-shadow:0 4px 12px rgba(0,0,0,.4);';
-        document.body.appendChild(tt);
-      }
-      return tt;
-    }
-    function showTip(e, tip){
-      const tt=getCQTooltip();
-      const parts=tip.split('|');
-      const lbl=parts[0]||'', date=parts[1]||'', val=parts[2]||'';
-      tt.innerHTML=`<span style="color:var(--accent,#3aafe8);font-weight:700;margin-right:5px">${lbl}</span><span style="color:#8ba0bd;margin-right:5px">${date}</span><span style="color:#fff;font-weight:700">${val}</span>`;
-      tt.style.opacity='1';
-      moveTip(e);
-    }
-    function moveTip(e){
-      const tt=getCQTooltip();
-      const x=e.clientX+14, y=e.clientY-28;
-      tt.style.left=Math.min(x, window.innerWidth-tt.offsetWidth-10)+'px';
-      tt.style.top=Math.max(y, 6)+'px';
-    }
-    function hideTip(){ getCQTooltip().style.opacity='0'; }
-
-    document.addEventListener('pointerover',function(e){
-      const el=e.target.closest('[data-tip]');
-      if(!el) return;
-      // Solo actuar si estamos dentro de panel-calidad
-      if(!el.closest('#panel-calidad')) return;
-      showTip(e, el.dataset.tip);
-    });
-    document.addEventListener('pointermove',function(e){
-      if(getCQTooltip().style.opacity==='1') moveTip(e);
-    });
-    document.addEventListener('pointerout',function(e){
-      const el=e.target.closest('[data-tip]');
-      if(el&&el.closest('#panel-calidad')) hideTip();
-    });
-  })();
-
-  /* ── Rendimientos manuales ──────────────────────────────────────────────── */
-  window.cqToggleRendManual = function(){
-    const el=document.getElementById('cq-rend-manual');
-    if(!el) return;
-    const showing = el.style.display!=='none';
-    el.style.display = showing?'none':'block';
-    // Cargar valores guardados en inputs
-    if(!showing){
-      try{
-        const rm=localStorage.getItem('sgi-cq-rend-manual');
-        if(rm){
-          const m=JSON.parse(rm);
-          ['dqo','dbo','nt','pt'].forEach(k=>{
-            const inp=document.getElementById('cq-rm-'+k);
-            if(inp&&m[k]!=null) inp.value=m[k];
-          });
-        }
-      }catch(e){}
-    }
+  /* ── Modal de consumo semanal ─────────────────────────────────────────── */
+  window.cqRQAbrirConsumo=function(i){
+    const data=cqRQLoad();
+    const r=data[i];
+    if(!r) return;
+    const modal=document.getElementById('cq-consumo-modal');
+    if(!modal) return;
+    document.getElementById('cq-cm-titulo').textContent=r.nombre;
+    document.getElementById('cq-cm-idx').value=i;
+    document.getElementById('cq-cm-vol').textContent=r.volumen_actual+' / '+r.capacidad+' '+r.unidad+' disponibles';
+    document.getElementById('cq-cm-sem').value='';
+    document.getElementById('cq-cm-cons').value='';
+    document.getElementById('cq-cm-cons').placeholder=r.unidad+' consumidos';
+    modal.style.display='flex';
+    setTimeout(function(){document.getElementById('cq-cm-sem').focus();},50);
   };
-  window.cqRendManualAplicar = function(){
-    const data={};
-    ['dqo','dbo','nt','pt'].forEach(k=>{
-      const inp=document.getElementById('cq-rm-'+k);
-      if(inp&&inp.value!=='') data[k]=+inp.value;
-    });
-    try{ localStorage.setItem('sgi-cq-rend-manual',JSON.stringify(data)); }catch(e){}
-    cqDibujaRendimientos();
+  window.cqRQCerrarConsumo=function(){
+    const m=document.getElementById('cq-consumo-modal');
+    if(m) m.style.display='none';
   };
-  window.cqRendManualBorrar = function(){
-    try{ localStorage.removeItem('sgi-cq-rend-manual'); }catch(e){}
-    ['dqo','dbo','nt','pt'].forEach(k=>{ const inp=document.getElementById('cq-rm-'+k); if(inp) inp.value=''; });
-    cqDibujaRendimientos();
+  window.cqRQGuardarConsumo=function(){
+    const i=+document.getElementById('cq-cm-idx').value;
+    const sem=document.getElementById('cq-cm-sem').value.trim();
+    const cons=+document.getElementById('cq-cm-cons').value;
+    if(!sem||isNaN(cons)||cons<0){alert('Completa semana y consumo.');return;}
+    const data=cqRQLoad();
+    if(!data[i]) return;
+    if(!data[i].historial) data[i].historial=[];
+    data[i].volumen_actual=Math.max(0,(+data[i].volumen_actual||0)-cons);
+    data[i].historial.push({semana:sem,consumo:cons});
+    if(data[i].historial.length>12) data[i].historial=data[i].historial.slice(-12);
+    cqRQSave(data);
+    cqRQRenderTanks();
+    cqRQRender();
+    cqRQCerrarConsumo();
   };
 
-  window.addEventListener('message',function(e){
+  window.addEventListener('load',function(){setTimeout(function(){cqRQRender();cqRQRenderTanks();},200);});
+
+
+
+    window.addEventListener('message',function(e){
     if(!e.data||e.data.type!=='sim-kpi') return;
     try{localStorage.setItem('sgi-kpi-sim',JSON.stringify(e.data));}catch(_){}
     const panel=document.getElementById('panel-calidad');
@@ -9099,6 +9196,40 @@ if(typeof waitForFirebase==='function'){
 
 })();
 </script>
+
+<!-- ═══ MODAL: Consumo semanal reactivo ════════════════════════════════════ -->
+<div id="cq-consumo-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.65);align-items:center;justify-content:center">
+  <div style="background:var(--surface,#0f1e38);border:1px solid var(--border,#1e3a5f);border-radius:10px;padding:20px 24px;min-width:280px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.6)">
+    <div style="font-family:var(--cond,sans-serif);font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px" id="cq-cm-titulo">Reactivo</div>
+    <div style="font-family:var(--mono,monospace);font-size:9px;color:var(--accent);margin-bottom:14px" id="cq-cm-vol"></div>
+    <input type="hidden" id="cq-cm-idx" value="0">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Semana (ej: S22, W23, Ene-2)</div>
+        <input id="cq-cm-sem" type="text" placeholder="S22"
+          style="width:100%;background:var(--card,#0c1a30);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 9px;outline:none;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter') document.getElementById('cq-cm-cons').focus()">
+      </div>
+      <div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Consumo de esta semana</div>
+        <input id="cq-cm-cons" type="number" min="0" placeholder=""
+          style="width:100%;background:var(--card,#0c1a30);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:13px;padding:6px 9px;outline:none;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter') cqRQGuardarConsumo()">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="cqRQGuardarConsumo()"
+        style="flex:1;padding:8px;border-radius:6px;background:var(--accent,#00c9a7);color:#000;font-weight:700;font-size:11px;border:none;cursor:pointer;font-family:var(--mono)">
+        ✓ Registrar y descontar
+      </button>
+      <button onclick="cqRQCerrarConsumo()"
+        style="padding:8px 12px;border-radius:6px;background:transparent;color:var(--muted);font-size:11px;border:1px solid var(--border);cursor:pointer;font-family:var(--mono)">
+        Cancelar
+      </button>
+    </div>
+    <div style="font-size:8px;color:var(--muted);font-family:var(--mono);margin-top:8px;text-align:center">El consumo se resta automáticamente del volumen actual</div>
+  </div>
+</div>
 
 </body>
 </html>
