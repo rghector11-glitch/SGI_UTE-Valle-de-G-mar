@@ -1616,9 +1616,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1;min-height:0;overflow:hidden">
 
               <!-- COL 1: CLIMA ACTUAL + PRONÓSTICO -->
-              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
                 <!-- Actual -->
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px" id="px-wx-actual">
+                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex-shrink:0" id="px-wx-actual">
                   <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando clima…</div>
                 </div>
                 <!-- Pronóstico -->
@@ -1635,7 +1635,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
 
               <!-- COL 2: CALIDAD AIRE + META PORTAL -->
-              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
                 <!-- Calidad Aire -->
                 <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px">
                   <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Calidad del aire · Güímar</div>
@@ -1656,7 +1656,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
 
               <!-- COL 3: EXPORTAR INFORME PDF -->
-              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
                 <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex:1;display:flex;flex-direction:column">
                   <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">▸ Exportar Informe PDF</div>
                   <!-- Selector mes -->
@@ -6813,11 +6813,12 @@ window.addEventListener('message', function(e) {
   if(e.data.type === 'sim-kpi') {
     // KPIs desde el simulador de proceso (M06)
     const {edad, sst, dqo} = e.data;
+    // Guardar parámetros completos para módulo Calidad
+    try { localStorage.setItem('sgi-kpi-sim', JSON.stringify(e.data)); } catch(_){}
+    if(e.data.params) window._simFullParams = e.data.params; // params completos si los envía
     if(edad) {
       const elE = document.getElementById('kpi-edad');
       if(elE) elE.innerHTML = edad + ' <span class="ku">d</span>';
-      // persist
-      try { localStorage.setItem('sgi-kpi-sim', JSON.stringify(e.data)); } catch(_){}
     }
     if(sst) {
       const elS = document.getElementById('kpi-sst');
@@ -8672,10 +8673,13 @@ if(typeof waitForFirebase==='function'){
   }
 
   function cqActualizaKPIs(){
-    const ST=window._ST_dash;
-    if(!ST) return;
+    const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
+    // Fallback: leer del simulador si no hay Firebase
+    let simP=null;
+    try{ const r=localStorage.getItem('sgi-kpi-sim'); if(r) simP=JSON.parse(r); }catch(e){}
     // SST Reactor
     const fechasR=Object.keys(ST.reactor||{}).sort();
+    let sstOk=false;
     for(let i=fechasR.length-1;i>=0;i--){
       const r=ST.reactor[fechasR[i]];
       if(r&&r.ss_reactor_gl!=null&&!isNaN(r.ss_reactor_gl)&&r.ss_reactor_gl>0){
@@ -8684,8 +8688,14 @@ if(typeof waitForFirebase==='function'){
         if(el) el.innerHTML=sst.toLocaleString('es-ES')+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
         const sub=document.getElementById('cq-kpi-sst-sub');
         if(sub) sub.textContent='EDARI · '+_fmtDM(fechasR[i]);
-        break;
+        sstOk=true; break;
       }
+    }
+    if(!sstOk && simP && simP.sst){
+      const el=document.getElementById('cq-kpi-sst');
+      if(el) el.innerHTML=Math.round(+simP.sst).toLocaleString('es-ES')+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
+      const sub=document.getElementById('cq-kpi-sst-sub');
+      if(sub) sub.textContent='Simulador · hoy';
     }
     // TRH
     const trh=calcTRH(ST);
@@ -8695,15 +8705,16 @@ if(typeof waitForFirebase==='function'){
       const el2=document.getElementById('cq-trh-n');
       if(el2) el2.textContent=trh.toFixed(1)+' h';
     }
-    // Efluentes DQO / DBO (último valor disponible)
+    // Efluentes DQO / DBO
+    let dqoOk=false, dboOk=false;
     for(let i=fechasR.length-1;i>=0;i--){
       const r=ST.reactor[fechasR[i]];
-      if(r&&r.dqo_ef!=null){ const el=document.getElementById('cq-kpi-dqo'); if(el) el.innerHTML=Math.round(+r.dqo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; break; }
+      if(!dqoOk && r&&r.dqo_ef!=null){ const el=document.getElementById('cq-kpi-dqo'); if(el) el.innerHTML=Math.round(+r.dqo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; dqoOk=true; }
+      if(!dboOk && r&&r.dbo_ef!=null){ const el=document.getElementById('cq-kpi-dbo'); if(el) el.innerHTML=Math.round(+r.dbo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; dboOk=true; }
+      if(dqoOk&&dboOk) break;
     }
-    for(let i=fechasR.length-1;i>=0;i--){
-      const r=ST.reactor[fechasR[i]];
-      if(r&&r.dbo_ef!=null){ const el=document.getElementById('cq-kpi-dbo'); if(el) el.innerHTML=Math.round(+r.dbo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; break; }
-    }
+    // Temperatura
+    // (se carga por weather, no hace falta aquí)
   }
 
   function cqRedibujarTodo(){
@@ -8844,42 +8855,87 @@ if(typeof waitForFirebase==='function'){
       setTimeout(()=>{
         cqInitMonthPicker();
         cqLoadWeather();
-        // Si ST ya tiene datos, dibujar inmediatamente
-        if(window._ST_dash && Object.keys(window._ST_dash.caudales||{}).length){
-          cqRedibujarTodo();
-        } else {
-          // Mostrar indicador de carga y esperar
-          ['cq-caudal-chart','cq-elec-chart','cq-fango-chart'].forEach(id=>{
-            const el=document.getElementById(id);
-            if(el) el.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos Firebase…</div>';
-          });
-          // Reintentar cada segundo hasta tener datos
-          let intentos=0;
-          const retry=setInterval(()=>{
-            intentos++;
-            if((window._ST_dash&&Object.keys(window._ST_dash.caudales||{}).length)||intentos>15){
-              clearInterval(retry);
-              cqRedibujarTodo();
-            }
-          },1000);
-        }
+        cqRedibujarTodo();
+        let intentos=0;
+        const retry=setInterval(()=>{
+          intentos++;
+          const ST=window._cqGetDatos();
+          const tieneAlgo=Object.keys(ST.reactor||{}).length>0||Object.keys(ST.caudales||{}).length>0;
+          if(tieneAlgo||intentos>20){ clearInterval(retry); if(tieneAlgo) cqRedibujarTodo(); }
+        },800);
       },80);
     }
   };
 
-  /* ─── Redibujar Calidad cada vez que Firebase actualiza ST ───────────────── */
-  // Parchear las funciones del dashboard para que también actualicen Calidad
-  window.addEventListener('load',()=>{
-    // Observar cambios en ST mediante polling ligero (evita tocar el IIFE del dashboard)
-    let lastKey='';
-    setInterval(()=>{
-      if(!window._ST_dash) return;
-      const panel=document.getElementById('panel-calidad');
-      if(!panel||!panel.classList.contains('active')) return;
-      const k=Object.keys(window._ST_dash.caudales||{}).length+'|'+Object.keys(window._ST_dash.reactor||{}).length;
-      if(k!==lastKey){ lastKey=k; cqRedibujarTodo(); }
-    },3000);
+  /* ─── Getter unificado: Firebase ST + Simulador localStorage ─────────────── */
+  window._cqGetDatos=function(){
+    const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
+    // Intentar enriquecer con datos del simulador (localStorage sgi-kpi-sim)
+    try{
+      const raw=localStorage.getItem('sgi-kpi-sim');
+      if(raw){
+        const simP=JSON.parse(raw);
+        // window._simFullParams lo escribe el simulador con todos los parámetros
+        const fp=window._simFullParams||{};
+        const hoy=new Date().toISOString().slice(0,10);
+        // Solo inyectar si no hay datos Firebase para hoy
+        if(!ST.reactor[hoy] && (fp.dqo_entrada||fp.sst_reactor)){
+          ST.reactor[hoy]={
+            ss_reactor_gl:   fp.sst_reactor!=null   ? fp.sst_reactor/1000   : null,
+            ss_recirc_gl:    fp.sst_recirculacion!=null ? fp.sst_recirculacion/1000 : null,
+            ss_efluente:     fp.sst_efluente   ??null,
+            vol_reactor:     fp.vol_reactor    ??2167.9,
+            q_purga:         fp.caudal_purga_d ??null,
+            caudal_bio:      fp.caudal         ??null,
+            dqo_ent:         fp.dqo_entrada    ??null, dqo_ef: fp.dqo_efluente ??null,
+            dbo_ent:         fp.dbo_entrada    ??null, dbo_ef: fp.dbo_efluente ??null,
+            nt_ent:          fp.nh4_entrada    ??null, nt_ef:  fp.nh4_efluente ??null,
+            pt_ent:          fp.pt_entrada     ??null, pt_ef:  fp.pt_efluente  ??null,
+          };
+        }
+        if(fp.caudal && !ST.caudales[hoy]) ST.caudales[hoy]={edari:fp.caudal,edaru:0};
+      }
+    }catch(e){}
+    return ST;
+  };
+
+  /* Parchear funciones de dibujo para usar el getter unificado */
+  const _cqOrigActualizaKPIs   = cqActualizaKPIs;
+  const _cqOrigDibujaCaudal    = cqDibujaCaudal;
+  const _cqOrigDibujaConsumo   = cqDibujaConsumo;
+  const _cqOrigDibujaEdadFango = cqDibujaEdadFango;
+  const _cqOrigDibujaRend      = cqDibujaRendimientos;
+  // Override: inyectar _ST_dash con datos enriquecidos antes de cada dibujado
+  function cqRedibujarConDatos(){
+    const datos=window._cqGetDatos();
+    // Temporalmente sobreescribir _ST_dash con los datos enriquecidos
+    const _backup=window._ST_dash;
+    window._ST_dash=datos;
+    cqActualizaKPIs(); cqDibujaCaudal(); cqDibujaConsumo();
+    cqDibujaEdadFango(); cqDibujaRendimientos();
+    window._ST_dash=_backup;
+  }
+  // Reasignar cqRedibujarTodo
+  const _cqOrigRedibujar=cqRedibujarTodo;
+  cqRedibujarTodo=cqRedibujarConDatos;
+
+  /* ─── Escuchar mensajes del simulador ────────────────────────────────────── */
+  window.addEventListener('message',function(e){
+    if(!e.data||e.data.type!=='sim-kpi') return;
+    try{localStorage.setItem('sgi-kpi-sim',JSON.stringify(e.data));}catch(_){}
+    const panel=document.getElementById('panel-calidad');
+    if(panel&&panel.classList.contains('active')) setTimeout(cqRedibujarTodo,100);
   });
+
+  /* ─── Polling: redibujar cuando cambian datos ────────────────────────────── */
+  let lastKey='';
+  setInterval(()=>{
+    const panel=document.getElementById('panel-calidad');
+    if(!panel||!panel.classList.contains('active')) return;
+    const ST=window._cqGetDatos();
+    const k=Object.keys(ST.caudales||{}).length+'|'+Object.keys(ST.reactor||{}).length+'|'+(localStorage.getItem('sgi-kpi-sim')||'').slice(-20);
+    if(k!==lastKey){lastKey=k;cqRedibujarTodo();}
+  },2000);
 
 })();
 </script>
