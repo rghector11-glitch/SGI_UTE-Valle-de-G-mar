@@ -1602,57 +1602,119 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           </div><!-- /.modules-grid -->
 
           <div class="portal-clima">
-            <!-- CLIMA HEADER -->
+            <!-- HEADER con hora de actualización -->
             <div style="display:flex;align-items:center;gap:7px;padding:0 2px;margin-bottom:5px;flex-shrink:0">
               <span style="font-family:var(--cond);font-size:10px;font-weight:700;color:var(--light);letter-spacing:.08em;text-transform:uppercase">▸ Tiempo · Valle de Güímar</span>
-              <span style="font-family:var(--mono);font-size:7px;color:var(--muted)" id="px-wx-updated"></span>
-              <div style="margin-left:auto;display:flex;gap:5px">
-                <a href="https://apalmet.es/prediccion/municipio/Guimar" target="_blank" style="text-decoration:none">
-                  <button style="font-size:8px;font-weight:600;padding:2px 7px;border-radius:4px;cursor:pointer;border:1px solid var(--border-l);background:var(--card);color:var(--text-d);font-family:var(--mono)">Apalmet ↗</button>
+              <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:4px;padding:2px 7px">
+                <span style="font-family:var(--mono);font-size:7px;color:var(--muted)">Act.</span>
+                <span style="font-family:var(--mono);font-size:8px;font-weight:700;color:var(--accent)" id="px-wx-updated">—</span>
+              </div>
+              <div style="margin-left:auto">
+                <a href="https://apalmet.es/estaciones/detallesdiario/55" target="_blank" style="text-decoration:none">
+                  <button style="font-size:8px;font-weight:600;padding:2px 7px;border-radius:4px;cursor:pointer;border:1px solid var(--border-l);background:var(--card);color:var(--text-d);font-family:var(--mono)">Apalmet Est.55 ↗</button>
                 </a>
               </div>
             </div>
-            <!-- BODY: 2 columnas -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:0;overflow:hidden">
+            <!-- BODY: columna única, todo apilado -->
+            <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow-y:auto">
 
-              <!-- COL 1: CLIMA ACTUAL + PRONÓSTICO -->
-              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
-                <!-- Actual -->
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex-shrink:0" id="px-wx-actual">
-                  <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando clima…</div>
-                </div>
-                <!-- Pronóstico -->
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:8px 10px;flex:1">
-                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Próximos 6 días</div>
-                  <div style="display:flex;gap:4px;overflow-x:auto" id="px-wx-forecast">
-                    <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳</div>
-                  </div>
-                </div>
-                <!-- Fuente -->
-                <div style="font-family:var(--mono);font-size:7px;color:var(--muted);text-align:right;padding-right:2px">
-                  Open-Meteo · datos AEMET · <a href="https://apalmet.es" target="_blank" style="color:var(--accent)">Apalmet</a>
+              <!-- Clima actual -->
+              <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:9px 12px;flex-shrink:0" id="px-wx-actual">
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando clima…</div>
+              </div>
+
+              <!-- Pronóstico 6 días -->
+              <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:7px 10px;flex-shrink:0">
+                <div style="font-family:var(--mono);font-size:7px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Próximos 6 días</div>
+                <div style="display:flex;gap:3px;overflow-x:auto" id="px-wx-forecast">
+                  <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳</div>
                 </div>
               </div>
 
-              <!-- COL 2: CALIDAD AIRE + RELEVANCIA OPERACIONAL -->
-              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0">
-                <!-- Calidad Aire -->
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px">
-                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Calidad del aire · Güímar</div>
-                  <div id="px-aqi-body">
-                    <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando…</div>
+              <!-- FILA KPI: Rosa de vientos + Relevancia operacional -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:1;min-height:0">
+
+                <!-- KPI: Rosa de vientos -->
+                <div style="background:linear-gradient(145deg,rgba(15,30,56,.95),rgba(8,16,32,.98));border:1px solid rgba(96,165,250,.25);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;overflow:hidden">
+                  <!-- Título KPI -->
+                  <div style="font-family:var(--mono);font-size:7px;color:rgba(96,165,250,.7);text-transform:uppercase;letter-spacing:.6px;align-self:flex-start">⬡ Viento</div>
+                  <!-- Rosa SVG grande -->
+                  <svg id="px-wind-rose" width="130" height="130" viewBox="0 0 140 140" style="flex-shrink:0">
+                    <!-- Fondo decorativo -->
+                    <circle cx="70" cy="70" r="65" fill="rgba(96,165,250,.03)" stroke="rgba(96,165,250,.08)" stroke-width="1"/>
+                    <circle cx="70" cy="70" r="46" fill="none" stroke="rgba(96,165,250,.06)" stroke-width="1" stroke-dasharray="3,4"/>
+                    <circle cx="70" cy="70" r="27" fill="none" stroke="rgba(96,165,250,.05)" stroke-width="1" stroke-dasharray="2,4"/>
+                    <!-- Ejes principales -->
+                    <line x1="70" y1="5" x2="70" y2="135" stroke="rgba(96,165,250,.1)" stroke-width=".8"/>
+                    <line x1="5" y1="70" x2="135" y2="70" stroke="rgba(96,165,250,.1)" stroke-width=".8"/>
+                    <!-- Ejes diagonales -->
+                    <line x1="22" y1="22" x2="118" y2="118" stroke="rgba(96,165,250,.05)" stroke-width=".6"/>
+                    <line x1="118" y1="22" x2="22" y2="118" stroke="rgba(96,165,250,.05)" stroke-width=".6"/>
+                    <!-- Marcas en el círculo externo -->
+                    <circle cx="70" cy="6" r="2" fill="rgba(96,165,250,.3)"/>
+                    <circle cx="134" cy="70" r="2" fill="rgba(96,165,250,.2)"/>
+                    <circle cx="70" cy="134" r="2" fill="rgba(96,165,250,.2)"/>
+                    <circle cx="6" cy="70" r="2" fill="rgba(96,165,250,.2)"/>
+                    <!-- Etiquetas cardinales -->
+                    <text x="70" y="4" text-anchor="middle" fill="rgba(255,255,255,.75)" font-size="9" font-family="var(--mono,monospace)" font-weight="700" letter-spacing="1">N</text>
+                    <text x="70" y="140" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="8" font-family="var(--mono,monospace)">S</text>
+                    <text x="138" y="73" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="8" font-family="var(--mono,monospace)">E</text>
+                    <text x="2" y="73" text-anchor="start" fill="rgba(255,255,255,.4)" font-size="8" font-family="var(--mono,monospace)">O</text>
+                    <!-- Subcardinales -->
+                    <text x="114" y="28" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="6.5" font-family="var(--mono,monospace)">NE</text>
+                    <text x="28" y="28" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="6.5" font-family="var(--mono,monospace)">NO</text>
+                    <text x="114" y="118" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="6.5" font-family="var(--mono,monospace)">SE</text>
+                    <text x="28" y="118" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="6.5" font-family="var(--mono,monospace)">SO</text>
+                    <!-- Flecha de viento (grupo rotable) -->
+                    <g id="px-wind-arrow" transform="rotate(0,70,70)">
+                      <!-- Cola de la flecha (origen) -->
+                      <polygon points="70,108 66.5,95 70,100 73.5,95" fill="rgba(255,255,255,.15)" opacity=".7"/>
+                      <!-- Cuerpo -->
+                      <line x1="70" y1="100" x2="70" y2="38" stroke="#60a5fa" stroke-width="2" stroke-opacity=".7" stroke-linecap="round"/>
+                      <!-- Punta de flecha -->
+                      <polygon points="70,14 63,38 70,32 77,38" fill="#60a5fa" opacity=".95"/>
+                      <!-- Aletas de estilo militar -->
+                      <line x1="63" y1="38" x2="58" y2="50" stroke="#60a5fa" stroke-width="1" stroke-opacity=".4"/>
+                      <line x1="77" y1="38" x2="82" y2="50" stroke="#60a5fa" stroke-width="1" stroke-opacity=".4"/>
+                    </g>
+                    <!-- Punto central con brillo -->
+                    <circle cx="70" cy="70" r="5" fill="rgba(15,30,56,1)" stroke="#60a5fa" stroke-width="1.5" stroke-opacity=".8"/>
+                    <circle cx="70" cy="70" r="2" fill="#60a5fa" opacity=".9"/>
+                  </svg>
+                  <!-- Datos numéricos -->
+                  <div style="display:flex;align-items:baseline;gap:4px;margin-top:2px">
+                    <span id="px-wind-dir-lbl" style="font-family:var(--cond);font-size:22px;font-weight:700;color:#60a5fa;line-height:1">—</span>
+                    <span id="px-wind-spd-lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">— km/h</span>
                   </div>
-                  <div style="margin-top:5px;font-family:var(--mono);font-size:7px;color:var(--muted)">
-                    <a href="https://apalmet.es/observacion/calidad_aire_municipio/Guimar" target="_blank" style="color:var(--accent)">Datos completos en Apalmet ↗</a>
-                  </div>
+                  <div id="px-wind-gust-lbl" style="font-family:var(--mono);font-size:8px;color:var(--muted)">Racha: — km/h</div>
+                  <!-- Borde luminoso izq -->
+                  <div style="position:absolute;left:0;top:20%;bottom:20%;width:2px;background:linear-gradient(to bottom,transparent,#60a5fa,transparent);border-radius:2px"></div>
                 </div>
-                <!-- Relevancia operacional EDAR -->
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex:1">
-                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Relevancia operacional</div>
-                  <div id="px-edar-wx" style="display:flex;flex-direction:column;gap:5px">
+
+                <!-- KPI: Relevancia operacional -->
+                <div style="background:linear-gradient(145deg,rgba(15,30,56,.95),rgba(8,16,32,.98));border:1px solid rgba(0,201,167,.2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden">
+                  <div style="font-family:var(--mono);font-size:7px;color:rgba(0,201,167,.7);text-transform:uppercase;letter-spacing:.6px">⚙ Operacional EDAR</div>
+                  <div id="px-edar-wx" style="display:flex;flex-direction:column;gap:5px;flex:1">
                     <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳</div>
                   </div>
+                  <!-- Borde luminoso izq -->
+                  <div style="position:absolute;left:0;top:20%;bottom:20%;width:2px;background:linear-gradient(to bottom,transparent,var(--accent2),transparent);border-radius:2px"></div>
                 </div>
+
+              </div><!-- /fila KPI -->
+
+              <!-- Calidad del aire -->
+              <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:8px 12px;flex-shrink:0">
+                <div style="font-family:var(--mono);font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Calidad del aire · Güímar</div>
+                <div id="px-aqi-body"><div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando ICA…</div></div>
+                <div style="margin-top:4px;font-family:var(--mono);font-size:7px;color:var(--muted)">
+                  <a href="https://www3.gobiernodecanarias.org/medioambiente/calidaddelaire/ica.do" target="_blank" style="color:var(--accent)">ICA · Red Calidad Aire Canarias ↗</a>
+                </div>
+              </div>
+
+              <!-- Fuente -->
+              <div style="font-family:var(--mono);font-size:6px;color:var(--muted);text-align:right;flex-shrink:0">
+                Open-Meteo · AEMET · <a href="https://apalmet.es" target="_blank" style="color:var(--accent)">Apalmet</a>
               </div>
 
             </div>
@@ -8166,87 +8228,218 @@ if(typeof waitForFirebase==='function'){
   let pxWxDone=false;
 
   /* ─── Clima ──────────────────────────────────────────────────────────────── */
+  /* ── Función rosa de vientos ────────────────────────────────────────────── */
+  function pxUpdateWindRose(dirDeg, velocidad, racha){
+    // dirDeg: grados meteorológicos (0=N,90=E,180=S,270=O)
+    // Flecha apunta hacia donde VA el viento (dirDeg+180)
+    const col=velocidad>=50?'#ef4444':velocidad>=30?'#f59e0b':velocidad>=15?'#60a5fa':'#10b981';
+    const cx=70, cy=70; // Centro del nuevo SVG 140x140
+    const arrow=document.getElementById('px-wind-arrow');
+    if(arrow) arrow.setAttribute('transform','rotate('+(dirDeg+180)+','+cx+','+cy+')');
+    // Actualizar colores de la flecha
+    if(arrow){
+      const polys=arrow.querySelectorAll('polygon');
+      if(polys[0]) polys[0].setAttribute('fill',col);
+      const line=arrow.querySelector('line');
+      if(line){line.setAttribute('stroke',col);}
+    }
+    // Borde del KPI según velocidad
+    const kpi=document.querySelector('#px-wind-rose')?.closest('div[style*="border-radius:10px"]');
+    if(kpi) kpi.style.borderColor=col+'44';
+    // Anillo de intensidad central (proporcional a velocidad)
+    const rose=document.getElementById('px-wind-rose');
+    if(rose){
+      const old=rose.querySelector('#px-wi'); if(old) old.remove();
+      const r=Math.min(60,Math.max(8,Math.round(velocidad*1.1)));
+      const ns=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      ns.setAttribute('id','px-wi');
+      ns.setAttribute('cx',String(cx));ns.setAttribute('cy',String(cy));
+      ns.setAttribute('r',String(r));ns.setAttribute('fill',col);ns.setAttribute('opacity','0.07');
+      rose.insertBefore(ns,rose.firstChild);
+    }
+    // Cardinal y etiquetas
+    const cards=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+    const card=cards[Math.round(dirDeg/22.5)%16]||'—';
+    const d=document.getElementById('px-wind-dir-lbl');
+    if(d){ d.textContent=card; d.style.color=col; }
+    const s=document.getElementById('px-wind-spd-lbl');
+    if(s) s.textContent=velocidad+' km/h';
+    const g=document.getElementById('px-wind-gust-lbl');
+    if(g) g.textContent='Racha: '+(racha||'—')+' km/h';
+  }
+
+  let _pxWxRetries=0;
   async function pxLoadWeather(){
-    if(pxWxDone) return; pxWxDone=true;
+    if(pxWxDone) return;
     try{
-      const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,weather_code,dust&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6');
-      const d=await r.json();
-      const c=d.current, daily=d.daily;
-      const code=c.weather_code||0, icon=WXC[code]||'🌡️', desc=WXD[code]||'Variable';
-      const temp=Math.round(c.temperature_2m), feels=Math.round(c.apparent_temperature);
-      const hum=Math.round(c.relative_humidity_2m), viento=Math.round(c.wind_speed_10m);
-      const prec=(c.precipitation||0).toFixed(1), dust=c.dust||0;
-      /* Actual */
+      /* ── Paso 1: Datos reales de Apalmet Est.55 via Claude API ── */
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:600,
+          tools:[{'type':'web_search_20250305','name':'web_search'}],
+          messages:[{role:'user',content:'Accede a https://apalmet.es/estaciones/detallesdiario/55 y extrae los datos actuales de la Estación Meteorológica Güímar. Devuelve SOLO este JSON sin texto ni markdown:\n{"temp_actual":número,"temp_max":número,"temp_min":número,"humedad":número,"presion":número,"precipitacion":número,"viento_kmh":número,"dir_viento":"texto como NO SE NNE etc","racha_kmh":número,"ultima_act":"texto"}'}]
+        })
+      });
+      const data=await resp.json();
+      const raw=(data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
+      const m=raw.match(/\{[\s\S]*\}/);
+      if(!m) throw new Error('No JSON from Apalmet: '+raw.slice(0,80));
+      const ap=JSON.parse(m[0]);
+
+      /* ── Paso 2: Pronóstico de Open-Meteo (solo daily, más ligero) ── */
+      let daily=null, dust=0, feels=ap.temp_actual;
+      try{
+        const r2=await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=apparent_temperature,dust,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6');
+        const d2=await r2.json();
+        daily=d2.daily;
+        dust=d2.current?.dust||0;
+        feels=Math.round(d2.current?.apparent_temperature||ap.temp_actual);
+      }catch(e2){ console.warn('Open-Meteo fallback error:',e2); }
+
+      /* ── Render clima actual con datos reales de Apalmet ── */
+      const temp=ap.temp_actual, hum=ap.humedad, prec=ap.precipitacion;
+      const viento=ap.viento_kmh, racha=ap.racha_kmh, dirStr=ap.dir_viento||'';
+      // Convertir dirección cardinal → grados para la rosa
+      const CDIR={'N':0,'NNE':22.5,'NE':45,'ENE':67.5,'E':90,'ESE':112.5,'SE':135,'SSE':157.5,
+                  'S':180,'SSO':202.5,'SO':225,'OSO':247.5,'O':270,'ONO':292.5,'NO':315,'NNO':337.5};
+      const dirDeg=CDIR[dirStr.toUpperCase().trim()]??0;
+      // Elegir icono según temperatura y precipitación
+      const icon=prec>2?'🌧️':temp>28?'🌤️':temp>22?'☀️':'⛅';
+      const desc=prec>5?'Lluvia':dust>200?'Calima':temp>30?'Caluroso':temp>24?'Despejado':'Variable';
+      const tempCol=temp>=30?'#ef4444':temp>=25?'#f59e0b':'var(--light)';
+
       const el=document.getElementById('px-wx-actual');
       if(el) el.innerHTML=`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <span style="font-size:34px;line-height:1">${icon}</span>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
+          <span style="font-size:30px;line-height:1">${icon}</span>
           <div>
-            <div style="font-family:var(--cond);font-size:32px;font-weight:700;line-height:1;color:var(--light)">${temp}°C</div>
-            <div style="font-size:10px;color:var(--text-d);margin-top:1px">${desc} · Sensación ${feels}°C</div>
+            <div style="font-family:var(--cond);font-size:30px;font-weight:700;line-height:1;color:${tempCol}">${temp}°C</div>
+            <div style="font-size:9px;color:var(--text-d);margin-top:1px">${desc} · Máx ${ap.temp_max}° / Mín ${ap.temp_min}°</div>
+            ${ap.ultima_act?`<div style="font-size:7px;color:var(--muted);font-family:var(--mono);margin-top:1px">Apalmet: ${ap.ultima_act}</div>`:''}
           </div>
         </div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          ${[['💧','Hum.',hum+'%'],['💨','Viento',viento+' km/h'],['🌧','Prec.',prec+' mm']].map(([ic,lb,vl])=>
-            `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--muted);font-family:var(--mono)">${ic} ${lb} <span style="color:var(--text);font-weight:700">${vl}</span></div>`
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${[['💧','Hum.',hum+'%'],['📊','Presión',ap.presion+' mb'],['🌧','Prec.',prec+' mm']].map(([ic,lb,vl])=>
+            `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:8px;color:var(--muted);font-family:var(--mono)">${ic} ${lb} <span style="color:var(--text);font-weight:700">${vl}</span></div>`
           ).join('')}
-          ${dust>200?`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:3px 7px;font-size:9px;color:#f59e0b;font-family:var(--mono)">⚠ Calima · ${Math.round(dust)} µg/m³</div>`:''}
-        </div>`;
-      /* Pronóstico */
+          ${dust>200?`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:3px 6px;font-size:8px;color:#f59e0b;font-family:var(--mono)">⚠ Calima ${Math.round(dust)} µg/m³</div>`:''}\n        </div>`;
+
+      /* ── Rosa de vientos con datos reales Apalmet ── */
+      pxUpdateWindRose(dirDeg, viento, racha);
+
+      /* ── Pronóstico (Open-Meteo daily) ── */
       const fc=document.getElementById('px-wx-forecast');
-      if(fc) fc.innerHTML=daily.time.slice(0,6).map((t,i)=>{
-        const dt=new Date(t+'T12:00:00'), dd=WXW[dt.getDay()], fi=WXC[daily.weather_code[i]]||'🌡️';
-        const mx=Math.round(daily.temperature_2m_max[i]), mn=Math.round(daily.temperature_2m_min[i]);
-        const pp=(daily.precipitation_sum[i]||0).toFixed(1);
-        return `<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 7px;min-width:54px;text-align:center;flex-shrink:0">
-          <div style="font-size:8px;color:var(--muted);font-family:var(--mono);text-transform:uppercase">${dd}</div>
-          <div style="font-size:16px;margin:3px 0 2px">${fi}</div>
-          <div style="font-size:9px;display:flex;gap:3px;justify-content:center">
-            <span style="font-weight:700;color:var(--text)">${mx}°</span>
-            <span style="color:var(--muted)">${mn}°</span>
-          </div>
-          ${+pp>0?`<div style="font-size:8px;color:#60a5fa;margin-top:2px">💧${pp}</div>`:''}
-        </div>`;
-      }).join('');
-      /* Timestamp */
+      if(fc&&daily){
+        fc.innerHTML=daily.time.slice(0,6).map((t,i)=>{
+          const dt=new Date(t+'T12:00:00'), dd=WXW[dt.getDay()], fi=WXC[daily.weather_code[i]]||'🌡️';
+          const mx=Math.round(daily.temperature_2m_max[i]), mn=Math.round(daily.temperature_2m_min[i]);
+          const pp=(daily.precipitation_sum[i]||0).toFixed(1);
+          return `<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 6px;min-width:50px;text-align:center;flex-shrink:0">
+            <div style="font-size:7px;color:var(--muted);font-family:var(--mono);text-transform:uppercase">${dd}</div>
+            <div style="font-size:15px;margin:2px 0">${fi}</div>
+            <div style="font-size:9px;display:flex;gap:3px;justify-content:center">
+              <span style="font-weight:700;color:var(--text)">${mx}°</span>
+              <span style="color:var(--muted)">${mn}°</span>
+            </div>
+            ${+pp>0?`<div style="font-size:7px;color:#60a5fa;margin-top:1px">💧${pp}</div>`:''}\n          </div>`;
+        }).join('');
+      } else if(fc){
+        fc.innerHTML='<div style="font-size:8px;color:var(--muted);font-family:var(--mono)"><a href="https://apalmet.es/prediccion/municipio/Guimar" target="_blank" style="color:var(--accent)">Pronóstico Apalmet ↗</a></div>';
+      }
+
+      /* ── Timestamp ── */
       const upd=document.getElementById('px-wx-updated');
-      if(upd) upd.textContent='· actualizado '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-      /* EDAR relevancia */
+      if(upd) upd.textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+      /* ── Relevancia operacional EDAR ── */
       const edar=document.getElementById('px-edar-wx');
       if(edar){
         const alertas=[];
-        if(dust>200) alertas.push({ic:'⚠',col:'#f59e0b',txt:`Calima: polvo ${Math.round(dust)} µg/m³ → revisar turbidímetro`});
-        if(+prec>5) alertas.push({ic:'🌧',col:'#60a5fa',txt:`Lluvia ${prec} mm → posible pico de caudal entrada`});
-        if(temp>28) alertas.push({ic:'🌡',col:'#ef4444',txt:`Temperatura alta ${temp}°C → vigilar OD reactor`});
-        if(temp<10) alertas.push({ic:'❄',col:'#a78bfa',txt:`Temperatura baja ${temp}°C → ralentización nitrificación`});
-        if(viento>40) alertas.push({ic:'💨',col:'#94a3b8',txt:`Viento fuerte ${viento} km/h → verificar flotantes`});
-        if(!alertas.length) alertas.push({ic:'✓',col:'#10b981',txt:'Condiciones normales · sin alertas operacionales'});
+        if(dust>200)   alertas.push({ic:'⚠',col:'#f59e0b',txt:'Calima '+Math.round(dust)+' µg/m³ → revisar turbidímetro'});
+        if(+prec>5)    alertas.push({ic:'🌧',col:'#60a5fa',txt:'Lluvia '+prec+' mm → posible pico caudal entrada'});
+        if(+temp>28)   alertas.push({ic:'🌡',col:'#ef4444',txt:'Temperatura '+temp+'°C → vigilar OD reactor'});
+        if(+temp<10)   alertas.push({ic:'❄', col:'#a78bfa',txt:'Temperatura '+temp+'°C → ralentización nitrificación'});
+        if(+viento>40) alertas.push({ic:'💨',col:'#94a3b8',txt:'Viento '+viento+' km/h ('+dirStr+') → verificar flotantes'});
+        if(+racha>60)  alertas.push({ic:'⚡',col:'#f59e0b',txt:'Racha '+racha+' km/h → riesgo rotura espumas'});
+        if(!alertas.length) alertas.push({ic:'✓',col:'#10b981',txt:'Condiciones normales · sin alertas'});
         edar.innerHTML=alertas.map(a=>`
-          <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 7px;background:var(--card);border:1px solid var(--border);border-radius:6px">
-            <span style="font-size:11px;flex-shrink:0">${a.ic}</span>
-            <span style="font-size:9px;color:${a.col};font-family:var(--mono);line-height:1.4">${a.txt}</span>
+          <div style="display:flex;align-items:flex-start;gap:5px;padding:5px 7px;background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:6px;border-left:2px solid ${a.col}">
+            <span style="font-size:10px;flex-shrink:0">${a.ic}</span>
+            <span style="font-size:8px;color:${a.col};font-family:var(--mono);line-height:1.45">${a.txt}</span>
           </div>`).join('');
       }
-      /* AQI */
-      setTimeout(()=>{
-        const aq=document.getElementById('px-aqi-body');
-        if(aq) aq.innerHTML=`
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,185,129,.12);border:2px solid var(--accent2);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:16px;font-weight:700;color:var(--accent2)">24</div>
-            <div>
-              <div style="font-size:11px;font-weight:600;color:var(--accent2)">Buena</div>
-              <div style="font-size:8px;color:var(--muted)">ICA · Sin riesgos</div>
-            </div>
-          </div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap">
-            ${[['PM2.5','8 µg/m³'],['NO₂','12 µg/m³'],['O₃','55 µg/m³']].map(([p,v])=>
-              `<div style="font-size:8px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--muted);font-family:var(--mono)">${p} <span style="color:var(--text);font-weight:700">${v}</span></div>`
-            ).join('')}
-          </div>`;
-      },300);
+
+      /* ── AQI ── */
+      pxLoadAQI();
+      pxWxDone=true; _pxWxRetries=0;
+
     }catch(e){
-      const el=document.getElementById('px-wx-actual');
-      if(el) el.innerHTML='<div style="color:var(--danger);font-size:10px;font-family:var(--mono)">Error cargando clima</div>';
+      console.warn('pxLoadWeather error:',e);
+      _pxWxRetries++;
+      if(_pxWxRetries<=3){
+        const delay=[5000,15000,30000][_pxWxRetries-1]||30000;
+        const el=document.getElementById('px-wx-actual');
+        if(el) el.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Reintentando datos Apalmet en '+(delay/1000)+'s… ('+_pxWxRetries+'/3)</div>';
+        setTimeout(pxLoadWeather, delay);
+      } else {
+        pxWxDone=true;
+        const el=document.getElementById('px-wx-actual');
+        if(el) el.innerHTML=`
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:5px">
+            <div style="color:var(--muted)">Sin conexión · Consulta directamente:</div>
+            <a href="https://apalmet.es/estaciones/detallesdiario/55" target="_blank"
+              style="color:var(--accent);font-size:9px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;text-decoration:none;background:var(--card)">
+              🌡 Apalmet Est.55 · Güímar ↗
+            </a>
+            <a href="https://www.aemet.es/es/eltiempo/prediccion/municipios/guimar-id38017" target="_blank"
+              style="color:var(--accent);font-size:9px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;text-decoration:none;background:var(--card)">
+              ⛅ AEMET · Güímar ↗
+            </a>
+          </div>`;
+      }
+    }
+  }
+  /* ── AQI via Claude API (scraping ICA Canarias) ─────────────────────────── */
+  async function pxLoadAQI(){
+    const aq=document.getElementById('px-aqi-body');
+    try{
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:400,
+          tools:[{'type':'web_search_20250305','name':'web_search'}],
+          messages:[{role:'user',content:'Busca el índice de calidad del aire ICA actual para Tenerife o la zona más cercana a Güímar en https://www3.gobiernodecanarias.org/medioambiente/calidaddelaire/ica.do . Devuelve SOLO este JSON sin texto ni markdown: {"zona":"nombre","ica_texto":"Buena|Razonablemente buena|Regular|Desfavorable","ica_valor":número_o_null,"no2":número_o_null,"pm10":número_o_null,"pm25":número_o_null,"o3":número_o_null}'}]
+        })
+      });
+      const data=await resp.json();
+      const raw=(data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
+      const m=raw.match(/\{[\s\S]*\}/);
+      if(!m) throw new Error('no JSON');
+      const a=JSON.parse(m[0]);
+      const icaColMap={'Buena':'#10b981','Razonablemente buena':'#60a5fa','Regular':'#f59e0b','Desfavorable':'#ef4444','Muy desfavorable':'#dc2626'};
+      const icaCol=icaColMap[a.ica_texto]||'#94a3b8';
+      if(aq) aq.innerHTML=`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.2);border:2px solid ${icaCol};display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:14px;font-weight:700;color:${icaCol};flex-shrink:0">${a.ica_valor??'—'}</div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:${icaCol}">${a.ica_texto||'Sin datos'}</div>
+            <div style="font-size:8px;color:var(--muted)">${a.zona||'Tenerife'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap">
+          ${[['NO₂',a.no2],['PM10',a.pm10],['PM2.5',a.pm25],['O₃',a.o3]].filter(([,v])=>v!=null).map(([p,v])=>
+            `<div style="font-size:7.5px;background:var(--card);border:1px solid var(--border);border-radius:3px;padding:2px 5px;color:var(--muted);font-family:var(--mono)">${p} <span style="color:var(--text);font-weight:700">${v}</span></div>`
+          ).join('')}
+        </div>`;
+    }catch(e){
+      if(aq) aq.innerHTML=`<div style="font-size:8px;color:var(--muted);font-family:var(--mono)">
+        <a href="https://www3.gobiernodecanarias.org/medioambiente/calidaddelaire/ica.do" target="_blank" style="color:var(--accent)">Ver ICA Canarias ↗</a>
+      </div>`;
     }
   }
 
