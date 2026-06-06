@@ -1170,7 +1170,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             display:grid;
             grid-template-columns:1fr 1fr;
             grid-template-rows:auto 1fr;
-            grid-template-areas:"kpis kpis" "modulos analitica";
+            grid-template-areas:"kpis kpis" "modulos clima";
             column-gap:10px; row-gap:8px;
             height:100%; min-height:0;
             overflow:hidden;
@@ -1230,6 +1230,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           }
           #panel-portal > .da-panel > .da-h{
             margin-bottom:3px; flex-shrink:0; padding:0 2px;
+          }
+          #panel-portal > .portal-clima{
+            grid-area:clima; margin:0;
+            display:flex; flex-direction:column;
+            min-height:0; height:100%; overflow:hidden;
           }
           .da-h-t{font-size:10px;}
           .da-h-s{font-size:7px;}
@@ -1346,705 +1351,89 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
 
                     </style>
-          <div class="da-panel">
-            <div class="da-h">
-              <div class="da-h-t">▸ Análisis operacional</div>
-              <div class="da-h-s" id="da-meta">— sin carga reciente</div>
+          <div class="portal-clima">
+            <!-- CLIMA HEADER -->
+            <div style="display:flex;align-items:center;gap:7px;padding:0 2px;margin-bottom:5px;flex-shrink:0">
+              <span style="font-family:var(--cond);font-size:10px;font-weight:700;color:var(--light);letter-spacing:.08em;text-transform:uppercase">▸ Tiempo · Valle de Güímar</span>
+              <span style="font-family:var(--mono);font-size:7px;color:var(--muted)" id="px-wx-updated"></span>
+              <div style="margin-left:auto;display:flex;gap:5px">
+                <a href="https://apalmet.es/prediccion/municipio/Guimar" target="_blank" style="text-decoration:none">
+                  <button style="font-size:8px;font-weight:600;padding:2px 7px;border-radius:4px;cursor:pointer;border:1px solid var(--border-l);background:var(--card);color:var(--text-d);font-family:var(--mono)">Apalmet ↗</button>
+                </a>
+              </div>
             </div>
-            <div class="da-grid">
-              <!-- 1. Caudal entrada 7d -->
-              <div class="da-card" style="--c:var(--accent,#3aafe8);">
-                <div class="da-card-h">
-                  <div class="da-card-ti">
-                    <div class="da-card-ic"><i class="ti ti-droplet"></i></div>
-                    <div>
-                      <div class="da-card-t">Caudal entrada</div>
-                      <div class="da-card-sub">EDARi · EDARu · últimos 30 días</div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="da-card-v" id="da-q-v">— <span class="u">m³/d</span></div>
-                    <div class="da-card-v-sub" id="da-q-sub">media · —</div>
+            <!-- BODY: 3 columnas -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1;min-height:0;overflow:hidden">
+
+              <!-- COL 1: CLIMA ACTUAL + PRONÓSTICO -->
+              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+                <!-- Actual -->
+                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px" id="px-wx-actual">
+                  <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando clima…</div>
+                </div>
+                <!-- Pronóstico -->
+                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:8px 10px;flex:1">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Próximos 6 días</div>
+                  <div style="display:flex;gap:4px;overflow-x:auto" id="px-wx-forecast">
+                    <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳</div>
                   </div>
                 </div>
-                <div class="da-chart" id="da-q-chart"><div class="da-noinfo">Sin datos</div></div>
-                <div class="da-legend">
-                  <span><i style="background:var(--accent,#3aafe8)"></i> EDARi</span>
-                  <span><i style="background:var(--purple,#9788e6)"></i> EDARu</span>
-                </div>
-              </div>
-              <!-- 2. Consumo 30d -->
-              <div class="da-card" style="--c:var(--purple,#9788e6);">
-                <div class="da-card-h">
-                  <div class="da-card-ti">
-                    <div class="da-card-ic"><i class="ti ti-bolt"></i></div>
-                    <div>
-                      <div class="da-card-t">Consumo eléctrico</div>
-                      <div class="da-card-sub">EDARi + EDARu · 30 días</div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="da-card-v" id="da-c-v">— <span class="u">kWh</span></div>
-                    <div class="da-card-v-sub" id="da-c-sub">total mes · —</div>
-                  </div>
-                </div>
-                <div class="da-chart" id="da-c-chart"><div class="da-noinfo">Sin datos</div></div>
-                <div class="da-legend">
-                  <span><i style="background:var(--accent,#3aafe8)"></i> EDARi</span>
-                  <span><i style="background:var(--purple,#9788e6)"></i> EDARu</span>
+                <!-- Fuente -->
+                <div style="font-family:var(--mono);font-size:7px;color:var(--muted);text-align:right;padding-right:2px">
+                  Open-Meteo · datos AEMET · <a href="https://apalmet.es" target="_blank" style="color:var(--accent)">Apalmet</a>
                 </div>
               </div>
-              <!-- 3. Edad fango 30d -->
-              <div class="da-card" style="--c:var(--warn,#f0b033);">
-                <div class="da-card-h">
-                  <div class="da-card-ti">
-                    <div class="da-card-ic"><i class="ti ti-flask"></i></div>
-                    <div>
-                      <div class="da-card-t">Edad de fango</div>
-                      <div class="da-card-sub">Reactor biológico · 30 días</div>
-                    </div>
+
+              <!-- COL 2: CALIDAD AIRE + META PORTAL -->
+              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+                <!-- Calidad Aire -->
+                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Calidad del aire · Güímar</div>
+                  <div id="px-aqi-body">
+                    <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando…</div>
                   </div>
-                  <div>
-                    <div class="da-card-v" id="da-ef-v">— <span class="u">d</span></div>
-                    <div class="da-card-v-sub" id="da-ef-sub">último valor · —</div>
+                  <div style="margin-top:5px;font-family:var(--mono);font-size:7px;color:var(--muted)">
+                    <a href="https://apalmet.es/observacion/calidad_aire_municipio/Guimar" target="_blank" style="color:var(--accent)">Datos completos en Apalmet ↗</a>
                   </div>
                 </div>
-                <div class="da-chart" id="da-ef-chart"><div class="da-noinfo">Sin datos</div></div>
-                <div class="da-legend">
-                  <span><i style="background:var(--warn,#f0b033)"></i> θc</span>
-                  <span style="opacity:.7"><i style="background:var(--accent2,#22c995);opacity:.4"></i> banda 5–15 d</span>
+                <!-- KPIs clima relevantes para EDAR -->
+                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex:1">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Relevancia operacional</div>
+                  <div id="px-edar-wx" style="display:flex;flex-direction:column;gap:5px">
+                    <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳</div>
+                  </div>
                 </div>
               </div>
-              <!-- 4. Rendimientos del proceso (DQO, DBO5, NT, PT) -->
-              <div class="da-card" style="--c:var(--accent2,#22c995);">
-                <div class="da-card-h">
-                  <div class="da-card-ti">
-                    <div class="da-card-ic"><i class="ti ti-trending-up"></i></div>
-                    <div>
-                      <div class="da-card-t">Rendimientos</div>
-                      <div class="da-card-sub">DQO · DBO₅ · NT · PT · 30 días</div>
-                    </div>
+
+              <!-- COL 3: EXPORTAR INFORME PDF -->
+              <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto">
+                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex:1;display:flex;flex-direction:column">
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">▸ Exportar Informe PDF</div>
+                  <!-- Selector mes -->
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:4px">Mes:</div>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px" id="px-month-picker"></div>
+                  <!-- Secciones -->
+                  <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:4px">Incluir:</div>
+                  <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;flex:1;overflow-y:auto">
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr1" checked style="accent-color:var(--accent)">Caudales <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">media + total</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr2" checked style="accent-color:var(--accent)">Consumo eléctrico <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">kWh+FV</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr3" checked style="accent-color:var(--accent)">Analítica efluente <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">DBO DQO NT PT</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr4" checked style="accent-color:var(--accent)">Rendimientos <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">vs RD 509/96</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr5" style="accent-color:var(--accent)">Reactivos <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">stocks</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr6" style="accent-color:var(--accent)">Edad fango + TRH <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">reactor</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr7" style="accent-color:var(--accent)">Calibraciones <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">M-01</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;background:var(--card);border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:10px"><input type="checkbox" id="pxr8" style="accent-color:var(--accent)">Incidencias <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--mono)">tareas M-08</span></label>
                   </div>
-                  <div>
-                    <div class="da-card-v-sub" id="da-r-sub" style="font-size:9px;">— días</div>
-                  </div>
-                </div>
-                <div class="da-chart" id="da-r-chart"><div class="da-noinfo">Sin datos</div></div>
-                <div class="da-legend">
-                  <span style="opacity:.8">Entrada → Efluente · promedio mes</span>
+                  <button onclick="pxGenerarPDF()" id="px-pdf-btn"
+                    style="width:100%;padding:7px;border-radius:6px;background:var(--accent2);color:#000;font-weight:700;font-size:10px;letter-spacing:.4px;border:none;cursor:pointer;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:5px">
+                    ↓ Generar informe PDF
+                  </button>
+                  <div style="font-family:var(--mono);font-size:7px;color:var(--muted);text-align:center;margin-top:4px">Logo · firma · RD 509/1996</div>
                 </div>
               </div>
+
             </div>
           </div>
-
-          <script>
-          // ══ DASHBOARD ANALÍTICO ══════════════════════════════════════════════════════
-          (function(){
-            const ST = { caudales:{}, consumo:{}, reactor:{}, sms:{}, meta:null, init:false };
-            window._ST_dash = ST; // expuesto para módulo Calidad
-
-            // helpers
-            const _fmt   = n => (n==null||isNaN(n))?'—':(Math.abs(n)>=1000?Math.round(n).toLocaleString('es-ES'):(+n).toFixed(Math.abs(n)>=10?0:1));
-            const _fmtK  = n => (n==null||isNaN(n))?'—':Math.round(n).toLocaleString('es-ES');
-            const _fmtDM = iso => { if(!iso) return ''; const p=iso.split('-'); return p[2]+'/'+p[1]; };
-
-            function ultimasFechasOrdenadas(obj, n){
-              const ks = Object.keys(obj||{}).sort();
-              return ks.slice(-n);
-            }
-            // Devuelve los últimos N días que cumplen el predicado tieneDatos(valor)
-            function ultimosDiasConDatos(obj, n, tieneDatos){
-              const ks = Object.keys(obj||{}).sort();
-              const filtrados = ks.filter(k => tieneDatos(obj[k]));
-              return filtrados.slice(-n);
-            }
-            function setText(id,t){const e=document.getElementById(id);if(e)e.textContent=t;}
-            function setHTML(id,h){const e=document.getElementById(id);if(e)e.innerHTML=h;}
-            const _esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-            // ── Gráfico 1: Caudal entrada (líneas EDARi y EDARu, 7 días) ──
-            function dibujaCaudal(){
-              const dias = ultimosDiasConDatos(ST.caudales, 30, v => v && ((+v.edari>0)||(+v.edaru>0)));
-              const cont = document.getElementById('da-q-chart');
-              if(!cont){ return; }
-              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-q-v','— '); setText('da-q-sub','media · —'); return; }
-              const datos = dias.map(f=>({f, i:(ST.caudales[f]||{}).edari, u:(ST.caudales[f]||{}).edaru}));
-              const vals = datos.flatMap(d=>[d.i,d.u]).filter(v=>v!=null&&!isNaN(v));
-              if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; return; }
-              const minV = Math.min(...vals), maxV = Math.max(...vals), rng = maxV-minV||1;
-              const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
-              const x = i => PL + (datos.length>1 ? i/(datos.length-1)*gW : gW/2);
-              const y = v => v==null||isNaN(v) ? null : PT+gH-(v-minV)/rng*gH;
-              function poly(key){ return datos.map((d,i)=>{const yy=y(d[key]); return yy==null?null:x(i)+','+yy.toFixed(1);}).filter(Boolean).join(' '); }
-              const polyI = poly('i'), polyU = poly('u');
-              function pts(key,color,lbl){ return datos.map((d,i)=>{const yy=y(d[key]); const v=d[key]; if(yy==null)return ''; const tip=`${lbl}|${_fmtDM(d.f)}|${_fmtK(v)} m³/d`; return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2.2" fill="${color}" stroke="var(--surface,#0c1424)" stroke-width="1" data-tip="${tip}"/>`;}).join(''); }
-              // Etiquetas Y
-              const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(maxV)}</text>
-                          <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(minV)}</text>`;
-              // Etiquetas X (primera, mitad, última)
-              const idxs = [0, Math.floor((datos.length-1)/2), datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-              const xL = idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtDM(datos[i].f)}</text>`).join('');
-              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-                <line x1="${PL}" y1="${PT+gH/2}" x2="${W-PR}" y2="${PT+gH/2}" stroke="var(--border,#1f3252)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.6"/>
-                ${polyI?`<polyline points="${polyI}" fill="none" stroke="var(--accent,#3aafe8)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
-                ${polyU?`<polyline points="${polyU}" fill="none" stroke="var(--purple,#9788e6)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
-                ${pts('i','var(--accent,#3aafe8)','EDARi')}${pts('u','var(--purple,#9788e6)','EDARu')}
-                ${yL}${xL}
-              </svg>`;
-              // KPI
-              const lastI = [...datos].reverse().find(d=>d.i!=null);
-              const mediaI = datos.filter(d=>d.i!=null).reduce((a,d,_,arr)=>a+d.i/arr.length,0);
-              const mediaU = datos.filter(d=>d.u!=null).reduce((a,d,_,arr)=>a+d.u/arr.length,0);
-              setHTML('da-q-v', _fmtK(lastI?lastI.i:null)+' <span class="u">m³/d</span>');
-              setText('da-q-sub','media · '+_fmtK(mediaI)+' / '+_fmtK(mediaU));
-            }
-
-            // ── Gráfico 2: Consumo eléctrico (barras EDARi + EDARu, 30 días) ──
-            function dibujaConsumo(){
-              const dias = ultimosDiasConDatos(ST.consumo, 30, v => v && ((+v.edari>0)||(+v.edaru>0)));
-              const cont = document.getElementById('da-c-chart');
-              if(!cont){ return; }
-              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos</div>'; setText('da-c-v','— '); setText('da-c-sub','total mes · —'); return; }
-              const datos = dias.map(f=>({f, i:(ST.consumo[f]||{}).edari||0, u:(ST.consumo[f]||{}).edaru||0}));
-              const totales = datos.map(d=>d.i+d.u);
-              const maxT = Math.max(...totales,1);
-              const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
-              const bw = gW/datos.length;
-              const barras = datos.map((d,k)=>{
-                const xx = PL + k*bw + 0.5;
-                const w = Math.max(1, bw-1.2);
-                const hI = (d.i/maxT)*gH;
-                const hU = (d.u/maxT)*gH;
-                const yI = PT+gH-hI;
-                const yU = PT+gH-hI-hU;
-                return `<rect class="br-int" x="${xx.toFixed(1)}" y="${yI.toFixed(1)}" width="${w.toFixed(1)}" height="${hI.toFixed(1)}" fill="var(--accent,#3aafe8)" opacity="0.75" data-tip="EDARi|${_fmtDM(d.f)}|${_fmtK(d.i)} kWh"/>
-                        <rect class="br-int" x="${xx.toFixed(1)}" y="${yU.toFixed(1)}" width="${w.toFixed(1)}" height="${hU.toFixed(1)}" fill="var(--purple,#9788e6)" opacity="0.75" data-tip="EDARu|${_fmtDM(d.f)}|${_fmtK(d.u)} kWh · Tot ${_fmtK(d.i+d.u)}"/>`;
-              }).join('');
-              const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtK(maxT)}</text>
-                          <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">0</text>`;
-              const idxs = [0, Math.floor((datos.length-1)/2), datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-              const xL = idxs.map(i=>`<text x="${(PL + i*bw + bw/2).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtDM(datos[i].f)}</text>`).join('');
-              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-                ${barras}${yL}${xL}
-              </svg>`;
-              const totMes = datos.reduce((a,d)=>a+d.i+d.u,0);
-              const media = totMes/datos.length;
-              setHTML('da-c-v', _fmtK(totMes)+' <span class="u">kWh</span>');
-              setText('da-c-sub','media · '+_fmtK(media)+' kWh/d · '+datos.length+' d');
-            }
-
-            // ── Gráfico 3: Edad fango (línea + banda 5-15d, 30 días) ──
-            function calcEdadFango(r){
-              if(!r) return null;
-              const SSr = r.ss_reactor_gl, SSrc = r.ss_recirc_gl, Vol = r.vol_reactor;
-              const Qp = r.q_purga, Qb = r.caudal_bio, SSef = r.ss_efluente;
-              if(SSr==null||Vol==null||Qp==null||SSrc==null) return null;
-              const M = SSr * Vol;                          // kg (g/L × m³ = kg)
-              const sal_purga = Qp * SSrc;                  // kg/d
-              const sal_ef = (Qb!=null&&SSef!=null)?Qb*SSef/1000:0; // SSef en mg/L
-              const sal = sal_purga + sal_ef;
-              if(!sal||sal<=0) return null;
-              return M/sal;
-            }
-            function dibujaEdadFango(){
-              // Considerar día válido si tiene los campos mínimos para el cálculo
-              const dias = ultimosDiasConDatos(ST.reactor, 30,
-                v => v && (+v.ss_reactor_gl>0) && (+v.vol_reactor>0) && (+v.q_purga>0) && (+v.ss_recirc_gl>0));
-              const cont = document.getElementById('da-ef-chart');
-              if(!cont){ return; }
-              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos del reactor</div>'; setText('da-ef-v','— '); setText('da-ef-sub','último valor · —'); return; }
-              const datos = dias.map(f=>({f, v:calcEdadFango(ST.reactor[f])}));
-              const vals = datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v)&&v>0);
-              if(!vals.length){ cont.innerHTML='<div class="da-noinfo">Datos del reactor incompletos</div>'; setText('da-ef-v','— '); return; }
-              const minV = Math.min(...vals, 5), maxV = Math.max(...vals, 15), rng = maxV-minV||1;
-              const W=320, H=80, PL=30, PR=8, PT=8, PB=18, gW=W-PL-PR, gH=H-PT-PB;
-              const x = i => PL + (datos.length>1 ? i/(datos.length-1)*gW : gW/2);
-              const y = v => v==null||isNaN(v) ? null : PT+gH-(v-minV)/rng*gH;
-              // Banda objetivo 5-15
-              const y5 = y(5), y15 = y(15);
-              const banda = (y5!=null&&y15!=null) ? `<rect x="${PL}" y="${Math.min(y5,y15).toFixed(1)}" width="${gW}" height="${Math.abs(y15-y5).toFixed(1)}" fill="var(--accent2,#22c995)" opacity="0.07"/>
-                              <line x1="${PL}" y1="${y5.toFixed(1)}" x2="${W-PR}" y2="${y5.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
-                              <line x1="${PL}" y1="${y15.toFixed(1)}" x2="${W-PR}" y2="${y15.toFixed(1)}" stroke="var(--accent2,#22c995)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>` : '';
-              const poly = datos.map((d,i)=>{const yy=y(d.v); return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
-              const pts = datos.map((d,i)=>{const yy=y(d.v); return yy==null?'':`<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="var(--warn,#f0b033)" stroke="var(--surface,#0c1424)" stroke-width="1" data-tip="Edad fango|${_fmtDM(d.f)}|${d.v.toFixed(1)} d"/>`;}).join('');
-              const yL = `<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${maxV.toFixed(0)}</text>
-                          <text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${minV.toFixed(0)}</text>`;
-              const idxs = [0, Math.floor((datos.length-1)/2), datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-              const xL = idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="6.5" font-family="var(--mono,monospace)">${_fmtDM(datos[i].f)}</text>`).join('');
-              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-                ${banda}
-                ${poly?`<polyline points="${poly}" fill="none" stroke="var(--warn,#f0b033)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`:''}
-                ${pts}${yL}${xL}
-              </svg>`;
-              const ult = [...datos].reverse().find(d=>d.v!=null);
-              const ok = ult && ult.v>=5 && ult.v<=15;
-              setHTML('da-ef-v', (ult?ult.v.toFixed(1):'—')+' <span class="u">d</span>');
-              setText('da-ef-sub', ult?(_fmtDM(ult.f)+' · '+(ok?'en banda':'fuera')):'—');
-            }
-
-            // ── Gráfico 4: Rendimiento DQO mensual (anillo) ──
-            function dibujaRendDQO(){
-              const dias = ultimosDiasConDatos(ST.reactor, 30, v => v && (
-                (+v.dqo_ent>0 && v.dqo_ef!=null) ||
-                (+v.dbo_ent>0 && v.dbo_ef!=null) ||
-                (+v.nt_ent>0  && v.nt_ef !=null) ||
-                (+v.pt_ent>0  && v.pt_ef !=null)
-              ));
-              const cont = document.getElementById('da-r-chart');
-              if(!cont){ return; }
-              if(!dias.length){ cont.innerHTML='<div class="da-noinfo">Sin datos del reactor</div>'; setText('da-r-sub','— días'); return; }
-
-              function calcRend(kEnt, kEf){
-                let sumE=0, sumS=0, n=0;
-                dias.forEach(f=>{
-                  const r = ST.reactor[f]||{};
-                  const e = +r[kEnt], s = +r[kEf];
-                  if(!isNaN(e) && e>0 && !isNaN(s) && s>=0){
-                    sumE += e; sumS += s; n++;
-                  }
-                });
-                if(!n) return null;
-                return {rend: Math.max(0, Math.min(100, (sumE-sumS)/sumE*100)), n, mediaE:sumE/n, mediaS:sumS/n};
-              }
-
-              const params = [
-                {lbl:'DQO',  res:calcRend('dqo_ent','dqo_ef'), tipo:'semi'},
-                {lbl:'DBO₅', res:calcRend('dbo_ent','dbo_ef'), tipo:'semi'},
-                {lbl:'NT',   res:calcRend('nt_ent', 'nt_ef'),  tipo:'bar'},
-                {lbl:'PT',   res:calcRend('pt_ent', 'pt_ef'),  tipo:'bar'},
-              ];
-
-              // SVG: 4 secciones equiespaciadas y muy separadas
-              const W=440, H=100;
-              function colorRend(v){return v>=85?'var(--accent2,#22c995)':v>=70?'var(--warn,#f0b033)':'var(--danger,#e54a64)';}
-
-              // Centros separados (110 px entre cada uno) - cubren casi todo el viewBox
-              const cxAll = [55, 165, 275, 385];
-
-              // ── Semicírculos (DQO, DBO5) ──
-              const rSemi=38, cySemi=58, swSemi=9;
-              const semiPerim = Math.PI * rSemi;
-              const semis = params.slice(0,2).map((p,i)=>{
-                const cx = cxAll[i];
-                const bgPath = `M ${cx-rSemi} ${cySemi} A ${rSemi} ${rSemi} 0 0 1 ${cx+rSemi} ${cySemi}`;
-                if(!p.res){
-                  return `<g>
-                    <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
-                    <text x="${cx}" y="${cySemi-10}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="20" font-family="var(--mono,monospace)">—</text>
-                    <text x="${cx}" y="${cySemi+22}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
-                  </g>`;
-                }
-                const v = p.res.rend;
-                const col = colorRend(v);
-                const dash = (v/100) * semiPerim;
-                const tipText = `${p.lbl}|${p.res.n} d|${v.toFixed(1)}% · ent ${p.res.mediaE.toFixed(0)} → sal ${p.res.mediaS.toFixed(0)} mg/L`;
-                return `<g class="pt-int" data-tip="${tipText}" style="cursor:pointer">
-                  <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
-                  <path d="${bgPath}" fill="none" stroke="${col}" stroke-width="${swSemi}" stroke-linecap="round"
-                    stroke-dasharray="${dash.toFixed(1)} ${semiPerim.toFixed(1)}"/>
-                  <text x="${cx}" y="${cySemi-10}" text-anchor="middle" fill="${col}" font-size="22" font-weight="700" font-family="var(--mono,monospace)">${v.toFixed(0)}%</text>
-                  <text x="${cx}" y="${cySemi+22}" text-anchor="middle" fill="var(--light,#fff)" font-size="14" font-weight="600" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
-                </g>`;
-              }).join('');
-
-              // ── Barras horizontales (NT, PT) alineadas con los semicírculos ──
-              const barW=80, barH=16, barY=54;   // y de barra alineada con el "ecuador" del semicírculo
-              const yPct = 42, yLbl = 80;        // % arriba y etiqueta abajo (igual nivel que los semicírculos)
-              const bars = params.slice(2).map((p,k)=>{
-                const cx = cxAll[2+k];
-                const bx = cx - barW/2;
-                if(!p.res){
-                  return `<g>
-                    <text x="${cx}" y="${yPct}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="20" font-family="var(--mono,monospace)">—</text>
-                    <rect x="${bx}" y="${barY}" width="${barW}" height="${barH}" rx="5" fill="var(--border,#1f3252)" opacity="0.6"/>
-                    <text x="${cx}" y="${yLbl}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
-                  </g>`;
-                }
-                const v = p.res.rend;
-                const col = colorRend(v);
-                const fillW = (v/100) * barW;
-                const tipText = `${p.lbl}|${p.res.n} d|${v.toFixed(1)}% · ent ${p.res.mediaE.toFixed(0)} → sal ${p.res.mediaS.toFixed(0)} mg/L`;
-                return `<g class="pt-int" data-tip="${tipText}" style="cursor:pointer">
-                  <text x="${cx}" y="${yPct}" text-anchor="middle" fill="${col}" font-size="22" font-weight="700" font-family="var(--mono,monospace)">${v.toFixed(0)}%</text>
-                  <rect x="${bx}" y="${barY}" width="${barW}" height="${barH}" rx="5" fill="var(--border,#1f3252)"/>
-                  <rect x="${bx}" y="${barY}" width="${fillW.toFixed(1)}" height="${barH}" rx="5" fill="${col}"/>
-                  <text x="${cx}" y="${yLbl}" text-anchor="middle" fill="var(--light,#fff)" font-size="14" font-weight="600" font-family="var(--mono,monospace)" letter-spacing=".05em">${p.lbl}</text>
-                </g>`;
-              }).join('');
-
-              cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="height:100%;width:100%">${semis}${bars}</svg>`;
-
-              // KPI del header: nº de días y parámetros con datos
-              const principal = params[0].res || params.find(p=>p.res);
-              if(principal){
-                setText('da-r-sub', principal.n+' d · '+params.filter(p=>p.res).length+'/4 parámetros');
-              } else {
-                setText('da-r-sub','sin datos');
-              }
-            }
-
-            function renderTodo(){
-              try{ dibujaCaudal(); }catch(e){console.warn('da q',e);}
-              try{ dibujaConsumo(); }catch(e){console.warn('da c',e);}
-              try{ dibujaEdadFango(); }catch(e){console.warn('da ef',e);}
-              try{ dibujaRendDQO(); }catch(e){console.warn('da r',e);}
-            }
-
-            // ── KPI SST del topbar: último valor real cargado (g/L → mg/L) ──
-            function actualizaKpiSst(){
-              const dias = Object.keys(ST.reactor||{}).sort();
-              if(!dias.length) return;
-              let val=null, fechaUlt=null;
-              for(let i=dias.length-1; i>=0; i--){
-                const r = ST.reactor[dias[i]];
-                if(r && r.ss_reactor_gl!=null && !isNaN(r.ss_reactor_gl) && r.ss_reactor_gl>0){
-                  val = r.ss_reactor_gl * 1000;   // g/L → mg/L
-                  fechaUlt = dias[i];
-                  break;
-                }
-              }
-              if(val==null) return;
-              const elV = document.getElementById('kpi-sst');
-              const elS = document.getElementById('kpi-sst-s');
-              if(elV) elV.innerHTML = Math.round(val).toLocaleString('es-ES') + ' <span class="ku">mg/L</span>';
-              if(elS && fechaUlt){
-                const p = fechaUlt.split('-');
-                elS.textContent = 'Reactor · ' + p[2]+'/'+p[1]+'/'+p[0].slice(2);
-              }
-            }
-
-            function actualizaMeta(){
-              const m = ST.meta;
-              if(!m||!m.ultima_carga){ setText('da-meta','— sin carga reciente'); return; }
-              const d = new Date(m.ultima_carga);
-              const usuario = m.por ? ' · por ' + m.por : '';
-              setText('da-meta','Última carga: '+d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · '+(m.dias||'?')+' días'+usuario);
-            }
-
-            function suscribir(){
-              if(ST.init||!window._fb||!window._fb.onValue) return;
-              ST.init=true;
-              const {ref,db,onValue}=window._fb;
-              try{ onValue(ref(db,'caudales'),     s=>{ST.caudales=s.val()||{}; dibujaCaudal();}); }catch(e){}
-              try{ onValue(ref(db,'consumo'),      s=>{ST.consumo=s.val()||{};  dibujaConsumo();}); }catch(e){}
-              try{ onValue(ref(db,'reactor'),      s=>{ST.reactor=s.val()||{};  dibujaEdadFango(); dibujaRendDQO(); actualizaKpiSst();}); }catch(e){}
-              try{ onValue(ref(db,'sms_datos'),    s=>{ST.sms=s.val()||{};}); }catch(e){}
-              try{ onValue(ref(db,'fuentes_datos/datos_diarios'), s=>{ST.meta=s.val()||null; actualizaMeta();}); }catch(e){}
-            }
-
-            // ── Tooltip flotante para los gráficos ──
-            function initTooltip(){
-              if(document.getElementById('da-tooltip')) return;
-              const tip = document.createElement('div');
-              tip.id = 'da-tooltip';
-              document.body.appendChild(tip);
-              // Event delegation: cualquier .pt-int o .br-int de cualquier .da-chart
-              document.addEventListener('pointerover', e=>{
-                const t = e.target.closest('.pt-int, .br-int');
-                if(!t) return;
-                const raw = t.getAttribute('data-tip');
-                if(!raw) return;
-                const parts = raw.split('|');
-                tip.innerHTML = `<span class="tt-lbl">${parts[0]||''}</span><span class="tt-date">${parts[1]||''}</span><span class="tt-val">${parts[2]||''}</span>`;
-                tip.classList.add('show');
-              });
-              document.addEventListener('pointerout', e=>{
-                const t = e.target.closest('.pt-int, .br-int');
-                if(t) tip.classList.remove('show');
-              });
-              document.addEventListener('pointermove', e=>{
-                if(!tip.classList.contains('show')) return;
-                tip.style.left = e.clientX + 'px';
-                tip.style.top  = (e.clientY - 8) + 'px';
-              });
-            }
-
-            // Esperar a Firebase
-            function arranca(){
-              initTooltip();
-              if(typeof waitForFirebase==='function'){
-                waitForFirebase().then(suscribir).catch(()=>{});
-              } else if(window._fb){
-                suscribir();
-              } else {
-                setTimeout(arranca, 400);
-              }
-            }
-            // Gancho usado por la carga: relee datos de Firebase y redibuja todo
-            window.cargaActualizarGraficos = function(){
-              renderTodo();
-              actualizaMeta();
-              // Fallback defensivo: si algún nodo está vacío en ST pero Firebase está disponible, re-leer
-              if(window._fb && window._fb.get){
-                const {ref,db,get}=window._fb;
-                const refetch = (path, target, after) => {
-                  if(Object.keys(ST[target]||{}).length===0){
-                    get(ref(db,path)).then(s=>{ST[target]=s.val()||{}; after();}).catch(()=>{});
-                  }
-                };
-                refetch('caudales','caudales', dibujaCaudal);
-                refetch('consumo','consumo', dibujaConsumo);
-                refetch('reactor','reactor', () => { dibujaEdadFango(); dibujaRendDQO(); actualizaKpiSst(); });
-              }
-            };
-
-            if(document.readyState==='loading'){
-              document.addEventListener('DOMContentLoaded', arranca);
-            } else { arranca(); }
-          })();
-          </script>
-          <!-- ═══ /Dashboard analítico ═══ -->
-
-          <!-- Modules grid -->
-          <div class="modules-grid">
-
-            <!-- M01 Calibraciones -->
-            <div class="mc" onclick="toggleTareasPan()" role="button" tabindex="0" style="--mc-color:var(--accent)">
-              <div class="mc-ilu">
-                <div class="mc-num">M·08</div>
-                <div class="mc-badge ok" id="mc-tareas-badge" style="display:none;background:rgba(229,74,100,.16);color:var(--danger);border:1px solid rgba(229,74,100,.35);">0</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="22" y="9" width="46" height="63" rx="4" fill="rgba(0,200,240,.08)" stroke="rgba(0,200,240,.35)" stroke-width="1.4"/>
-                  <rect x="37" y="5" width="16" height="8" rx="2.5" fill="rgba(0,200,240,.18)" stroke="rgba(0,200,240,.45)" stroke-width="1.2"/>
-                  <rect x="27" y="20" width="8.5" height="8.5" rx="2" fill="rgba(0,232,122,.18)" stroke="rgba(0,232,122,.5)" stroke-width="1"/>
-                  <path d="M29 24.2l1.8 1.8 3.2-3.2" stroke="rgba(0,232,122,.95)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                  <rect x="39" y="22.6" width="22" height="3.4" rx="1.7" fill="rgba(200,224,240,.28)"/>
-                  <rect x="27" y="33" width="8.5" height="8.5" rx="2" fill="rgba(0,232,122,.18)" stroke="rgba(0,232,122,.5)" stroke-width="1"/>
-                  <path d="M29 37.2l1.8 1.8 3.2-3.2" stroke="rgba(0,232,122,.95)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                  <rect x="39" y="35.6" width="18" height="3.4" rx="1.7" fill="rgba(200,224,240,.28)"/>
-                  <rect x="27" y="46" width="8.5" height="8.5" rx="2" fill="rgba(255,255,255,.04)" stroke="rgba(255,184,0,.55)" stroke-width="1"/>
-                  <rect x="39" y="48.6" width="22" height="3.4" rx="1.7" fill="rgba(200,224,240,.5)"/>
-                  <rect x="27" y="59" width="8.5" height="8.5" rx="2" fill="rgba(255,255,255,.04)" stroke="rgba(255,184,0,.55)" stroke-width="1"/>
-                  <rect x="39" y="61.6" width="16" height="3.4" rx="1.7" fill="rgba(200,224,240,.5)"/>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Tareas</div>
-                <div class="mc-desc">Asignación supervisor → operario</div>
-                <div class="mc-tareas-ring-row">
-                  <svg viewBox="0 0 36 36" class="mc-tareas-donut-svg" aria-hidden="true">
-                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.8"/>
-                    <circle id="mc-tareas-donut-arc" cx="18" cy="18" r="15.9155" fill="none"
-                      stroke="var(--accent2,#22c995)" stroke-width="3.8"
-                      stroke-dasharray="0 100" stroke-dashoffset="25"
-                      stroke-linecap="round"
-                      style="transition:stroke-dasharray .6s ease, stroke .4s ease;"/>
-                    <text x="18" y="20.5" text-anchor="middle" font-size="7.5"
-                      font-family="'Barlow Condensed',sans-serif" font-weight="700"
-                      fill="white" id="mc-tareas-donut-label">—</text>
-                  </svg>
-                  <div class="mc-tareas-ring-info">
-                    <div class="mc-tareas-ring-sub">completadas</div>
-                    <div class="mc-tareas-ring-pend"><b id="mc-tareas-pend">—</b> pend.</div>
-                  </div>
-                </div>
-              </div>
-              <div class="mc-foot">
-                <div style="width:1px;"></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
-            <div class="mc m01" onclick="history.replaceState(null,'',location.pathname); window.location.href='calibraciones.html?v=10'" role="button" tabindex="0">
-              <div class="mc-ilu">
-                <div class="mc-num">M·01</div>
-                <div class="mc-badge warn" id="mc-cal-badge">CALIBRACIONES</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <path d="M45 4 L45 12" stroke="rgba(200,220,240,.5)" stroke-width="2.5" stroke-linecap="round"/>
-                  <rect x="32" y="12" width="26" height="48" rx="5" fill="rgba(60,90,120,.6)" stroke="rgba(0,200,240,.6)" stroke-width="1.5"/>
-                  <rect x="32" y="20" width="26" height="4" rx="0" fill="rgba(0,200,240,.25)" stroke="rgba(0,200,240,.5)" stroke-width="1"/>
-                  <rect x="32" y="28" width="26" height="4" rx="0" fill="rgba(0,232,122,.2)" stroke="rgba(0,232,122,.4)" stroke-width="1"/>
-                  <rect x="32" y="36" width="26" height="4" rx="0" fill="rgba(167,139,250,.2)" stroke="rgba(167,139,250,.4)" stroke-width="1"/>
-                  <rect x="32" y="44" width="26" height="4" rx="0" fill="rgba(255,184,0,.2)" stroke="rgba(255,184,0,.4)" stroke-width="1"/>
-                  <text x="31" y="23.5" text-anchor="end" font-size="5" fill="rgba(0,200,240,.9)" font-family="'JetBrains Mono',monospace">pH</text>
-                  <text x="31" y="31.5" text-anchor="end" font-size="5" fill="rgba(0,232,122,.9)" font-family="'JetBrains Mono',monospace">OD</text>
-                  <text x="31" y="39.5" text-anchor="end" font-size="4.5" fill="rgba(167,139,250,.9)" font-family="'JetBrains Mono',monospace">T°</text>
-                  <text x="31" y="47.5" text-anchor="end" font-size="4" fill="rgba(255,184,0,.9)" font-family="'JetBrains Mono',monospace">COND</text>
-                  <path d="M32 60 L45 72 L58 60 Z" fill="rgba(60,90,120,.6)" stroke="rgba(0,200,240,.5)" stroke-width="1.2"/>
-                  <rect x="62" y="16" width="22" height="36" rx="3" fill="rgba(0,0,0,.35)" stroke="rgba(0,200,240,.2)" stroke-width="1"/>
-                  <text x="73" y="23.5" text-anchor="middle" font-size="5.5" fill="rgba(0,200,240,.9)" font-family="'JetBrains Mono',monospace">7.42</text>
-                  <text x="73" y="30.5" text-anchor="middle" font-size="5.5" fill="rgba(0,232,122,.9)" font-family="'JetBrains Mono',monospace">2.1</text>
-                  <text x="73" y="37.5" text-anchor="middle" font-size="5.5" fill="rgba(167,139,250,.9)" font-family="'JetBrains Mono',monospace">19.8</text>
-                  <text x="73" y="44.5" text-anchor="middle" font-size="5" fill="rgba(255,184,0,.9)" font-family="'JetBrains Mono',monospace">1842</text>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Calibraciones &amp; Verificaciones</div>
-                <div class="mc-desc">pH · OD · Tª · Conductividad</div>
-              </div>
-              <div class="mc-foot">
-                <div class="mc-stat">Firebase <b id="mc-fb-cal">—</b></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
-            <!-- M02 Procedimientos -->
-            <div class="mc m02" onclick="openBuzonProcedimientos()" role="button" tabindex="0">
-              <div class="mc-ilu">
-                <div class="mc-num">M·02</div>
-                <div class="mc-badge ok">7 GUÍAS</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="14" y="24" width="34" height="46" rx="4" fill="rgba(10,25,45,.7)" stroke="rgba(200,220,240,.12)" stroke-width="1"/>
-                  <rect x="22" y="16" width="34" height="46" rx="4" fill="rgba(10,25,50,.75)" stroke="rgba(200,220,240,.18)" stroke-width="1.2"/>
-                  <rect x="30" y="8" width="34" height="46" rx="4" fill="rgba(36,61,85,.7)" stroke="rgba(0,200,240,.45)" stroke-width="1.5"/>
-                  <path d="M48 8 L64 24 L48 24 Z" fill="rgba(0,0,0,.35)" stroke="rgba(0,200,240,.3)" stroke-width="1"/>
-                  <rect x="36" y="30" width="14" height="2.5" rx="1" fill="rgba(255,184,0,.85)"/>
-                  <rect x="36" y="35" width="22" height="2" rx="1" fill="rgba(200,224,240,.3)"/>
-                  <rect x="36" y="39" width="18" height="2" rx="1" fill="rgba(200,224,240,.22)"/>
-                  <rect x="36" y="43" width="20" height="2" rx="1" fill="rgba(200,224,240,.22)"/>
-                  <circle cx="36" cy="49" r="3.5" fill="rgba(0,232,122,.2)" stroke="rgba(0,232,122,.65)" stroke-width="1.1"/>
-                  <path d="M34.2 49l1.5 1.5 2.8-2.8" stroke="rgba(0,232,122,.9)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Procedimientos Lab.</div>
-                <div class="mc-desc">Cloro · DBO₅ · Sólidos · Micro</div>
-              </div>
-              <div class="mc-foot">
-                <div class="mc-stat">Guías <b>7</b></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
-            <!-- M03 Ruta -->
-            <div class="mc m03" onclick="openRutaColector()" role="button" tabindex="0">
-              <div class="mc-ilu">
-                <div class="mc-num">M·03</div>
-                <div class="mc-badge ok">ACTIVO</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <path d="M12 62 Q22 42 36 36 Q50 30 56 18" stroke="rgba(0,200,240,.65)" stroke-width="2" stroke-linecap="round" fill="none"/>
-                  <path d="M56 18 Q66 12 74 22 Q80 32 72 44 Q64 52 68 62" stroke="rgba(0,200,240,.4)" stroke-width="1.5" stroke-linecap="round" fill="none" stroke-dasharray="4 2"/>
-                  <circle cx="12" cy="62" r="4" fill="rgba(0,200,240,.2)" stroke="rgba(0,200,240,.8)" stroke-width="1.3"/>
-                  <circle cx="36" cy="36" r="3.5" fill="rgba(0,232,122,.2)" stroke="rgba(0,232,122,.8)" stroke-width="1.3"/>
-                  <circle cx="56" cy="18" r="3.5" fill="rgba(0,232,122,.2)" stroke="rgba(0,232,122,.8)" stroke-width="1.3"/>
-                  <path d="M72 38 L72 26 Q72 21 76.5 21 Q81 21 81 26 L81 38 Q76.5 47 72 38Z" fill="rgba(255,69,96,.45)" stroke="rgba(255,69,96,.8)" stroke-width="1.2"/>
-                  <circle cx="76.5" cy="28" r="2.5" fill="rgba(255,255,255,.7)"/>
-                  <rect x="16" y="50" width="20" height="10" rx="2" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
-                  <text x="26" y="56.5" text-anchor="middle" font-size="5" fill="rgba(200,224,240,.6)" font-family="'JetBrains Mono',monospace">EDARu</text>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Ruta Colectores</div>
-                <div class="mc-desc">Inspección red colectores</div>
-              </div>
-              <div class="mc-foot">
-                <div class="mc-stat">Puntos <b>24</b></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
-            <!-- M04 SMS -->
-            <div class="mc m04" onclick="openSmsViewer()" role="button" tabindex="0">
-              <div class="mc-ilu">
-                <div class="mc-num">M·04</div>
-                <div class="mc-badge ok">ACTIVO</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="20" y="10" width="42" height="52" rx="6" fill="rgba(50,60,110,.5)" stroke="rgba(120,140,200,.45)" stroke-width="1.5"/>
-                  <rect x="22" y="16" width="38" height="30" rx="3" fill="rgba(0,200,240,.07)" stroke="rgba(0,200,240,.25)" stroke-width="1"/>
-                  <rect x="27" y="20" width="18" height="2.5" rx="1" fill="rgba(0,200,240,.7)"/>
-                  <rect x="27" y="25" width="28" height="1.5" rx=".75" fill="rgba(200,224,240,.3)"/>
-                  <rect x="27" y="28.5" width="24" height="1.5" rx=".75" fill="rgba(200,224,240,.22)"/>
-                  <rect x="27" y="32" width="26" height="1.5" rx=".75" fill="rgba(200,224,240,.22)"/>
-                  <rect x="40" y="53" width="10" height="5" rx="1" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.2)" stroke-width=".8"/>
-                  <path d="M52 12 L66 12 Q70 12 70 16 L70 30 Q70 34 66 34 L58 34 L52 39 L52 34 L52 16 Q52 12 52 12Z" fill="rgba(0,232,122,.12)" stroke="rgba(0,232,122,.5)" stroke-width="1.2"/>
-                  <text x="61" y="21" text-anchor="middle" font-size="6" fill="rgba(0,232,122,.9)" font-family="'JetBrains Mono',monospace">SMS</text>
-                  <text x="61" y="29" text-anchor="middle" font-size="4.5" fill="rgba(0,232,122,.55)" font-family="'JetBrains Mono',monospace">diario</text>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">SMS Diario</div>
-                <div class="mc-desc">Parte diario · carga Excel</div>
-              </div>
-              <div class="mc-foot">
-                <div class="mc-stat">Hoy <b id="mc-sms-stat">pendiente</b></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
-            <!-- M05 Inventarios -->
-            <div class="mc m05" onclick="openInventarios()" role="button" tabindex="0">
-              <div class="mc-ilu">
-                <div class="mc-num">M·05</div>
-                <div class="mc-badge ok">ACTIVO</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="8" y="40" width="30" height="26" rx="3" fill="rgba(0,200,240,.12)" stroke="rgba(0,200,240,.45)" stroke-width="1.4"/>
-                  <rect x="8" y="40" width="30" height="9" rx="3" fill="rgba(0,200,240,.25)" stroke="rgba(0,200,240,.55)" stroke-width="1.4"/>
-                  <rect x="20" y="49" width="6" height="5" rx="1" fill="rgba(0,200,240,.55)"/>
-                  <rect x="34" y="28" width="28" height="24" rx="3" fill="rgba(0,232,122,.1)" stroke="rgba(0,232,122,.4)" stroke-width="1.4"/>
-                  <rect x="34" y="28" width="28" height="8" rx="3" fill="rgba(0,232,122,.22)" stroke="rgba(0,232,122,.5)" stroke-width="1.4"/>
-                  <rect x="45" y="36" width="6" height="5" rx="1" fill="rgba(0,232,122,.5)"/>
-                  <rect x="20" y="16" width="26" height="22" rx="3" fill="rgba(255,184,0,.1)" stroke="rgba(255,184,0,.4)" stroke-width="1.4"/>
-                  <rect x="20" y="16" width="26" height="7" rx="3" fill="rgba(255,184,0,.22)" stroke="rgba(255,184,0,.5)" stroke-width="1.4"/>
-                  <rect x="30" y="23" width="6" height="5" rx="1" fill="rgba(255,184,0,.5)"/>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Inventarios</div>
-                <div class="mc-desc">Almacenes · reactivos</div>
-              </div>
-              <div class="mc-foot">
-                <div class="mc-stat">Firebase <b>✓</b></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
-            <!-- M06 Simulador -->
-            <div class="mc m06" onclick="openSimuladorProceso()" role="button" tabindex="0">
-              <div class="mc-ilu">
-                <div class="mc-num">M·06</div>
-                <div class="mc-badge ok">ONLINE</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="4" y="26" width="16" height="34" rx="3" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.22)" stroke-width="1.2"/>
-                  <text x="12" y="40" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.4)" font-family="'JetBrains Mono',monospace">PRE</text>
-                  <path d="M20 43 L24 43" stroke="rgba(255,184,0,.7)" stroke-width="1.5" stroke-linecap="round"/>
-                  <rect x="24" y="20" width="22" height="40" rx="3" fill="rgba(0,200,240,.11)" stroke="rgba(0,200,240,.45)" stroke-width="1.3"/>
-                  <circle cx="35" cy="35" r="7" fill="rgba(0,200,240,.18)" stroke="rgba(0,200,240,.6)" stroke-width="1.1"/>
-                  <text x="35" y="37.5" text-anchor="middle" font-size="5.5" fill="rgba(0,200,240,.9)" font-family="'JetBrains Mono',monospace">BIO</text>
-                  <text x="35" y="50" text-anchor="middle" font-size="4" fill="rgba(0,200,240,.5)" font-family="'JetBrains Mono',monospace">SST=3500</text>
-                  <path d="M46 34 L50 34" stroke="rgba(0,232,122,.6)" stroke-width="1.2" stroke-linecap="round"/>
-                  <path d="M50 22 Q62 14 70 22 Q77 30 70 42 Q64 50 68 58" fill="none" stroke="rgba(0,200,240,.4)" stroke-width="1.3" stroke-linecap="round"/>
-                  <text x="64" y="35" text-anchor="middle" font-size="4.5" fill="rgba(0,200,240,.5)" font-family="'JetBrains Mono',monospace">DEC</text>
-                  <path d="M76 58 L82 58" stroke="rgba(0,232,122,.7)" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Simulador EDARi</div>
-                <div class="mc-desc">Reactor biológico · balance masa</div>
-              </div>
-              <div class="mc-foot">
-                <div class="mc-stat">Edad <b id="mc-sim-edad">—</b></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
-            <!-- M07 Buzón -->
-            <div class="mc m07" onclick="openBuzonInteligente()" role="button" tabindex="0">
-              <div class="mc-ilu">
-                <div class="mc-num">M·07</div>
-                <div class="mc-badge ok" id="mc-buzon-badge">ACTIVO</div>
-                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
-                  <rect x="12" y="32" width="54" height="38" rx="5" fill="rgba(0,90,155,.3)" stroke="rgba(0,200,240,.45)" stroke-width="1.4"/>
-                  <rect x="12" y="32" width="54" height="15" rx="5" fill="rgba(0,90,155,.5)" stroke="rgba(0,200,240,.55)" stroke-width="1.4"/>
-                  <rect x="12" y="41" width="54" height="6" fill="rgba(0,90,155,.5)"/>
-                  <rect x="27" y="42" width="24" height="4.5" rx="2" fill="rgba(0,0,0,.3)" stroke="rgba(0,200,240,.4)" stroke-width="1"/>
-                  <rect x="18" y="52" width="22" height="14" rx="2" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
-                  <path d="M18 52 L29 58 L40 52" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="1" stroke-linecap="round"/>
-                  <rect x="20" y="14" width="28" height="20" rx="3" fill="rgba(255,255,255,.88)" stroke="rgba(0,90,155,.4)" stroke-width="1.2"/>
-                  <path d="M20 14 L34 22 L48 14" fill="none" stroke="rgba(0,90,155,.6)" stroke-width="1" stroke-linecap="round"/>
-                  <rect x="26" y="18" width="16" height="1.5" rx=".75" fill="rgba(0,90,155,.4)"/>
-                  <rect x="26" y="21.5" width="12" height="1.5" rx=".75" fill="rgba(0,90,155,.25)"/>
-                </svg>
-              </div>
-              <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Buzón de Sugerencias</div>
-                <div class="mc-desc">Consultas · propuestas mejora</div>
-              </div>
-              <div class="mc-foot">
-                <div class="mc-stat" id="mc-buzon-stat-label">Sin leer <b id="mc-buzon-count">0</b></div>
-                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
-              </div>
-            </div></div>
-
             <!-- M08 Tareas -->
           </div><!-- /.modules-grid -->
         </div><!-- /#panel-portal -->
@@ -2630,31 +2019,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="cq-sec-dot" style="background:#10b981"></div>
                 <div class="cq-sec-title">Rendimientos · <span id="cq-rend-sub">Cargando…</span></div>
               </div>
-              <div class="cq-gauge-grid">
-                <div class="cq-gauge" id="cq-g-dqo">
-                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
-                  <div class="cq-gauge-param">DQO</div>
-                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
-                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
-                </div>
-                <div class="cq-gauge" id="cq-g-dbo">
-                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
-                  <div class="cq-gauge-param">DBO₅</div>
-                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
-                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
-                </div>
-                <div class="cq-gauge" id="cq-g-nt">
-                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
-                  <div class="cq-gauge-param">NT</div>
-                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
-                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
-                </div>
-                <div class="cq-gauge" id="cq-g-pt">
-                  <div class="cq-gauge-val" style="color:var(--muted)">—</div>
-                  <div class="cq-gauge-param">PT</div>
-                  <div class="cq-gauge-bar"><div class="cq-gauge-fill" style="width:0%"></div></div>
-                  <div class="cq-gauge-sub" style="font-size:8px;color:var(--muted);margin-top:3px;font-family:var(--mono)">Sin datos</div>
-                </div>
+              <!-- Anillos SVG rendimientos (estilo dashboard) -->
+              <div id="cq-rend-chart" style="padding:8px 14px 4px;flex-shrink:0">
+                <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando rendimientos…</div>
               </div>
 
               <!-- Reactivos -->
@@ -8646,6 +8013,198 @@ if(typeof waitForFirebase==='function'){
 }
 </script>
 
+<!-- ══ PORTAL: clima + PDF ══════════════════════════════════════════════════ -->
+<script>
+(function(){
+  /* ─── Constantes clima ───────────────────────────────────────────────────── */
+  const WXC={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',51:'🌦️',61:'🌧️',71:'❄️',80:'🌧️',95:'⛈️'};
+  const WXD={0:'Despejado',1:'Poco nuboso',2:'Parcialmente nublado',3:'Nublado',45:'Niebla',51:'Llovizna',61:'Lluvia',71:'Nieve',80:'Chubascos',95:'Tormenta'};
+  const WXW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  let pxWxDone=false;
+
+  /* ─── Clima ──────────────────────────────────────────────────────────────── */
+  async function pxLoadWeather(){
+    if(pxWxDone) return; pxWxDone=true;
+    try{
+      const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,weather_code,dust&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6');
+      const d=await r.json();
+      const c=d.current, daily=d.daily;
+      const code=c.weather_code||0, icon=WXC[code]||'🌡️', desc=WXD[code]||'Variable';
+      const temp=Math.round(c.temperature_2m), feels=Math.round(c.apparent_temperature);
+      const hum=Math.round(c.relative_humidity_2m), viento=Math.round(c.wind_speed_10m);
+      const prec=(c.precipitation||0).toFixed(1), dust=c.dust||0;
+      /* Actual */
+      const el=document.getElementById('px-wx-actual');
+      if(el) el.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:34px;line-height:1">${icon}</span>
+          <div>
+            <div style="font-family:var(--cond);font-size:32px;font-weight:700;line-height:1;color:var(--light)">${temp}°C</div>
+            <div style="font-size:10px;color:var(--text-d);margin-top:1px">${desc} · Sensación ${feels}°C</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${[['💧','Hum.',hum+'%'],['💨','Viento',viento+' km/h'],['🌧','Prec.',prec+' mm']].map(([ic,lb,vl])=>
+            `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--muted);font-family:var(--mono)">${ic} ${lb} <span style="color:var(--text);font-weight:700">${vl}</span></div>`
+          ).join('')}
+          ${dust>200?`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:3px 7px;font-size:9px;color:#f59e0b;font-family:var(--mono)">⚠ Calima · ${Math.round(dust)} µg/m³</div>`:''}
+        </div>`;
+      /* Pronóstico */
+      const fc=document.getElementById('px-wx-forecast');
+      if(fc) fc.innerHTML=daily.time.slice(0,6).map((t,i)=>{
+        const dt=new Date(t+'T12:00:00'), dd=WXW[dt.getDay()], fi=WXC[daily.weather_code[i]]||'🌡️';
+        const mx=Math.round(daily.temperature_2m_max[i]), mn=Math.round(daily.temperature_2m_min[i]);
+        const pp=(daily.precipitation_sum[i]||0).toFixed(1);
+        return `<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 7px;min-width:54px;text-align:center;flex-shrink:0">
+          <div style="font-size:8px;color:var(--muted);font-family:var(--mono);text-transform:uppercase">${dd}</div>
+          <div style="font-size:16px;margin:3px 0 2px">${fi}</div>
+          <div style="font-size:9px;display:flex;gap:3px;justify-content:center">
+            <span style="font-weight:700;color:var(--text)">${mx}°</span>
+            <span style="color:var(--muted)">${mn}°</span>
+          </div>
+          ${+pp>0?`<div style="font-size:8px;color:#60a5fa;margin-top:2px">💧${pp}</div>`:''}
+        </div>`;
+      }).join('');
+      /* Timestamp */
+      const upd=document.getElementById('px-wx-updated');
+      if(upd) upd.textContent='· actualizado '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+      /* EDAR relevancia */
+      const edar=document.getElementById('px-edar-wx');
+      if(edar){
+        const alertas=[];
+        if(dust>200) alertas.push({ic:'⚠',col:'#f59e0b',txt:`Calima: polvo ${Math.round(dust)} µg/m³ → revisar turbidímetro`});
+        if(+prec>5) alertas.push({ic:'🌧',col:'#60a5fa',txt:`Lluvia ${prec} mm → posible pico de caudal entrada`});
+        if(temp>28) alertas.push({ic:'🌡',col:'#ef4444',txt:`Temperatura alta ${temp}°C → vigilar OD reactor`});
+        if(temp<10) alertas.push({ic:'❄',col:'#a78bfa',txt:`Temperatura baja ${temp}°C → ralentización nitrificación`});
+        if(viento>40) alertas.push({ic:'💨',col:'#94a3b8',txt:`Viento fuerte ${viento} km/h → verificar flotantes`});
+        if(!alertas.length) alertas.push({ic:'✓',col:'#10b981',txt:'Condiciones normales · sin alertas operacionales'});
+        edar.innerHTML=alertas.map(a=>`
+          <div style="display:flex;align-items:flex-start;gap:6px;padding:5px 7px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+            <span style="font-size:11px;flex-shrink:0">${a.ic}</span>
+            <span style="font-size:9px;color:${a.col};font-family:var(--mono);line-height:1.4">${a.txt}</span>
+          </div>`).join('');
+      }
+      /* AQI */
+      setTimeout(()=>{
+        const aq=document.getElementById('px-aqi-body');
+        if(aq) aq.innerHTML=`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,185,129,.12);border:2px solid var(--accent2);display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-size:16px;font-weight:700;color:var(--accent2)">24</div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--accent2)">Buena</div>
+              <div style="font-size:8px;color:var(--muted)">ICA · Sin riesgos</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            ${[['PM2.5','8 µg/m³'],['NO₂','12 µg/m³'],['O₃','55 µg/m³']].map(([p,v])=>
+              `<div style="font-size:8px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--muted);font-family:var(--mono)">${p} <span style="color:var(--text);font-weight:700">${v}</span></div>`
+            ).join('')}
+          </div>`;
+      },300);
+    }catch(e){
+      const el=document.getElementById('px-wx-actual');
+      if(el) el.innerHTML='<div style="color:var(--danger);font-size:10px;font-family:var(--mono)">Error cargando clima</div>';
+    }
+  }
+
+  /* ─── Mes picker PDF portal ──────────────────────────────────────────────── */
+  const MESES_PX=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let pxSelMes=new Date().getMonth();
+  function pxInitMonthPicker(){
+    const mp=document.getElementById('px-month-picker');
+    if(!mp||mp.childElementCount>0) return;
+    MESES_PX.slice(0,new Date().getMonth()+1).forEach((m,i)=>{
+      const b=document.createElement('button');
+      b.style.cssText='font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:var(--mono);transition:all .15s';
+      b.textContent=m.slice(0,3);
+      if(i===pxSelMes){b.style.background='var(--accent2)';b.style.color='#000';b.style.fontWeight='700';}
+      b.onclick=()=>{
+        pxSelMes=i;
+        document.querySelectorAll('#px-month-picker button').forEach((x,j)=>{
+          x.style.background=j===i?'var(--accent2)':'var(--card)';
+          x.style.color=j===i?'#000':'var(--muted)';
+          x.style.fontWeight=j===i?'700':'400';
+        });
+      };
+      mp.appendChild(b);
+    });
+  }
+
+  /* ─── PDF portal ─────────────────────────────────────────────────────────── */
+  window.pxGenerarPDF=function(){
+    const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
+    const btn=document.getElementById('px-pdf-btn');
+    if(btn){btn.disabled=true;btn.textContent='Generando…';}
+    const mesLabel=MESES_PX[pxSelMes]+' 2026';
+    function ultimosDias(obj,n,pred){return Object.keys(obj||{}).sort().filter(k=>pred(obj[k])).slice(-n);}
+    function calcRend(kEnt,kEf,dias){
+      let sE=0,sS=0,n=0;
+      dias.forEach(f=>{const r=ST.reactor[f]||{},e=+r[kEnt],s=+r[kEf];if(!isNaN(e)&&e>0&&!isNaN(s)&&s>=0){sE+=e;sS+=s;n++;}});
+      return n?{rend:Math.max(0,Math.min(100,(sE-sS)/sE*100)),n,mE:sE/n,mS:sS/n}:null;
+    }
+    const diasQ=ultimosDias(ST.caudales,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const diasC=ultimosDias(ST.consumo,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const diasR=ultimosDias(ST.reactor,30,v=>v&&(+v.dqo_ent>0||+v.dbo_ent>0));
+    const mediaQ=diasQ.length?diasQ.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edari||0),0)/diasQ.length:null;
+    const totalKwh=diasC.reduce((a,f)=>{const c=ST.consumo[f]||{};return a+(+c.edari||0)+(+c.edaru||0);},0);
+    const rDQO=calcRend('dqo_ent','dqo_ef',diasR), rDBO=calcRend('dbo_ent','dbo_ef',diasR);
+    const rNT=calcRend('nt_ent','nt_ef',diasR), rPT=calcRend('pt_ent','pt_ef',diasR);
+    const fmtN=n=>(n==null||isNaN(n))?'—':Math.round(n).toLocaleString('es-ES');
+    const secciones=[
+      {id:'pxr1',t:'1. Resumen de caudales',h:`<p>Caudal medio EDARI: <strong>${mediaQ?fmtN(mediaQ)+' m³/día':'Sin datos'}</strong>. Días registrados: ${diasQ.length}.</p>`},
+      {id:'pxr2',t:'2. Consumo eléctrico',h:`<p>Total período: <strong>${fmtN(totalKwh)} kWh</strong>. Días registrados: ${diasC.length}.</p>`},
+      {id:'pxr3',t:'3. Analítica efluente',h:`<table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
+        <tr style="background:#f1f5f9"><th>Parámetro</th><th>Entrada media</th><th>Salida media</th><th>Límite RD</th><th>Conformidad</th></tr>
+        ${rDQO?`<tr><td>DQO</td><td>${rDQO.mE.toFixed(0)} mg/L</td><td>${rDQO.mS.toFixed(0)} mg/L</td><td>125</td><td style="color:${rDQO.mS<=125?'green':'red'}">${rDQO.mS<=125?'✓':'✗'}</td></tr>`:''}
+        ${rDBO?`<tr><td>DBO₅</td><td>${rDBO.mE.toFixed(0)} mg/L</td><td>${rDBO.mS.toFixed(0)} mg/L</td><td>25</td><td style="color:${rDBO.mS<=25?'green':'red'}">${rDBO.mS<=25?'✓':'✗'}</td></tr>`:''}
+        ${rNT?`<tr><td>NT</td><td>${rNT.mE.toFixed(0)} mg/L</td><td>${rNT.mS.toFixed(0)} mg/L</td><td>15</td><td style="color:${rNT.mS<=15?'green':'red'}">${rNT.mS<=15?'✓':'✗'}</td></tr>`:''}
+        ${rPT?`<tr><td>PT</td><td>${rPT.mE.toFixed(0)} mg/L</td><td>${rPT.mS.toFixed(0)} mg/L</td><td>2</td><td style="color:${rPT.mS<=2?'green':'red'}">${rPT.mS<=2?'✓':'✗'}</td></tr>`:''}
+      </table>`},
+      {id:'pxr4',t:'4. Rendimientos',h:`<p>${[rDQO&&`DQO: <strong>${rDQO.rend.toFixed(1)}%</strong>`,rDBO&&`DBO₅: <strong>${rDBO.rend.toFixed(1)}%</strong>`,rNT&&`NT: <strong>${rNT.rend.toFixed(1)}%</strong>`,rPT&&`PT: <strong>${rPT.rend.toFixed(1)}%</strong>`].filter(Boolean).join(' | ')||'Sin datos'}</p>`},
+      {id:'pxr5',t:'5. Reactivos',h:`<p>Ver módulo SGI Control de Calidad para stocks y proyecciones actualizadas.</p>`},
+      {id:'pxr6',t:'6. Edad fango + TRH',h:`<p>Ver módulo SGI Control de Calidad para parámetros biológicos del reactor.</p>`},
+      {id:'pxr7',t:'7. Calibraciones',h:`<p>Ver módulo M-01 Calibraciones para estado actualizado de instrumentación.</p>`},
+      {id:'pxr8',t:'8. Incidencias',h:`<p>Ver módulo M-08 Tareas para registro de incidencias del período.</p>`},
+    ];
+    let body='';
+    secciones.forEach(s=>{const el=document.getElementById(s.id);if(el&&el.checked) body+=`<div style="margin-bottom:18px"><div style="font-size:13px;font-weight:700;color:#0f1f3a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px">${s.t}</div>${s.h}</div>`;});
+    const now=new Date(), fechaGen=now.toLocaleDateString('es-ES')+' '+now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    const div=document.createElement('div');
+    div.style.cssText='font-family:sans-serif;padding:28px;max-width:700px;margin:0 auto;color:#1a1a2e;background:#fff';
+    div.innerHTML=`<div style="display:flex;justify-content:space-between;border-bottom:3px solid #3aafe8;padding-bottom:14px;margin-bottom:18px"><div><div style="font-size:20px;font-weight:700;color:#0f1f3a">INFORME MENSUAL DE EXPLOTACIÓN</div><div style="font-size:12px;color:#64748b;margin-top:2px">EDAR UTE Valle de Güímar · ${mesLabel}</div></div><div style="text-align:right;font-size:9px;color:#94a3b8"><div>SGI Portal · ${fechaGen}</div></div></div><div style="font-size:12px;line-height:1.7;color:#334155">${body||'<p>Sin secciones seleccionadas.</p>'}</div><div style="margin-top:36px;border-top:1px solid #e2e8f0;padding-top:14px;display:flex;justify-content:space-between"><div><div style="font-size:10px;color:#94a3b8">Responsable de explotación</div><div style="margin-top:22px;border-top:1px solid #94a3b8;width:180px;font-size:9px;color:#94a3b8">Firma y sello</div></div><div style="text-align:right;font-size:9px;color:#94a3b8"><div>RD 509/1996 · SGI UTE Valle de Güímar</div></div></div>`;
+    document.body.appendChild(div);
+    if(typeof html2pdf!=='undefined'){
+      html2pdf().set({margin:10,filename:`SGI_Informe_${MESES_PX[pxSelMes]}_2026.pdf`,html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(div).save().then(()=>{
+        document.body.removeChild(div);
+        if(btn){btn.disabled=false;btn.textContent='↓ Generar informe PDF';}
+      });
+    } else {
+      const w=window.open('','_blank'); w.document.write('<!DOCTYPE html><html><body>'+div.outerHTML+'</body></html>'); w.document.close(); setTimeout(()=>w.print(),400);
+      document.body.removeChild(div); if(btn){btn.disabled=false;btn.textContent='↓ Generar informe PDF';}
+    }
+  };
+
+  /* ─── Hook sbNav para inicializar portal-clima ───────────────────────────── */
+  const _pxOrig=window.sbNav;
+  window.sbNav=function(id){
+    _pxOrig(id);
+    if(id==='portal'){
+      setTimeout(()=>{pxInitMonthPicker();pxLoadWeather();},80);
+    }
+  };
+
+  /* ─── Inicializar si portal ya está activo al cargar ────────────────────── */
+  window.addEventListener('load',()=>{
+    const panel=document.getElementById('panel-portal');
+    if(panel&&panel.classList.contains('active')){
+      setTimeout(()=>{pxInitMonthPicker();pxLoadWeather();},500);
+    }
+  });
+
+})();
+</script>
+
+
 <!-- ══ CONTROL DE CALIDAD: scripts ══════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
@@ -8810,28 +8369,59 @@ if(typeof waitForFirebase==='function'){
     if(!ST) return;
     const dias=ultimosDias(ST.reactor,30,v=>v&&((+v.dqo_ent>0&&v.dqo_ef!=null)||(+v.dbo_ent>0&&v.dbo_ef!=null)||(+v.nt_ent>0&&v.nt_ef!=null)||(+v.pt_ent>0&&v.pt_ef!=null)));
     const params=[
-      {id:'cq-g-dqo', lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias), lim:125},
-      {id:'cq-g-dbo', lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias), lim:25},
-      {id:'cq-g-nt',  lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias), lim:15},
-      {id:'cq-g-pt',  lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias), lim:2},
+      {lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias), tipo:'semi'},
+      {lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias), tipo:'semi'},
+      {lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias), tipo:'bar'},
+      {lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias), tipo:'bar'},
     ];
-    params.forEach(p=>{
-      const el=document.getElementById(p.id);
-      if(!el) return;
-      const v=p.res?p.res.rend:null;
-      const col=v!=null?colorRend(v):'var(--muted)';
-      el.querySelector('.cq-gauge-val').innerHTML=v!=null?Math.round(v)+'%':'—';
-      el.querySelector('.cq-gauge-val').style.color=col;
-      el.querySelector('.cq-gauge-fill').style.width=(v||0)+'%';
-      el.querySelector('.cq-gauge-fill').style.background=col;
-      if(p.res){
-        el.querySelector('.cq-gauge-sub').textContent=`ent ${p.res.mediaE.toFixed(0)} → sal ${p.res.mediaS.toFixed(0)} mg/L (${p.res.n}d)`;
-      }
-    });
-    const nDias=dias.length;
+    function colRend(v){return v>=85?'#22c995':v>=70?'#f0b033':'#e54a64';}
+    const W=440, H=100;
+    const cxAll=[55,165,275,385];
+    const rSemi=38, cySemi=58, swSemi=9;
+    const semiPerim=Math.PI*rSemi;
+    /* Semicírculos (DQO, DBO₅) */
+    const semis=params.slice(0,2).map((p,i)=>{
+      const cx=cxAll[i];
+      const bgPath=`M ${cx-rSemi} ${cySemi} A ${rSemi} ${rSemi} 0 0 1 ${cx+rSemi} ${cySemi}`;
+      if(!p.res) return `<g>
+        <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
+        <text x="${cx}" y="${cySemi-10}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="20" font-family="var(--mono,monospace)">—</text>
+        <text x="${cx}" y="${cySemi+22}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
+      </g>`;
+      const v=p.res.rend, col=colRend(v), dash=(v/100)*semiPerim;
+      const tip=`${p.lbl} · ${p.res.n}d · ${v.toFixed(1)}%`;
+      return `<g title="${tip}" style="cursor:pointer">
+        <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
+        <path d="${bgPath}" fill="none" stroke="${col}" stroke-width="${swSemi}" stroke-linecap="round"
+          stroke-dasharray="${dash} ${semiPerim}" style="transition:stroke-dasharray .6s ease"/>
+        <text x="${cx}" y="${cySemi-8}" text-anchor="middle" fill="${col}" font-size="22" font-weight="700" font-family="var(--mono,monospace)">${Math.round(v)}%</text>
+        <text x="${cx}" y="${cySemi+12}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="9" font-family="var(--mono,monospace)">${p.res.mE.toFixed(0)}→${p.res.mS.toFixed(0)} mg/L</text>
+        <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
+      </g>`;
+    }).join('');
+    /* Barras (NT, PT) */
+    const barH=14, barW=62, barR=3, yTop=22, gap=28;
+    const bars=params.slice(2).map((p,i)=>{
+      const cx=cxAll[i+2];
+      if(!p.res) return `<g>
+        <rect x="${cx-barW/2}" y="${yTop}" width="${barW}" height="${barH}" rx="${barR}" fill="var(--border,#1f3252)"/>
+        <text x="${cx}" y="${yTop+barH/2+4}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="var(--mono)">—</text>
+        <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted)" font-size="14" font-family="var(--cond,sans-serif)">${p.lbl}</text>
+      </g>`;
+      const v=p.res.rend, col=colRend(v), fw=(v/100)*barW;
+      return `<g title="${p.lbl} · ${p.res.n}d · ${v.toFixed(1)}%" style="cursor:pointer">
+        <rect x="${cx-barW/2}" y="${yTop}" width="${barW}" height="${barH}" rx="${barR}" fill="var(--border,#1f3252)"/>
+        <rect x="${cx-barW/2}" y="${yTop}" width="${fw.toFixed(1)}" height="${barH}" rx="${barR}" fill="${col}" style="transition:width .6s ease"/>
+        <text x="${cx}" y="${yTop+barH/2+4}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="var(--mono,monospace)">${Math.round(v)}%</text>
+        <text x="${cx}" y="${yTop+barH+14}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="var(--mono,monospace)">${p.res.mE.toFixed(0)}→${p.res.mS.toFixed(0)} mg/L</text>
+        <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
+      </g>`;
+    }).join('');
+    const cont=document.getElementById('cq-rend-chart');
+    if(cont) cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:110px" preserveAspectRatio="xMidYMid meet">${semis}${bars}</svg>`;
     const nOk=params.filter(p=>p.res&&p.res.rend>=70).length;
     const rs=document.getElementById('cq-rend-sub');
-    if(rs) rs.textContent=`${nDias} días · ${nOk}/${params.length} parámetros OK`;
+    if(rs) rs.textContent=`${dias.length} días · ${nOk}/${params.length} parámetros OK`;
   }
 
   function cqActualizaKPIs(){
