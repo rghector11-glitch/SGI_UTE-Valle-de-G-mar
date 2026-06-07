@@ -9132,17 +9132,17 @@ if(typeof waitForFirebase==='function'){
       const mediaS=hist4.length?hist4.reduce(function(a,h){return a+(+h.consumo||0);},0)/hist4.length:null;
       const diasR=mediaS?Math.round(vol/mediaS*7):null;
       const dCol=diasR!=null?(diasR<=7?'#ef4444':diasR<=21?'#f59e0b':'#10b981'):'var(--muted)';
-      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;background:var(--card,#0c1a30);border:1px solid var(--border,#1e3a5f);border-radius:8px">'+
-        '<div style="font-size:7px;color:var(--muted);font-family:var(--mono)">'+(esLiq?'\ud83d\udca7 L\u00cdQUIDO':'\ud83d\udce6 S\u00d3LIDO')+'</div>'+
+      var cardW=W+10; // ancho total de la tarjeta
+      var fs=Math.max(7,Math.min(9,Math.round(cardW/12))); // font-size escala con ancho
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 3px;background:var(--card,#0c1a30);border:1px solid var(--border,#1e3a5f);border-radius:8px;width:'+cardW+'px;min-width:0;overflow:hidden">'+
+        '<div style="font-size:6px;color:var(--muted);font-family:var(--mono)">'+(esLiq?'\ud83d\udca7 L\u00cdQ':'\ud83d\udce6 S\u00d3L')+'</div>'+
         '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'+shape+'</svg>'+
-        '<div style="font-size:8px;font-weight:700;color:var(--text);font-family:var(--mono);text-align:center;max-width:'+(W+4)+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.nombre+'</div>'+
-        '<div style="font-size:7px;color:var(--muted);font-family:var(--mono)">'+(r.desc||'')+'</div>'+
-        '<div style="font-size:9px;font-weight:700;color:'+est.col+';font-family:var(--mono)">'+vol.toLocaleString('es-ES')+' / '+cap.toLocaleString('es-ES')+' '+r.unidad+'</div>'+
-        '<span class="cq-tag '+est.cls+'" style="font-size:7px">'+est.tag+' \u00b7 '+Math.round(pct)+'%</span>'+
-        '<div style="font-size:7px;color:'+dCol+';font-family:var(--mono);text-align:center">'+(diasR!=null?'~'+diasR+'d restantes':'Registra consumo semanal')+'</div>'+
-        '<button onclick="cqRQAbrirConsumo('+i+')" style="font-size:8px;padding:2px 8px;border-radius:4px;background:rgba(0,201,167,.12);border:1px solid var(--accent);color:var(--accent);cursor:pointer;font-family:var(--mono);margin-top:1px">+ Consumo sem.</button>'+
-        '<div style="font-size:7px;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);width:100%;text-align:center;padding-top:2px;margin-top:2px">Hist. consumo sem.</div>'+
-        '<svg width="'+cW+'" height="'+cH+'" viewBox="0 0 '+cW+' '+cH+'">'+chart+'</svg>'+
+        '<div style="font-size:'+(fs+1)+'px;font-weight:700;color:var(--text);font-family:var(--mono);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px">'+r.nombre+'</div>'+
+        '<div style="font-size:'+fs+'px;font-weight:700;color:'+est.col+';font-family:var(--mono);white-space:nowrap">'+vol.toLocaleString('es-ES')+'/'+cap.toLocaleString('es-ES')+' '+r.unidad+'</div>'+
+        '<span class="cq-tag '+est.cls+'" style="font-size:6px;padding:1px 4px">'+est.tag+' \u00b7 '+Math.round(pct)+'%</span>'+
+        '<div style="font-size:6px;color:'+dCol+';font-family:var(--mono);text-align:center;white-space:nowrap">'+(diasR!=null?'~'+diasR+'d':'Sin historial')+'</div>'+
+        '<button onclick="cqRQAbrirConsumo('+i+')" style="font-size:7px;padding:2px 4px;border-radius:4px;background:rgba(0,201,167,.12);border:1px solid var(--accent);color:var(--accent);cursor:pointer;font-family:var(--mono);width:90%;white-space:nowrap">+ Consumo</button>'+
+        (chart.indexOf('Sin registros')>=0?'':('<svg width="'+(cardW-6)+'" height="'+cH+'" viewBox="0 0 '+cW+' '+cH+'" preserveAspectRatio="none">'+chart+'</svg>'))+
         '</div>';
     }).join('');
     cont.innerHTML='<div style="display:flex;flex-wrap:nowrap;gap:'+gap+'px;justify-content:space-evenly;align-items:flex-end;padding:4px 2px;width:100%;">'+cards+'</div>';
