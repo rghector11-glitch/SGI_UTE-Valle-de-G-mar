@@ -9110,10 +9110,16 @@ if(typeof waitForFirebase==='function'){
     const COLS=['#00c9a7','#60a5fa','#f59e0b','#a78bfa','#ef4444','#10b981','#fb923c','#e879f9'];
     const cont2=document.getElementById('cq-rq-tanks');
     const availH=cont2?Math.max(180,cont2.clientHeight-20):220;
-    // Altura del tanque SVG según espacio disponible (máx 200px)
-    const H=Math.min(200,Math.max(130,Math.round(availH*0.6)));
-    const W=Math.round(H*0.66);
-    const cW=W,cH=Math.round(availH*0.22);
+    const availW=cont2?cont2.clientWidth:600;
+    const n=data.length||1;
+    const gap=8;
+    // Calcular ancho máximo por tanque para que quepan todos en una fila
+    const maxWByRow=Math.floor((availW - gap*(n+1)) / n);
+    // Altura según espacio vertical disponible
+    const H=Math.min(200,Math.max(110,Math.round(availH*0.58)));
+    // Ancho: proporcional a H pero limitado para que quepan todos
+    const W=Math.min(Math.round(H*0.66), Math.max(70, maxWByRow));
+    const cW=W, cH=Math.round(availH*0.20);
     const cards=data.map(function(r,i){
       const col=COLS[i%COLS.length];
       const cap=+r.capacidad||1,vol=Math.max(0,+r.volumen_actual||0);
@@ -9139,7 +9145,7 @@ if(typeof waitForFirebase==='function'){
         '<svg width="'+cW+'" height="'+cH+'" viewBox="0 0 '+cW+' '+cH+'">'+chart+'</svg>'+
         '</div>';
     }).join('');
-    cont.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;align-items:flex-end;padding:4px 2px">'+cards+'</div>';
+    cont.innerHTML='<div style="display:flex;flex-wrap:nowrap;gap:'+gap+'px;justify-content:space-evenly;align-items:flex-end;padding:4px 2px;width:100%;">'+cards+'</div>';
   }
 
   function cqRQRender(){
