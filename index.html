@@ -1319,12 +1319,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           }
 
           /* ══ Visibilidad por rol ══════════════════════════════════════════
-             Operario y supervisor ven el mismo cuadro de mando completo.
-             Solo se ocultan los botones de gestión de supervisor.
+             Operario y supervisor ven exactamente el mismo cuadro de mando.
           */
-          body.role-operario #sb-gestion {
-            display:none !important;
-          }
 
 
                     </style>
@@ -3501,10 +3497,10 @@ function showPortal(session) {
   window._currentUser = session;
   // Show manage users btn if supervisor
   const mub = document.getElementById('manage-users-btn');
-  if(mub) mub.style.display = session.role === 'supervisor' ? 'block' : 'none';
+  if(mub) mub.style.display = 'block';
   // Marcar el body con el rol — el CSS se encarga del resto (módulos visibles, sidebar, etc.)
   document.body.classList.remove('role-supervisor','role-operario');
-  document.body.classList.add('role-' + (session.role==='supervisor'?'supervisor':'operario'));
+  document.body.classList.add('role-supervisor'); // todos ven el cuadro completo
 }
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
