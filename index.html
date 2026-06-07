@@ -1604,35 +1604,23 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <div class="portal-clima">
             <!-- HEADER con hora de actualización -->
             <div style="display:flex;align-items:center;gap:7px;padding:0 2px;margin-bottom:5px;flex-shrink:0">
-              <span style="font-family:var(--cond);font-size:10px;font-weight:700;color:var(--light);letter-spacing:.08em;text-transform:uppercase">▸ Tiempo · Güímar</span>
+              <span style="font-family:var(--cond);font-size:10px;font-weight:700;color:var(--light);letter-spacing:.08em;text-transform:uppercase">▸ Tiempo · Valle de Güímar</span>
               <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:4px;padding:2px 7px">
                 <span style="font-family:var(--mono);font-size:7px;color:var(--muted)">Act.</span>
                 <span style="font-family:var(--mono);font-size:8px;font-weight:700;color:var(--accent)" id="px-wx-updated">—</span>
               </div>
-              <div style="margin-left:auto;display:flex;gap:4px">
+              <div style="margin-left:auto">
                 <a href="https://apalmet.es/estaciones/detallesdiario/55" target="_blank" style="text-decoration:none">
-                  <button style="font-size:7px;font-weight:600;padding:2px 6px;border-radius:4px;cursor:pointer;border:1px solid var(--border-l);background:var(--card);color:var(--text-d);font-family:var(--mono)">Est.55 Valle ↗</button>
-                </a>
-                <a href="https://apalmet.es/estaciones/detallesdiario/286" target="_blank" style="text-decoration:none">
-                  <button style="font-size:7px;font-weight:600;padding:2px 6px;border-radius:4px;cursor:pointer;border:1px solid var(--border-l);background:var(--card);color:var(--text-d);font-family:var(--mono)">Est.286 Polígono ↗</button>
+                  <button style="font-size:8px;font-weight:600;padding:2px 7px;border-radius:4px;cursor:pointer;border:1px solid var(--border-l);background:var(--card);color:var(--text-d);font-family:var(--mono)">Apalmet Est.55 ↗</button>
                 </a>
               </div>
             </div>
             <!-- BODY -->
             <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow-y:auto">
 
-              <!-- Clima actual: 2 cards lado a lado -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;flex-shrink:0">
-                <!-- Valle de Güímar Est.55 -->
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:8px 10px" id="px-wx-actual">
-                  <div style="font-family:var(--mono);font-size:7px;color:var(--accent);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">📍 Valle · Est.55</div>
-                  <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando…</div>
-                </div>
-                <!-- Polígono de Güímar Est.286 -->
-                <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:8px 10px" id="px-wx-poligono">
-                  <div style="font-family:var(--mono);font-size:7px;color:var(--accent2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">🏭 Polígono · Est.286</div>
-                  <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando…</div>
-                </div>
+              <!-- Clima actual -->
+              <div style="background:linear-gradient(135deg,var(--panel),var(--card));border:1px solid var(--border);border-radius:8px;padding:9px 12px;flex-shrink:0" id="px-wx-actual">
+                <div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Cargando clima…</div>
               </div>
 
               <!-- Pronóstico 6 días -->
@@ -8293,11 +8281,7 @@ if(typeof waitForFirebase==='function'){
     /* ── Intentar Open-Meteo directamente (rápido y fiable) ── */
     let omOk=false;
     try{
-      // Dos peticiones paralelas: Valle (est.55 coords) + Polígono (est.286 coords)
-      const [r, rPol] = await Promise.all([
-        fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,surface_pressure,dust&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6'),
-        fetch('https://api.open-meteo.com/v1/forecast?latitude=28.298&longitude=-16.395&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,surface_pressure&timezone=Atlantic%2FCanary&forecast_days=1')
-      ]);
+      const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,surface_pressure,dust&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6');
       if(!r.ok) throw new Error('HTTP '+r.status);
       const d=await r.json();
       const c=d.current, daily=d.daily;
@@ -8317,7 +8301,6 @@ if(typeof waitForFirebase==='function'){
       /* Render clima */
       const el=document.getElementById('px-wx-actual');
       if(el) el.innerHTML=`
-        <div style="font-family:var(--mono);font-size:7px;color:var(--accent);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">📍 Valle · Est.55</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
           <span style="font-size:30px;line-height:1">${icon}</span>
           <div>
@@ -8336,36 +8319,6 @@ if(typeof waitForFirebase==='function'){
 
       /* Rosa de vientos */
       pxUpdateWindRose(dirDeg, viento, racha);
-
-      /* Polígono de Güímar: renderizar card secundario */
-      try{
-        if(rPol.ok){
-          const dPol=await rPol.json();
-          const cp=dPol.current;
-          const tempP=Math.round(cp.temperature_2m), humP=Math.round(cp.relative_humidity_2m);
-          const vientoP=Math.round(cp.wind_speed_10m), rachaP=Math.round(cp.wind_gusts_10m||0);
-          const precP=(cp.precipitation||0).toFixed(1);
-          const codeP=cp.weather_code||0, iconP=WXC[codeP]||'🌡️';
-          const cards2=document.getElementById('px-wx-poligono');
-          if(cards2){
-            const tempColP=tempP>=30?'#ef4444':tempP>=25?'#f59e0b':'var(--light)';
-            cards2.innerHTML=`
-              <div style="font-family:var(--mono);font-size:7px;color:var(--accent2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">🏭 Polígono · Est.286</div>
-              <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-                <span style="font-size:20px;line-height:1">${iconP}</span>
-                <div style="font-family:var(--cond);font-size:24px;font-weight:700;color:${tempColP};line-height:1">${tempP}°C</div>
-              </div>
-              <div style="display:flex;gap:3px;flex-wrap:wrap">
-                ${[['💧',humP+'%'],['💨',vientoP+' km/h'],['↑',rachaP+' km/h'],['🌧',precP+' mm']].map(([ic,vl])=>
-                  `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-size:7px;color:var(--muted);font-family:var(--mono)">${ic} <span style="color:var(--text);font-weight:700">${vl}</span></div>`
-                ).join('')}
-              </div>
-              <div style="margin-top:4px;font-size:6.5px;color:var(--muted);font-family:var(--mono)">
-                Open-Meteo · <a href="https://apalmet.es/estaciones/detallesdiario/286" target="_blank" style="color:var(--accent2)">Apalmet Est.286 ↗</a>
-              </div>`;
-          }
-        }
-      }catch(ePol){ console.warn('Polígono wx error:',ePol); }
 
       /* Pronóstico */
       const fc=document.getElementById('px-wx-forecast');
