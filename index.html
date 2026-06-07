@@ -1606,11 +1606,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
               <!-- Rosa de vientos: KPI industrial centrado -->
               <div style="flex:1;min-height:0;background:linear-gradient(160deg,rgba(6,12,28,1),rgba(10,20,45,1));border:1px solid rgba(96,165,250,.2);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;overflow:hidden;padding:10px">
-                <!-- Grid decorativo de fondo -->
-                <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.04" preserveAspectRatio="xMidYMid slice">
-                  <defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#60a5fa" stroke-width=".5"/></pattern></defs>
-                  <rect width="100%" height="100%" fill="url(#grid)"/>
-                </svg>
+                <!-- Canvas animado: partículas de viento -->
+                <canvas id="px-wind-canvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none;z-index:0"></canvas>
                 <!-- Línea luminosa superior -->
                 <div style="position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(to right,transparent,rgba(96,165,250,.6),transparent)"></div>
                 <!-- Label -->
@@ -8211,6 +8208,139 @@ if(typeof waitForFirebase==='function'){
 
   /* ─── Clima ──────────────────────────────────────────────────────────────── */
   /* ── Función rosa de vientos ────────────────────────────────────────────── */
+  /* ── Motor de partículas de viento ─────────────────────────────────────── */
+  const _WP = {
+    canvas: null, ctx: null, raf: null,
+    dir: 0,        // dirección hacia donde VA el viento (grados, 0=arriba)
+    speed: 15,     // velocidad km/h
+    particles: [],
+    N: 55,         // número de partículas
+    running: false,
+
+    init(){
+      this.canvas = document.getElementById('px-wind-canvas');
+      if(!this.canvas) return;
+      this.ctx = this.canvas.getContext('2d');
+      this.resize();
+      window.addEventListener('resize', ()=>this.resize());
+      this.spawn();
+      this.run();
+    },
+
+    resize(){
+      if(!this.canvas) return;
+      const r = this.canvas.getBoundingClientRect();
+      this.canvas.width  = r.width  || this.canvas.offsetWidth  || 400;
+      this.canvas.height = r.height || this.canvas.offsetHeight || 300;
+    },
+
+    spawn(){
+      this.particles = [];
+      const W = this.canvas?.width  || 400;
+      const H = this.canvas?.height || 300;
+      for(let i=0;i<this.N;i++){
+        this.particles.push(this.newParticle(W, H, true));
+      }
+    },
+
+    newParticle(W, H, randomPos){
+      // La dirección del viento en radianes (0=arriba, 90=derecha)
+      const rad = (this.dir - 90) * Math.PI / 180;
+      const spd = 0.6 + Math.random() * 1.4 + this.speed * 0.04;
+      const vx  = Math.cos(rad) * spd;
+      const vy  = Math.sin(rad) * spd;
+      const len = 18 + Math.random() * 40;
+      const alpha = 0.12 + Math.random() * 0.3;
+      const width = 0.5 + Math.random() * 1.2;
+      // Posición inicial: distribuida por todo el canvas si randomPos, sino en el borde opuesto
+      let x, y;
+      if(randomPos){
+        x = Math.random() * W;
+        y = Math.random() * H;
+      } else {
+        // Entrar desde el borde opuesto a la dirección del viento
+        const oppRad = rad + Math.PI;
+        const margin = 60;
+        const side = Math.floor(Math.random() * 4);
+        if(side===0){ x=Math.random()*W; y=-margin; }
+        else if(side===1){ x=W+margin; y=Math.random()*H; }
+        else if(side===2){ x=Math.random()*W; y=H+margin; }
+        else { x=-margin; y=Math.random()*H; }
+      }
+      return {x, y, vx, vy, len, alpha, width, life: Math.random()};
+    },
+
+    run(){
+      if(this.running) return;
+      this.running = true;
+      const loop = () => {
+        this.step();
+        this.raf = requestAnimationFrame(loop);
+      };
+      loop();
+    },
+
+    stop(){
+      this.running = false;
+      if(this.raf) cancelAnimationFrame(this.raf);
+    },
+
+    step(){
+      const c = this.ctx;
+      if(!c || !this.canvas) return;
+      const W = this.canvas.width, H = this.canvas.height;
+      // Fade trail
+      c.clearRect(0, 0, W, H);
+
+      const rad = (this.dir - 90) * Math.PI / 180;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+
+      this.particles.forEach((p, i) => {
+        // Mover
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life += 0.012;
+
+        // Dibujar línea de partícula (streak)
+        const alpha = p.alpha * Math.sin(Math.min(p.life, Math.PI));
+        c.beginPath();
+        c.strokeStyle = `rgba(96,165,250,${alpha.toFixed(3)})`;
+        c.lineWidth = p.width;
+        c.lineCap = 'round';
+        // Tail: en dirección opuesta al movimiento
+        c.moveTo(p.x, p.y);
+        c.lineTo(p.x - cos * p.len, p.y - sin * p.len);
+        c.stroke();
+
+        // Recyclar cuando sale del canvas o termina su vida
+        const margin = p.len + 10;
+        if(p.x < -margin || p.x > W+margin || p.y < -margin || p.y > H+margin || p.life > Math.PI){
+          this.particles[i] = this.newParticle(W, H, false);
+        }
+      });
+    },
+
+    setWind(dirDeg, velocidad){
+      // dirDeg es la dirección meteorológica (de donde viene)
+      // Las partículas van hacia donde sopla el viento (+180)
+      this.dir = (dirDeg + 180) % 360;
+      this.speed = velocidad;
+      // Ajustar velocidad de partículas
+      if(!this.canvas) this.init();
+      const W = this.canvas?.width||400, H = this.canvas?.height||300;
+      const rad = (this.dir - 90) * Math.PI / 180;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+      this.particles.forEach(p => {
+        const spd = 0.6 + Math.random() * 1.4 + velocidad * 0.04;
+        p.vx = cos * spd;
+        p.vy = sin * spd;
+      });
+    }
+  };
+
+  // Inicializar cuando cargue la página
+  window.addEventListener('load', ()=>{ setTimeout(()=>_WP.init(), 600); });
+
   function pxUpdateWindRose(dirDeg, velocidad, racha){
     const col=velocidad>=50?'#ef4444':velocidad>=30?'#f59e0b':velocidad>=15?'#60a5fa':'#10b981';
     const cx=80, cy=80; // Centro SVG 160x160
@@ -8222,6 +8352,8 @@ if(typeof waitForFirebase==='function'){
       const line=arrow.querySelector('line');
       if(line){ line.setAttribute('stroke',col); }
     }
+    // Actualizar partículas de viento
+    _WP.setWind(dirDeg, velocidad);
     // Borde del contenedor según velocidad
     const kpiCont=document.querySelector('#px-wind-rose')?.closest('div[style*="border-radius:12px"]');
     if(kpiCont) kpiCont.style.borderColor=col+'33';
