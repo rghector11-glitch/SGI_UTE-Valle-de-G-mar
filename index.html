@@ -1319,34 +1319,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           }
 
           /* ══ Visibilidad por rol ══════════════════════════════════════════
-             Operario solo ve los módulos básicos: M02 Procedimientos,
-             M04 SMS Diario, M05 Inventarios y M08 Tareas.
-             Se ocultan además el dashboard analítico, los KPIs del topbar
-             y los items de sidebar reservados a supervisor.
+             Operario y supervisor ven el mismo cuadro de mando completo.
+             Solo se ocultan los botones de gestión de supervisor.
           */
-          body.role-operario .da-panel,
-          body.role-operario .kpi-strip,
-          body.role-operario #panel-portal > .modules-grid > .m03,
-          body.role-operario #panel-portal > .modules-grid > .m06,
-          body.role-operario #panel-portal > .modules-grid > .m07,
-          body.role-operario #sb-proceso,
-          body.role-operario #sb-gestion,
-          body.role-operario #sb-objetivos {
+          body.role-operario #sb-gestion {
             display:none !important;
-          }
-          /* Layout del portal en modo operario: 5 módulos (M01, M02, M04, M05, M08) en 3 cols × 2 filas */
-          body.role-operario #panel-portal.active{
-            grid-template-areas:"modulos modulos";
-            grid-template-rows:1fr;
-          }
-          body.role-operario #panel-portal > .modules-grid{
-            grid-column:1 / -1;
-            grid-template-columns:repeat(3,1fr);
-            grid-template-rows:repeat(2,1fr);
-            row-gap:14px; column-gap:14px;
-          }
-          body.role-operario #panel-portal > .modules-grid > .mc{
-            min-height:0;
           }
 
 
