@@ -8859,30 +8859,99 @@ if(typeof waitForFirebase==='function'){
 
   /* ─── PDF export ─────────────────────────────────────────────────────────── */
   window.cqExportPDF=function(){
-    const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
+    const ST=window._cqGetDatos?window._cqGetDatos():(window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     const btn=document.getElementById('cq-pdf-btn');
     if(btn){btn.disabled=true;btn.textContent='Generando…';}
-    const mesLabel=MESES[cqSelMes]+' 2026';
-    // Calcular valores reales para el informe
-    const diasCaudal=ultimosDias(ST.caudales,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
-    const mediaQ=diasCaudal.length?diasCaudal.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edari||0),0)/diasCaudal.length:null;
-    const totalKwh=ultimosDias(ST.consumo,30,v=>v&&((+v.edari>0)||(+v.edaru>0))).reduce((a,f)=>{ const c=ST.consumo[f]||{}; return a+(+c.edari||0)+(+c.edaru||0); },0);
-    const diasR=ultimosDias(ST.reactor,30,v=>v&&(+v.dqo_ent>0||+v.dbo_ent>0));
-    const rDQO=calcRend(ST,'dqo_ent','dqo_ef',diasR), rDBO=calcRend(ST,'dbo_ent','dbo_ef',diasR);
-    const rNT=calcRend(ST,'nt_ent','nt_ef',diasR), rPT=calcRend(ST,'pt_ent','pt_ef',diasR);
-    const secciones=[
-      {id:'cqr1',titulo:'1. Resumen de caudales',html:`<p>Caudal medio EDARI: <strong>${mediaQ?_fmtK(mediaQ)+' m³/día':'Sin datos'}</strong>. Días con datos: ${diasCaudal.length}.</p>`},
-      {id:'cqr2',titulo:'2. Consumo eléctrico',html:`<p>Consumo total período: <strong>${_fmtK(totalKwh)} kWh</strong>. Consumo específico estimado: <strong>${mediaQ&&totalKwh?(_fmtK(totalKwh/diasCaudal.length/mediaQ*1000)+' kWh/m³'):'—'}</strong>.</p>`},
-      {id:'cqr3',titulo:'3. Parámetros analíticos',html:`<table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px"><tr style="background:#f1f5f9"><th>Parámetro</th><th>Entrada media</th><th>Salida media</th><th>Límite RD 509/96</th><th>Conformidad</th></tr>
-        ${rDQO?`<tr><td>DQO</td><td>${rDQO.mediaE.toFixed(0)} mg/L</td><td>${rDQO.mediaS.toFixed(0)} mg/L</td><td>125 mg/L</td><td style="color:${rDQO.mediaS<=125?'green':'red'}">${rDQO.mediaS<=125?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
-        ${rDBO?`<tr><td>DBO₅</td><td>${rDBO.mediaE.toFixed(0)} mg/L</td><td>${rDBO.mediaS.toFixed(0)} mg/L</td><td>25 mg/L</td><td style="color:${rDBO.mediaS<=25?'green':'red'}">${rDBO.mediaS<=25?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
-        ${rNT?`<tr><td>NT</td><td>${rNT.mediaE.toFixed(0)} mg/L</td><td>${rNT.mediaS.toFixed(0)} mg/L</td><td>15 mg/L</td><td style="color:${rNT.mediaS<=15?'green':'red'}">${rNT.mediaS<=15?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
-        ${rPT?`<tr><td>PT</td><td>${rPT.mediaE.toFixed(0)} mg/L</td><td>${rPT.mediaS.toFixed(0)} mg/L</td><td>2 mg/L</td><td style="color:${rPT.mediaS<=2?'green':'red'}">${rPT.mediaS<=2?'✓ Conforme':'✗ No conforme'}</td></tr>`:''}
-      </table>`},
-      {id:'cqr4',titulo:'4. Rendimientos de depuración',html:`<p>${[rDQO&&`DQO: <strong>${rDQO.rend.toFixed(1)}%</strong>`,rDBO&&`DBO₅: <strong>${rDBO.rend.toFixed(1)}%</strong>`,rNT&&`NT: <strong>${rNT.rend.toFixed(1)}%</strong>`,rPT&&`PT: <strong>${rPT.rend.toFixed(1)}%</strong>`].filter(Boolean).join(' | ') || 'Sin datos de rendimiento'}</p>`},
-      {id:'cqr5',titulo:'5. Consumo de reactivos',html:`<p>Ver módulo de reactivos del SGI para stocks y proyecciones actualizadas.</p>`},
-      {id:'cqr6',titulo:'6. Parámetros biológicos',html:(()=>{const trh=calcTRH(ST);const diasFango=ultimosDias(ST.reactor,30,v=>v&&+v.ss_reactor_gl>0&&+v.vol_reactor>0&&+v.q_purga>0&&+v.ss_recirc_gl>0);const ultFango=diasFango.length?calcEdadFango(ST.reactor[diasFango[diasFango.length-1]]):null;return `<p>Edad de fango reciente: <strong>${ultFango!=null?ultFango.toFixed(1)+' días':'Sin datos'}</strong>. TRH calculado: <strong>${trh!=null?trh.toFixed(1)+' horas':'Sin datos'}</strong>.</p>`;})()},
+    const anyo=2026;
+    const mesLabel=MESES[cqSelMes]+' '+anyo;
 
+    // ── Filtrar datos solo del mes seleccionado ────────────────────────────
+    // Las claves de Firebase son fechas ISO: "2026-06-04" → filtrar por mes
+    const mesStr=String(cqSelMes+1).padStart(2,'0'); // "06" para junio
+    const prefijo=anyo+'-'+mesStr+'-';               // "2026-06-"
+
+    function diasDelMes(obj, pred){
+      return Object.keys(obj||{}).filter(k=>k.startsWith(prefijo)&&pred(obj[k])).sort();
+    }
+
+    const diasCaudal=diasDelMes(ST.caudales,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const diasConsumo=diasDelMes(ST.consumo,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const diasR=diasDelMes(ST.reactor,v=>v&&(+v.dqo_ent>0||+v.dbo_ent>0||+v.ss_reactor_gl>0));
+
+    // Si no hay datos del mes seleccionado, indicarlo claramente
+    const sinDatos=diasCaudal.length===0&&diasConsumo.length===0&&diasR.length===0;
+
+    const mediaQ=diasCaudal.length?diasCaudal.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edari||0),0)/diasCaudal.length:null;
+    const mediaQu=diasCaudal.length?diasCaudal.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edaru||0),0)/diasCaudal.length:null;
+    const totalQi=diasCaudal.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edari||0),0);
+    const totalQu=diasCaudal.reduce((a,f)=>a+(+(ST.caudales[f]||{}).edaru||0),0);
+    const totalKwh=diasConsumo.reduce((a,f)=>{ const c=ST.consumo[f]||{}; return a+(+c.edari||0)+(+c.edaru||0); },0);
+    const totalKwhI=diasConsumo.reduce((a,f)=>a+(+(ST.consumo[f]||{}).edari||0),0);
+    const totalKwhU=diasConsumo.reduce((a,f)=>a+(+(ST.consumo[f]||{}).edaru||0),0);
+    const rDQO=calcRend(ST,'dqo_ent','dqo_ef',diasR), rDBO=calcRend(ST,'dbo_ent','dbo_ef',diasR);
+    const rNT=calcRend(ST,'nt_ent','nt_ef',diasR),   rPT=calcRend(ST,'pt_ent','pt_ef',diasR);
+    // ── Parámetros biológicos del mes ────────────────────────────────────────
+    const diasFango=diasDelMes(ST.reactor,v=>v&&+v.ss_reactor_gl>0&&+v.vol_reactor>0&&+v.q_purga>0&&+v.ss_recirc_gl>0);
+    const edadesFango=diasFango.map(f=>calcEdadFango(ST.reactor[f])).filter(v=>v!=null&&v>0);
+    const mediaFango=edadesFango.length?edadesFango.reduce((a,v)=>a+v,0)/edadesFango.length:null;
+    const minFango=edadesFango.length?Math.min(...edadesFango):null;
+    const maxFango=edadesFango.length?Math.max(...edadesFango):null;
+    const trh=calcTRH(ST);
+    // SST reactor: media del mes
+    const sstDias=diasDelMes(ST.reactor,v=>v&&+v.ss_reactor_gl>0);
+    const mediaSST=sstDias.length?sstDias.reduce((a,f)=>a+(+(ST.reactor[f]||{}).ss_reactor_gl||0)*1000,0)/sstDias.length:null;
+    // Reactivos
+    const rqData=window.cqRQLoad?window.cqRQLoad():[];
+
+    const secciones=[
+      {id:'cqr1',titulo:'1. Caudales tratados · '+mesLabel,html:`
+        ${sinDatos?'<p style="color:#f59e0b">⚠ Sin datos de Firebase para '+mesLabel+'. Asegúrate de haber cargado el SMS Diario (M-04) durante este mes.</p>':''}
+        <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
+          <tr style="background:#f1f5f9"><th>EDAR</th><th>Caudal medio (m³/d)</th><th>Total mes (m³)</th><th>Días registrados</th></tr>
+          <tr><td>EDARi</td><td>${mediaQ?_fmtK(mediaQ):'—'}</td><td>${_fmtK(totalQi)}</td><td>${diasCaudal.length}</td></tr>
+          <tr><td>EDARu</td><td>${mediaQu?_fmtK(mediaQu):'—'}</td><td>${_fmtK(totalQu)}</td><td>${diasCaudal.length}</td></tr>
+          <tr style="background:#f8fafc;font-weight:700"><td>TOTAL</td><td>${mediaQ&&mediaQu?_fmtK(mediaQ+(mediaQu||0)):'—'}</td><td>${_fmtK(totalQi+totalQu)}</td><td>—</td></tr>
+        </table>`},
+      {id:'cqr2',titulo:'2. Consumo eléctrico · '+mesLabel,html:`
+        <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
+          <tr style="background:#f1f5f9"><th>EDAR</th><th>Consumo total (kWh)</th><th>Media diaria (kWh/d)</th></tr>
+          <tr><td>EDARi</td><td>${_fmtK(totalKwhI)}</td><td>${diasConsumo.length?_fmtK(totalKwhI/diasConsumo.length):'—'}</td></tr>
+          <tr><td>EDARu</td><td>${_fmtK(totalKwhU)}</td><td>${diasConsumo.length?_fmtK(totalKwhU/diasConsumo.length):'—'}</td></tr>
+          <tr style="background:#f8fafc;font-weight:700"><td>TOTAL</td><td>${_fmtK(totalKwh)}</td><td>${diasConsumo.length?_fmtK(totalKwh/diasConsumo.length):'—'}</td></tr>
+        </table>
+        <p style="margin-top:6px;font-size:10px">Consumo específico: <strong>${mediaQ&&totalKwh&&diasCaudal.length?(_fmtK(totalKwh/diasCaudal.length/(mediaQ||1)*1000)+' Wh/m³'):'—'}</strong></p>`},
+      {id:'cqr3',titulo:'3. Parámetros analíticos · '+mesLabel,html:`
+        <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
+          <tr style="background:#f1f5f9"><th>Parámetro</th><th>Entrada media</th><th>Salida media</th><th>Días</th><th>Límite RD 509/96</th><th>Conformidad</th></tr>
+          ${rDQO?`<tr><td>DQO</td><td>${rDQO.mediaE.toFixed(0)} mg/L</td><td>${rDQO.mediaS.toFixed(0)} mg/L</td><td>${rDQO.n}</td><td>125 mg/L</td><td style="color:${rDQO.mediaS<=125?'green':'red'}">${rDQO.mediaS<=125?'✓':'✗'}</td></tr>`:'<tr><td colspan="6" style="color:#94a3b8;text-align:center">Sin datos analíticos para este mes</td></tr>'}
+          ${rDBO?`<tr><td>DBO₅</td><td>${rDBO.mediaE.toFixed(0)} mg/L</td><td>${rDBO.mediaS.toFixed(0)} mg/L</td><td>${rDBO.n}</td><td>25 mg/L</td><td style="color:${rDBO.mediaS<=25?'green':'red'}">${rDBO.mediaS<=25?'✓':'✗'}</td></tr>`:''}
+          ${rNT?`<tr><td>NT</td><td>${rNT.mediaE.toFixed(0)} mg/L</td><td>${rNT.mediaS.toFixed(0)} mg/L</td><td>${rNT.n}</td><td>15 mg/L</td><td style="color:${rNT.mediaS<=15?'green':'red'}">${rNT.mediaS<=15?'✓':'✗'}</td></tr>`:''}
+          ${rPT?`<tr><td>PT</td><td>${rPT.mediaE.toFixed(0)} mg/L</td><td>${rPT.mediaS.toFixed(0)} mg/L</td><td>${rPT.n}</td><td>2 mg/L</td><td style="color:${rPT.mediaS<=2?'green':'red'}">${rPT.mediaS<=2?'✓':'✗'}</td></tr>`:''}
+        </table>`},
+      {id:'cqr4',titulo:'4. Rendimientos de depuración · '+mesLabel,html:`
+        <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
+          <tr style="background:#f1f5f9"><th>Parámetro</th><th>Rendimiento (%)</th><th>Límite RD 509/96</th><th>Estado</th></tr>
+          ${[{n:'DQO',r:rDQO,l:75},{n:'DBO₅',r:rDBO,l:75},{n:'NT',r:rNT,l:60},{n:'PT',r:rPT,l:60}].map(p=>
+            p.r?`<tr><td>${p.n}</td><td style="font-weight:700;color:${p.r.rend>=p.l?'green':'red'}">${p.r.rend.toFixed(1)}%</td><td>&gt;${p.l}%</td><td style="color:${p.r.rend>=p.l?'green':'red'}">${p.r.rend>=p.l?'✓ Conforme':'✗ No conforme'}</td></tr>`:''
+          ).join('')||'<tr><td colspan="4" style="color:#94a3b8;text-align:center">Sin datos</td></tr>'}
+        </table>`},
+      {id:'cqr5',titulo:'5. Consumo de reactivos · '+mesLabel,html:`
+        <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
+          <tr style="background:#f1f5f9"><th>Reactivo</th><th>Vol. actual</th><th>Capacidad</th><th>% stock</th><th>Estado</th></tr>
+          ${rqData.length?rqData.map(r=>{
+            const pct=(+r.volumen_actual||0)/(+r.capacidad||1)*100;
+            const col=pct<=15?'red':pct<=40?'orange':'green';
+            const est=pct<=15?'CRÍTICO':pct<=40?'BAJO':'OK';
+            return `<tr><td>${r.nombre}</td><td>${r.volumen_actual} ${r.unidad}</td><td>${r.capacidad} ${r.unidad}</td><td style="font-weight:700;color:${col}">${pct.toFixed(0)}%</td><td style="color:${col}">${est}</td></tr>`;
+          }).join(''):'<tr><td colspan="5" style="color:#94a3b8;text-align:center">Sin reactivos configurados</td></tr>'}
+        </table>`},
+      {id:'cqr6',titulo:'6. Parámetros biológicos · '+mesLabel,html:`
+        <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
+          <tr style="background:#f1f5f9"><th>Parámetro</th><th>Valor medio</th><th>Mín</th><th>Máx</th><th>Óptimo</th></tr>
+          <tr><td>Edad de fango</td><td style="font-weight:700">${mediaFango?mediaFango.toFixed(1)+' d':'Sin datos'}</td><td>${minFango?minFango.toFixed(1)+' d':'—'}</td><td>${maxFango?maxFango.toFixed(1)+' d':'—'}</td><td>15-20 d</td></tr>
+          <tr><td>TRH</td><td style="font-weight:700">${trh?trh.toFixed(1)+' h':'Sin datos'}</td><td>—</td><td>—</td><td>&gt;6 h</td></tr>
+          <tr><td>SST Reactor</td><td style="font-weight:700">${mediaSST?Math.round(mediaSST)+' mg/L':'Sin datos'}</td><td>—</td><td>—</td><td>2000-4000 mg/L</td></tr>
+        </table>`},
     ];
     let bodyHTML='';
     secciones.forEach(s=>{const el=document.getElementById(s.id); if(el&&el.checked) bodyHTML+=`<div style="margin-bottom:18px"><div style="font-size:13px;font-weight:700;color:#0f1f3a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px">${s.titulo}</div>${s.html}</div>`;});
