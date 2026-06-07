@@ -2121,7 +2121,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-btn:hover{background:var(--accent);color:#000;border-color:var(--accent);}
             .cq-btn-accent{background:rgba(0,201,167,.1);border-color:var(--accent);color:var(--accent);}
             /* chart blocks */
-            .cq-chart-block{padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+            .cq-chart-block{padding:6px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;flex:1;min-height:80px;}
             .cq-chart-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
             .cq-chart-title{font-size:12px;font-weight:600;}
             .cq-chart-big{font-family:var(--cond);font-size:19px;font-weight:700;line-height:1;}
@@ -2245,7 +2245,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:var(--accent)"></div>EDARI</div>
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#8b5cf6"></div>EDARU</div>
                 </div>
-                <div id="cq-caudal-chart" style="height:75px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+                <div id="cq-caudal-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
               <!-- Eléctrico chart -->
@@ -2259,17 +2259,17 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#10b981"></div>EDARI</div>
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#a78bfa"></div>EDARU</div>
                 </div>
-                <div id="cq-elec-chart" style="height:75px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+                <div id="cq-elec-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
               <!-- Edad fango -->
-              <div class="cq-chart-block">
+              <div class="cq-chart-block" style="border-bottom:none">
                 <div class="cq-chart-row">
                   <div class="cq-chart-title">Edad de fango</div>
                   <div class="cq-chart-big" style="color:#f59e0b" id="cq-fango-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span></div>
                 </div>
                 <div class="cq-chart-meta" id="cq-fango-meta">Cargando…</div>
-                <div id="cq-fango-chart" style="height:70px;overflow:hidden"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
+                <div id="cq-fango-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
                 </div><!-- /graficas -->
@@ -2300,7 +2300,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
               </div>
               <!-- Vista tanques -->
-              <div id="cq-rq-tanks" style="padding:6px 10px;flex:1;overflow-y:auto;min-height:0;">
+              <div id="cq-rq-tanks" style="padding:6px 10px;flex:1;overflow:hidden;min-height:0;">
                 <!-- generado por JS -->
               </div>
               <!-- Vista tabla edición -->
@@ -2326,25 +2326,26 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="cq-sec-dot" style="background:#ef4444"></div>
                 <div class="cq-sec-title">Exportar Informe PDF</div>
               </div>
-              <div class="cq-pdf-wrap" style="flex:1;display:flex;flex-direction:column;overflow-y:auto;">
+              <div class="cq-pdf-wrap" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
                 <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-family:var(--mono)">Mes a exportar:</div>
                 <div class="cq-months" id="cq-month-picker"></div>
                 <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-family:var(--mono)">Secciones a incluir:</div>
-                <div class="cq-secs" style="flex:1;overflow-y:auto;">
+                <div class="cq-secs" style="flex:1;overflow-y:auto;min-height:0;">
                   <label class="cq-sec-row"><input type="checkbox" id="cqr1" checked><span class="cq-sec-lbl">Resumen de caudales</span><span class="cq-sec-sub">Media + totales</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr2" checked><span class="cq-sec-lbl">Consumo eléctrico</span><span class="cq-sec-sub">kWh + fotovoltaica</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr3" checked><span class="cq-sec-lbl">Parámetros analíticos</span><span class="cq-sec-sub">DBO, DQO, NT, PT, SST</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr4" checked><span class="cq-sec-lbl">Rendimientos depuración</span><span class="cq-sec-sub">vs límites RD 509/1996</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr5"><span class="cq-sec-lbl">Consumo de reactivos</span><span class="cq-sec-sub">Stocks y proyecciones</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr6"><span class="cq-sec-lbl">Edad de fango y TRH</span><span class="cq-sec-sub">Parámetros biológicos</span></label>
-                  <label class="cq-sec-row"><input type="checkbox" id="cqr7"><span class="cq-sec-lbl">Calibraciones</span><span class="cq-sec-sub">Estado instrumentación</span></label>
-                  <label class="cq-sec-row"><input type="checkbox" id="cqr8"><span class="cq-sec-lbl">Incidencias del mes</span><span class="cq-sec-sub">Log tareas cerradas</span></label>
+
                 </div>
-                <button class="cq-pdf-btn" id="cq-pdf-btn" onclick="cqExportPDF()">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Generar informe PDF
-                </button>
-                <div style="font-size:8px;color:var(--muted);margin-top:5px;text-align:center;font-family:var(--mono)">Incluye logo · firma supervisor · RD 509/1996</div>
+                <div style="margin-top:auto;padding-top:8px;flex-shrink:0">
+                  <button class="cq-pdf-btn" id="cq-pdf-btn" onclick="cqExportPDF()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    ↓ Generar informe PDF
+                  </button>
+                  <div style="font-size:8px;color:var(--muted);margin-top:5px;text-align:center;font-family:var(--mono)">Incluye logo · firma supervisor · RD 509/1996</div>
+                </div>
               </div>
 
             </div><!-- /#cq-right -->
@@ -8517,7 +8518,7 @@ if(typeof waitForFirebase==='function'){
     if(!cont) return;
     if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos de caudal</div>'; return; }
     const datos=dias.map(f=>({f, i:(ST.caudales[f]||{}).edari, u:(ST.caudales[f]||{}).edaru}));
-    const W=360,H=110,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const contH=Math.max(60,cont.clientHeight||90);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
     const valsI=datos.map(d=>d.i).filter(v=>v!=null&&!isNaN(v));
     const valsU=datos.map(d=>d.u).filter(v=>v!=null&&!isNaN(v));
     const allV=[...valsI,...valsU].filter(Boolean);
@@ -8555,7 +8556,7 @@ if(typeof waitForFirebase==='function'){
     if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos</div>'; return; }
     const datos=dias.map(f=>({f,i:(ST.consumo[f]||{}).edari||0,u:(ST.consumo[f]||{}).edaru||0}));
     const totales=datos.map(d=>d.i+d.u), maxT=Math.max(...totales,1);
-    const W=360,H=110,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const contH=Math.max(60,cont.clientHeight||90);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
     const bw=gW/datos.length;
     const barras=datos.map((d,k)=>{
       const xx=(PL+k*bw+0.5).toFixed(1), w=Math.max(1,bw-1.2).toFixed(1);
@@ -8588,7 +8589,7 @@ if(typeof waitForFirebase==='function'){
     // Banda óptima 15-20 días
     const BAND_LO=15, BAND_HI=20;
     const minV=Math.min(...vals,BAND_LO-2), maxV=Math.max(...vals,BAND_HI+2), rng=maxV-minV||1;
-    const W=360,H=95,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const contH=Math.max(60,cont.clientHeight||85);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
     const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
     const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
     const yLo=y(BAND_LO), yHi=y(BAND_HI);
@@ -8881,8 +8882,7 @@ if(typeof waitForFirebase==='function'){
       {id:'cqr4',titulo:'4. Rendimientos de depuración',html:`<p>${[rDQO&&`DQO: <strong>${rDQO.rend.toFixed(1)}%</strong>`,rDBO&&`DBO₅: <strong>${rDBO.rend.toFixed(1)}%</strong>`,rNT&&`NT: <strong>${rNT.rend.toFixed(1)}%</strong>`,rPT&&`PT: <strong>${rPT.rend.toFixed(1)}%</strong>`].filter(Boolean).join(' | ') || 'Sin datos de rendimiento'}</p>`},
       {id:'cqr5',titulo:'5. Consumo de reactivos',html:`<p>Ver módulo de reactivos del SGI para stocks y proyecciones actualizadas.</p>`},
       {id:'cqr6',titulo:'6. Parámetros biológicos',html:(()=>{const trh=calcTRH(ST);const diasFango=ultimosDias(ST.reactor,30,v=>v&&+v.ss_reactor_gl>0&&+v.vol_reactor>0&&+v.q_purga>0&&+v.ss_recirc_gl>0);const ultFango=diasFango.length?calcEdadFango(ST.reactor[diasFango[diasFango.length-1]]):null;return `<p>Edad de fango reciente: <strong>${ultFango!=null?ultFango.toFixed(1)+' días':'Sin datos'}</strong>. TRH calculado: <strong>${trh!=null?trh.toFixed(1)+' horas':'Sin datos'}</strong>.</p>`;})()},
-      {id:'cqr7',titulo:'7. Calibraciones',html:`<p>Consultar módulo M-01 Calibraciones del SGI para el estado actualizado de los instrumentos.</p>`},
-      {id:'cqr8',titulo:'8. Incidencias del mes',html:`<p>Consultar módulo M-08 Tareas del SGI para el registro de incidencias del período.</p>`},
+
     ];
     let bodyHTML='';
     secciones.forEach(s=>{const el=document.getElementById(s.id); if(el&&el.checked) bodyHTML+=`<div style="margin-bottom:18px"><div style="font-size:13px;font-weight:700;color:#0f1f3a;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px">${s.titulo}</div>${s.html}</div>`;});
@@ -8911,8 +8911,19 @@ if(typeof waitForFirebase==='function'){
         cqInitMonthPicker();
         cqSuscribirFirebase();
         cqRQRender();
-        cqRQRenderTanks();
-        cqRedibujarTodo();
+        // Dos frames para que el layout esté calculado
+        requestAnimationFrame(()=>{ requestAnimationFrame(()=>{
+          cqRQRenderTanks();
+          cqRedibujarTodo();
+        }); });
+        // ResizeObserver: redibujar al cambiar tamaño
+        if(!window._cqResizeObs && window.ResizeObserver){
+          window._cqResizeObs=new ResizeObserver(()=>{
+            const p=document.getElementById('panel-calidad');
+            if(p&&p.classList.contains('active')){ cqRQRenderTanks(); cqRedibujarTodo(); }
+          });
+          ['cq-left','cq-center'].forEach(id=>{ const el=document.getElementById(id); if(el) window._cqResizeObs.observe(el); });
+        }
         let intentos=0;
         const retry=setInterval(()=>{
           intentos++;
@@ -9097,7 +9108,12 @@ if(typeof waitForFirebase==='function'){
       return;
     }
     const COLS=['#00c9a7','#60a5fa','#f59e0b','#a78bfa','#ef4444','#10b981','#fb923c','#e879f9'];
-    const W=84,H=128,cW=84,cH=40;
+    const cont2=document.getElementById('cq-rq-tanks');
+    const availH=cont2?Math.max(180,cont2.clientHeight-20):220;
+    // Altura del tanque SVG según espacio disponible (máx 200px)
+    const H=Math.min(200,Math.max(130,Math.round(availH*0.6)));
+    const W=Math.round(H*0.66);
+    const cW=W,cH=Math.round(availH*0.22);
     const cards=data.map(function(r,i){
       const col=COLS[i%COLS.length];
       const cap=+r.capacidad||1,vol=Math.max(0,+r.volumen_actual||0);
