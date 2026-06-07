@@ -8271,135 +8271,165 @@ if(typeof waitForFirebase==='function'){
   let _pxWxRetries=0;
   async function pxLoadWeather(){
     if(pxWxDone) return;
+
+    /* ── Intentar Open-Meteo directamente (rápido y fiable) ── */
+    let omOk=false;
     try{
-      /* ── Paso 1: Datos reales de Apalmet Est.55 via Claude API ── */
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          model:'claude-sonnet-4-20250514',
-          max_tokens:600,
-          tools:[{'type':'web_search_20250305','name':'web_search'}],
-          messages:[{role:'user',content:'Accede a https://apalmet.es/estaciones/detallesdiario/55 y extrae los datos actuales de la Estación Meteorológica Güímar. Devuelve SOLO este JSON sin texto ni markdown:\n{"temp_actual":número,"temp_max":número,"temp_min":número,"humedad":número,"presion":número,"precipitacion":número,"viento_kmh":número,"dir_viento":"texto como NO SE NNE etc","racha_kmh":número,"ultima_act":"texto"}'}]
-        })
-      });
-      const data=await resp.json();
-      const raw=(data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
-      const m=raw.match(/\{[\s\S]*\}/);
-      if(!m) throw new Error('No JSON from Apalmet: '+raw.slice(0,80));
-      const ap=JSON.parse(m[0]);
-
-      /* ── Paso 2: Pronóstico de Open-Meteo (solo daily, más ligero) ── */
-      let daily=null, dust=0, feels=ap.temp_actual;
-      try{
-        const r2=await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=apparent_temperature,dust,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6');
-        const d2=await r2.json();
-        daily=d2.daily;
-        dust=d2.current?.dust||0;
-        feels=Math.round(d2.current?.apparent_temperature||ap.temp_actual);
-      }catch(e2){ console.warn('Open-Meteo fallback error:',e2); }
-
-      /* ── Render clima actual con datos reales de Apalmet ── */
-      const temp=ap.temp_actual, hum=ap.humedad, prec=ap.precipitacion;
-      const viento=ap.viento_kmh, racha=ap.racha_kmh, dirStr=ap.dir_viento||'';
-      // Convertir dirección cardinal → grados para la rosa
-      const CDIR={'N':0,'NNE':22.5,'NE':45,'ENE':67.5,'E':90,'ESE':112.5,'SE':135,'SSE':157.5,
-                  'S':180,'SSO':202.5,'SO':225,'OSO':247.5,'O':270,'ONO':292.5,'NO':315,'NNO':337.5};
-      const dirDeg=CDIR[dirStr.toUpperCase().trim()]??0;
-      // Elegir icono según temperatura y precipitación
-      const icon=prec>2?'🌧️':temp>28?'🌤️':temp>22?'☀️':'⛅';
-      const desc=prec>5?'Lluvia':dust>200?'Calima':temp>30?'Caluroso':temp>24?'Despejado':'Variable';
+      const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.315&longitude=-16.41&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,surface_pressure,dust&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Atlantic%2FCanary&forecast_days=6');
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const d=await r.json();
+      const c=d.current, daily=d.daily;
+      const code=c.weather_code||0, icon=WXC[code]||'🌡️', desc=WXD[code]||'Variable';
+      const temp=Math.round(c.temperature_2m), feels=Math.round(c.apparent_temperature);
+      const hum=Math.round(c.relative_humidity_2m);
+      const viento=Math.round(c.wind_speed_10m);
+      const racha=Math.round(c.wind_gusts_10m||0);
+      const dirDeg=Math.round(c.wind_direction_10m||0);
+      const prec=(c.precipitation||0).toFixed(1);
+      const presion=Math.round(c.surface_pressure||0);
+      const dust=c.dust||0;
+      const tempMax=Math.round(daily.temperature_2m_max[0]);
+      const tempMin=Math.round(daily.temperature_2m_min[0]);
       const tempCol=temp>=30?'#ef4444':temp>=25?'#f59e0b':'var(--light)';
 
+      /* Render clima */
       const el=document.getElementById('px-wx-actual');
       if(el) el.innerHTML=`
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">
           <span style="font-size:30px;line-height:1">${icon}</span>
           <div>
             <div style="font-family:var(--cond);font-size:30px;font-weight:700;line-height:1;color:${tempCol}">${temp}°C</div>
-            <div style="font-size:9px;color:var(--text-d);margin-top:1px">${desc} · Máx ${ap.temp_max}° / Mín ${ap.temp_min}°</div>
-            ${ap.ultima_act?`<div style="font-size:7px;color:var(--muted);font-family:var(--mono);margin-top:1px">Apalmet: ${ap.ultima_act}</div>`:''}
+            <div style="font-size:9px;color:var(--text-d);margin-top:1px">${desc} · Sensación ${feels}°C · Máx ${tempMax}° Mín ${tempMin}°</div>
           </div>
         </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap">
-          ${[['💧','Hum.',hum+'%'],['📊','Presión',ap.presion+' mb'],['🌧','Prec.',prec+' mm']].map(([ic,lb,vl])=>
+          ${[['💧','Hum.',hum+'%'],['📊','Presión',presion+' mb'],['🌧','Prec.',prec+' mm']].map(([ic,lb,vl])=>
             `<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:8px;color:var(--muted);font-family:var(--mono)">${ic} ${lb} <span style="color:var(--text);font-weight:700">${vl}</span></div>`
           ).join('')}
-          ${dust>200?`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:3px 6px;font-size:8px;color:#f59e0b;font-family:var(--mono)">⚠ Calima ${Math.round(dust)} µg/m³</div>`:''}\n        </div>`;
+          ${dust>200?`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:3px 6px;font-size:8px;color:#f59e0b;font-family:var(--mono)">⚠ Calima ${Math.round(dust)} µg/m³</div>`:''}\n        </div>
+        <div style="margin-top:5px;font-size:7px;color:var(--muted);font-family:var(--mono)">
+          Open-Meteo · <a href="https://apalmet.es/estaciones/detallesdiario/55" target="_blank" style="color:var(--accent)">Ver datos exactos Apalmet Est.55 ↗</a>
+        </div>`;
 
-      /* ── Rosa de vientos con datos reales Apalmet ── */
+      /* Rosa de vientos */
       pxUpdateWindRose(dirDeg, viento, racha);
 
-      /* ── Pronóstico (Open-Meteo daily) ── */
+      /* Pronóstico */
       const fc=document.getElementById('px-wx-forecast');
-      if(fc&&daily){
-        fc.innerHTML=daily.time.slice(0,6).map((t,i)=>{
-          const dt=new Date(t+'T12:00:00'), dd=WXW[dt.getDay()], fi=WXC[daily.weather_code[i]]||'🌡️';
-          const mx=Math.round(daily.temperature_2m_max[i]), mn=Math.round(daily.temperature_2m_min[i]);
-          const pp=(daily.precipitation_sum[i]||0).toFixed(1);
-          return `<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 6px;min-width:50px;text-align:center;flex-shrink:0">
-            <div style="font-size:7px;color:var(--muted);font-family:var(--mono);text-transform:uppercase">${dd}</div>
-            <div style="font-size:15px;margin:2px 0">${fi}</div>
-            <div style="font-size:9px;display:flex;gap:3px;justify-content:center">
-              <span style="font-weight:700;color:var(--text)">${mx}°</span>
-              <span style="color:var(--muted)">${mn}°</span>
-            </div>
-            ${+pp>0?`<div style="font-size:7px;color:#60a5fa;margin-top:1px">💧${pp}</div>`:''}\n          </div>`;
-        }).join('');
-      } else if(fc){
-        fc.innerHTML='<div style="font-size:8px;color:var(--muted);font-family:var(--mono)"><a href="https://apalmet.es/prediccion/municipio/Guimar" target="_blank" style="color:var(--accent)">Pronóstico Apalmet ↗</a></div>';
-      }
+      if(fc) fc.innerHTML=daily.time.slice(0,6).map((t,i)=>{
+        const dt=new Date(t+'T12:00:00'), dd=WXW[dt.getDay()], fi=WXC[daily.weather_code[i]]||'🌡️';
+        const mx=Math.round(daily.temperature_2m_max[i]), mn=Math.round(daily.temperature_2m_min[i]);
+        const pp=(daily.precipitation_sum[i]||0).toFixed(1);
+        return `<div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 6px;min-width:50px;text-align:center;flex-shrink:0">
+          <div style="font-size:7px;color:var(--muted);font-family:var(--mono);text-transform:uppercase">${dd}</div>
+          <div style="font-size:15px;margin:2px 0">${fi}</div>
+          <div style="font-size:9px;display:flex;gap:3px;justify-content:center">
+            <span style="font-weight:700;color:var(--text)">${mx}°</span>
+            <span style="color:var(--muted)">${mn}°</span>
+          </div>
+          ${+pp>0?`<div style="font-size:7px;color:#60a5fa;margin-top:1px">💧${pp}</div>`:''}\n        </div>`;
+      }).join('');
 
-      /* ── Timestamp ── */
+      /* Timestamp */
       const upd=document.getElementById('px-wx-updated');
       if(upd) upd.textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-      /* ── Relevancia operacional EDAR ── */
+      /* Relevancia EDAR */
       const edar=document.getElementById('px-edar-wx');
       if(edar){
-        const alertas=[];
-        if(dust>200)   alertas.push({ic:'⚠',col:'#f59e0b',txt:'Calima '+Math.round(dust)+' µg/m³ → revisar turbidímetro'});
-        if(+prec>5)    alertas.push({ic:'🌧',col:'#60a5fa',txt:'Lluvia '+prec+' mm → posible pico caudal entrada'});
-        if(+temp>28)   alertas.push({ic:'🌡',col:'#ef4444',txt:'Temperatura '+temp+'°C → vigilar OD reactor'});
-        if(+temp<10)   alertas.push({ic:'❄', col:'#a78bfa',txt:'Temperatura '+temp+'°C → ralentización nitrificación'});
-        if(+viento>40) alertas.push({ic:'💨',col:'#94a3b8',txt:'Viento '+viento+' km/h ('+dirStr+') → verificar flotantes'});
-        if(+racha>60)  alertas.push({ic:'⚡',col:'#f59e0b',txt:'Racha '+racha+' km/h → riesgo rotura espumas'});
-        if(!alertas.length) alertas.push({ic:'✓',col:'#10b981',txt:'Condiciones normales · sin alertas'});
-        edar.innerHTML=alertas.map(a=>`
+        const al=[];
+        if(dust>200)   al.push({ic:'⚠',col:'#f59e0b',txt:'Calima '+Math.round(dust)+' µg/m³ → revisar turbidímetro'});
+        if(+prec>5)    al.push({ic:'🌧',col:'#60a5fa',txt:'Lluvia '+prec+' mm → posible pico caudal entrada'});
+        if(temp>=28)   al.push({ic:'🌡',col:'#ef4444',txt:'Temperatura '+temp+'°C → vigilar OD reactor'});
+        if(temp<10)    al.push({ic:'❄', col:'#a78bfa',txt:'Temperatura '+temp+'°C → ralentización nitrificación'});
+        if(viento>40)  al.push({ic:'💨',col:'#94a3b8',txt:'Viento '+viento+' km/h → verificar flotantes'});
+        if(racha>60)   al.push({ic:'⚡',col:'#f59e0b',txt:'Racha '+racha+' km/h → riesgo rotura espumas'});
+        if(!al.length) al.push({ic:'✓',col:'#10b981',txt:'Condiciones normales · sin alertas'});
+        edar.innerHTML=al.map(a=>`
           <div style="display:flex;align-items:flex-start;gap:5px;padding:5px 7px;background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:6px;border-left:2px solid ${a.col}">
             <span style="font-size:10px;flex-shrink:0">${a.ic}</span>
             <span style="font-size:8px;color:${a.col};font-family:var(--mono);line-height:1.45">${a.txt}</span>
           </div>`).join('');
       }
 
-      /* ── AQI ── */
-      pxLoadAQI();
-      pxWxDone=true; _pxWxRetries=0;
+      omOk=true;
+      pxWxDone=true;
+      _pxWxRetries=0;
+
+      /* Intentar mejorar con datos exactos de Apalmet en segundo plano */
+      pxEnrichFromApalmet(viento, racha);
 
     }catch(e){
-      console.warn('pxLoadWeather error:',e);
+      console.warn('Open-Meteo error:',e);
+    }
+
+    /* Si Open-Meteo falló, mostrar links de fallback */
+    if(!omOk){
       _pxWxRetries++;
-      if(_pxWxRetries<=3){
-        const delay=[5000,15000,30000][_pxWxRetries-1]||30000;
-        const el=document.getElementById('px-wx-actual');
-        if(el) el.innerHTML='<div style="font-family:var(--mono);font-size:9px;color:var(--muted)">⟳ Reintentando datos Apalmet en '+(delay/1000)+'s… ('+_pxWxRetries+'/3)</div>';
-        setTimeout(pxLoadWeather, delay);
-      } else {
-        pxWxDone=true;
-        const el=document.getElementById('px-wx-actual');
-        if(el) el.innerHTML=`
-          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:5px">
-            <div style="color:var(--muted)">Sin conexión · Consulta directamente:</div>
-            <a href="https://apalmet.es/estaciones/detallesdiario/55" target="_blank"
-              style="color:var(--accent);font-size:9px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;text-decoration:none;background:var(--card)">
-              🌡 Apalmet Est.55 · Güímar ↗
-            </a>
-            <a href="https://www.aemet.es/es/eltiempo/prediccion/municipios/guimar-id38017" target="_blank"
-              style="color:var(--accent);font-size:9px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;text-decoration:none;background:var(--card)">
-              ⛅ AEMET · Güímar ↗
-            </a>
-          </div>`;
+      const el=document.getElementById('px-wx-actual');
+      if(el) el.innerHTML=`
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;flex-direction:column;gap:5px">
+          <div style="color:var(--muted);margin-bottom:3px">Sin datos meteorológicos · Consulta directamente:</div>
+          <a href="https://apalmet.es/estaciones/detallesdiario/55" target="_blank"
+            style="color:var(--accent);font-size:9px;padding:5px 9px;border:1px solid var(--border);border-radius:5px;text-decoration:none;background:var(--card);display:flex;align-items:center;gap:6px">
+            🌡 Apalmet Est.55 · Güímar ↗
+          </a>
+          <a href="https://www.aemet.es/es/eltiempo/prediccion/municipios/guimar-id38017" target="_blank"
+            style="color:var(--accent);font-size:9px;padding:5px 9px;border:1px solid var(--border);border-radius:5px;text-decoration:none;background:var(--card);display:flex;align-items:center;gap:6px">
+            ⛅ AEMET · Güímar ↗
+          </a>
+          <a href="https://www3.gobiernodecanarias.org/medioambiente/calidaddelaire/ica.do" target="_blank"
+            style="color:var(--accent);font-size:9px;padding:5px 9px;border:1px solid var(--border);border-radius:5px;text-decoration:none;background:var(--card);display:flex;align-items:center;gap:6px">
+            🌬 ICA · Calidad Aire Canarias ↗
+          </a>
+        </div>`;
+      pxWxDone=true;
+    }
+
+    /* AQI siempre se intenta */
+    pxLoadAQI();
+  }
+
+  /* ── Enriquecer con datos exactos de Apalmet en segundo plano ─────────── */
+  async function pxEnrichFromApalmet(vientoOM, rachaOM){
+    try{
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:300,
+          tools:[{'type':'web_search_20250305','name':'web_search'}],
+          messages:[{role:'user',content:'Accede a https://apalmet.es/estaciones/detallesdiario/55 y extrae los datos actuales de viento. Devuelve SOLO JSON sin texto ni markdown: {"viento_kmh":número,"dir_viento":"cardinal como NO NE SE etc","racha_kmh":número}'}]
+        })
+      });
+      const data=await resp.json();
+      const raw=(data.content||[]).map(b=>b.type==='text'?b.text:'').join('');
+      const m=raw.match(/\{[\s\S]*?\}/);
+      if(!m) return;
+      const ap=JSON.parse(m[0]);
+      if(!ap.viento_kmh||!ap.dir_viento) return;
+
+      /* Actualizar rosa de vientos con datos exactos de Apalmet */
+      const CDIR={'N':0,'NNE':22.5,'NE':45,'ENE':67.5,'E':90,'ESE':112.5,'SE':135,'SSE':157.5,
+                  'S':180,'SSO':202.5,'SO':225,'OSO':247.5,'O':270,'ONO':292.5,'NO':315,'NNO':337.5};
+      const dirDeg=CDIR[ap.dir_viento.toUpperCase().trim()]??null;
+      if(dirDeg!==null) pxUpdateWindRose(dirDeg, ap.viento_kmh, ap.racha_kmh||0);
+
+      /* Añadir badge "Apalmet" al clima */
+      const el=document.getElementById('px-wx-actual');
+      if(el){
+        const badge=el.querySelector('.apalmet-badge');
+        if(!badge){
+          const b=document.createElement('div');
+          b.className='apalmet-badge';
+          b.style.cssText='margin-top:5px;font-size:7px;color:var(--accent);font-family:var(--mono);display:flex;align-items:center;gap:4px';
+          b.innerHTML='✓ Viento actualizado con datos reales Apalmet Est.55 · '+ap.viento_kmh+' km/h '+ap.dir_viento;
+          el.appendChild(b);
+        }
       }
+    }catch(e){
+      // Silencioso — los datos de Open-Meteo ya se muestran
     }
   }
   /* ── AQI via Claude API (scraping ICA Canarias) ─────────────────────────── */
