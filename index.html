@@ -8481,8 +8481,66 @@ if(typeof waitForFirebase==='function'){
 
     /* AQI siempre se intenta */
     pxLoadAQI();
+    /* Apalmet viento: en segundo plano sin bloquear */
+    pxApalmetViento();
   }
 
+  /* ── Apalmet Est.55: viento real via allorigins proxy ───────────────────── */
+  async function pxApalmetViento(){
+    // Mostrar spinner en racha mientras espera
+    const gustEl = document.getElementById('px-wind-gust-lbl');
+    if(gustEl) gustEl.innerHTML = '⟳ <span style="font-size:12px;color:var(--muted)">km/h</span>';
+    try{
+      // allorigins.win: proxy CORS público que reenvía el HTML de Apalmet
+      const url = 'https://api.allorigins.win/get?url='+encodeURIComponent('https://apalmet.es/estaciones/detallesdiario/55');
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), 12000);
+      const r = await fetch(url, {signal: ctrl.signal});
+      clearTimeout(timer);
+      const j = await r.json();
+      const html = j.contents || '';
+
+      // El HTML tiene: "33.12 NO" y "68.76 Racha máxima"
+      // Extraer velocidad + dirección: patrón "número texto_cardinal"
+      const mViento = html.match(/([\d.]+)\s+(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSO|SO|OSO|O|ONO|NO|NNO)[\s\S]{0,30}Viento/i);
+      // Extraer racha: "68.76 Racha máxima"
+      const mRacha  = html.match(/([\d.]+)\s*[Rr]acha/);
+
+      if(!mViento) throw new Error('Viento no encontrado en HTML');
+
+      const vientoAp = Math.round(parseFloat(mViento[1]));
+      const dirAp    = mViento[2].toUpperCase().trim();
+      const rachaAp  = mRacha ? Math.round(parseFloat(mRacha[1])) : 0;
+
+      // Convertir cardinal → grados
+      const CDIR = {
+        'N':0,'NNE':22.5,'NE':45,'ENE':67.5,'E':90,'ESE':112.5,'SE':135,'SSE':157.5,
+        'S':180,'SSO':202.5,'SO':225,'OSO':247.5,'O':270,'ONO':292.5,'NO':315,'NNO':337.5
+      };
+      const dirDeg = CDIR[dirAp] ?? null;
+      if(dirDeg === null) throw new Error('Dirección desconocida: ' + dirAp);
+
+      // Actualizar rosa con datos reales de Apalmet
+      pxUpdateWindRose(dirDeg, vientoAp, rachaAp);
+
+      // Badge en el card de clima
+      const wxEl = document.getElementById('px-wx-actual');
+      if(wxEl && !wxEl.querySelector('.ap-badge')){
+        const b = document.createElement('div');
+        b.className = 'ap-badge';
+        b.style.cssText = 'margin-top:5px;font-size:7px;color:var(--accent2);font-family:var(--mono)';
+        b.textContent = '✓ Viento Apalmet Est.55: '+vientoAp+' km/h '+dirAp+' · Racha '+rachaAp+' km/h';
+        wxEl.appendChild(b);
+      }
+    }catch(e){
+      console.warn('Apalmet viento error:',e.message);
+      // Restaurar racha con valor de Open-Meteo si falla
+      const gustEl2 = document.getElementById('px-wind-gust-lbl');
+      if(gustEl2 && !gustEl2.textContent.includes('km/h')){
+        // ya habrá sido seteado por pxUpdateWindRose con Open-Meteo — no hacer nada
+      }
+    }
+  }
 
   /* ── AQI via Claude API (scraping ICA Canarias) ─────────────────────────── */
   async function pxLoadAQI(){
