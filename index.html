@@ -8619,15 +8619,34 @@ if(typeof waitForFirebase==='function'){
   }
   function calcEdadFango(r){
     if(!r) return null;
-    const SSr=r.ss_reactor_gl, SSrc=r.ss_recirc_gl, Vol=r.vol_reactor, Qp=r.q_purga, Qb=r.caudal_bio, SSef=r.ss_efluente;
-    if(SSr==null||Vol==null||Qp==null||SSrc==null) return null;
-    const M=SSr*Vol, sal_purga=Qp*SSrc, sal_ef=(Qb!=null&&SSef!=null)?Qb*SSef/1000:0, sal=sal_purga+sal_ef;
+    const SSr=r.ss_reactor_gl, SSrc=r.ss_recirc_gl, Qp=r.q_purga, Qb=r.caudal_bio, SSef=r.ss_efluente;
+    // vol_reactor: usar valor del campo o el volumen fijo del reactor EDARI (2167.9 m³)
+    const Vol = (+r.vol_reactor>0) ? +r.vol_reactor : 2167.9;
+    if(SSr==null||Qp==null||SSrc==null) return null;
+    if(+SSr<=0||+Qp<=0||+SSrc<=0) return null;
+    const M=SSr*Vol, sal_purga=Qp*SSrc, sal_ef=(Qb!=null&&SSef!=null&&+Qb>0)?Qb*SSef/1000:0, sal=sal_purga+sal_ef;
     if(!sal||sal<=0) return null;
     return M/sal;
   }
+  // Alias para campos de efluente con nombres alternativos en Firebase
+  const _REND_ALIAS = {
+    'dqo_ef': ['dqo_ef','DQO EFLUENTE','dqo_efluente'],
+    'dbo_ef': ['dbo_ef','DBO EFLUENTE','dbo_efluente','dbo5_ef'],
+    'nt_ef':  ['nt_ef','NT EFLUENTE','nt_efluente'],
+    'pt_ef':  ['pt_ef','PT EFLUENTE','pt_efluente'],
+    'dqo_ent':['dqo_ent','DQO ENTRADA','dqo_entrada'],
+    'dbo_ent':['dbo_ent','DBO5 ENTRADA','dbo_entrada','dbo5_ent'],
+    'nt_ent': ['nt_ent','NT ENTRADA','nt_entrada'],
+    'pt_ent': ['pt_ent','PT ENTRADA','pt_entrada'],
+  };
+  function _getField(r, k){
+    const aliases = _REND_ALIAS[k] || [k];
+    for(const a of aliases){ if(r[a]!=null && r[a]!=='') return +r[a]; }
+    return NaN;
+  }
   function calcRend(ST, kEnt, kEf, dias){
     let sumE=0,sumS=0,n=0;
-    dias.forEach(f=>{ const r=ST.reactor[f]||{}, e=+r[kEnt], s=+r[kEf]; if(!isNaN(e)&&e>0&&!isNaN(s)&&s>=0){sumE+=e;sumS+=s;n++;} });
+    dias.forEach(f=>{ const r=ST.reactor[f]||{}; const e=_getField(r,kEnt), s=_getField(r,kEf); if(!isNaN(e)&&e>0&&!isNaN(s)&&s>=0){sumE+=e;sumS+=s;n++;} });
     if(!n) return null;
     return { rend: Math.max(0,Math.min(100,(sumE-sumS)/sumE*100)), n, mediaE:sumE/n, mediaS:sumS/n };
   }
@@ -8731,7 +8750,7 @@ if(typeof waitForFirebase==='function'){
   function cqDibujaEdadFango(){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
-    const dias=ultimosDias(ST.reactor,30,v=>v&&(+v.ss_reactor_gl>0)&&(+v.vol_reactor>0)&&(+v.q_purga>0)&&(+v.ss_recirc_gl>0));
+    const dias=ultimosDias(ST.reactor,30,v=>v&&(+v.ss_reactor_gl>0)&&(+v.q_purga>0)&&(+v.ss_recirc_gl>0)); // vol_reactor usa 2167.9 si está vacío
     const cont=document.getElementById('cq-fango-chart');
     if(!cont) return;
     if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos del reactor</div>'; return; }
@@ -8880,12 +8899,24 @@ if(typeof waitForFirebase==='function'){
       const el2=document.getElementById('cq-trh-n');
       if(el2) el2.textContent=trh.toFixed(1)+' h';
     }
-    // Efluentes DQO / DBO
+    // Efluentes DQO / DBO — buscar en campos posibles (Firebase puede tener nombres distintos)
     let dqoOk=false, dboOk=false;
     for(let i=fechasR.length-1;i>=0;i--){
       const r=ST.reactor[fechasR[i]];
-      if(!dqoOk && r&&r.dqo_ef!=null){ const el=document.getElementById('cq-kpi-dqo'); if(el) el.innerHTML=Math.round(+r.dqo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; dqoOk=true; }
-      if(!dboOk && r&&r.dbo_ef!=null){ const el=document.getElementById('cq-kpi-dbo'); if(el) el.innerHTML=Math.round(+r.dbo_ef)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>'; dboOk=true; }
+      if(!r) continue;
+      // DQO efluente: varios nombres posibles
+      const dqoVal = r.dqo_ef ?? r['DQO EFLUENTE'] ?? r.dqo_efluente ?? null;
+      const dboVal = r.dbo_ef ?? r['DBO EFLUENTE'] ?? r.dbo_efluente ?? r.dbo5_ef ?? null;
+      if(!dqoOk && dqoVal!=null && dqoVal!==''){
+        const el=document.getElementById('cq-kpi-dqo');
+        if(el) el.innerHTML=Math.round(+dqoVal)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
+        dqoOk=true;
+      }
+      if(!dboOk && dboVal!=null && dboVal!==''){
+        const el=document.getElementById('cq-kpi-dbo');
+        if(el) el.innerHTML=Math.round(+dboVal)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
+        dboOk=true;
+      }
       if(dqoOk&&dboOk) break;
     }
 
