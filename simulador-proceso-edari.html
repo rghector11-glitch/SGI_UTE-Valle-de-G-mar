@@ -1725,12 +1725,6 @@ function App(){
         borderRadius:7,padding:'4px 10px',gap:8}}>
         <input ref={fileInputRef} type="file" accept=".xlsx,.xls"
           style={{display:'none'}} onChange={handleExcelLoad}/>
-        <button onClick={()=>fileInputRef.current&&fileInputRef.current.click()}
-          style={{padding:'3px 10px',border:`1px solid ${C.accent}`,borderRadius:5,
-            background:C.accent+'18',color:C.accent,fontSize:9,fontWeight:700,cursor:'pointer',
-            whiteSpace:'nowrap'}}>
-          📂 Cargar Excel
-        </button>
         {excelData.length>0&&(
           <div style={{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}}>
             <div style={{display:'flex',gap:1,background:C.inputBg,borderRadius:5,padding:2}}>
