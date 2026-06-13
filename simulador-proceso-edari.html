@@ -1068,7 +1068,7 @@ function svgLineaPDF(hist, key, color, labelY, W=520, H=110){
       svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${color}" stroke="#fff" stroke-width="1"/>`;
     }
   });
-  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%">
     ${svgGrid}
     <polygon points="${area}" fill="${color}" opacity="0.08"/>
     <polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
@@ -1094,7 +1094,7 @@ function svgLechoPDF(hist, W=520, H=110){
   [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svgYL+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${v.toFixed(2)}</text>`; });
   xIdxs.forEach(i=>{ svgXL+=`<text x="${(PL+i/(hist.length-1)*gW).toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${pts[i].h.fecha}</text>`; });
   pts.forEach(p=>{ const col=p.h.pct>70?'#cc1122':p.h.pct>50?'#cc7700':'#008855'; if(p.interpolado){ svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="none" stroke="${col}" stroke-width="1.2" stroke-dasharray="2,1" opacity="0.7"/>`; } else { svgPts+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${col}" stroke="#fff" stroke-width="1"/>`; } });
-  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%">
     ${svgGrid}
     <polygon points="${area}" fill="#ff8c42" opacity="0.08"/>
     <polyline points="${poly}" fill="none" stroke="#ff8c42" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
@@ -1116,9 +1116,10 @@ function generarInformePDF(p, res, tipo, d, histR, histD){
     td,th{padding:4px 9px;border:1px solid #d0dce8;font-size:10.5px}
     th{background:#f0f4f8;font-weight:600;text-align:left}
     .ok{color:#008855;font-weight:700}.warn{color:#cc7700;font-weight:700}.bad{color:#cc1122;font-weight:700}
-    .grafica{margin:8px 0 14px;padding:10px;background:#f8fafc;border:1px solid #e0e8f0;border-radius:4px}
+    .grafica{margin:8px 0 14px;padding:10px;background:#f8fafc;border:1px solid #e0e8f0;border-radius:4px;overflow:hidden;width:100%;box-sizing:border-box}
     .grafica-title{font-size:10px;color:#5a7090;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-weight:600}
-    .footer{margin-top:28px;font-size:9px;color:#7a8fa8;border-top:1px solid #d0dce8;padding-top:8px}`;
+    .footer{margin-top:28px;font-size:9px;color:#7a8fa8;border-top:1px solid #d0dce8;padding-top:8px}
+    @media print{.grafica{break-inside:avoid;page-break-inside:avoid;overflow:hidden}svg{max-width:100%!important;height:auto!important}}`;
 
   let html='';
   if(tipo==='reactor'){
@@ -1537,7 +1538,7 @@ function App(){
       const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
       const area=[`${pts[0].x.toFixed(1)},${PT+gH}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
       const refY=PT+gH-(refV-minV)/rng*gH;
-      let svg=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+      let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%">`;
       svg+=`<polygon points="${area}" fill="${color}" opacity="0.1"/>`;
       if(refV>minV&&refV<maxV) svg+=`<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
       [0,0.5,1].forEach(f=>{ svg+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.5"/>`; });
@@ -1578,11 +1579,18 @@ function App(){
       td,th{padding:3px 5px;border:1px solid #d0dce8;text-align:right}
       th{background:#f0f4f8;font-weight:600;text-align:center}
       td:first-child{text-align:left;color:#003e6b;font-weight:600}
-      .chart-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}
-      .chart-box{flex:1 1 220px;border:1px solid #e0e8f0;border-radius:4px;padding:8px 10px;background:#fafcff}
+      .chart-row{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+      .chart-box{flex:1 1 auto;border:1px solid #e0e8f0;border-radius:4px;padding:8px 10px;background:#fafcff;width:100%;box-sizing:border-box;overflow:hidden}
       .chart-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
       .footer{margin-top:20px;font-size:8px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:6px}
-      @media print{body{padding:12px}.chart-box{break-inside:avoid}}
+      @media print{
+        body{padding:12px}
+        .chart-row{display:block}
+        .chart-box{break-inside:avoid;page-break-inside:avoid;display:block;width:100%;margin-bottom:10px;overflow:hidden}
+        svg{max-width:100%!important;height:auto!important}
+        table{font-size:7px}
+        td,th{padding:2px 4px}
+      }
     </style></head><body>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
       <div>
