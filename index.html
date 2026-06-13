@@ -525,6 +525,105 @@ body.theme-light input,
 body.theme-light textarea,
 body.theme-light select{background:#ffffff;color:#1e293b;border-color:#dbe2eb;}
 body.theme-light .p-user-btn{color:#0f172a;}
+
+/* ── TEMA FOREST ── */
+body.theme-forest{
+  --ink:#0a1a0e;
+  --surface:#0d2010;
+  --panel:#112918;
+  --card:#163320;
+  --border:#1f4a2c;
+  --border-l:#2a6038;
+  --accent:#2dd47a;
+  --accent2:#22c9a0;
+  --text:#c8e6c9;
+  --muted:#4a7a57;
+  --light:#e8f5e9;
+  --text-d:#81c784;
+  --card-hi:#1e4028;
+}
+body.theme-forest #portal-shell{background:var(--ink);color:var(--text);}
+body.theme-forest #portal-shell::before{background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(45,212,122,.005) 3px,rgba(45,212,122,.005) 4px);}
+body.theme-forest .p-topbar{background:linear-gradient(90deg,#060f08 0%,var(--surface) 100%);}
+body.theme-forest .p-sidebar{background:var(--surface);border-color:var(--border);}
+body.theme-forest .p-sidebar::after{background:linear-gradient(180deg,transparent,var(--accent)35%,var(--accent)65%,transparent);}
+body.theme-forest .sb-btn.active{background:rgba(45,212,122,.12);border:1px solid rgba(45,212,122,.3);}
+body.theme-forest .sb-btn.active i,.body.theme-forest .sb-btn:hover i{color:var(--accent);}
+body.theme-forest .p-hbtn:hover{border-color:var(--accent);color:var(--accent);}
+body.theme-forest .p-stat .p-dot.ok{background:var(--accent);}
+
+/* ── TEMA MIDNIGHT ── */
+body.theme-midnight{
+  --ink:#000000;
+  --surface:#0d0d0d;
+  --panel:#111111;
+  --card:#161616;
+  --border:#242424;
+  --border-l:#333333;
+  --accent:#f0a500;
+  --accent2:#e8890a;
+  --text:#d4c5a0;
+  --muted:#6b5e3a;
+  --light:#fff8e7;
+  --text-d:#a0906a;
+  --card-hi:#1e1e1e;
+}
+body.theme-midnight #portal-shell{background:var(--ink);color:var(--text);}
+body.theme-midnight #portal-shell::before{background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(240,165,0,.004) 3px,rgba(240,165,0,.004) 4px);}
+body.theme-midnight .p-topbar{background:linear-gradient(90deg,#000000 0%,var(--surface) 100%);}
+body.theme-midnight .p-sidebar{background:var(--surface);border-color:var(--border);}
+body.theme-midnight .p-sidebar::after{background:linear-gradient(180deg,transparent,var(--accent)35%,var(--accent)65%,transparent);}
+body.theme-midnight .sb-btn.active{background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);}
+body.theme-midnight .sb-btn.active i{color:var(--accent);}
+body.theme-midnight .p-hbtn:hover{border-color:var(--accent);color:var(--accent);}
+body.theme-midnight .mc{background:linear-gradient(135deg,#161616,#111111);}
+body.theme-midnight .kpi-r{background:linear-gradient(135deg,#161616,#111111);}
+body.theme-midnight .da-card{background:linear-gradient(135deg,#161616,#111111);}
+
+/* ── THEME PICKER UI ── */
+.theme-picker{position:relative;}
+.theme-dropdown{
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  background:var(--panel);
+  border:1px solid var(--border-l);
+  border-radius:10px;
+  padding:8px;
+  min-width:240px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  z-index:9999;
+  backdrop-filter:blur(12px);
+  animation:dd-in .15s ease;
+}
+.theme-dropdown.open{display:block;}
+@keyframes dd-in{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.theme-dd-title{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;padding:2px 6px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+.theme-opt{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:8px 8px;border-radius:7px;
+  border:none;background:none;cursor:pointer;
+  color:var(--text);text-align:left;
+  transition:background .12s;
+  position:relative;
+}
+.theme-opt:hover{background:var(--card-hi);}
+.theme-opt.active{background:rgba(58,175,232,.08);outline:1px solid rgba(58,175,232,.2);}
+body.theme-forest .theme-opt.active{background:rgba(45,212,122,.08);outline:1px solid rgba(45,212,122,.2);}
+body.theme-midnight .theme-opt.active{background:rgba(240,165,0,.08);outline:1px solid rgba(240,165,0,.2);}
+body.theme-light .theme-opt.active{background:rgba(0,119,194,.08);outline:1px solid rgba(0,119,194,.2);}
+body.theme-light .theme-opt:hover{background:#f1f5f9;}
+body.theme-light .theme-dropdown{background:#ffffff;border-color:#dbe2eb;box-shadow:0 8px 32px rgba(0,0,0,.15);}
+body.theme-light .theme-dd-title{color:#64748b;}
+body.theme-light .theme-opt-name{color:#1e293b;}
+body.theme-light .theme-opt-desc{color:#64748b;}
+.theme-swatch{width:28px;height:28px;border-radius:6px;flex-shrink:0;}
+.theme-opt-info{display:flex;flex-direction:column;flex:1;gap:1px;}
+.theme-opt-name{font-family:var(--cond);font-size:13px;font-weight:600;color:var(--light);letter-spacing:.02em;}
+.theme-opt-desc{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.04em;}
+.theme-opt-check{font-size:13px;color:var(--accent);opacity:0;transition:opacity .15s;}
+.theme-opt-check.visible{opacity:1;}
 .p-brand{display:flex;align-items:center;gap:9px;padding-right:14px;border-right:1px solid var(--border);}
 .p-brand-mark{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,rgba(58,175,232,.15),rgba(58,175,232,.04));border:1px solid rgba(58,175,232,.3);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px;}
 .p-brand-txt{display:flex;flex-direction:column;line-height:1.1;}
@@ -1054,7 +1153,47 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <div class="p-bc">SGI <i class="ti ti-chevron-right" aria-hidden="true"></i> <em id="p-bc-section">Portal</em></div>
         <div class="p-spacer"></div>
         <div class="p-stat"><div class="p-dot ok" id="p-dot-fb"></div><span id="p-fb-label">FIREBASE OK</span></div>
-        <button class="p-hbtn" id="p-theme-btn" onclick="toggleTheme()" title="Modo claro/oscuro" aria-label="Cambiar tema"><i class="ti ti-sun" id="p-theme-ic"></i></button>
+        <!-- Theme picker -->
+        <div class="theme-picker" id="theme-picker">
+          <button class="p-hbtn" id="p-theme-btn" onclick="toggleThemePicker()" title="Cambiar tema" aria-label="Cambiar tema">
+            <i class="ti ti-palette" id="p-theme-ic"></i>
+          </button>
+          <div class="theme-dropdown" id="theme-dropdown" role="menu">
+            <div class="theme-dd-title">TEMA DEL PORTAL</div>
+            <button class="theme-opt" data-theme="dark" onclick="applyTheme('dark')" role="menuitem">
+              <span class="theme-swatch" style="background:linear-gradient(135deg,#070d18,#0c1424);border:2px solid #3aafe8;"></span>
+              <span class="theme-opt-info">
+                <span class="theme-opt-name">Deep Blue</span>
+                <span class="theme-opt-desc">Predeterminado · Azul profundo</span>
+              </span>
+              <i class="ti ti-check theme-opt-check" id="chk-dark"></i>
+            </button>
+            <button class="theme-opt" data-theme="light" onclick="applyTheme('light')" role="menuitem">
+              <span class="theme-swatch" style="background:linear-gradient(135deg,#eef2f7,#ffffff);border:2px solid #0077c2;"></span>
+              <span class="theme-opt-info">
+                <span class="theme-opt-name">Slate Light</span>
+                <span class="theme-opt-desc">Claro · Alta legibilidad</span>
+              </span>
+              <i class="ti ti-check theme-opt-check" id="chk-light"></i>
+            </button>
+            <button class="theme-opt" data-theme="forest" onclick="applyTheme('forest')" role="menuitem">
+              <span class="theme-swatch" style="background:linear-gradient(135deg,#0a1a0e,#112918);border:2px solid #2dd47a;"></span>
+              <span class="theme-opt-info">
+                <span class="theme-opt-name">Forest</span>
+                <span class="theme-opt-desc">Oscuro · Verde industrial</span>
+              </span>
+              <i class="ti ti-check theme-opt-check" id="chk-forest"></i>
+            </button>
+            <button class="theme-opt" data-theme="midnight" onclick="applyTheme('midnight')" role="menuitem">
+              <span class="theme-swatch" style="background:linear-gradient(135deg,#000000,#0d0d0d);border:2px solid #f0a500;"></span>
+              <span class="theme-opt-info">
+                <span class="theme-opt-name">Midnight</span>
+                <span class="theme-opt-desc">Negro · Acento ámbar</span>
+              </span>
+              <i class="ti ti-check theme-opt-check" id="chk-midnight"></i>
+            </button>
+          </div>
+        </div>
         <button class="p-hbtn" id="p-fs-btn" onclick="toggleFullscreen()" title="Pantalla completa" aria-label="Pantalla completa"><i class="ti ti-arrows-maximize" id="p-fs-ic"></i></button>
         <button class="p-user-btn" id="p-user-btn" onclick="toggleUserPop()">—</button>
         <div class="p-cl" id="p-clock">--/-- · --:--</div>
@@ -3447,21 +3586,57 @@ function clearSession() {
   document.body.classList.remove('role-supervisor','role-operario');
 }
 
-// ── Tema claro / oscuro (toggle en header) ──
-function toggleTheme(){
-  const isLight = document.body.classList.toggle('theme-light');
-  localStorage.setItem('ute-theme', isLight ? 'light' : 'dark');
+// ── Sistema de temas múltiples ──
+const THEMES = ['dark', 'light', 'forest', 'midnight'];
+const THEME_CLASSES = { light:'theme-light', forest:'theme-forest', midnight:'theme-midnight' };
+const THEME_ICONS = { dark:'ti ti-moon-stars', light:'ti ti-sun', forest:'ti ti-trees', midnight:'ti ti-moon' };
+
+let _themePickerOpen = false;
+
+function toggleThemePicker(){
+  _themePickerOpen = !_themePickerOpen;
+  const dd = document.getElementById('theme-dropdown');
+  if(dd) dd.classList.toggle('open', _themePickerOpen);
+}
+
+function applyTheme(theme){
+  // Quitar todas las clases de tema
+  Object.values(THEME_CLASSES).forEach(c => document.body.classList.remove(c));
+  // Aplicar la nueva
+  if(THEME_CLASSES[theme]) document.body.classList.add(THEME_CLASSES[theme]);
+  // Persistir
+  localStorage.setItem('ute-theme', theme);
+  // Actualizar icono del botón
   const ic = document.getElementById('p-theme-ic');
-  if(ic) ic.className = isLight ? 'ti ti-moon' : 'ti ti-sun';
+  if(ic) ic.className = THEME_ICONS[theme] || 'ti ti-palette';
+  // Actualizar checks en dropdown
+  THEMES.forEach(t => {
+    const chk = document.getElementById('chk-'+t);
+    const opt = document.querySelector(`.theme-opt[data-theme="${t}"]`);
+    if(chk) chk.classList.toggle('visible', t === theme);
+    if(opt) opt.classList.toggle('active', t === theme);
+  });
+  // Cerrar dropdown
+  _themePickerOpen = false;
+  const dd = document.getElementById('theme-dropdown');
+  if(dd) dd.classList.remove('open');
 }
+
 function aplicarTemaInicial(){
-  const saved = localStorage.getItem('ute-theme');
-  if(saved === 'light'){
-    document.body.classList.add('theme-light');
-    const ic = document.getElementById('p-theme-ic');
-    if(ic) ic.className = 'ti ti-moon';
-  }
+  const saved = localStorage.getItem('ute-theme') || 'dark';
+  applyTheme(saved);
 }
+
+// Cerrar picker al hacer click fuera
+document.addEventListener('click', function(e){
+  const picker = document.getElementById('theme-picker');
+  if(picker && !picker.contains(e.target)){
+    _themePickerOpen = false;
+    const dd = document.getElementById('theme-dropdown');
+    if(dd) dd.classList.remove('open');
+  }
+});
+
 // Aplicar al cargar
 if(document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', aplicarTemaInicial);
