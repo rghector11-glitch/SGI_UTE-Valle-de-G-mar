@@ -6354,7 +6354,7 @@ function exportBioInforme() {
     const poly = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
     const area = [`${pts[0].x.toFixed(1)},${PT+gH}`, ...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`), `${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
     const refY = PT + gH - (refV - minV) / rng * gH;
-    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%">`;
     s += `<polygon points="${area}" fill="${color}" opacity="0.12"/>`;
     if (refV > minV && refV < maxV) s += `<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
     [0, 0.5, 1].forEach(f => { s += `<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.4"/>`; });
@@ -6436,11 +6436,11 @@ function exportBioInforme() {
     th{background:#f0f4f8;font-weight:600;text-align:center;white-space:nowrap;}
     td:first-child{text-align:left;}
     tr:nth-child(even) td{background:#f8fafc;}
-    .chart-box{border:1px solid #e0e8f0;border-radius:4px;padding:8px 10px;margin-bottom:10px;background:#fafcff;overflow-x:auto;}
+    .chart-box{border:1px solid #e0e8f0;border-radius:4px;padding:8px 10px;margin-bottom:10px;background:#fafcff;overflow:hidden;width:100%;box-sizing:border-box;}
     .chart-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
     .footer{margin-top:16px;font-size:7.5px;color:#7a8fa8;border-top:1px solid #e0e8f0;padding-top:5px;}
     .header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
-    @media print{body{padding:10px}.chart-box{break-inside:avoid}table{break-inside:auto}tr{break-inside:avoid}}
+    @media print{body{padding:10px}.chart-box{break-inside:avoid;page-break-inside:avoid;overflow:hidden;width:100%;display:block;margin-bottom:8px}svg{max-width:100%!important;height:auto!important}table{break-inside:auto}tr{break-inside:avoid}}
   </style></head><body>
   <div class="header-row">
     <div>
