@@ -5598,7 +5598,17 @@ function bioFormToObj() {
   const n  = id => { const val=v(id); return val===''?null:Number(val); };
   const cb = id => { const el=document.getElementById(id); return el?el.checked:false; };
   const simE=document.getElementById('bio-sim-edad'), simS=document.getElementById('bio-sim-sst'), simD=document.getElementById('bio-sim-dqo');
-  const sp = el => { if(!el) return null; const t=(el.textContent||'').trim(); return t&&t!=='—'?Number(t)||null:null; };
+  const sp = el => { if(!el) return null; const t=(el.textContent||'').trim(); return t&&t!=='—'&&t!=='…'?Number(t)||null:null; };
+  // Fallback: si los campos DOM están vacíos/pendientes, usar localStorage sgi-kpi-sim
+  function spWithFallback(el, lsKey) {
+    const domVal = sp(el);
+    if(domVal != null) return domVal;
+    try {
+      const ls = JSON.parse(localStorage.getItem('sgi-kpi-sim') || '{}');
+      const v = ls[lsKey];
+      return v != null ? Number(v) || null : null;
+    } catch(e) { return null; }
+  }
   return {
     semana:v('bf-semana'), fecha:v('bf-fecha'), etiqueta:v('bf-etiqueta'), ts:Date.now(),
     licor:{ olor:v('bf-olor'), color:v('bf-color'), ph:n('bf-ph'), conductividad:n('bf-cond'),
@@ -5620,7 +5630,7 @@ function bioFormToObj() {
     datos:{ od:n('bf-od'), temperatura:n('bf-temp'), sslm:n('bf-sslm'), sslm_vols:n('bf-sslm-v'),
             sdlm:n('bf-sdlm'), sdlm_vols:n('bf-sdlm-v'), sst:n('bf-sst'), sst_vols:n('bf-sst-v') },
     obs:v('bf-obs'),
-    sim:{ edad_fango:sp(simE), sst:sp(simS), rend_dqo:sp(simD) }
+    sim:{ edad_fango:spWithFallback(simE,'edad'), sst:spWithFallback(simS,'sst'), rend_dqo:spWithFallback(simD,'dqo') }
   };
 }
 
