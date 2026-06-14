@@ -8685,25 +8685,31 @@ if(typeof waitForFirebase==='function'){
       const j = await r.json();
       const html = j.contents || '';
 
-      // El HTML tiene: "33.12 NO" y "68.76 Racha máxima"
-      // Extraer velocidad + dirección: patrón "número texto_cardinal"
-      const mViento = html.match(/([\d.]+)\s+(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSO|SO|OSO|O|ONO|NO|NNO)[\s\S]{0,30}Viento/i);
-      // Extraer racha: "68.76 Racha máxima"
-      const mRacha  = html.match(/([\d.]+)\s*[Rr]acha/);
+      // El HTML tiene formato: "9 W\nViento (Km/h)   9.36 Racha máxima"
+      // Apalmet usa cardinales en INGLÉS (N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW)
+      // El patrón busca: número + cardinal (inglés o español) seguido de "Viento" en los siguientes 200 chars
+      const mViento = html.match(/([\d.]+)\s+(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW|SSO|SO|OSO|O|ONO|NO|NNO)[\s\S]{0,200}?Viento/i);
+      // Extraer racha: "9.36 Racha máxima"
+      const mRacha  = html.match(/Viento[\s\S]{0,60}?([\d.]+)\s*[Rr]acha/);
 
-      if(!mViento) throw new Error('Viento no encontrado en HTML');
+      if(!mViento) throw new Error('Viento no encontrado en HTML de Apalmet');
 
       const vientoAp = Math.round(parseFloat(mViento[1]));
       const dirAp    = mViento[2].toUpperCase().trim();
       const rachaAp  = mRacha ? Math.round(parseFloat(mRacha[1])) : 0;
 
-      // Convertir cardinal → grados
+      // Convertir cardinal → grados (inglés + español cubiertos)
       const CDIR = {
+        // Inglés (lo que usa Apalmet)
         'N':0,'NNE':22.5,'NE':45,'ENE':67.5,'E':90,'ESE':112.5,'SE':135,'SSE':157.5,
-        'S':180,'SSO':202.5,'SO':225,'OSO':247.5,'O':270,'ONO':292.5,'NO':315,'NNO':337.5
+        'S':180,'SSW':202.5,'SW':225,'WSW':247.5,'W':270,'WNW':292.5,'NW':315,'NNW':337.5,
+        // Español (por si Apalmet cambia algún día)
+        'SSO':202.5,'SO':225,'OSO':247.5,'O':270,'ONO':292.5,'NO':315,'NNO':337.5
       };
       const dirDeg = CDIR[dirAp] ?? null;
       if(dirDeg === null) throw new Error('Dirección desconocida: ' + dirAp);
+
+      console.log('[Apalmet] ✓ Viento:', vientoAp, 'km/h', dirAp, '('+dirDeg+'°) · Racha:', rachaAp, 'km/h');
 
       // Actualizar rosa con datos reales de Apalmet
       pxUpdateWindRose(dirDeg, vientoAp, rachaAp);
