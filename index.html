@@ -1339,7 +1339,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             grid-area:modulos;
             display:grid;
             grid-template-columns:repeat(2,1fr);
-            grid-template-rows:repeat(4,1fr);
+            grid-template-rows:repeat(5,1fr);
             row-gap:5px; column-gap:6px;
             min-height:0; height:100%; overflow:hidden;
           }
@@ -1680,6 +1680,39 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Edad <b id="mc-sim-edad">—</b></div>
+                <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
+              </div>
+            </div></div>
+
+            <!-- M-BIO Biología y Filamentosas -->
+            <div class="mc mbio" onclick="openBiologiaPanel()" role="button" tabindex="0" style="--mc-color:#1a9a5a">
+              <div class="mc-ilu">
+                <div class="mc-num">M·BIO</div>
+                <div class="mc-badge ok" id="mc-bio-badge">ACTIVO</div>
+                <svg viewBox="0 0 90 80" fill="none" style="position:relative;z-index:1;width:100%;height:100%" aria-hidden="true">
+                  <!-- Microscopio simplificado -->
+                  <rect x="36" y="8" width="18" height="5" rx="2" fill="rgba(26,154,90,.35)" stroke="rgba(0,232,122,.5)" stroke-width="1.2"/>
+                  <rect x="42" y="13" width="6" height="22" rx="1.5" fill="rgba(26,154,90,.25)" stroke="rgba(0,232,122,.45)" stroke-width="1.1"/>
+                  <ellipse cx="45" cy="38" rx="10" ry="7" fill="rgba(26,154,90,.2)" stroke="rgba(0,232,122,.6)" stroke-width="1.3"/>
+                  <rect x="30" y="52" width="30" height="4" rx="2" fill="rgba(26,154,90,.3)" stroke="rgba(0,232,122,.5)" stroke-width="1.1"/>
+                  <rect x="37" y="43" width="16" height="9" rx="1.5" fill="rgba(26,154,90,.15)" stroke="rgba(0,232,122,.35)" stroke-width="1"/>
+                  <!-- Filamentosas estilizadas -->
+                  <path d="M58 30 Q72 26 74 38 Q76 50 64 52" fill="none" stroke="rgba(0,232,122,.7)" stroke-width="1.3" stroke-linecap="round"/>
+                  <path d="M60 33 Q70 30 71 40" fill="none" stroke="rgba(0,232,122,.45)" stroke-width="0.9" stroke-linecap="round"/>
+                  <circle cx="74" cy="38" r="2" fill="rgba(0,232,122,.5)"/>
+                  <circle cx="64" cy="52" r="1.5" fill="rgba(0,232,122,.4)"/>
+                  <!-- Índice badge -->
+                  <rect x="8" y="24" width="18" height="14" rx="3" fill="rgba(0,0,0,.35)" stroke="rgba(0,232,122,.3)" stroke-width="1"/>
+                  <text x="17" y="30" text-anchor="middle" font-size="4.5" fill="rgba(200,224,240,.5)" font-family="'JetBrains Mono',monospace">IDX</text>
+                  <text x="17" y="36.5" text-anchor="middle" font-size="8" fill="rgba(0,232,122,.95)" font-family="'Barlow Condensed',sans-serif" font-weight="700" id="mc-bio-idx-svg">—</text>
+                </svg>
+              </div>
+              <div class="mc-right"><div class="mc-body">
+                <div class="mc-title">Biología · Filamentosas</div>
+                <div class="mc-desc">Índice Jenkins · géneros · IVF</div>
+              </div>
+              <div class="mc-foot">
+                <div class="mc-stat">Último: <b id="mc-bio-fecha">—</b></div>
                 <i class="ti ti-chevron-right mc-arr" aria-hidden="true"></i>
               </div>
             </div></div>
@@ -7814,6 +7847,167 @@ document.addEventListener('keydown',e=>{
 </script>
 
 
+<!-- ═══ DRAWER M-BIO BIOLOGÍA Y FILAMENTOSAS ═══ -->
+<style>
+#bio-overlay{display:none;position:fixed;inset:0;z-index:9599;background:rgba(0,0,0,.5);}
+#bio-overlay.open{display:block;}
+#bio-drawer{
+  position:fixed;top:0;right:0;width:480px;max-width:96vw;height:100vh;
+  background:#0a1628;border-left:1px solid #1e3a6a;z-index:9600;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;box-shadow:-6px 0 32px rgba(0,0,0,.6);
+  font-family:'Barlow',sans-serif;
+}
+#bio-drawer.open{transform:translateX(0);}
+.bio-h{
+  background:linear-gradient(135deg,#0d2b4e,#1a4a7a);
+  padding:14px 16px;border-bottom:1px solid #1e3a6a;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.bio-h-ic{width:36px;height:36px;border-radius:8px;background:rgba(26,154,90,.2);
+  border:1px solid rgba(0,232,122,.35);display:flex;align-items:center;
+  justify-content:center;font-size:20px;flex-shrink:0;}
+.bio-h-tit{flex:1;}
+.bio-h-tit h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;
+  color:#e0ecff;margin:0;letter-spacing:.02em;}
+.bio-h-tit p{font-family:'JetBrains Mono',monospace;font-size:8px;
+  color:rgba(255,255,255,.45);margin:2px 0 0;letter-spacing:.06em;}
+.bio-close{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  border-radius:7px;color:#fff;cursor:pointer;padding:5px 11px;
+  font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;}
+.bio-tabs{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid #1e3a6a;
+  background:rgba(0,0,0,.15);flex-shrink:0;}
+.bio-tab{flex:1;padding:6px 8px;background:transparent;border:1px solid #1e3a6a;
+  border-radius:5px;color:rgba(255,255,255,.5);cursor:pointer;
+  font-family:'Barlow',sans-serif;font-size:12px;font-weight:500;transition:.2s;}
+.bio-tab.active{background:rgba(26,154,90,.15);border-color:rgba(0,232,122,.4);color:#3acc7a;}
+.bio-body{flex:1;overflow-y:auto;padding:14px 14px 20px;}
+/* Form */
+.bio-card{background:rgba(255,255,255,.05);border:1px solid #1e3a6a;
+  border-radius:10px;padding:13px;margin-bottom:12px;}
+.bio-card-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;
+  font-weight:700;color:#e8a020;margin-bottom:10px;text-transform:uppercase;
+  letter-spacing:.05em;display:flex;align-items:center;gap:6px;}
+.bio-fgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.bio-fgrid.c3{grid-template-columns:1fr 1fr 1fr;}
+.bio-fgrid.c1{grid-template-columns:1fr;}
+.bio-field{display:flex;flex-direction:column;gap:3px;}
+.bio-field label{font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.04em;}
+.bio-field input,.bio-field select,.bio-field textarea{
+  background:#0d1e35;border:1px solid #2a4e8a;border-radius:6px;
+  color:#c8d8f0;padding:7px 9px;font-family:'Barlow',sans-serif;font-size:12px;
+  transition:border-color .2s;width:100%;box-sizing:border-box;}
+.bio-field input:focus,.bio-field select:focus,.bio-field textarea:focus{
+  outline:none;border-color:#4a8ceb;}
+.bio-field select option{background:#0d1e35;}
+.bio-field textarea{resize:vertical;min-height:58px;line-height:1.4;}
+/* Índice selector */
+.bio-idx-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:5px;}
+.bio-idx-btn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 4px;background:#0d1e35;border:1px solid #2a4e8a;
+  border-radius:6px;cursor:pointer;transition:.2s;}
+.bio-idx-btn:hover{border-color:#4a8ceb;}
+.bio-idx-btn.sel{border-color:#e8a020;background:rgba(232,160,32,.1);}
+.bio-idx-num{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:rgba(255,255,255,.4);}
+.bio-idx-btn.sel .bio-idx-num{color:#e8a020;}
+.bio-idx-lbl{font-size:9px;color:rgba(255,255,255,.3);text-align:center;line-height:1.2;}
+.bio-idx-bar{height:3px;border-radius:2px;background:#1e3a6a;width:100%;}
+.bio-idx-bar-fill{height:100%;border-radius:2px;}
+/* Géneros */
+.bio-genus-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;}
+.bio-gcheck{
+  display:flex;align-items:center;gap:7px;padding:7px 9px;
+  background:#0d1e35;border:1px solid #2a4e8a;border-radius:6px;
+  cursor:pointer;transition:.2s;}
+.bio-gcheck:hover{border-color:#4a8ceb;}
+.bio-gcheck.sel{border-color:#1a8a9a;background:rgba(26,138,154,.1);}
+.bio-gdot{width:7px;height:7px;border-radius:50%;background:#2a4e8a;flex-shrink:0;transition:.2s;}
+.bio-gcheck.sel .bio-gdot{background:#1a9a6a;}
+.bio-gname{font-size:11px;color:#c8d8f0;font-style:italic;line-height:1.2;}
+/* Tinciones */
+.bio-tinc-row{display:flex;gap:7px;margin-top:5px;}
+.bio-tinc-btn{
+  flex:1;padding:7px 5px;background:#0d1e35;border:1px solid #2a4e8a;
+  border-radius:6px;cursor:pointer;transition:.2s;text-align:center;
+  font-size:11px;color:rgba(255,255,255,.45);}
+.bio-tinc-btn.t-pos{border-color:#2a6cdb;background:rgba(42,108,219,.15);color:#4a8ceb;}
+.bio-tinc-btn.t-neg{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);}
+/* Botones */
+.bio-btn{padding:8px 16px;border-radius:7px;border:none;cursor:pointer;
+  font-size:12px;font-weight:600;font-family:'Barlow',sans-serif;transition:.2s;}
+.bio-btn-primary{background:#1a7a4a;color:#fff;}.bio-btn-primary:hover{background:#1a9a5a;}
+.bio-btn-ghost{background:transparent;color:rgba(255,255,255,.5);
+  border:1px solid #2a4e8a;}.bio-btn-ghost:hover{background:rgba(255,255,255,.06);}
+.bio-btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+/* Alerta inline */
+.bio-alert{border-radius:7px;padding:8px 12px;margin-bottom:10px;font-size:11px;
+  line-height:1.5;display:flex;gap:7px;align-items:flex-start;}
+.bio-alert-red{background:rgba(192,48,48,.12);border:1px solid rgba(192,48,48,.3);color:#e05050;}
+.bio-alert-amber{background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.28);color:#f0c060;}
+/* Registros */
+.bio-reg{background:#0d1e35;border:1px solid #1e3a6a;border-radius:9px;
+  padding:11px;margin-bottom:9px;transition:.2s;}
+.bio-reg:hover{border-color:#2a4e8a;}
+.bio-reg-h{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.bio-reg-fecha{font-family:'Barlow Condensed',sans-serif;font-size:13px;
+  font-weight:600;color:#e0ecff;}
+.bio-idx-badge{padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;}
+.bi0,.bi1{background:rgba(26,154,90,.15);color:#3acc7a;}
+.bi2,.bi3{background:rgba(232,160,32,.13);color:#f0c060;}
+.bi4,.bi5{background:rgba(192,48,48,.18);color:#e05050;}
+.bio-reg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:7px;}
+.bio-rs{background:#0a1628;border-radius:6px;padding:6px 8px;}
+.bio-rs-l{font-family:'JetBrains Mono',monospace;font-size:8px;
+  color:rgba(255,255,255,.3);margin-bottom:1px;text-transform:uppercase;}
+.bio-rs-v{font-size:13px;font-weight:600;color:#c8d8f0;}
+.bio-reg-genus{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
+.bio-gtag{padding:2px 7px;background:rgba(26,138,154,.15);border-radius:4px;
+  font-size:10px;color:#1a9a8a;font-style:italic;}
+.bio-reg-obs{font-size:11px;color:rgba(255,255,255,.4);font-style:italic;}
+.bio-reg-del{background:transparent;border:1px solid #1e3a6a;border-radius:5px;
+  color:rgba(255,255,255,.3);cursor:pointer;font-size:10px;padding:3px 9px;
+  font-family:'Barlow',sans-serif;}
+.bio-reg-del:hover{border-color:rgba(192,48,48,.5);color:#e05050;}
+/* Gráfico tendencia */
+.bio-trend-wrap{width:100%;height:130px;margin-top:8px;}
+.bio-legend{display:flex;gap:14px;margin-top:6px;font-size:10px;color:rgba(255,255,255,.4);}
+/* Correlación */
+.bio-corr-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+.bio-corr-table th{color:rgba(255,255,255,.3);font-weight:500;text-align:left;
+  padding:3px 6px;border-bottom:1px solid #1e3a6a;font-size:9px;text-transform:uppercase;}
+.bio-corr-table td{padding:5px 6px;border-bottom:1px solid rgba(30,58,106,.4);color:#c8d8f0;}
+.bio-cbar{height:5px;border-radius:3px;background:#1e3a6a;overflow:hidden;margin-top:2px;}
+.bio-cbar-inner{height:100%;border-radius:3px;background:#1a9a6a;}
+/* Sidebar stats */
+.bio-sb-stat{background:rgba(255,255,255,.05);border-radius:7px;padding:9px 12px;margin-bottom:8px;}
+.bio-sb-label{font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.bio-sb-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#e0ecff;}
+.bio-sb-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:1px;}
+</style>
+
+<div id="bio-overlay" onclick="bioCerrar()"></div>
+<div id="bio-drawer">
+  <div class="bio-h">
+    <div class="bio-h-ic">🔬</div>
+    <div class="bio-h-tit">
+      <h3>Biología · Filamentosas</h3>
+      <p>REACTOR BIOLÓGICO · SGI UTE VALLE DE GÜÍMAR</p>
+    </div>
+    <button class="bio-close" onclick="bioCerrar()">✕ Cerrar</button>
+  </div>
+  <div class="bio-tabs">
+    <button class="bio-tab active" id="bio-tab-nuevo" onclick="bioSwitchTab('nuevo',this)">➕ Nuevo</button>
+    <button class="bio-tab" id="bio-tab-hist" onclick="bioSwitchTab('historial',this)">📋 Historial</button>
+    <button class="bio-tab" id="bio-tab-corr" onclick="bioSwitchTab('correlacion',this)">📈 Tendencia</button>
+  </div>
+  <div class="bio-body" id="bio-body">
+    <!-- contenido dinámico JS -->
+  </div>
+</div>
+
 <!-- ═══ DRAWER TAREAS (M08) ═══ -->
 <style>
 #tareas-drawer{position:fixed;top:0;right:0;width:420px;max-width:92vw;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:9600;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.45);}
@@ -9814,6 +10008,398 @@ if(typeof waitForFirebase==='function'){
     <div style="font-size:8px;color:var(--muted);font-family:var(--mono);margin-top:8px;text-align:center">El consumo se resta automáticamente del volumen actual</div>
   </div>
 </div>
+
+<!-- ═══ M-BIO JAVASCRIPT ═══ -->
+<script>
+(function(){
+  'use strict';
+
+  const BIO_KEY = 'sgi-bio-fil';
+  const GENEROS = [
+    'Microthrix parvicella','Type 0041','Type 0675','Sphaerotilus natans',
+    'Thiothrix sp.','Type 021N','Nostocoida limicola','Beggiatoa sp.',
+    'Haliscomenobacter hydrossis','Type 1701','Otro'
+  ];
+  const IDX_DESC = ['Ausentes','Muy escasas','Escasas','Moderadas','Abundantes','Muy abundantes'];
+  const IDX_COL  = ['#1a9a5a','#3acc7a','#e8a020','#c07010','#e05050','#c03030'];
+
+  let bioRecs = [];
+  let bioTab = 'nuevo';
+  let bioIdx = null;
+  let bioGeneros = new Set();
+  let bioTincion = {gram:'nd', neisser:'nd'};
+  let bioFlocculo = null;
+
+  // ── Abrir / Cerrar ──────────────────────────────────────────────────────────
+  window.openBiologiaPanel = function(){
+    bioRecs = JSON.parse(localStorage.getItem(BIO_KEY)||'[]');
+    document.getElementById('bio-overlay').classList.add('open');
+    document.getElementById('bio-drawer').classList.add('open');
+    bioSwitchTab('nuevo', document.getElementById('bio-tab-nuevo'));
+  };
+  window.bioCerrar = function(){
+    document.getElementById('bio-overlay').classList.remove('open');
+    document.getElementById('bio-drawer').classList.remove('open');
+  };
+
+  // ── Tabs ────────────────────────────────────────────────────────────────────
+  window.bioSwitchTab = function(id, btn){
+    bioTab = id;
+    document.querySelectorAll('.bio-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    bioRenderTab();
+  };
+
+  function bioRenderTab(){
+    const body = document.getElementById('bio-body');
+    if(bioTab==='nuevo')      body.innerHTML = bioTplNuevo();
+    else if(bioTab==='historial') body.innerHTML = bioTplHistorial();
+    else body.innerHTML = bioTplCorrelacion();
+    if(bioTab==='nuevo') bioInitNuevo();
+  }
+
+  // ── Plantilla Nuevo Registro ─────────────────────────────────────────────
+  function bioTplNuevo(){
+    const today = new Date().toISOString().split('T')[0];
+    const hh = String(new Date().getHours()).padStart(2,'0');
+    const mm = String(new Date().getMinutes()).padStart(2,'0');
+    return `
+      <div id="bio-alert-area"></div>
+      <div class="bio-card">
+        <div class="bio-card-title">📅 Datos generales</div>
+        <div class="bio-fgrid c3">
+          <div class="bio-field"><label>Fecha</label><input type="date" id="bio-fecha" value="${today}"></div>
+          <div class="bio-field"><label>Hora</label><input type="time" id="bio-hora" value="${hh}:${mm}"></div>
+          <div class="bio-field"><label>Operador</label><input type="text" id="bio-oper" placeholder="Nombre"></div>
+        </div>
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">⚙️ Parámetros operacionales</div>
+        <div class="bio-fgrid c3">
+          <div class="bio-field"><label>IVF (mL/g)</label><input type="number" id="bio-ivf" placeholder="120" oninput="bioChkAlert()"></div>
+          <div class="bio-field"><label>SST (mg/L)</label><input type="number" id="bio-sst" placeholder="3500"></div>
+          <div class="bio-field"><label>Edad fango (d)</label><input type="number" id="bio-edad" placeholder="15" step="0.5"></div>
+          <div class="bio-field"><label>F/M</label><input type="number" id="bio-fm" placeholder="0.08" step="0.01"></div>
+          <div class="bio-field"><label>OD (mg/L)</label><input type="number" id="bio-od" placeholder="2.1" step="0.1"></div>
+          <div class="bio-field"><label>Tª afluente (°C)</label><input type="number" id="bio-temp" placeholder="18" step="0.5"></div>
+        </div>
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">🦠 Índice filamentosas (Jenkins 0–5)</div>
+        <div class="bio-idx-grid" id="bio-idx-grid"></div>
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">🔵 Morfología del flóculo</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px" id="bio-floc-grid">
+          ${['compacto','irregular','abierto','pin-floc'].map(f=>`
+            <div style="padding:8px 5px;background:#0d1e35;border:1px solid #2a4e8a;border-radius:6px;cursor:pointer;text-align:center;font-size:11px;color:rgba(255,255,255,.5);transition:.2s" onclick="bioSelFloc(this,'${f}')" id="bio-floc-${f}">${f}</div>`).join('')}
+        </div>
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">🧫 Géneros identificados</div>
+        <div class="bio-genus-grid" id="bio-genus-grid"></div>
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">🎨 Tinciones</div>
+        <div class="bio-fgrid">
+          <div class="bio-field"><label>Gram</label>
+            <div class="bio-tinc-row">
+              <div class="bio-tinc-btn" id="bio-gram-pos" onclick="bioSelTinc('gram','pos')">Gram +</div>
+              <div class="bio-tinc-btn" id="bio-gram-neg" onclick="bioSelTinc('gram','neg')">Gram –</div>
+              <div class="bio-tinc-btn t-neg" id="bio-gram-nd" onclick="bioSelTinc('gram','nd')">N/D</div>
+            </div>
+          </div>
+          <div class="bio-field"><label>Neisser</label>
+            <div class="bio-tinc-row">
+              <div class="bio-tinc-btn" id="bio-neisser-pos" onclick="bioSelTinc('neisser','pos')">Neisser +</div>
+              <div class="bio-tinc-btn" id="bio-neisser-neg" onclick="bioSelTinc('neisser','neg')">Neisser –</div>
+              <div class="bio-tinc-btn t-neg" id="bio-neisser-nd" onclick="bioSelTinc('neisser','nd')">N/D</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">📝 Observaciones</div>
+        <div class="bio-fgrid c1">
+          <div class="bio-field">
+            <textarea id="bio-obs" placeholder="Aspecto del licor mezcla, olor, incidencias..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="bio-btn-row">
+        <button class="bio-btn bio-btn-ghost" onclick="bioLimpiar()">✕ Limpiar</button>
+        <button class="bio-btn bio-btn-primary" onclick="bioGuardar()">💾 Guardar registro</button>
+      </div>`;
+  }
+
+  function bioInitNuevo(){
+    bioIdx = null; bioGeneros = new Set(); bioFlocculo = null;
+    bioTincion = {gram:'nd', neisser:'nd'};
+    // Índice
+    const ig = document.getElementById('bio-idx-grid');
+    if(ig) ig.innerHTML = [0,1,2,3,4,5].map(i=>`
+      <div class="bio-idx-btn" id="bio-idx-${i}" onclick="bioSelIdx(${i})">
+        <div class="bio-idx-num">${i}</div>
+        <div class="bio-idx-bar"><div class="bio-idx-bar-fill" style="width:${i*20}%;background:${IDX_COL[i]}"></div></div>
+        <div class="bio-idx-lbl">${IDX_DESC[i]}</div>
+      </div>`).join('');
+    // Géneros
+    const gg = document.getElementById('bio-genus-grid');
+    if(gg) gg.innerHTML = GENEROS.map(g=>`
+      <div class="bio-gcheck" id="bio-g-${g.replace(/\s|\./g,'_')}" onclick="bioTogGenus('${g}',this)">
+        <div class="bio-gdot"></div>
+        <span class="bio-gname">${g}</span>
+      </div>`).join('');
+    // tinciones — marcar N/D por defecto
+    ['gram','neisser'].forEach(t=>bioSelTinc(t,'nd'));
+  }
+
+  window.bioSelIdx = function(i){
+    bioIdx = i;
+    document.querySelectorAll('.bio-idx-btn').forEach(b=>b.classList.remove('sel'));
+    const el = document.getElementById('bio-idx-'+i);
+    if(el) el.classList.add('sel');
+    bioChkAlert();
+  };
+  window.bioTogGenus = function(g, el){
+    el.classList.toggle('sel');
+    if(bioGeneros.has(g)) bioGeneros.delete(g);
+    else bioGeneros.add(g);
+  };
+  window.bioSelFloc = function(el, val){
+    document.querySelectorAll('#bio-floc-grid > div').forEach(d=>{
+      d.style.borderColor='#2a4e8a'; d.style.color='rgba(255,255,255,.5)'; d.style.background='#0d1e35';
+    });
+    el.style.borderColor='#7a3adb'; el.style.color='#b090ff'; el.style.background='rgba(122,58,219,.1)';
+    bioFlocculo = val;
+  };
+  window.bioSelTinc = function(tipo, val){
+    ['pos','neg','nd'].forEach(v=>{
+      const el = document.getElementById(`bio-${tipo}-${v}`);
+      if(!el) return;
+      el.className = 'bio-tinc-btn';
+      if(v==='nd') el.classList.add('t-neg');
+    });
+    const sel = document.getElementById(`bio-${tipo}-${val}`);
+    if(sel){
+      if(val==='pos') sel.classList.add('t-pos');
+      else sel.classList.add('t-neg');
+    }
+    bioTincion[tipo] = val;
+  };
+
+  window.bioChkAlert = function(){
+    const area = document.getElementById('bio-alert-area');
+    if(!area) return;
+    const ivf = parseFloat(document.getElementById('bio-ivf')?.value)||0;
+    let html='';
+    if(bioIdx!==null && bioIdx>=4)
+      html+=`<div class="bio-alert bio-alert-red">🚨 <div><b>Índice ${bioIdx}: acción urgente.</b> Valorar cloración selectiva. Aumentar frecuencia de análisis.</div></div>`;
+    else if(bioIdx!==null && bioIdx===3)
+      html+=`<div class="bio-alert bio-alert-amber">⚠️ <div><b>Índice 3: filamentosas moderadas.</b> Investigar F/M, edad fango, OD.</div></div>`;
+    if(ivf>200)
+      html=`<div class="bio-alert bio-alert-red">🚨 <div><b>IVF ${ivf} mL/g — bulking probable.</b> Activar protocolo urgente.</div></div>`+html;
+    else if(ivf>150)
+      html+=`<div class="bio-alert bio-alert-amber">⚠️ <div>IVF ${ivf} mL/g — por encima del umbral (150). Vigilar decantador.</div></div>`;
+    area.innerHTML = html;
+  };
+
+  window.bioGuardar = function(){
+    if(bioIdx===null){ alert('Selecciona el índice de filamentosas (0–5).'); return; }
+    const fecha = document.getElementById('bio-fecha').value;
+    if(!fecha){ alert('Introduce la fecha del análisis.'); return; }
+    const rec = {
+      id: Date.now(),
+      fecha, hora: document.getElementById('bio-hora').value,
+      operador: document.getElementById('bio-oper').value.trim()||'—',
+      ivf: parseFloat(document.getElementById('bio-ivf').value)||null,
+      sst: parseFloat(document.getElementById('bio-sst').value)||null,
+      edad: parseFloat(document.getElementById('bio-edad').value)||null,
+      fm: parseFloat(document.getElementById('bio-fm').value)||null,
+      od: parseFloat(document.getElementById('bio-od').value)||null,
+      temp: parseFloat(document.getElementById('bio-temp').value)||null,
+      indice: bioIdx, floculo: bioFlocculo,
+      generos: Array.from(bioGeneros),
+      gram: bioTincion.gram, neisser: bioTincion.neisser,
+      obs: document.getElementById('bio-obs').value.trim()
+    };
+    bioRecs.unshift(rec);
+    localStorage.setItem(BIO_KEY, JSON.stringify(bioRecs));
+    bioActualizarTarjeta();
+    bioSwitchTab('historial', document.getElementById('bio-tab-hist'));
+  };
+
+  window.bioLimpiar = function(){
+    bioIdx=null; bioGeneros=new Set(); bioFlocculo=null;
+    bioTincion={gram:'nd',neisser:'nd'};
+    bioInitNuevo();
+    const aa=document.getElementById('bio-alert-area');
+    if(aa) aa.innerHTML='';
+  };
+
+  // ── Historial ───────────────────────────────────────────────────────────────
+  function bioTplHistorial(){
+    if(!bioRecs.length)
+      return '<div style="text-align:center;padding:40px 0;color:rgba(255,255,255,.3)">🔬<br><br>Sin registros. Añade el primer análisis.</div>';
+    return bioRecs.map(r=>`
+      <div class="bio-reg">
+        <div class="bio-reg-h">
+          <div class="bio-reg-fecha">🔬 ${r.fecha}${r.hora?' · '+r.hora:''}</div>
+          <div style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap">
+            <span class="bio-idx-badge bi${r.indice}">Índice ${r.indice} · ${IDX_DESC[r.indice]}</span>
+            ${r.ivf?`<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(42,108,219,.15);color:#4a8ceb">IVF ${r.ivf} mL/g</span>`:''}
+          </div>
+        </div>
+        <div class="bio-reg-stats">
+          <div class="bio-rs"><div class="bio-rs-l">SST</div><div class="bio-rs-v">${r.sst??'—'}<small style="font-size:9px;color:rgba(255,255,255,.3)"> mg/L</small></div></div>
+          <div class="bio-rs"><div class="bio-rs-l">Edad fango</div><div class="bio-rs-v">${r.edad??'—'}<small style="font-size:9px;color:rgba(255,255,255,.3)"> d</small></div></div>
+          <div class="bio-rs"><div class="bio-rs-l">Flóculo</div><div class="bio-rs-v" style="font-size:11px">${r.floculo??'—'}</div></div>
+        </div>
+        ${r.generos&&r.generos.length?`<div class="bio-reg-genus">${r.generos.map(g=>`<span class="bio-gtag">${g}</span>`).join('')}</div>`:''}
+        ${r.obs?`<div class="bio-reg-obs">"${r.obs}"</div>`:''}
+        <div style="display:flex;justify-content:flex-end;margin-top:7px">
+          <button class="bio-reg-del" onclick="bioEliminar(${r.id})">🗑 Eliminar</button>
+        </div>
+      </div>`).join('');
+  }
+
+  window.bioEliminar = function(id){
+    if(!confirm('¿Eliminar este registro?')) return;
+    bioRecs = bioRecs.filter(r=>r.id!==id);
+    localStorage.setItem(BIO_KEY, JSON.stringify(bioRecs));
+    bioActualizarTarjeta();
+    bioRenderTab();
+  };
+
+  // ── Tendencia / Correlación ────────────────────────────────────────────────
+  function bioTplCorrelacion(){
+    const data = bioRecs.slice(0,20).reverse();
+    let svgTrend = '';
+    if(data.length>=2){
+      const W=420, H=110, padL=28, padR=8, padT=8, padB=22;
+      const iw=W-padL-padR, ih=H-padT-padB, n=data.length;
+      const xs=i=>padL+(i/(n-1))*iw;
+      const yI=v=>padT+ih-(v/5)*ih;
+      const maxIVF=Math.max(...data.filter(r=>r.ivf).map(r=>r.ivf),200);
+      const yV=v=>padT+ih-(v/maxIVF)*ih;
+      const pts=data.map((r,i)=>`${xs(i)},${yI(r.indice)}`).join(' ');
+      const area=`M ${xs(0)},${yI(data[0].indice)} `+data.map((r,i)=>`L ${xs(i)},${yI(r.indice)}`).join(' ')+` L ${xs(n-1)},${H-padB} L ${xs(0)},${H-padB} Z`;
+      const ivfPts=data.filter(r=>r.ivf).map(r=>`${xs(data.indexOf(r))},${yV(r.ivf)}`).join(' ');
+      const xLabels=data.filter((_,i)=>i%(Math.max(1,Math.floor(n/4)))===0||i===n-1)
+        .map(r=>`<text x="${xs(data.indexOf(r))}" y="${H-6}" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="8" font-family="'JetBrains Mono',monospace">${r.fecha.slice(5)}</text>`).join('');
+      const gridLines=[0,1,2,3,4,5].map(v=>`<line x1="${padL}" y1="${yI(v)}" x2="${W-padR}" y2="${yI(v)}" stroke="rgba(30,58,106,.7)" stroke-width=".5"/>`).join('');
+      const yLabels=[0,2,4].map(v=>`<text x="${padL-3}" y="${yI(v)+3}" text-anchor="end" fill="rgba(255,255,255,.3)" font-size="8">${v}</text>`).join('');
+      svgTrend = `
+        <svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible">
+          <defs><linearGradient id="bioGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e8a020" stop-opacity=".35"/>
+            <stop offset="100%" stop-color="#e8a020" stop-opacity="0"/>
+          </linearGradient></defs>
+          ${gridLines}
+          <line x1="${padL}" y1="${yV(150)}" x2="${W-padR}" y2="${yV(150)}" stroke="#e8a020" stroke-width=".8" stroke-dasharray="4 3" opacity=".4"/>
+          <text x="${padL+4}" y="${yV(150)-3}" fill="#e8a020" font-size="7" opacity=".5">IVF 150</text>
+          <path d="${area}" fill="url(#bioGrad)"/>
+          <polyline points="${pts}" fill="none" stroke="#e8a020" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${data.map((r,i)=>`<circle cx="${xs(i)}" cy="${yI(r.indice)}" r="3" fill="${IDX_COL[r.indice]}" stroke="#0a1628" stroke-width="1.5"/>`).join('')}
+          ${ivfPts?`<polyline points="${ivfPts}" fill="none" stroke="#4a8ceb" stroke-width="1.3" stroke-dasharray="4 3"/>`:''}
+          ${yLabels}${xLabels}
+        </svg>`;
+    } else {
+      svgTrend = '<div style="color:rgba(255,255,255,.3);font-size:11px;padding:20px 0;text-align:center">Añade al menos 2 registros para ver la tendencia</div>';
+    }
+
+    // Géneros frecuentes
+    const gc={};
+    bioRecs.forEach(r=>(r.generos||[]).forEach(g=>{gc[g]=(gc[g]||0)+1;}));
+    const sorted=Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const genTable = sorted.length
+      ? `<table class="bio-corr-table">
+          <thead><tr><th>Género</th><th>Apariciones</th><th>Frecuencia</th></tr></thead>
+          <tbody>${sorted.map(([g,n])=>`<tr>
+            <td style="font-style:italic">${g}</td><td style="text-align:center">${n}</td>
+            <td style="width:35%"><div class="bio-cbar"><div class="bio-cbar-inner" style="width:${Math.round(n/sorted[0][1]*100)}%"></div></div></td>
+          </tr>`).join('')}</tbody></table>`
+      : '<div style="color:rgba(255,255,255,.3);font-size:11px">Sin géneros registrados aún.</div>';
+
+    // Alertas
+    const ult7=bioRecs.filter(r=>{const d=new Date(r.fecha),h=new Date();h.setDate(h.getDate()-7);return d>=h;});
+    let alertas='';
+    if(ult7[0]?.indice>=4) alertas+=`<div class="bio-alert bio-alert-red">🚨 <div>Índice ${ult7[0].indice} en el último análisis (${ult7[0].fecha}). Acción urgente.</div></div>`;
+    if(ult7[0]?.ivf>200) alertas+=`<div class="bio-alert bio-alert-red">🚨 <div>IVF ${ult7[0].ivf} mL/g — bulking filamentoso probable.</div></div>`;
+    if(ult7[0]?.ivf>150&&ult7[0]?.ivf<=200) alertas+=`<div class="bio-alert bio-alert-amber">⚠️ <div>IVF ${ult7[0].ivf} mL/g — por encima del umbral. Vigilar.</div></div>`;
+    if(ult7.length>=3&&ult7[0].indice>ult7[ult7.length-1].indice+1)
+      alertas+=`<div class="bio-alert bio-alert-amber">⚠️ <div>Tendencia creciente de filamentosas en 7 días.</div></div>`;
+    if(bioRecs.length){
+      const dias=Math.round((new Date()-new Date(bioRecs[0].fecha))/(864e5));
+      if(dias>=5) alertas+=`<div class="bio-alert bio-alert-amber">⚠️ <div>Último análisis hace ${dias} días. Recomendado 1–2 por semana.</div></div>`;
+    }
+    if(!alertas) alertas=`<div class="bio-alert" style="background:rgba(26,154,90,.1);border:1px solid rgba(0,232,122,.25);color:#3acc7a">✅ <div>Sin alertas activas. Estado del reactor dentro de parámetros.</div></div>`;
+
+    return `
+      <div class="bio-card">
+        <div class="bio-card-title">📊 Evolución índice vs IVF</div>
+        <div class="bio-trend-wrap">${svgTrend}</div>
+        <div class="bio-legend">
+          <span>▬ Índice fil.</span><span style="border-top:1.5px dashed #4a8ceb;display:inline-block;width:18px;vertical-align:middle;margin:0 4px"></span> IVF (÷40)
+        </div>
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">🔗 Géneros más frecuentes</div>
+        ${genTable}
+      </div>
+      <div class="bio-card">
+        <div class="bio-card-title">⚠️ Alertas automáticas</div>
+        ${alertas}
+      </div>
+      <div class="bio-btn-row">
+        <button class="bio-btn bio-btn-ghost" onclick="bioExportCSV()">⬇ Exportar CSV</button>
+      </div>`;
+  }
+
+  window.bioExportCSV = function(){
+    if(!bioRecs.length){alert('Sin registros.');return;}
+    const h=['Fecha','Hora','Operador','Índice','IVF','SST','Edad_d','FM','OD','Temp','Floculo','Gram','Neisser','Géneros','Obs'];
+    const rows=bioRecs.map(r=>[r.fecha,r.hora||'',r.operador,r.indice,r.ivf||'',r.sst||'',r.edad||'',r.fm||'',r.od||'',r.temp||'',r.floculo||'',r.gram,r.neisser,(r.generos||[]).join(';'),`"${(r.obs||'').replace(/"/g,'""')}"`].join(','));
+    const csv=[h.join(','),...rows].join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv'}));
+    a.download=`sgi-bio-filamentosas-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  };
+
+  // ── Actualizar tarjeta del portal ────────────────────────────────────────
+  function bioActualizarTarjeta(){
+    bioRecs = JSON.parse(localStorage.getItem(BIO_KEY)||'[]');
+    if(!bioRecs.length) return;
+    const last = bioRecs[0];
+    // Texto en el footer de la tarjeta
+    const fechaEl = document.getElementById('mc-bio-fecha');
+    if(fechaEl) fechaEl.textContent = last.fecha.slice(5) || '—';
+    // SVG índice
+    const idxSvg = document.getElementById('mc-bio-idx-svg');
+    if(idxSvg){ idxSvg.textContent = last.indice; idxSvg.style.fill = IDX_COL[last.indice]||'#3acc7a'; }
+    // Badge
+    const badge = document.getElementById('mc-bio-badge');
+    if(badge){
+      if(last.indice>=4){ badge.textContent='ALERTA'; badge.className='mc-badge'; badge.style.background='rgba(192,48,48,.2)'; badge.style.color='#e05050'; badge.style.border='1px solid rgba(192,48,48,.4)'; }
+      else if(last.indice>=3){ badge.textContent='VIGILAR'; badge.className='mc-badge'; badge.style.background='rgba(232,160,32,.15)'; badge.style.color='#f0c060'; badge.style.border='1px solid rgba(232,160,32,.35)'; }
+      else{ badge.textContent='NORMAL'; badge.className='mc-badge ok'; badge.style=''; }
+    }
+  }
+
+  // Inicializar al cargar
+  document.addEventListener('DOMContentLoaded', function(){
+    bioRecs = JSON.parse(localStorage.getItem(BIO_KEY)||'[]');
+    bioActualizarTarjeta();
+  });
+  // También ejecutar si ya cargó
+  if(document.readyState!=='loading') {
+    bioRecs = JSON.parse(localStorage.getItem(BIO_KEY)||'[]');
+    bioActualizarTarjeta();
+  }
+
+})();
+</script>
 
 </body>
 </html>
