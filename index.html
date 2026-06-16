@@ -7941,6 +7941,23 @@ document.addEventListener('keydown',e=>{
 .bio-btn-ghost{background:transparent;color:rgba(255,255,255,.5);
   border:1px solid #2a4e8a;}.bio-btn-ghost:hover{background:rgba(255,255,255,.06);}
 .bio-btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+/* Fotos */
+.bio-photo-drop{
+  border:1.5px dashed #2a4e8a;border-radius:9px;padding:18px;text-align:center;
+  cursor:pointer;transition:.2s;background:#0d1e35;margin-top:6px;}
+.bio-photo-drop:hover{border-color:#4a8ceb;background:rgba(42,108,219,.06);}
+.bio-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px;}
+.bio-photo-thumb{aspect-ratio:1;border-radius:7px;overflow:hidden;
+  border:1px solid #2a4e8a;position:relative;background:#0a1628;}
+.bio-photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.bio-photo-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.75);
+  border:none;color:#fff;border-radius:50%;width:20px;height:20px;
+  cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1;}
+/* PDF btn */
+.bio-btn-pdf{background:rgba(26,154,90,.15);border:1px solid rgba(0,232,122,.3);
+  color:#3acc7a;border-radius:7px;padding:8px 16px;cursor:pointer;
+  font-size:12px;font-weight:600;font-family:'Barlow',sans-serif;transition:.2s;}
+.bio-btn-pdf:hover{background:rgba(26,154,90,.28);}
 /* Alerta inline */
 .bio-alert{border-radius:7px;padding:8px 12px;margin-bottom:10px;font-size:11px;
   line-height:1.5;display:flex;gap:7px;align-items:flex-start;}
@@ -10029,6 +10046,7 @@ if(typeof waitForFirebase==='function'){
   let bioGeneros = new Set();
   let bioTincion = {gram:'nd', neisser:'nd'};
   let bioFlocculo = null;
+  let bioFotos = [];
 
   // ── Abrir / Cerrar ──────────────────────────────────────────────────────────
   window.openBiologiaPanel = function(){
@@ -10119,6 +10137,16 @@ if(typeof waitForFirebase==='function'){
         </div>
       </div>
       <div class="bio-card">
+        <div class="bio-card-title">📷 Fotografías microscópicas</div>
+        <div class="bio-photo-drop" onclick="document.getElementById('bio-foto-input').click()">
+          <div style="font-size:26px;margin-bottom:6px">🔬</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.45)">Pulsa para adjuntar fotos</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:3px">Objetivo 40× o 100× recomendado · JPG, PNG</div>
+        </div>
+        <input type="file" id="bio-foto-input" accept="image/*" multiple style="display:none" onchange="bioAddFotos(event)">
+        <div class="bio-photo-grid" id="bio-photo-grid"></div>
+      </div>
+      <div class="bio-card">
         <div class="bio-card-title">📝 Observaciones</div>
         <div class="bio-fgrid c1">
           <div class="bio-field">
@@ -10129,12 +10157,16 @@ if(typeof waitForFirebase==='function'){
       <div class="bio-btn-row">
         <button class="bio-btn bio-btn-ghost" onclick="bioLimpiar()">✕ Limpiar</button>
         <button class="bio-btn bio-btn-primary" onclick="bioGuardar()">💾 Guardar registro</button>
+      </div>
+      <div class="bio-btn-row" style="margin-top:6px;justify-content:flex-start">
+        <button class="bio-btn-pdf" onclick="bioInformePDF(null)">🖨 Informe PDF del último registro</button>
       </div>`;
   }
 
   function bioInitNuevo(){
     bioIdx = null; bioGeneros = new Set(); bioFlocculo = null;
-    bioTincion = {gram:'nd', neisser:'nd'};
+    bioTincion = {gram:'nd', neisser:'nd'}; bioFotos = [];
+    const pg = document.getElementById('bio-photo-grid'); if(pg) pg.innerHTML = '';
     // Índice
     const ig = document.getElementById('bio-idx-grid');
     if(ig) ig.innerHTML = [0,1,2,3,4,5].map(i=>`
@@ -10221,7 +10253,8 @@ if(typeof waitForFirebase==='function'){
       indice: bioIdx, floculo: bioFlocculo,
       generos: Array.from(bioGeneros),
       gram: bioTincion.gram, neisser: bioTincion.neisser,
-      obs: document.getElementById('bio-obs').value.trim()
+      obs: document.getElementById('bio-obs').value.trim(),
+      fotos: bioFotos.slice()
     };
     bioRecs.unshift(rec);
     localStorage.setItem(BIO_KEY, JSON.stringify(bioRecs));
@@ -10257,8 +10290,10 @@ if(typeof waitForFirebase==='function'){
         </div>
         ${r.generos&&r.generos.length?`<div class="bio-reg-genus">${r.generos.map(g=>`<span class="bio-gtag">${g}</span>`).join('')}</div>`:''}
         ${r.obs?`<div class="bio-reg-obs">"${r.obs}"</div>`:''}
+        ${r.fotos&&r.fotos.length?`<div class="bio-photo-grid" style="margin-top:8px">${r.fotos.map(f=>`<div class="bio-photo-thumb" style="height:64px"><img src="${f}"></div>`).join('')}</div>`:''}
         <div style="display:flex;justify-content:flex-end;margin-top:7px">
           <button class="bio-reg-del" onclick="bioEliminar(${r.id})">🗑 Eliminar</button>
+          <button class="bio-reg-del" style="margin-left:6px;color:#3acc7a;border-color:rgba(0,232,122,.3)" onclick="bioInformePDF(${r.id})">🖨 PDF</button>
         </div>
       </div>`).join('');
   }
@@ -10353,8 +10388,162 @@ if(typeof waitForFirebase==='function'){
       </div>
       <div class="bio-btn-row">
         <button class="bio-btn bio-btn-ghost" onclick="bioExportCSV()">⬇ Exportar CSV</button>
+        <button class="bio-btn-pdf" onclick="bioInformePDF(null)">🖨 Informe PDF último registro</button>
       </div>`;
   }
+
+  // ── Fotos ────────────────────────────────────────────────────────────────────
+  window.bioAddFotos = function(e){
+    const grid = document.getElementById('bio-photo-grid');
+    Array.from(e.target.files).forEach(f=>{
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        const src = ev.target.result;
+        bioFotos.push(src);
+        const div = document.createElement('div');
+        div.className = 'bio-photo-thumb';
+        div.innerHTML = `<img src="${src}"><button class="bio-photo-del" onclick="bioRemoveFoto(this,'${src.slice(0,40)}')">✕</button>`;
+        if(grid) grid.appendChild(div);
+      };
+      reader.readAsDataURL(f);
+    });
+    e.target.value='';
+  };
+  window.bioRemoveFoto = function(btn, srcStart){
+    btn.parentElement.remove();
+    bioFotos = bioFotos.filter(f=>!f.startsWith(srcStart));
+  };
+
+  // ── Informe PDF ──────────────────────────────────────────────────────────────
+  window.bioInformePDF = function(id){
+    const rec = id ? bioRecs.find(r=>r.id===id) : bioRecs[0];
+    if(!rec){ alert('No hay registros guardados.'); return; }
+    const now = new Date();
+    const fechaImp = now.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const horaImp  = now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    const IDX_DESC_PDF = ['Ausentes','Muy escasas','Escasas','Moderadas','Abundantes','Muy abundantes'];
+    const IDX_COL_PDF  = ['#008855','#22aa66','#cc7700','#aa5500','#cc2200','#aa0000'];
+    const badgeColor   = idx => idx<=1?'#ccf0dc':idx<=2?'#fff3cc':idx<=3?'#ffe0b2':'#ffcccc';
+    const badgeText    = idx => idx<=1?'#005533':idx<=2?'#7a5000':idx<=3?'#7a2800':'#7a0000';
+
+    const fotosHtml = (rec.fotos&&rec.fotos.length)
+      ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0">
+          ${rec.fotos.map(f=>`<img src="${f}" style="width:100%;border-radius:4px;border:1px solid #d0dce8;object-fit:cover;aspect-ratio:1">`).join('')}
+         </div>`
+      : '<p style="color:#7a8fa8;font-size:11px;font-style:italic">Sin fotografías adjuntas</p>';
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Biología Filamentosas — ${rec.fecha}</title>
+<style>
+  @page{margin:20mm 18mm}
+  body{font-family:Arial,sans-serif;font-size:11px;color:#1a2540;margin:0;padding:0}
+  .header{background:linear-gradient(135deg,#0d2b4e,#1a4a7a);color:#fff;padding:18px 24px;border-radius:0 0 8px 8px}
+  .header h1{font-size:17px;margin:0 0 3px}
+  .header .sub{font-size:9px;color:rgba(255,255,255,.6);letter-spacing:.06em}
+  .header .meta{font-size:9px;color:rgba(255,255,255,.5);margin-top:6px;font-family:monospace}
+  .amber{color:#e8a020;font-weight:700}
+  .section{margin:16px 0 6px;font-size:10px;color:#3a5070;text-transform:uppercase;
+    letter-spacing:.8px;font-weight:700;border-bottom:1px solid #e0e8f0;padding-bottom:3px}
+  table{width:100%;border-collapse:collapse;margin:8px 0 12px}
+  td,th{padding:4px 9px;border:1px solid #d0dce8;font-size:10px}
+  th{background:#f0f4f8;font-weight:600;text-align:left}
+  .idx-badge{display:inline-block;padding:4px 12px;border-radius:16px;font-size:14px;
+    font-weight:700;letter-spacing:.02em}
+  .genus-list{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .genus-tag{padding:3px 10px;border-radius:5px;background:#e8f5ee;color:#005533;
+    font-size:10px;font-style:italic;border:1px solid #b0dcc0}
+  .alert-box{border-radius:6px;padding:8px 12px;font-size:10px;margin:8px 0;
+    border-left:3px solid}
+  .alert-red{background:#fff0f0;border-color:#cc2200;color:#7a0000}
+  .alert-amber{background:#fff8e0;border-color:#cc7700;color:#7a4000}
+  .alert-green{background:#f0fff6;border-color:#008855;color:#004422}
+  .footer{margin-top:24px;font-size:8.5px;color:#7a8fa8;border-top:1px solid #d0dce8;
+    padding-top:8px;display:flex;justify-content:space-between}
+  .ok{color:#008855;font-weight:700} .bad{color:#cc2200;font-weight:700} .warn{color:#cc7700;font-weight:700}
+  img{max-width:100%}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header h1">🔬 Informe Biología · Bacterias Filamentosas</div>
+  <div class="sub">UTE VALLE DE GÜÍMAR · EDAR · REACTOR BIOLÓGICO</div>
+  <div class="meta">
+    Fecha análisis: <span class="amber">${rec.fecha}${rec.hora?' · '+rec.hora:''}</span> &nbsp;|&nbsp;
+    Operador: <span class="amber">${rec.operador||'—'}</span> &nbsp;|&nbsp;
+    Impreso: ${fechaImp} ${horaImp}
+  </div>
+</div>
+
+<div class="section">Índice de filamentosas (Escala Jenkins)</div>
+<div style="display:flex;align-items:center;gap:18px;margin:10px 0 14px">
+  <div class="idx-badge" style="background:${badgeColor(rec.indice)};color:${badgeText(rec.indice)}">
+    ${rec.indice} / 5 &nbsp;·&nbsp; ${IDX_DESC_PDF[rec.indice]}
+  </div>
+  ${rec.indice>=4
+    ? '<div class="alert-box alert-red">🚨 Acción correctora urgente. Valorar cloración selectiva en recirculación.</div>'
+    : rec.indice===3
+    ? '<div class="alert-box alert-amber">⚠️ Filamentosas moderadas. Intervención operacional recomendada.</div>'
+    : '<div class="alert-box alert-green">✓ Nivel bajo / aceptable. Mantener vigilancia.</div>'
+  }
+</div>
+
+<div class="section">Parámetros operacionales</div>
+<table>
+  <tr><th>Parámetro</th><th>Valor</th><th>Unidad</th></tr>
+  <tr><td>IVF</td><td class="${rec.ivf>200?'bad':rec.ivf>150?'warn':'ok'}">${rec.ivf??'—'}</td><td>mL/g</td></tr>
+  <tr><td>SST Reactor</td><td>${rec.sst??'—'}</td><td>mg/L</td></tr>
+  <tr><td>Edad de fango</td><td>${rec.edad??'—'}</td><td>días</td></tr>
+  <tr><td>F/M</td><td>${rec.fm??'—'}</td><td>kgDBO/kgSS·d</td></tr>
+  <tr><td>OD Reactor</td><td class="${rec.od&&rec.od<1.5?'warn':'ok'}">${rec.od??'—'}</td><td>mg/L</td></tr>
+  <tr><td>Temperatura afluente</td><td>${rec.temp??'—'}</td><td>°C</td></tr>
+</table>
+${rec.ivf>200?'<div class="alert-box alert-red">🚨 IVF superior a 200 mL/g — bulking filamentoso probable. Protocolo de emergencia.</div>':rec.ivf>150?'<div class="alert-box alert-amber">⚠️ IVF por encima del umbral de alerta (150 mL/g). Vigilar decantador secundario.</div>':''}
+
+<div class="section">Identificación microscópica</div>
+<table>
+  <tr><th>Campo</th><th>Resultado</th></tr>
+  <tr><td>Morfología del flóculo</td><td>${rec.floculo??'—'}</td></tr>
+  <tr><td>Tinción de Gram</td><td>${rec.gram==='pos'?'<span class="ok">Gram + (azul-violeta)</span>':rec.gram==='neg'?'Gram – (rosa)':'No determinado'}</td></tr>
+  <tr><td>Tinción de Neisser</td><td>${rec.neisser==='pos'?'<span class="ok">Neisser + (azul-negro, gránulos PHB)</span>':rec.neisser==='neg'?'Neisser – (amarillo-pardo)':'No determinado'}</td></tr>
+</table>
+
+${rec.generos&&rec.generos.length?`
+<div class="section">Géneros identificados</div>
+<div class="genus-list">${rec.generos.map(g=>`<span class="genus-tag">${g}</span>`).join('')}</div>
+`:''}
+
+${rec.obs?`
+<div class="section">Observaciones</div>
+<p style="margin:8px 0;line-height:1.6;color:#3a4a60;font-style:italic">"${rec.obs}"</p>
+`:''}
+
+<div class="section">Fotografías microscópicas</div>
+${fotosHtml}
+
+<div class="section">Referencia de correcciones</div>
+<table>
+  <tr><th>Índice Jenkins</th><th>Descripción</th><th>Acción</th></tr>
+  <tr><td>0–1</td><td>Ausente / Muy escasas</td><td class="ok">Sin intervención</td></tr>
+  <tr><td>2</td><td>Escasas</td><td class="ok">Vigilar tendencia</td></tr>
+  <tr><td>3</td><td>Moderadas</td><td class="warn">Intervención operacional</td></tr>
+  <tr><td>4</td><td>Abundantes</td><td class="bad">Acción correctora urgente</td></tr>
+  <tr><td>5</td><td>Muy abundantes (bulking)</td><td class="bad">Cloración selectiva + revisión proceso</td></tr>
+</table>
+
+<div class="footer">
+  <span>SGI UTE Valle de Güímar · M-BIO Biología Filamentosas</span>
+  <span><strong>Héctor Hernández Hernández</strong></span>
+</div>
+</body>
+</html>`;
+    const w = window.open('','_blank');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(()=>w.print(), 500);
+  };
 
   window.bioExportCSV = function(){
     if(!bioRecs.length){alert('Sin registros.');return;}
