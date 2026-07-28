@@ -881,6 +881,74 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 /* Hide old portal visual layer */
 .portal-main, .portal-hero, .portal-grid-wrapper { display:none !important; }
 </style>
+<style id="zonas-styles">
+#panel-zonas .zn-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;flex-shrink:0;}
+#panel-zonas .zn-tabs{display:flex;gap:5px;background:var(--card);padding:4px;border-radius:10px;border:1px solid var(--border);}
+#panel-zonas .zn-tab{border:0;background:transparent;color:var(--muted);font-family:var(--sans);font-weight:600;
+  padding:6px 11px;border-radius:7px;cursor:pointer;font-size:12px;transition:.15s;white-space:nowrap;line-height:1.15;text-align:left;}
+#panel-zonas .zn-tab:hover{color:var(--light);background:var(--card-hi);}
+#panel-zonas .zn-tab[aria-selected="true"]{background:var(--accent);color:#08121f;}
+#panel-zonas .zn-tab small{display:block;font-weight:500;font-size:9.5px;opacity:.7;}
+#panel-zonas .zn-spacer{flex:1 1 16px;}
+#panel-zonas .zn-field{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);
+  border-radius:9px;padding:6px 11px;}
+#panel-zonas .zn-field span{font-size:12px;color:var(--muted);font-weight:700;}
+#panel-zonas .zn-field em{font-size:10px;color:var(--muted);font-style:normal;}
+#panel-zonas .zn-field input{width:52px;background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  padding:4px 6px;font-family:var(--mono);font-weight:700;color:var(--accent);text-align:center;font-size:12px;outline:none;}
+#panel-zonas .zn-switch{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;font-size:11.5px;color:var(--muted);font-weight:600;}
+#panel-zonas .zn-switch input{appearance:none;-webkit-appearance:none;width:32px;height:18px;background:var(--border);border-radius:20px;position:relative;cursor:pointer;transition:.18s;flex-shrink:0;}
+#panel-zonas .zn-switch input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.18s;}
+#panel-zonas .zn-switch input:checked{background:var(--accent);}
+#panel-zonas .zn-switch input:checked::after{left:16px;}
+#panel-zonas .zn-btn{border:1px solid var(--accent);background:transparent;color:var(--accent);font-family:var(--sans);
+  font-weight:700;font-size:12px;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px;}
+#panel-zonas .zn-btn:hover{background:var(--accent);color:#08121f;}
+#panel-zonas .zn-scroll{flex:1;overflow-y:auto;min-height:0;padding-right:2px;}
+
+#panel-zonas .zn-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+#panel-zonas .zn-kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 13px;cursor:pointer;transition:.15s;position:relative;}
+#panel-zonas .zn-kpi:hover{border-color:var(--accent);transform:translateY(-2px);}
+#panel-zonas .zn-kpi.on{outline:2px solid var(--accent);outline-offset:-2px;}
+#panel-zonas .zn-kpi .n{font-size:11.5px;font-weight:700;color:var(--accent);}
+#panel-zonas .zn-kpi .u{color:var(--muted);font-weight:500;}
+#panel-zonas .zn-kpi .m{font-size:21px;font-weight:800;margin:4px 0 1px;font-family:var(--mono);color:var(--light);letter-spacing:-.02em;}
+#panel-zonas .zn-kpi .r{font-size:10.5px;color:var(--muted);}
+#panel-zonas .zn-kpi .b{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+#panel-zonas .zn-kpi .b.ok{background:rgba(63,185,80,.16);color:#3fb950;}
+#panel-zonas .zn-kpi .b.warn{background:rgba(224,161,6,.22);color:#e0a106;}
+
+#panel-zonas .zn-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+#panel-zonas .zn-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px 9px;}
+#panel-zonas .zn-card h4{margin:0 0 2px;font-size:14px;font-weight:700;color:var(--light);font-family:var(--cond);letter-spacing:.03em;}
+#panel-zonas .zn-card h4 .u{color:var(--muted);font-weight:500;font-size:12px;font-family:var(--sans);}
+#panel-zonas .zn-cap{font-size:11px;color:var(--muted);margin-bottom:7px;font-family:var(--mono);}
+#panel-zonas .zn-holder{position:relative;height:210px;}
+#panel-zonas .zn-flag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:20px;margin-left:6px;vertical-align:middle;font-family:var(--sans);}
+#panel-zonas .zn-flag.ok{background:rgba(63,185,80,.16);color:#3fb950;}
+#panel-zonas .zn-flag.warn{background:rgba(224,161,6,.22);color:#e0a106;}
+
+#panel-zonas .zn-tablecard{margin-top:14px;}
+#panel-zonas .zn-th{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--cond);font-size:14px;font-weight:700;color:var(--light);letter-spacing:.03em;}
+#panel-zonas .zn-legend{display:flex;gap:14px;font-size:11px;color:var(--muted);font-weight:600;margin-left:auto;font-family:var(--sans);}
+#panel-zonas .zn-legend span{display:inline-flex;align-items:center;gap:6px;}
+#panel-zonas .zn-sw{width:12px;height:12px;border-radius:3px;display:inline-block;}
+#panel-zonas .zn-sw.ok{background:rgba(63,185,80,.5);} #panel-zonas .zn-sw.warn{background:rgba(224,161,6,.6);}
+#panel-zonas .zn-tscroll{overflow:auto;max-height:440px;border:1px solid var(--border);border-radius:9px;margin-top:9px;}
+#panel-zonas table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;font-family:var(--mono);}
+#panel-zonas thead th{position:sticky;top:0;background:var(--panel);color:var(--light);font-weight:700;padding:8px 10px;text-align:center;white-space:nowrap;z-index:2;border-bottom:1px solid var(--border);}
+#panel-zonas tbody td{padding:5px 10px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;color:var(--light);}
+#panel-zonas tbody td.d{font-weight:700;color:var(--accent);}
+#panel-zonas tbody td.t{color:var(--muted);}
+#panel-zonas td.v.ok{background:rgba(63,185,80,.14);color:#4bd268;font-weight:600;}
+#panel-zonas td.v.warn{background:rgba(224,161,6,.20);color:#f0b429;font-weight:700;}
+#panel-zonas td.v.empty{color:var(--muted);opacity:.5;}
+#panel-zonas .zn-foot{margin-top:16px;margin-bottom:6px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6;font-family:var(--mono);}
+
+@media (max-width:1100px){ #panel-zonas .zn-kpis{grid-template-columns:repeat(3,1fr);} #panel-zonas .zn-grid{grid-template-columns:1fr;} }
+@media (max-width:640px){ #panel-zonas .zn-kpis{grid-template-columns:repeat(2,1fr);} }
+</style>
+
 </head>
 
 <body>
@@ -1083,6 +1151,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <button class="sb-btn" id="sb-analitica" onclick="sbNav('analitica')" aria-label="Macroscopía y microscopía">
           <i class="ti ti-chart-line" aria-hidden="true"></i>
           <div class="sb-tip">MACRO/MICRO</div>
+        </button>
+        <button class="sb-btn" id="sb-zonas" onclick="sbNav('zonas')" aria-label="Zonas anóxicas">
+          <i class="ti ti-ripple" aria-hidden="true"></i>
+          <div class="sb-tip">ZONAS ANÓX.</div>
         </button>
         <div class="sb-sep"></div>
         <button class="sb-btn" id="sb-informes" onclick="sbNav('informes')" aria-label="Informes">
@@ -2119,6 +2191,35 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         </div><!-- /#panel-analitica -->
 
         <!-- ── PANEL: INFORMES ── -->
+        <!-- ── PANEL: ZONAS ANÓXICAS ── -->
+        <div class="p-panel" id="panel-zonas">
+          <div class="p-panel-header"><i class="ti ti-ripple" aria-hidden="true"></i>Zonas Anóxicas — Control de Proceso</div>
+          <div class="zn-controls">
+            <div class="zn-tabs" id="zn-tabs" role="tablist" aria-label="Zonas"></div>
+            <div class="zn-spacer"></div>
+            <label class="zn-switch" title="Unir la línea sobre las lecturas que falten">
+              <input type="checkbox" id="zn-span" checked> Conectar huecos
+            </label>
+            <div class="zn-field"><span>k</span><input type="number" id="zn-k" value="2" min="1" max="4" step="0.1"><em>Media ± k·σ</em></div>
+            <button class="zn-btn" id="zn-load"><i class="ti ti-upload" aria-hidden="true"></i> Cargar Excel</button>
+            <input type="file" id="zn-file" accept=".xlsx,.xls" style="display:none">
+          </div>
+          <div class="zn-scroll">
+            <div class="zn-kpis" id="zn-kpis"></div>
+            <div class="zn-grid" id="zn-charts"></div>
+            <div class="zn-card zn-tablecard">
+              <div class="zn-th">Registro de lecturas
+                <span class="zn-legend">
+                  <span><i class="zn-sw ok"></i> Dentro de tendencia</span>
+                  <span><i class="zn-sw warn"></i> Dato anómalo</span>
+                </span>
+              </div>
+              <div class="zn-tscroll"><table id="zn-table"></table></div>
+            </div>
+            <div class="zn-foot">Rango normal = <b>Media ± k·σ</b> (σ muestral, k ajustable). Un dato fuera del rango se marca como anómalo (ámbar). Actualiza cada mes con <b>Cargar Excel</b> · hojas ZONA 1–4.</div>
+          </div>
+        </div>
+
         <div class="p-panel" id="panel-informes">
           <div class="p-panel-header"><i class="ti ti-file-analytics" aria-hidden="true"></i>Historial SMS Diario</div>
           <div id="informes-list" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;">
@@ -5443,7 +5544,7 @@ window.__SIM_PROCESO_SRC__ = "const { useState, useEffect, useCallback, useRef }
 
 <script>
 // ══ SIDEBAR NAVIGATION ════════════════════════════════════════════════════════
-const PANELS = ['portal','proceso','analitica','informes','alertas','ajustes','tendencias','gestion','cuaderno','calidad'];
+const PANELS = ['portal','proceso','analitica','zonas','informes','alertas','ajustes','tendencias','gestion','cuaderno','calidad'];
 
 function sbNav(id) {
   // Hide all panels
@@ -5459,7 +5560,7 @@ function sbNav(id) {
   const btn = document.getElementById('sb-' + id);
   if(btn) btn.classList.add('active');
   // Update breadcrumb
-  const labels = {portal:'Portal',proceso:'Simulador',analitica:'Macroscopía',
+  const labels = {portal:'Portal',proceso:'Simulador',analitica:'Macroscopía',zonas:'Zonas Anóxicas',
                   informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
                   tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario',
                   calidad:'Control de Calidad'};
@@ -5473,6 +5574,7 @@ function sbNav(id) {
   if(id === 'tendencias')  loadTendencias();
   if(id === 'alertas')     loadAlertas();
   if(id === 'analitica')   loadAnalitica();
+  if(id === 'zonas')       zonasInit();
   if(id === 'gestion'){
     if(typeof tarIniciar==='function') tarIniciar();   // garantiza suscripción
     if(typeof gestionRenderTareas==='function') gestionRenderTareas();
@@ -10587,6 +10689,234 @@ ${fotosHtml}
     bioActualizarTarjeta();
   }
 
+})();
+</script>
+
+<script>
+/* ═══ MÓDULO ZONAS ANÓXICAS ═══ control estadístico de tendencia (Media ± k·σ) */
+(function(){
+  const ZDATA = {"ZONA 1": [{"d": 1, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "NOCHE", "PH": 6.75, "OPR": 112.3, "OD": 0.21, "COND": 2527, "TEMP": 32.13}, {"d": 10, "t": "MAÑANA", "PH": 7.33, "OPR": -47.2, "OD": 0.17, "COND": 2476, "TEMP": null}, {"d": 10, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 10, "t": "NOCHE", "PH": 7, "OPR": 124.7, "OD": 0.23, "COND": 2581, "TEMP": 32.1}, {"d": 11, "t": "MAÑANA", "PH": 6.79, "OPR": 116.1, "OD": 0.35, "COND": 2467, "TEMP": null}, {"d": 11, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 11, "t": "NOCHE", "PH": 7.23, "OPR": -55.7, "OD": 0.33, "COND": 2354, "TEMP": null}, {"d": 12, "t": "MAÑANA", "PH": 6.49, "OPR": 46.9, "OD": 0.53, "COND": 2285, "TEMP": null}, {"d": 12, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 12, "t": "NOCHE", "PH": 7.27, "OPR": -60.9, "OD": 0.46, "COND": 2283, "TEMP": null}, {"d": 13, "t": "MAÑANA", "PH": 7.39, "OPR": 35.2, "OD": 2.12, "COND": 2245, "TEMP": null}, {"d": 13, "t": "TARDE", "PH": 7.38, "OPR": 14.1, "OD": 1.1, "COND": 2622, "TEMP": null}, {"d": 13, "t": "NOCHE", "PH": 6.71, "OPR": 97.9, "OD": 0.46, "COND": 2283, "TEMP": 32.1}, {"d": 14, "t": "MAÑANA", "PH": 7.35, "OPR": -110.8, "OD": 1.95, "COND": 2310, "TEMP": null}, {"d": 14, "t": "TARDE", "PH": 7.25, "OPR": 14.2, "OD": 0.89, "COND": 2367, "TEMP": null}, {"d": 14, "t": "NOCHE", "PH": 7.51, "OPR": -26.7, "OD": 1.23, "COND": 2500, "TEMP": 32}, {"d": 15, "t": "MAÑANA", "PH": 7.35, "OPR": -5.7, "OD": 1.73, "COND": 2422, "TEMP": null}, {"d": 15, "t": "TARDE", "PH": 7.25, "OPR": 18.7, "OD": 1.94, "COND": 2333, "TEMP": null}, {"d": 15, "t": "NOCHE", "PH": 7.23, "OPR": 28.1, "OD": 1.98, "COND": 2243, "TEMP": null}, {"d": 16, "t": "MAÑANA", "PH": 7.27, "OPR": 18.7, "OD": 2.02, "COND": 2378, "TEMP": null}, {"d": 16, "t": "TARDE", "PH": 7.24, "OPR": -101.7, "OD": 1.85, "COND": 2378, "TEMP": null}, {"d": 16, "t": "NOCHE", "PH": 7.23, "OPR": 6.2, "OD": 2.67, "COND": 2402, "TEMP": null}, {"d": 17, "t": "MAÑANA", "PH": 7.22, "OPR": 27.1, "OD": 1.27, "COND": 2312, "TEMP": 31.41}, {"d": 17, "t": "TARDE", "PH": 7.5, "OPR": -16.2, "OD": 1.34, "COND": 2388, "TEMP": 31.61}, {"d": 17, "t": "NOCHE", "PH": 7.45, "OPR": -27.2, "OD": 1.93, "COND": 2205, "TEMP": null}, {"d": 18, "t": "MAÑANA", "PH": 7.35, "OPR": 8.2, "OD": 1.82, "COND": 2361, "TEMP": 31.38}, {"d": 18, "t": "TARDE", "PH": 6.51, "OPR": 8.7, "OD": 1.43, "COND": 2299, "TEMP": 31.51}, {"d": 18, "t": "NOCHE", "PH": 7.51, "OPR": 25.7, "OD": 1.26, "COND": 2121, "TEMP": null}, {"d": 19, "t": "MAÑANA", "PH": 7.42, "OPR": -69, "OD": 1.12, "COND": 2181, "TEMP": 31.52}, {"d": 19, "t": "TARDE", "PH": 7.46, "OPR": 3, "OD": 1.12, "COND": 2185, "TEMP": 31.6}, {"d": 19, "t": "NOCHE", "PH": 7.45, "OPR": -28.9, "OD": 1.15, "COND": 2142, "TEMP": 31.78}, {"d": 20, "t": "MAÑANA", "PH": 7.42, "OPR": -58.1, "OD": 1.06, "COND": 2019, "TEMP": 31.2}, {"d": 20, "t": "TARDE", "PH": 7.44, "OPR": -74.4, "OD": 1.16, "COND": 2359, "TEMP": 31.3}, {"d": 20, "t": "NOCHE", "PH": 7.45, "OPR": -47.4, "OD": 1.22, "COND": 2144, "TEMP": 31.78}, {"d": 21, "t": "MAÑANA", "PH": 7.43, "OPR": 20.8, "OD": 1.8, "COND": 2458, "TEMP": 31.2}, {"d": 21, "t": "TARDE", "PH": 7.43, "OPR": -44.9, "OD": 2.65, "COND": 2515, "TEMP": 31.2}, {"d": 21, "t": "NOCHE", "PH": 7.26, "OPR": -106.2, "OD": 1.2, "COND": 2543, "TEMP": 31.2}, {"d": 22, "t": "MAÑANA", "PH": 7.21, "OPR": -94.7, "OD": 1.59, "COND": 2453, "TEMP": 32.1}, {"d": 22, "t": "TARDE", "PH": 7.37, "OPR": -84.4, "OD": 3.37, "COND": 2576, "TEMP": 32.2}, {"d": 22, "t": "NOCHE", "PH": 7.35, "OPR": -128.3, "OD": 1.21, "COND": 2586, "TEMP": 31.1}, {"d": 23, "t": "MAÑANA", "PH": 7.45, "OPR": -95.8, "OD": 3.24, "COND": 2693, "TEMP": 32}, {"d": 23, "t": "TARDE", "PH": 7.53, "OPR": -79.2, "OD": 3.23, "COND": 2632, "TEMP": 33}, {"d": 23, "t": "NOCHE", "PH": 7.52, "OPR": -78.1, "OD": 3.14, "COND": 2639, "TEMP": 31.2}, {"d": 24, "t": "MAÑANA", "PH": 7.54, "OPR": 12.1, "OD": 3.44, "COND": 2577, "TEMP": 31.3}, {"d": 24, "t": "TARDE", "PH": 7.51, "OPR": -34.4, "OD": 4.03, "COND": 2499, "TEMP": 31.3}, {"d": 24, "t": "NOCHE", "PH": 7.43, "OPR": -77.7, "OD": 4.93, "COND": 2577, "TEMP": 32.1}, {"d": 25, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 27, "t": "MAÑANA", "PH": 7.44, "OPR": 12.4, "OD": 1.12, "COND": 2107, "TEMP": 31.27}, {"d": 27, "t": "TARDE", "PH": 7.56, "OPR": 1.09, "OD": 1.02, "COND": 2080, "TEMP": 31.26}, {"d": 27, "t": "NOCHE", "PH": 7.39, "OPR": -104.9, "OD": 0.62, "COND": 2075, "TEMP": null}, {"d": 28, "t": "MAÑANA", "PH": 7.26, "OPR": -83.2, "OD": 0.59, "COND": 2025, "TEMP": 31.33}, {"d": 28, "t": "TARDE", "PH": 7.41, "OPR": -24.7, "OD": 0.75, "COND": 2040, "TEMP": 31.26}, {"d": 28, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}], "ZONA 2": [{"d": 1, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "NOCHE", "PH": 6.73, "OPR": 110.4, "OD": 0.18, "COND": 2524, "TEMP": 32.15}, {"d": 10, "t": "MAÑANA", "PH": 7.34, "OPR": -45.4, "OD": 0.17, "COND": 2471, "TEMP": null}, {"d": 10, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 10, "t": "NOCHE", "PH": 6.78, "OPR": 122.7, "OD": 0.19, "COND": 2576, "TEMP": null}, {"d": 11, "t": "MAÑANA", "PH": 6.75, "OPR": 113.2, "OD": 0.32, "COND": 2472, "TEMP": null}, {"d": 11, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 11, "t": "NOCHE", "PH": 7.23, "OPR": -46.2, "OD": 0.32, "COND": 2356, "TEMP": null}, {"d": 12, "t": "MAÑANA", "PH": 6.47, "OPR": 46.3, "OD": 0.45, "COND": 2285, "TEMP": null}, {"d": 12, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 12, "t": "NOCHE", "PH": 7.26, "OPR": -63.8, "OD": 0.45, "COND": 2281, "TEMP": null}, {"d": 13, "t": "MAÑANA", "PH": 7.33, "OPR": -5.1, "OD": 0.85, "COND": 2234, "TEMP": null}, {"d": 13, "t": "TARDE", "PH": 7.36, "OPR": -4.1, "OD": 0.95, "COND": 2623, "TEMP": null}, {"d": 13, "t": "NOCHE", "PH": 6.71, "OPR": 89.9, "OD": 0.63, "COND": 2575, "TEMP": 32.1}, {"d": 14, "t": "MAÑANA", "PH": 7.33, "OPR": -118.4, "OD": 1.2, "COND": 2337, "TEMP": null}, {"d": 14, "t": "TARDE", "PH": 7.38, "OPR": 34.3, "OD": 0.87, "COND": 2356, "TEMP": null}, {"d": 14, "t": "NOCHE", "PH": 7.5, "OPR": -40.1, "OD": 0.89, "COND": 2503, "TEMP": null}, {"d": 15, "t": "MAÑANA", "PH": 7.35, "OPR": 26.6, "OD": 1.96, "COND": 2416, "TEMP": null}, {"d": 15, "t": "TARDE", "PH": 7.26, "OPR": -4.5, "OD": 1.24, "COND": 2317, "TEMP": null}, {"d": 15, "t": "NOCHE", "PH": 7.25, "OPR": -1.4, "OD": 1.25, "COND": 2321, "TEMP": null}, {"d": 16, "t": "MAÑANA", "PH": 7.29, "OPR": 23.4, "OD": 1.17, "COND": 2222, "TEMP": null}, {"d": 16, "t": "TARDE", "PH": 7.26, "OPR": -108.3, "OD": 1.2, "COND": 2402, "TEMP": null}, {"d": 16, "t": "NOCHE", "PH": 7.26, "OPR": -15.9, "OD": 1.57, "COND": 2420, "TEMP": null}, {"d": 17, "t": "MAÑANA", "PH": 7.26, "OPR": 0.5, "OD": 1.13, "COND": 2370, "TEMP": null}, {"d": 17, "t": "TARDE", "PH": 7.5, "OPR": -28.6, "OD": 1.35, "COND": 2389, "TEMP": null}, {"d": 17, "t": "NOCHE", "PH": 7.44, "OPR": -7.3, "OD": 1.93, "COND": 2478, "TEMP": null}, {"d": 18, "t": "MAÑANA", "PH": 7.37, "OPR": -58.4, "OD": 1.18, "COND": 2362, "TEMP": 31.37}, {"d": 18, "t": "TARDE", "PH": 6.4, "OPR": 49.6, "OD": 1.19, "COND": 2299, "TEMP": 32.51}, {"d": 18, "t": "NOCHE", "PH": 7.37, "OPR": 43.8, "OD": 1.22, "COND": 2103, "TEMP": null}, {"d": 19, "t": "MAÑANA", "PH": 7.42, "OPR": -70.3, "OD": 1.1, "COND": 2177, "TEMP": 32.01}, {"d": 19, "t": "TARDE", "PH": 7.46, "OPR": -58, "OD": 1.1, "COND": 2185, "TEMP": 31.7}, {"d": 19, "t": "NOCHE", "PH": 7.46, "OPR": -37.3, "OD": 1.22, "COND": 2150, "TEMP": 31.78}, {"d": 20, "t": "MAÑANA", "PH": 7.42, "OPR": -62.9, "OD": 0.99, "COND": 2035, "TEMP": 31.61}, {"d": 20, "t": "TARDE", "PH": 7.45, "OPR": -77, "OD": 0.13, "COND": 2365, "TEMP": 31.7}, {"d": 20, "t": "NOCHE", "PH": 7.39, "OPR": -73.8, "OD": 1.21, "COND": 2420, "TEMP": 31.33}, {"d": 21, "t": "MAÑANA", "PH": 7.36, "OPR": 9.4, "OD": 1.5, "COND": 2450, "TEMP": 31.1}, {"d": 21, "t": "TARDE", "PH": 7.41, "OPR": -49, "OD": 2.12, "COND": 2533, "TEMP": 31.1}, {"d": 21, "t": "NOCHE", "PH": 7.25, "OPR": -108.5, "OD": 1.24, "COND": 2588, "TEMP": 31.2}, {"d": 22, "t": "MAÑANA", "PH": 7.21, "OPR": -92, "OD": 1.66, "COND": 2448, "TEMP": 32.1}, {"d": 22, "t": "TARDE", "PH": 7.38, "OPR": -85.5, "OD": 2.99, "COND": 2603, "TEMP": 32.2}, {"d": 22, "t": "NOCHE", "PH": 7.35, "OPR": -133, "OD": 1.16, "COND": 2633, "TEMP": 31.2}, {"d": 23, "t": "MAÑANA", "PH": 7.41, "OPR": -120.9, "OD": 1.73, "COND": 2689, "TEMP": 32}, {"d": 23, "t": "TARDE", "PH": 7.54, "OPR": -85.2, "OD": 2.44, "COND": 2653, "TEMP": 33}, {"d": 23, "t": "NOCHE", "PH": 7.52, "OPR": -78.1, "OD": 3.14, "COND": 2639, "TEMP": 31.2}, {"d": 24, "t": "MAÑANA", "PH": 7.53, "OPR": 1, "OD": 4.1, "COND": 2612, "TEMP": 32}, {"d": 24, "t": "TARDE", "PH": 7.5, "OPR": -39.8, "OD": 3.73, "COND": 2528, "TEMP": 33}, {"d": 24, "t": "NOCHE", "PH": 7.42, "OPR": -90.3, "OD": 5.35, "COND": 2578, "TEMP": 31}, {"d": 25, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 27, "t": "MAÑANA", "PH": 7.43, "OPR": -14.3, "OD": 1.06, "COND": 2107, "TEMP": 31.26}, {"d": 27, "t": "TARDE", "PH": 7.47, "OPR": -21.7, "OD": 0.84, "COND": 2080, "TEMP": 31.24}, {"d": 27, "t": "NOCHE", "PH": 7.38, "OPR": -91.6, "OD": 0.63, "COND": 2045, "TEMP": null}, {"d": 28, "t": "MAÑANA", "PH": 7.27, "OPR": -106.4, "OD": 0.59, "COND": 2036, "TEMP": 31.32}, {"d": 28, "t": "TARDE", "PH": 7.6, "OPR": -5.2, "OD": 0.9, "COND": 2038, "TEMP": 31.25}, {"d": 28, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}], "ZONA 3": [{"d": 1, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "NOCHE", "PH": 6.72, "OPR": 107.1, "OD": 0.2, "COND": 2526, "TEMP": 32.15}, {"d": 10, "t": "MAÑANA", "PH": 7.33, "OPR": -47.2, "OD": 0.18, "COND": 2476, "TEMP": null}, {"d": 10, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 10, "t": "NOCHE", "PH": 6.73, "OPR": 122.5, "OD": 0.2, "COND": 2579, "TEMP": null}, {"d": 11, "t": "MAÑANA", "PH": 6.7, "OPR": 111, "OD": 0.27, "COND": 2469, "TEMP": null}, {"d": 11, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 11, "t": "NOCHE", "PH": 7.23, "OPR": -58.3, "OD": 0.31, "COND": 2359, "TEMP": null}, {"d": 12, "t": "MAÑANA", "PH": 6.48, "OPR": 45.6, "OD": 0.41, "COND": 2287, "TEMP": null}, {"d": 12, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 12, "t": "NOCHE", "PH": 7.26, "OPR": -65.2, "OD": 0.43, "COND": 2282, "TEMP": null}, {"d": 13, "t": "MAÑANA", "PH": 7.35, "OPR": -14.7, "OD": 0.83, "COND": 2228, "TEMP": null}, {"d": 13, "t": "TARDE", "PH": 7.35, "OPR": -14.7, "OD": 0.83, "COND": 2626, "TEMP": null}, {"d": 13, "t": "NOCHE", "PH": 6.71, "OPR": 83.6, "OD": 0.62, "COND": 2572, "TEMP": 32.1}, {"d": 14, "t": "MAÑANA", "PH": 7.33, "OPR": -112.8, "OD": 0.88, "COND": 2333, "TEMP": null}, {"d": 14, "t": "TARDE", "PH": 7.36, "OPR": 19.9, "OD": 0.72, "COND": 2349, "TEMP": null}, {"d": 14, "t": "NOCHE", "PH": 7.5, "OPR": 79.7, "OD": 0.52, "COND": 2504, "TEMP": 32}, {"d": 15, "t": "MAÑANA", "PH": 7.27, "OPR": 9.9, "OD": 1.39, "COND": 2318, "TEMP": null}, {"d": 15, "t": "TARDE", "PH": 7.34, "OPR": 39.5, "OD": 2.08, "COND": 2410, "TEMP": null}, {"d": 15, "t": "NOCHE", "PH": 7.26, "OPR": -32.1, "OD": 0.97, "COND": 2321, "TEMP": null}, {"d": 16, "t": "MAÑANA", "PH": 7.3, "OPR": 36.5, "OD": 1.32, "COND": 2221, "TEMP": null}, {"d": 16, "t": "TARDE", "PH": 7.27, "OPR": -15.9, "OD": 1.26, "COND": 2375, "TEMP": 31.4}, {"d": 16, "t": "NOCHE", "PH": 7.27, "OPR": -38.3, "OD": 1.07, "COND": 2418, "TEMP": null}, {"d": 17, "t": "MAÑANA", "PH": 7.27, "OPR": -15.9, "OD": 1.26, "COND": 2375, "TEMP": 31.4}, {"d": 17, "t": "TARDE", "PH": 7.5, "OPR": -57.9, "OD": 1.13, "COND": 2392, "TEMP": 31.64}, {"d": 17, "t": "NOCHE", "PH": 7.41, "OPR": 13.3, "OD": 1.49, "COND": 2147, "TEMP": 31.1}, {"d": 18, "t": "MAÑANA", "PH": 7.38, "OPR": -67.3, "OD": 1.24, "COND": 2373, "TEMP": 31.36}, {"d": 18, "t": "TARDE", "PH": 6.41, "OPR": 16.8, "OD": 1.21, "COND": 2292, "TEMP": 31.51}, {"d": 18, "t": "NOCHE", "PH": 7.39, "OPR": 70.8, "OD": 1.49, "COND": 2147, "TEMP": 31.2}, {"d": 19, "t": "MAÑANA", "PH": 7.42, "OPR": -73.4, "OD": 1.15, "COND": 2181, "TEMP": 31.6}, {"d": 19, "t": "TARDE", "PH": 7.47, "OPR": -47.9, "OD": 1.07, "COND": 2186, "TEMP": 31.73}, {"d": 19, "t": "NOCHE", "PH": 7.45, "OPR": -47.9, "OD": 1.22, "COND": 2149, "TEMP": 31.7}, {"d": 20, "t": "MAÑANA", "PH": 7.42, "OPR": -68, "OD": 1, "COND": 2039, "TEMP": 31.51}, {"d": 20, "t": "TARDE", "PH": 7.43, "OPR": -109.2, "OD": 1.13, "COND": 2409, "TEMP": 31.47}, {"d": 20, "t": "NOCHE", "PH": 7.39, "OPR": -79.6, "OD": 1.14, "COND": 2460, "TEMP": 31.32}, {"d": 21, "t": "MAÑANA", "PH": 7.35, "OPR": -8.7, "OD": 1.4, "COND": 2464, "TEMP": 31.1}, {"d": 21, "t": "TARDE", "PH": 7.41, "OPR": -55, "OD": 1.91, "COND": 2536, "TEMP": 31.1}, {"d": 21, "t": "NOCHE", "PH": 7.25, "OPR": -110, "OD": 1.22, "COND": 2580, "TEMP": 31.2}, {"d": 22, "t": "MAÑANA", "PH": 7.22, "OPR": -89.2, "OD": 1.69, "COND": 2455, "TEMP": 32.2}, {"d": 22, "t": "TARDE", "PH": 7.38, "OPR": -86.2, "OD": 2.75, "COND": 2605, "TEMP": 32.2}, {"d": 22, "t": "NOCHE", "PH": 7.35, "OPR": -131.2, "OD": 1.17, "COND": 2622, "TEMP": 31.2}, {"d": 23, "t": "MAÑANA", "PH": 7.4, "OPR": -126.4, "OD": 1.37, "COND": 2710, "TEMP": 32}, {"d": 23, "t": "TARDE", "PH": 7.53, "OPR": -88.4, "OD": 2.16, "COND": 2655, "TEMP": 33}, {"d": 23, "t": "NOCHE", "PH": 7.47, "OPR": -108.1, "OD": 1.63, "COND": 2638, "TEMP": 31}, {"d": 24, "t": "MAÑANA", "PH": 7.55, "OPR": -6.2, "OD": 4.27, "COND": 2612, "TEMP": 31}, {"d": 24, "t": "TARDE", "PH": 7.5, "OPR": -48.5, "OD": 4.25, "COND": 2532, "TEMP": 33}, {"d": 24, "t": "NOCHE", "PH": 7.41, "OPR": -103.8, "OD": 5.32, "COND": 2580, "TEMP": 31}, {"d": 25, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 27, "t": "MAÑANA", "PH": 7.42, "OPR": 49, "OD": 0.96, "COND": 2102, "TEMP": 31.25}, {"d": 27, "t": "TARDE", "PH": 7.41, "OPR": -31, "OD": 0.75, "COND": 2081, "TEMP": 31.26}, {"d": 27, "t": "NOCHE", "PH": 7.38, "OPR": -73.5, "OD": 0.65, "COND": 2084, "TEMP": null}, {"d": 28, "t": "MAÑANA", "PH": 7.27, "OPR": -110.8, "OD": 0.6, "COND": 2035, "TEMP": 31.31}, {"d": 28, "t": "TARDE", "PH": 7.35, "OPR": -58.1, "OD": 0.63, "COND": 2046, "TEMP": 31.32}, {"d": 28, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}], "ZONA 4": [{"d": 1, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 1, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 2, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 3, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 4, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 5, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 6, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 7, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 8, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 9, "t": "NOCHE", "PH": 6.75, "OPR": 114.3, "OD": 0.25, "COND": 2520, "TEMP": 32.13}, {"d": 10, "t": "MAÑANA", "PH": 7.34, "OPR": -47.3, "OD": 0.16, "COND": 2476, "TEMP": null}, {"d": 10, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 10, "t": "NOCHE", "PH": 7.01, "OPR": 124.6, "OD": 0.3, "COND": 2580, "TEMP": null}, {"d": 11, "t": "MAÑANA", "PH": 6.64, "OPR": 110.2, "OD": 0.29, "COND": 2471, "TEMP": null}, {"d": 11, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 11, "t": "NOCHE", "PH": 7.23, "OPR": -58.2, "OD": 0.29, "COND": 2357, "TEMP": null}, {"d": 12, "t": "MAÑANA", "PH": 6.48, "OPR": 45, "OD": 0.39, "COND": 2284, "TEMP": null}, {"d": 12, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 12, "t": "NOCHE", "PH": 7.26, "OPR": -67.7, "OD": 0.42, "COND": 2282, "TEMP": null}, {"d": 13, "t": "MAÑANA", "PH": 7.5, "OPR": 45.2, "OD": 2.24, "COND": 2231, "TEMP": null}, {"d": 13, "t": "TARDE", "PH": 7.33, "OPR": -17.8, "OD": 0.87, "COND": 2526, "TEMP": null}, {"d": 13, "t": "NOCHE", "PH": 6.71, "OPR": 81.2, "OD": 0.58, "COND": 2569, "TEMP": 32.1}, {"d": 14, "t": "MAÑANA", "PH": 7.31, "OPR": -110.9, "OD": 0.83, "COND": 2325, "TEMP": null}, {"d": 14, "t": "TARDE", "PH": 7.35, "OPR": 2.4, "OD": 0.81, "COND": 2367, "TEMP": null}, {"d": 14, "t": "NOCHE", "PH": 7.49, "OPR": -82.6, "OD": 0.64, "COND": 2493, "TEMP": 32}, {"d": 15, "t": "MAÑANA", "PH": 7.25, "OPR": 57.2, "OD": 1.89, "COND": 2286, "TEMP": null}, {"d": 15, "t": "TARDE", "PH": 7.32, "OPR": 59.2, "OD": 2.71, "COND": 2363, "TEMP": null}, {"d": 15, "t": "NOCHE", "PH": 7.26, "OPR": -41.4, "OD": 0.91, "COND": 2323, "TEMP": null}, {"d": 16, "t": "MAÑANA", "PH": 7.27, "OPR": -15.9, "OD": 1.26, "COND": 2375, "TEMP": 31.4}, {"d": 16, "t": "TARDE", "PH": 7.26, "OPR": -112.4, "OD": 0.96, "COND": 2404, "TEMP": 31.65}, {"d": 16, "t": "NOCHE", "PH": 7.27, "OPR": -48.9, "OD": 0.95, "COND": 2413, "TEMP": null}, {"d": 17, "t": "MAÑANA", "PH": 7.27, "OPR": -15.9, "OD": 1.26, "COND": 2375, "TEMP": 31.65}, {"d": 17, "t": "TARDE", "PH": 7.47, "OPR": -69.4, "OD": 1.15, "COND": 2393, "TEMP": 31.36}, {"d": 17, "t": "NOCHE", "PH": 7.44, "OPR": -23, "OD": 1.99, "COND": 2453, "TEMP": null}, {"d": 18, "t": "MAÑANA", "PH": 7.37, "OPR": -89.4, "OD": 1.1, "COND": 2371, "TEMP": 31.36}, {"d": 18, "t": "TARDE", "PH": 6.35, "OPR": -3.7, "OD": 1.18, "COND": 2291, "TEMP": 31.52}, {"d": 18, "t": "NOCHE", "PH": 7.55, "OPR": 89.9, "OD": 2.19, "COND": 1917, "TEMP": null}, {"d": 19, "t": "MAÑANA", "PH": 7.42, "OPR": -25.9, "OD": 1.14, "COND": 2180, "TEMP": 31.6}, {"d": 19, "t": "TARDE", "PH": 7.47, "OPR": -72.6, "OD": 1.06, "COND": 2168, "TEMP": 31.7}, {"d": 19, "t": "NOCHE", "PH": 7.5, "OPR": 42.1, "OD": 1.72, "COND": 2144, "TEMP": 31.76}, {"d": 20, "t": "MAÑANA", "PH": 7.42, "OPR": -72.6, "OD": 1, "COND": 2043, "TEMP": 31.6}, {"d": 20, "t": "TARDE", "PH": 7.43, "OPR": 108.8, "OD": 1.11, "COND": 2349, "TEMP": 31.7}, {"d": 20, "t": "NOCHE", "PH": 7.42, "OPR": -55.8, "OD": 1.99, "COND": 2334, "TEMP": 31.34}, {"d": 21, "t": "MAÑANA", "PH": 7.35, "OPR": -15.3, "OD": 1.31, "COND": 2463, "TEMP": 31.2}, {"d": 21, "t": "TARDE", "PH": 7.4, "OPR": -59.6, "OD": 1.64, "COND": 2534, "TEMP": 31.2}, {"d": 21, "t": "NOCHE", "PH": 7.25, "OPR": -112, "OD": 1.23, "COND": 2584, "TEMP": 31.2}, {"d": 22, "t": "MAÑANA", "PH": 7.21, "OPR": -87.7, "OD": 1.7, "COND": 2450, "TEMP": 32.2}, {"d": 22, "t": "TARDE", "PH": 7.35, "OPR": -90.4, "OD": 2.19, "COND": 2548, "TEMP": 32.2}, {"d": 22, "t": "NOCHE", "PH": 7.35, "OPR": -134.9, "OD": 1.16, "COND": 2619, "TEMP": 31.2}, {"d": 23, "t": "MAÑANA", "PH": 7.39, "OPR": -127.2, "OD": 1.3, "COND": 2647, "TEMP": 32}, {"d": 23, "t": "TARDE", "PH": 7.52, "OPR": -90, "OD": 2.05, "COND": 2647, "TEMP": 33}, {"d": 23, "t": "NOCHE", "PH": 7.45, "OPR": -116.8, "OD": 1.34, "COND": 2492, "TEMP": 31.2}, {"d": 24, "t": "MAÑANA", "PH": 7.51, "OPR": -14.8, "OD": 4.2, "COND": 2605, "TEMP": 31}, {"d": 24, "t": "TARDE", "PH": 7.46, "OPR": -58.2, "OD": 4.32, "COND": 2524, "TEMP": 34}, {"d": 24, "t": "NOCHE", "PH": 7.41, "OPR": -109.5, "OD": 5.28, "COND": 2573, "TEMP": 31}, {"d": 25, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 25, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 26, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 27, "t": "MAÑANA", "PH": 7.42, "OPR": -54.2, "OD": 0.95, "COND": 2100, "TEMP": 31.23}, {"d": 27, "t": "TARDE", "PH": 7.37, "OPR": 120.7, "OD": 0.69, "COND": 2083, "TEMP": 31.23}, {"d": 27, "t": "NOCHE", "PH": 7.38, "OPR": -42.1, "OD": 0.61, "COND": 1858, "TEMP": null}, {"d": 28, "t": "MAÑANA", "PH": 7.22, "OPR": -45.1, "OD": 0.7, "COND": 2037, "TEMP": 31.32}, {"d": 28, "t": "TARDE", "PH": 7.36, "OPR": -47.9, "OD": 0.69, "COND": 2043, "TEMP": 31.27}, {"d": 28, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 29, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 30, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "MAÑANA", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "TARDE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}, {"d": 31, "t": "NOCHE", "PH": null, "OPR": null, "OD": null, "COND": null, "TEMP": null}]};
+  const ZTITLES = {"ZONA 1": "Canal zona óxica", "ZONA 2": "Polea", "ZONA 3": "Esquina sin nada", "ZONA 4": "Recirculación interna"};
+
+  const PARAMS = [
+    {key:'PH',   label:'pH',            unit:'',       dec:2},
+    {key:'OPR',  label:'ORP',           unit:'mV',     dec:1},
+    {key:'OD',   label:'OD',            unit:'mg/L',   dec:2},
+    {key:'COND', label:'Conductividad', unit:'µS/cm',  dec:0},
+    {key:'TEMP', label:'Temperatura',   unit:'ºC',     dec:1},
+  ];
+  let ZONE_KEYS = Object.keys(ZDATA);
+  let activeZone = ZONE_KEYS[0];
+  let charts = {};
+  let wired = false;
+
+  const $ = (s)=>document.querySelector(s);
+  const nf = (v,d)=> v==null||isNaN(v) ? '—' : Number(v).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const cvar = (n)=>{ const el=document.getElementById('panel-zonas')||document.body;
+    return getComputedStyle(el).getPropertyValue(n).trim() || '#888'; };
+
+  function stats(rows,key){
+    const v=rows.map(r=>r[key]).filter(x=>typeof x==='number');
+    const n=v.length;
+    if(!n) return {n:0};
+    const mean=v.reduce((a,b)=>a+b,0)/n;
+    const sd=n>1?Math.sqrt(v.reduce((a,b)=>a+(b-mean)*(b-mean),0)/(n-1)):0;
+    return {n,mean,sd,min:Math.min.apply(null,v),max:Math.max.apply(null,v)};
+  }
+  const limits = (st,k)=>({lcl:st.mean-k*st.sd, ucl:st.mean+k*st.sd});
+  const getK = ()=> parseFloat($('#zn-k').value)||2;
+  const getSpan = ()=> $('#zn-span').checked;
+
+  function buildTabs(){
+    const el=$('#zn-tabs'); el.innerHTML='';
+    ZONE_KEYS.forEach(z=>{
+      const b=document.createElement('button');
+      b.className='zn-tab'; b.setAttribute('role','tab');
+      b.setAttribute('aria-selected', z===activeZone);
+      b.innerHTML = z + '<small>' + (ZTITLES[z]||'') + '</small>';
+      b.onclick=()=>{ activeZone=z; znRender(); };
+      el.appendChild(b);
+    });
+  }
+
+  function znRender(){
+    const k=getK(), span=getSpan(), rows=ZDATA[activeZone];
+    document.querySelectorAll('#zn-tabs .zn-tab').forEach(t=>
+      t.setAttribute('aria-selected', t.textContent.indexOf(activeZone)===0));
+    const labels=rows.map(r=>r.d + '·' + String(r.t||'').charAt(0));
+
+    // KPIs
+    const kw=$('#zn-kpis'); kw.innerHTML='';
+    PARAMS.forEach((p,i)=>{
+      const st=stats(rows,p.key);
+      const div=document.createElement('div');
+      div.className='zn-kpi'+(i===0?' on':'');
+      if(!st.n){
+        div.innerHTML='<div class="n">'+p.label+' <span class="u">'+p.unit+'</span></div><div class="m">—</div><div class="r">sin datos</div>';
+      } else {
+        const L=limits(st,k); let na=0;
+        rows.forEach(r=>{const x=r[p.key]; if(typeof x==='number'&&(x<L.lcl||x>L.ucl))na++;});
+        div.innerHTML='<span class="b '+(na?'warn':'ok')+'">'+(na?na+' anóm.':'OK')+'</span>'+
+          '<div class="n">'+p.label+' <span class="u">'+p.unit+'</span></div>'+
+          '<div class="m">'+nf(st.mean,p.dec)+'</div>'+
+          '<div class="r">σ '+nf(st.sd,p.dec)+' · '+nf(L.lcl,p.dec)+'–'+nf(L.ucl,p.dec)+'</div>';
+      }
+      div.onclick=()=>{ document.querySelectorAll('#zn-kpis .zn-kpi').forEach(x=>x.classList.remove('on'));
+        div.classList.add('on');
+        const c=document.getElementById('zn-card-'+p.key); if(c)c.scrollIntoView({behavior:'smooth',block:'center'});};
+      kw.appendChild(div);
+    });
+
+    // Charts
+    const cw=$('#zn-charts'); cw.innerHTML='';
+    Object.keys(charts).forEach(kk=>{ try{charts[kk].destroy();}catch(e){} }); charts={};
+    PARAMS.forEach(p=>{
+      const st=stats(rows,p.key);
+      const card=document.createElement('div');
+      card.className='zn-card'; card.id='zn-card-'+p.key;
+      let flag='';
+      if(st.n){ const L=limits(st,k); let na=0; rows.forEach(r=>{const x=r[p.key]; if(typeof x==='number'&&(x<L.lcl||x>L.ucl))na++;});
+        flag='<span class="zn-flag '+(na?'warn':'ok')+'">'+(na?na+' anómalos':'bajo control')+'</span>'; }
+      card.innerHTML='<h4>'+p.label+' <span class="u">'+(p.unit?'· '+p.unit:'')+'</span>'+flag+'</h4>'+
+        '<div class="zn-cap">Control ±'+k+'σ · '+(st.n||0)+' lecturas</div>'+
+        '<div class="zn-holder"><canvas id="zn-cv-'+p.key+'"></canvas></div>';
+      cw.appendChild(card);
+      if(st.n) drawChart(p, rows, labels, k, span);
+    });
+
+    buildTable(rows,k);
+  }
+
+  function drawChart(p, rows, labels, k, span){
+    const st=stats(rows,p.key), L=limits(st,k);
+    const vals=rows.map(r=> typeof r[p.key]==='number' ? r[p.key] : null);
+    const accent=cvar('--accent')||'#3aafe8', grid=cvar('--border'), muted=cvar('--muted');
+    const lim='#e5484d', mean='#3fb950', warn='#e0a106';
+    const ptC=vals.map(v=> v==null?'transparent' : (v<L.lcl||v>L.ucl)?warn:accent);
+    const ptR=vals.map(v=> v==null?0 : (v<L.lcl||v>L.ucl)?5:2.3);
+    const flat=x=>labels.map(()=>x);
+
+    charts[p.key]=new Chart(document.getElementById('zn-cv-'+p.key), {
+      type:'line',
+      data:{labels, datasets:[
+        {label:p.label, data:vals, borderColor:accent, borderWidth:2, tension:.28,
+         spanGaps:span, pointBackgroundColor:ptC, pointBorderColor:ptC, pointRadius:ptR, pointHoverRadius:6, order:1},
+        {label:'UCL', data:flat(L.ucl), borderColor:lim, borderWidth:1.3, borderDash:[6,4], pointRadius:0, tension:0, order:2},
+        {label:'Media', data:flat(st.mean), borderColor:mean, borderWidth:1.3, borderDash:[2,3], pointRadius:0, tension:0, order:3},
+        {label:'LCL', data:flat(L.lcl), borderColor:lim, borderWidth:1.3, borderDash:[6,4], pointRadius:0, tension:0, order:4},
+      ]},
+      options:{
+        responsive:true, maintainAspectRatio:false, animation:{duration:400},
+        __lim:{lcl:L.lcl,ucl:L.ucl},
+        interaction:{mode:'nearest',intersect:false},
+        plugins:{
+          legend:{display:true,position:'bottom',labels:{boxWidth:16,boxHeight:2,color:muted,font:{size:11},padding:9}},
+          tooltip:{callbacks:{
+            title:(it)=>'Día '+labels[it[0].dataIndex].replace('·',' · turno '),
+            label:(c)=>{ if(c.dataset.label!==p.label) return c.dataset.label+': '+nf(c.parsed.y,p.dec);
+              const v=c.parsed.y, bad=v<L.lcl||v>L.ucl;
+              return p.label+': '+nf(v,p.dec)+' '+p.unit+(bad?'  ⚠ anómalo':''); }
+          }}
+        },
+        scales:{
+          x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:12,color:muted,font:{size:10}}},
+          y:{grid:{color:grid},ticks:{color:muted,font:{size:10}},
+             title:{display:!!p.unit,text:p.unit,color:muted,font:{size:10}}}
+        }
+      }
+    });
+  }
+
+  function buildTable(rows,k){
+    const lims={}; PARAMS.forEach(p=>{const st=stats(rows,p.key); lims[p.key]=st.n?limits(st,k):null;});
+    let h='<thead><tr><th>Día</th><th>Turno</th>';
+    PARAMS.forEach(p=>h+='<th>'+p.label+(p.unit?'<br><span style="font-weight:400;opacity:.7;font-size:9px">'+p.unit+'</span>':'')+'</th>');
+    h+='</tr></thead><tbody>';
+    rows.forEach(r=>{
+      if(PARAMS.every(p=>typeof r[p.key]!=='number')) return;
+      h+='<tr><td class="d">'+r.d+'</td><td class="t">'+(r.t||'')+'</td>';
+      PARAMS.forEach(p=>{
+        const v=r[p.key];
+        if(typeof v!=='number'){ h+='<td class="v empty">·</td>'; return; }
+        const L=lims[p.key], bad=L&&(v<L.lcl||v>L.ucl);
+        h+='<td class="v '+(bad?'warn':'ok')+'">'+nf(v,p.dec)+'</td>';
+      });
+      h+='</tr>';
+    });
+    $('#zn-table').innerHTML=h+'</tbody>';
+  }
+
+  function handleFile(ev){
+    const f=ev.target.files[0]; if(!f) return;
+    const done=(msg)=>{ ev.target.value=''; };
+    const rd=new FileReader();
+    rd.onload=(e)=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const COL={PH:2,OPR:3,OD:4,COND:5,TEMP:6};
+        const fresh={}; let loaded=0;
+        wb.SheetNames.filter(n=>/ZONA\s*\d/i.test(n)).forEach(n=>{
+          const m=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true});
+          const key='ZONA '+((n.match(/\d+/)||['?'])[0]);
+          const rows=[];
+          for(let i=2;i<m.length;i++){
+            const row=m[i]||[]; if(row[0]==null&&row[1]==null) continue;
+            const rec={d:row[0],t:row[1]};
+            for(const kk in COL){ const x=row[COL[kk]]; rec[kk]=(typeof x==='number')?x:null; }
+            rows.push(rec);
+          }
+          if(rows.length){ fresh[key]=rows; loaded++; }
+        });
+        if(!loaded){ alert('No encontré hojas ZONA 1–4 con datos en ese archivo.'); return; }
+        Object.keys(ZDATA).forEach(z=>delete ZDATA[z]);
+        Object.assign(ZDATA, fresh);
+        ZONE_KEYS = Object.keys(ZDATA);
+        activeZone = ZONE_KEYS[0];
+        buildTabs(); znRender();
+      }catch(err){ console.error(err); alert('No pude leer el archivo. ¿Es un .xlsx válido?'); }
+      finally{ done(); }
+    };
+    rd.readAsArrayBuffer(f);
+  }
+
+  function registerBand(){
+    if(window.__znBand || !window.Chart) return;
+    window.__znBand=true;
+    Chart.register({
+      id:'znBand',
+      beforeDatasetsDraw(chart){
+        const lim=chart.options.__lim; if(!lim) return;
+        const a=chart.chartArea, y=chart.scales.y; if(!a||!y) return;
+        const yU=y.getPixelForValue(lim.ucl), yL=y.getPixelForValue(lim.lcl);
+        const ctx=chart.ctx; ctx.save();
+        ctx.fillStyle='rgba(58,175,232,.08)';
+        ctx.fillRect(a.left, Math.min(yU,yL), a.right-a.left, Math.abs(yL-yU));
+        ctx.restore();
+      }
+    });
+  }
+
+  async function zonasInit(){
+    if(!window.Chart){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+        s.onload=res; s.onerror=rej; document.head.appendChild(s);
+      });
+    }
+    registerBand();
+    if(!wired){
+      wired=true;
+      $('#zn-k').addEventListener('input', znRender);
+      $('#zn-span').addEventListener('change', znRender);
+      $('#zn-load').addEventListener('click', ()=>$('#zn-file').click());
+      $('#zn-file').addEventListener('change', handleFile);
+    }
+    buildTabs();
+    znRender();
+  }
+
+  window.zonasInit = zonasInit;
 })();
 </script>
 
