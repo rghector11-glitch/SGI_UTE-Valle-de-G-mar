@@ -10897,18 +10897,52 @@ ${fotosHtml}
     });
   }
 
-  function znReportHTML(){
-    const k=getK(), rows=ZDATA[activeZone];
-    const title=ZTITLES[activeZone]||activeZone;
-    const now=new Date();
-    const fecha=now.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
-    const hora=now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-    let statRows='', totalAnom=0, totalReads=0;
+  // genera la imagen de un gráfico de control fuera de pantalla (colores para impresión)
+  function znChartImage(zoneKey, p, k){
+    const rows=ZDATA[zoneKey];
+    const st=stats(rows,p.key); if(!st.n) return '';
+    const L=limits(st,k);
+    const labels=rows.map(r=>r.d+'·'+String(r.t||'').charAt(0));
+    const vals=rows.map(r=> typeof r[p.key]==='number' ? r[p.key] : null);
+    const accent='#1f6fb0', grid='#e6edf4', muted='#5b6b7d';
+    const lim='#c0392b', mean='#2e7d32', warn='#d68910';
+    const ptC=vals.map(v=> v==null?'transparent' : (v<L.lcl||v>L.ucl)?warn:accent);
+    const ptR=vals.map(v=> v==null?0 : (v<L.lcl||v>L.ucl)?5:2.3);
+    const flat=x=>labels.map(()=>x);
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-10000px;top:0;width:900px;height:300px;background:#fff;';
+    const cv=document.createElement('canvas'); cv.width=900; cv.height=300;
+    wrap.appendChild(cv); document.body.appendChild(wrap);
+    const ch=new Chart(cv,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:p.label,data:vals,borderColor:accent,borderWidth:2,tension:.28,spanGaps:true,
+         pointBackgroundColor:ptC,pointBorderColor:ptC,pointRadius:ptR,order:1},
+        {label:'UCL',data:flat(L.ucl),borderColor:lim,borderWidth:1.4,borderDash:[6,4],pointRadius:0,tension:0,order:2},
+        {label:'Media',data:flat(st.mean),borderColor:mean,borderWidth:1.4,borderDash:[2,3],pointRadius:0,tension:0,order:3},
+        {label:'LCL',data:flat(L.lcl),borderColor:lim,borderWidth:1.4,borderDash:[6,4],pointRadius:0,tension:0,order:4}]},
+      options:{
+        responsive:false, maintainAspectRatio:false, animation:{duration:0}, __lim:{lcl:L.lcl,ucl:L.ucl},
+        plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:16,boxHeight:2,color:muted,font:{size:11},padding:8}}},
+        scales:{
+          x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:14,color:muted,font:{size:10}}},
+          y:{grid:{color:grid},ticks:{color:muted,font:{size:10}},title:{display:!!p.unit,text:p.unit,color:muted,font:{size:10}}}
+        }
+      }
+    });
+    let img=''; try{ img=ch.toBase64Image('image/png',1); }catch(e){}
+    ch.destroy(); document.body.removeChild(wrap);
+    return img;
+  }
+
+  function znZoneSection(z, k){
+    const rows=ZDATA[z], title=ZTITLES[z]||z;
+    let statRows='', zAnom=0, zReads=0;
     PARAMS.forEach(p=>{
       const st=stats(rows,p.key);
       if(!st.n){ statRows+='<tr><td style="text-align:left">'+p.label+'</td><td colspan="8" style="color:#999">sin datos</td></tr>'; return; }
       const L=limits(st,k); let na=0; rows.forEach(r=>{const x=r[p.key]; if(typeof x==='number'&&(x<L.lcl||x>L.ucl))na++;});
-      totalAnom+=na; totalReads+=st.n;
+      zAnom+=na; zReads+=st.n;
       statRows+='<tr>'+
         '<td style="text-align:left;font-weight:700">'+p.label+(p.unit?' <span style="color:#8794a5">'+p.unit+'</span>':'')+'</td>'+
         '<td>'+st.n+'</td><td>'+nf(st.mean,p.dec)+'</td><td>'+nf(st.sd,p.dec)+'</td>'+
@@ -10918,11 +10952,11 @@ ${fotosHtml}
     });
     let chartHtml='';
     PARAMS.forEach(p=>{
-      const c=charts[p.key]; if(!c) return;
-      let img=''; try{ img=c.toBase64Image('image/png',1); }catch(e){}
+      const img=znChartImage(z,p,k);
       if(img) chartHtml+='<div class="cbox"><div class="ct">'+p.label+(p.unit?' · '+p.unit:'')+'</div><img src="'+img+'"/></div>';
     });
     const lims={}; PARAMS.forEach(p=>{const st=stats(rows,p.key); lims[p.key]=st.n?limits(st,k):null;});
+    let heads=''; PARAMS.forEach(p=>heads+='<th>'+p.label+(p.unit?'<br><span style="font-weight:400;color:#c9d3de">'+p.unit+'</span>':'')+'</th>');
     let trs='';
     rows.forEach(r=>{
       if(PARAMS.every(p=>typeof r[p.key]!=='number')) return;
@@ -10935,17 +10969,43 @@ ${fotosHtml}
       });
       trs+='</tr>';
     });
-    let heads='';
-    PARAMS.forEach(p=>heads+='<th>'+p.label+(p.unit?'<br><span style="font-weight:400;color:#c9d3de">'+p.unit+'</span>':'')+'</th>');
+    return {reads:zReads, anom:zAnom, html:
+      '<div class="zsec">'+
+        '<div class="zh"><span class="zt">'+z+'</span> · '+title+
+          '<span class="zb '+(zAnom?'bad':'okc')+'">'+(zAnom?zAnom+' anomalías':'sin anomalías')+'</span></div>'+
+        '<h3>Control estadístico por parámetro</h3>'+
+        '<table class="stats"><tr><th style="text-align:left">Parámetro</th><th>n</th><th>Media</th><th>σ</th>'+
+          '<th>LCL (−kσ)</th><th>UCL (+kσ)</th><th>Mín</th><th>Máx</th><th>Anóm.</th></tr>'+statRows+'</table>'+
+        '<h3>Gráficos de control</h3>'+chartHtml+
+        '<h3>Registro de lecturas</h3>'+
+        '<table class="data"><tr><th>Día</th><th>Turno</th>'+heads+'</tr>'+trs+'</table>'+
+      '</div>'
+    };
+  }
 
-    return '<style>'+
+  function znReportHTML(){
+    const k=getK();
+    const now=new Date();
+    const fecha=now.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const hora=now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    let gReads=0, gAnom=0, sections='';
+    ZONE_KEYS.forEach((z,zi)=>{
+      const s=znZoneSection(z,k);
+      gReads+=s.reads; gAnom+=s.anom;
+      sections += (zi>0?'<div class="pgb"></div>':'') + s.html;
+    });
+    const style='<style>'+
       '.znrep{font-family:Arial,Helvetica,sans-serif;color:#16202c;width:770px;padding:6px 10px;background:#fff;}'+
       '.znrep .hd{border-bottom:3px solid #1f4e79;padding-bottom:8px;margin-bottom:12px;}'+
       '.znrep .eyeb{font-size:10px;letter-spacing:.16em;color:#1f4e79;font-weight:700;text-transform:uppercase;}'+
       '.znrep h1{font-size:19px;font-weight:800;color:#14304a;margin:3px 0 1px;}'+
       '.znrep .sub{font-size:12.5px;color:#5b6b7d;}'+
       '.znrep .meta{font-size:12px;color:#33404f;margin:10px 0 14px;background:#f2f6fb;border:1px solid #dbe4ee;border-radius:6px;padding:8px 11px;}'+
-      '.znrep h3{font-size:12px;color:#1f4e79;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 6px;border-bottom:1px solid #e2e9f1;padding-bottom:4px;}'+
+      '.znrep .zsec{page-break-inside:auto;}'+
+      '.znrep .zh{font-size:15px;font-weight:800;color:#14304a;margin:4px 0 8px;padding:6px 10px;background:#eaf1f8;border-left:4px solid #1f4e79;border-radius:0 5px 5px 0;display:flex;align-items:center;gap:8px;}'+
+      '.znrep .zt{color:#1f4e79;} .znrep .zb{margin-left:auto;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;}'+
+      '.znrep .zb.okc{background:#e3f5e8;color:#1c7a3e;} .znrep .zb.bad{background:#ffe9b3;color:#8a5a00;}'+
+      '.znrep h3{font-size:11.5px;color:#1f4e79;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;border-bottom:1px solid #e2e9f1;padding-bottom:3px;}'+
       '.znrep table{width:100%;border-collapse:collapse;margin-bottom:8px;}'+
       '.znrep th{background:#1f4e79;color:#fff;font-size:10px;font-weight:600;padding:5px 6px;text-align:center;border:1px solid #1f4e79;}'+
       '.znrep td{font-size:10px;padding:4px 6px;text-align:center;border:1px solid #dbe4ee;font-family:"Courier New",monospace;}'+
@@ -10958,21 +11018,16 @@ ${fotosHtml}
       '.znrep .cbox img{width:100%;height:auto;display:block;}'+
       '.znrep .pgb{page-break-before:always;}'+
       '.znrep .ft{margin-top:16px;border-top:1px solid #dbe4ee;padding-top:7px;font-size:9.5px;color:#7a8798;}'+
-      '</style>'+
+      '</style>';
+    return style+
       '<div class="znrep">'+
         '<div class="hd"><div class="eyeb">SGI · UTE Valle de Güímar</div>'+
           '<h1>Informe de Control — Zonas Anóxicas</h1>'+
-          '<div class="sub">'+activeZone+' · '+title+'  —  '+fecha+' '+hora+'</div></div>'+
+          '<div class="sub">Las 4 zonas del reactor  —  '+fecha+' '+hora+'</div></div>'+
         '<div class="meta">Rango normal = <b>Media ± '+k+'·σ</b> (σ muestral). '+
-          totalReads+' lecturas analizadas · <b style="color:#b45309">'+totalAnom+' anomalías</b> detectadas. '+
+          ZONE_KEYS.length+' zonas · '+gReads+' lecturas analizadas · <b style="color:#b45309">'+gAnom+' anomalías</b> detectadas en total. '+
           'Un dato fuera del rango se identifica como anómalo (ámbar).</div>'+
-        '<h3>Control estadístico por parámetro</h3>'+
-        '<table class="stats"><tr><th style="text-align:left">Parámetro</th><th>n</th><th>Media</th><th>σ</th>'+
-          '<th>LCL (−kσ)</th><th>UCL (+kσ)</th><th>Mín</th><th>Máx</th><th>Anóm.</th></tr>'+statRows+'</table>'+
-        '<h3>Gráficos de control</h3>'+chartHtml+
-        '<div class="pgb"></div>'+
-        '<h3>Registro de lecturas</h3>'+
-        '<table class="data"><tr><th>Día</th><th>Turno</th>'+heads+'</tr>'+trs+'</table>'+
+        sections+
         '<div class="ft">Control estadístico de tendencia (Media ± k·σ, σ muestral) · Monitorización de zonas anóxicas del reactor biológico · '+
           'Generado desde el SGI Portal · <b>Héctor Hernández Hernández</b></div>'+
       '</div>';
@@ -10982,28 +11037,33 @@ ${fotosHtml}
     const btn=$('#zn-pdf'); const old=btn?btn.innerHTML:'';
     if(btn){ btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> Generando…'; }
     const restore=()=>{ if(btn){ btn.disabled=false; btn.innerHTML=old; } };
-    const html=znReportHTML();
-    const fname='Zonas_Anoxicas_'+activeZone.replace(/\s+/g,'')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
-    try{
-      if(window.html2pdf){
-        const cont=document.createElement('div');
-        cont.style.cssText='position:fixed;left:-10000px;top:0;background:#fff;';
-        cont.innerHTML=html; document.body.appendChild(cont);
-        const target=cont.querySelector('.znrep');
-        window.html2pdf().set({
-          margin:[8,8,10,8], filename:fname,
-          image:{type:'jpeg',quality:0.95},
-          html2canvas:{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false},
-          jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-          pagebreak:{mode:['css','legacy']}
-        }).from(target).save().then(()=>{ document.body.removeChild(cont); restore(); })
-          .catch(err=>{ console.error(err); document.body.removeChild(cont); restore(); alert('No se pudo generar el PDF.'); });
-      } else {
-        const w=window.open('','_blank');
-        w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+fname+'</title></head><body>'+html+'</body></html>');
-        w.document.close(); setTimeout(()=>{ w.print(); restore(); },500);
-      }
-    }catch(e){ console.error(e); restore(); alert('No se pudo generar el PDF.'); }
+    // dar un frame para que se pinte el estado "Generando…" antes del trabajo pesado
+    setTimeout(()=>{
+      let html;
+      try{ html=znReportHTML(); }
+      catch(e){ console.error(e); restore(); alert('No se pudo preparar el informe.'); return; }
+      const fname='Zonas_Anoxicas_4zonas_'+new Date().toISOString().slice(0,10)+'.pdf';
+      try{
+        if(window.html2pdf){
+          const cont=document.createElement('div');
+          cont.style.cssText='position:fixed;left:-10000px;top:0;background:#fff;';
+          cont.innerHTML=html; document.body.appendChild(cont);
+          const target=cont.querySelector('.znrep');
+          window.html2pdf().set({
+            margin:[8,8,10,8], filename:fname,
+            image:{type:'jpeg',quality:0.92},
+            html2canvas:{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false},
+            jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+            pagebreak:{mode:['css','legacy']}
+          }).from(target).save().then(()=>{ document.body.removeChild(cont); restore(); })
+            .catch(err=>{ console.error(err); if(cont.parentNode)document.body.removeChild(cont); restore(); alert('No se pudo generar el PDF.'); });
+        } else {
+          const w=window.open('','_blank');
+          w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+fname+'</title></head><body>'+html+'</body></html>');
+          w.document.close(); setTimeout(()=>{ w.print(); restore(); },600);
+        }
+      }catch(e){ console.error(e); restore(); alert('No se pudo generar el PDF.'); }
+    }, 60);
   }
 
   async function zonasInit(){
