@@ -2355,7 +2355,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <div class="p-panel" id="panel-calidad">
           <style>
             /* layout handled by global CSS */
-            #panel-calidad{background:var(--surface);display:none;flex-direction:column;min-height:0;}
+            #panel-calidad{background:var(--surface);display:none;flex-direction:column;min-height:0;position:relative;}
             #panel-calidad.active{display:flex;flex:1;overflow:hidden;min-height:0;}
             /* KPI topstrip */
             #cq-kpi-strip{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -2436,11 +2436,25 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-pdf-btn{width:100%;padding:8px;border-radius:6px;background:var(--accent);color:#000;font-weight:700;font-size:11px;letter-spacing:.5px;border:none;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:5px;font-family:var(--mono);}
             .cq-pdf-btn:hover{opacity:.85;}
             .cq-pdf-btn:disabled{opacity:.4;cursor:not-allowed;}
-            /* 2-col layout */
-            #cq-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) minmax(0,260px);flex:1;overflow:hidden;min-height:0;}
+            /* 2-col layout (el informe pasó a desglose) */
+            #cq-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.9fr);flex:1;overflow:hidden;min-height:0;}
             #cq-left{overflow:hidden;border-right:1px solid var(--border);min-height:0;display:flex;flex-direction:column;}
-            #cq-right{display:flex;flex-direction:column;overflow:hidden;min-height:0;border-left:1px solid var(--border);}
-            @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{display:none;}}
+            /* Botón de apertura del desglose de informe */
+            .cq-kpi-action{flex:0 0 auto;display:flex;align-items:center;padding:0 12px;}
+            #cq-export-toggle{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.4px;padding:6px 12px;border-radius:6px;cursor:pointer;border:1px solid #ef4444;background:rgba(239,68,68,.10);color:#ef4444;white-space:nowrap;transition:all .15s;}
+            #cq-export-toggle:hover{background:rgba(239,68,68,.20);}
+            #cq-export-toggle .cq-caret{transition:transform .18s;font-size:8px;}
+            #cq-export-toggle.open .cq-caret{transform:rotate(180deg);}
+            /* Overlay que cierra el desglose al pulsar fuera */
+            #cq-export-overlay{position:absolute;inset:0;z-index:39;display:none;background:transparent;}
+            #cq-export-overlay.open{display:block;}
+            /* #cq-right como desglose flotante */
+            #cq-right{position:absolute;top:46px;right:12px;width:300px;max-height:calc(100% - 62px);
+              background:var(--surface);border:1px solid var(--border);border-radius:10px;
+              box-shadow:0 10px 32px rgba(0,0,0,.5);z-index:40;display:none;flex-direction:column;
+              overflow:hidden;min-height:0;}
+            #cq-right.open{display:flex;}
+            @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{left:12px;right:12px;width:auto;}}
           </style>
 
           <!-- KPI strip -->
@@ -2466,12 +2480,21 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div class="cq-kpi-sub">Límite RD: 25 mg/L</div>
             </div>
 
+            <div class="cq-kpi-action">
+              <button id="cq-export-toggle" onclick="cqToggleExport(event)" title="Exportar informe PDF">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar informe <span class="cq-caret">▼</span>
+              </button>
+            </div>
+
           </div>
+          <!-- Overlay para cerrar el desglose al pulsar fuera -->
+          <div id="cq-export-overlay" onclick="cqToggleExport()"></div>
 
           <!-- BODY grid -->
           <div id="cq-body">
 
-            <!-- LEFT: analítica + reactivos -->
+            <!-- LEFT: analítica (gráficas) -->
             <div id="cq-left">
 
               <!-- Sec: análisis -->
@@ -2527,7 +2550,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div><!-- /graficas -->
             </div><!-- /#cq-left -->
 
-            <!-- CENTRO: Rendimientos + Reactivos -->
+            <!-- CENTRO: Rendimientos -->
             <div id="cq-center" style="overflow:hidden;display:flex;flex-direction:column;border-right:1px solid var(--border);min-height:0;">
 
               <!-- Rendimientos -->
@@ -2536,37 +2559,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="cq-sec-title">Rendimientos · <span id="cq-rend-sub">—</span></div>
               </div>
               <!-- Anillos SVG rendimientos calculados de reactor/{fecha} -->
-              <div id="cq-rend-chart" style="padding:4px 12px 2px;flex-shrink:0">
+              <div id="cq-rend-chart" style="padding:4px 12px 2px;flex:1;overflow-y:auto;min-height:0;">
                 <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando rendimientos…</div>
               </div>
-
-              <!-- Reactivos: tanques visuales + edición -->
-              <div class="cq-sec-hd" style="position:relative">
-                <div class="cq-sec-dot" style="background:#f59e0b"></div>
-                <div class="cq-sec-title">Consumo de Reactivos</div>
-                <div class="cq-sec-right">
-                  <button class="cq-btn" id="cq-rq-view-btn" onclick="cqRQSetView('tanks')" style="background:rgba(245,158,11,.1);border-color:#f59e0b;color:#f59e0b">⬡ Tanques</button>
-                  <button class="cq-btn" id="cq-rq-table-btn" onclick="cqRQSetView('table')">☰ Editar</button>
-                  <button class="cq-btn" onclick="cqReactivoNuevo()" id="cq-rq-add-btn" style="display:none" title="Añadir reactivo">+ Añadir</button>
-                  <button class="cq-btn" onclick="cqReactivoGuardar()" id="cq-rq-save-btn" style="display:none;background:rgba(0,201,167,.1);border-color:var(--accent);color:var(--accent)">✓ Guardar</button>
-                </div>
-              </div>
-              <!-- Vista tanques -->
-              <div id="cq-rq-tanks" style="padding:6px 10px;flex:1;overflow:hidden;min-height:0;">
-                <!-- generado por JS -->
-              </div>
-              <!-- Vista tabla edición -->
-              <div id="cq-rq-table-wrap" style="display:none;padding:4px 6px;overflow:auto;flex:1;min-height:0;">
-                <table class="cq-table" id="cq-reactivos-table">
-                  <thead>
-                    <tr>
-                      <th>Reactivo</th><th>Tipo</th><th>Ud.</th><th>Cap. total</th><th>Vol. actual</th><th>Estado</th><th style="width:22px"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="cq-reactivos-body"></tbody>
-                </table>
-              </div>
-
 
             </div><!-- /#cq-center -->
 
@@ -2587,7 +2582,6 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                   <label class="cq-sec-row"><input type="checkbox" id="cqr2" checked><span class="cq-sec-lbl">Consumo eléctrico</span><span class="cq-sec-sub">kWh + fotovoltaica</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr3" checked><span class="cq-sec-lbl">Parámetros analíticos</span><span class="cq-sec-sub">DBO, DQO, NT, PT, SST</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr4" checked><span class="cq-sec-lbl">Rendimientos depuración</span><span class="cq-sec-sub">vs límites RD 509/1996</span></label>
-                  <label class="cq-sec-row"><input type="checkbox" id="cqr5"><span class="cq-sec-lbl">Consumo de reactivos</span><span class="cq-sec-sub">Stocks y proyecciones</span></label>
                   <label class="cq-sec-row"><input type="checkbox" id="cqr6"><span class="cq-sec-lbl">Edad de fango y TRH</span><span class="cq-sec-sub">Parámetros biológicos</span></label>
 
                 </div>
@@ -9623,17 +9617,7 @@ if(typeof waitForFirebase==='function'){
             p.r?`<tr><td>${p.n}</td><td style="font-weight:700;color:${p.r.rend>=p.l?'green':'red'}">${p.r.rend.toFixed(1)}%</td><td>&gt;${p.l}%</td><td style="color:${p.r.rend>=p.l?'green':'red'}">${p.r.rend>=p.l?'✓ Conforme':'✗ No conforme'}</td></tr>`:''
           ).join('')||'<tr><td colspan="4" style="color:#94a3b8;text-align:center">Sin datos</td></tr>'}
         </table>`},
-      {id:'cqr5',titulo:'5. Consumo de reactivos · '+mesLabel,html:`
-        <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
-          <tr style="background:#f1f5f9"><th>Reactivo</th><th>Vol. actual</th><th>Capacidad</th><th>% stock</th><th>Estado</th></tr>
-          ${rqData.length?rqData.map(r=>{
-            const pct=(+r.volumen_actual||0)/(+r.capacidad||1)*100;
-            const col=pct<=15?'red':pct<=40?'orange':'green';
-            const est=pct<=15?'CRÍTICO':pct<=40?'BAJO':'OK';
-            return `<tr><td>${r.nombre}</td><td>${r.volumen_actual} ${r.unidad}</td><td>${r.capacidad} ${r.unidad}</td><td style="font-weight:700;color:${col}">${pct.toFixed(0)}%</td><td style="color:${col}">${est}</td></tr>`;
-          }).join(''):'<tr><td colspan="5" style="color:#94a3b8;text-align:center">Sin reactivos configurados</td></tr>'}
-        </table>`},
-      {id:'cqr6',titulo:'6. Parámetros biológicos · '+mesLabel,html:`
+      {id:'cqr6',titulo:'5. Parámetros biológicos · '+mesLabel,html:`
         <table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px">
           <tr style="background:#f1f5f9"><th>Parámetro</th><th>Valor medio</th><th>Mín</th><th>Máx</th><th>Óptimo</th></tr>
           <tr><td>Edad de fango</td><td style="font-weight:700">${mediaFango?mediaFango.toFixed(1)+' d':'Sin datos'}</td><td>${minFango?minFango.toFixed(1)+' d':'—'}</td><td>${maxFango?maxFango.toFixed(1)+' d':'—'}</td><td>15-20 d</td></tr>
@@ -9658,6 +9642,25 @@ if(typeof waitForFirebase==='function'){
       document.body.removeChild(pdfEl); if(btn){btn.disabled=false;btn.textContent='Generar informe PDF';}
     }
   };
+
+  /* ─── Desglose de informe (abrir/cerrar) ─────────────────────────────────── */
+  window.cqToggleExport=function(ev){
+    if(ev&&ev.stopPropagation) ev.stopPropagation();
+    const panel=document.getElementById('cq-right');
+    const overlay=document.getElementById('cq-export-overlay');
+    const btn=document.getElementById('cq-export-toggle');
+    if(!panel) return;
+    const willOpen=!panel.classList.contains('open');
+    panel.classList.toggle('open',willOpen);
+    if(overlay) overlay.classList.toggle('open',willOpen);
+    if(btn) btn.classList.toggle('open',willOpen);
+  };
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      const panel=document.getElementById('cq-right');
+      if(panel&&panel.classList.contains('open')) window.cqToggleExport();
+    }
+  });
 
   /* ─── Hook sbNav: inicializar al abrir panel ─────────────────────────────── */
   const _origSbNav=window.sbNav;
