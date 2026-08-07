@@ -2455,38 +2455,91 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               overflow:hidden;min-height:0;}
             #cq-right.open{display:flex;}
             @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{left:12px;right:12px;width:auto;}}
+            /* ══ Cuadro de mando profesional: cumplimiento + decisión ══ */
+            #cq-head{display:flex;flex-direction:column;flex-shrink:0;border-bottom:1px solid var(--border);}
+            #cq-compliance{display:flex;align-items:stretch;overflow-x:auto;}
+            .cq-comp-card{flex:1 1 0;min-width:118px;padding:7px 12px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+            .cq-comp-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+            .cq-comp-lbl{font-size:9px;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;font-family:var(--mono);white-space:nowrap;}
+            .cq-comp-trend{font-size:9px;font-family:var(--mono);font-weight:700;white-space:nowrap;}
+            .cq-comp-val{font-family:var(--cond);font-size:19px;font-weight:700;line-height:1;}
+            .cq-comp-unit{font-size:10px;font-weight:400;color:var(--muted);margin-left:2px;}
+            .cq-comp-sub{font-size:8.5px;color:var(--muted2);font-family:var(--mono);white-space:nowrap;}
+            .cq-comp-bar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin-top:3px;}
+            .cq-comp-fill{height:100%;border-radius:2px;transition:width .5s ease,background .3s;}
+            .cq-head-actions{display:flex;flex-direction:column;gap:5px;align-items:flex-end;justify-content:center;padding:6px 12px;border-left:1px solid var(--border);flex-shrink:0;}
+            #cq-comp-verdict{font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.5px;padding:5px 10px;border-radius:6px;white-space:nowrap;border:1px solid var(--border);background:var(--surface2);color:var(--muted);}
+            /* Fila estado de proceso + recomendaciones */
+            #cq-decision{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);border-top:1px solid var(--border);flex-shrink:0;}
+            .cq-dec-col{padding:6px 12px 7px;min-width:0;}
+            .cq-dec-col+.cq-dec-col{border-left:1px solid var(--border);}
+            .cq-dec-hd{font-size:8.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-family:var(--mono);margin-bottom:5px;}
+            .cq-chips{display:flex;flex-wrap:wrap;gap:5px;}
+            .cq-chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:9px;font-family:var(--mono);white-space:nowrap;}
+            .cq-chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+            .cq-chip-k{color:var(--muted);}
+            .cq-chip-v{font-weight:700;}
+            .cq-reco{display:flex;flex-direction:column;gap:4px;max-height:62px;overflow-y:auto;padding-right:4px;}
+            .cq-reco-item{display:flex;gap:6px;align-items:flex-start;font-size:9.5px;line-height:1.3;}
+            .cq-reco-ic{flex-shrink:0;font-size:10px;line-height:1.35;font-weight:700;}
+            .cq-reco-tx{color:var(--fg);}
+            .cq-reco-ok{color:var(--muted2);}
+            @media(max-width:900px){#cq-decision{grid-template-columns:1fr;}.cq-dec-col+.cq-dec-col{border-left:none;border-top:1px solid var(--border);}}
           </style>
 
-          <!-- KPI strip -->
-          <div id="cq-kpi-strip">
-            <div class="cq-kpi">
-              <div class="cq-kpi-lbl">SST Reactor</div>
-              <div class="cq-kpi-val" style="color:var(--accent2)" id="cq-kpi-sst">— <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span></div>
-              <div class="cq-kpi-sub" id="cq-kpi-sst-sub">Cargando…</div>
+          <!-- ══ CUADRO DE MANDO: cumplimiento RD 509/1996 + estado de proceso ══ -->
+          <div id="cq-head">
+            <!-- Fila 1: cumplimiento del efluente -->
+            <div id="cq-compliance">
+              <div class="cq-comp-card">
+                <div class="cq-comp-top"><span class="cq-comp-lbl">DBO₅ efluente</span><span class="cq-comp-trend" id="cq-c-dbo-tr"></span></div>
+                <div><span class="cq-comp-val" id="cq-c-dbo-v">—</span><span class="cq-comp-unit">mg/L</span></div>
+                <div class="cq-comp-sub" id="cq-c-dbo-s">Límite 25 mg/L</div>
+                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-dbo-b" style="width:0%"></div></div>
+              </div>
+              <div class="cq-comp-card">
+                <div class="cq-comp-top"><span class="cq-comp-lbl">DQO efluente</span><span class="cq-comp-trend" id="cq-c-dqo-tr"></span></div>
+                <div><span class="cq-comp-val" id="cq-c-dqo-v">—</span><span class="cq-comp-unit">mg/L</span></div>
+                <div class="cq-comp-sub" id="cq-c-dqo-s">Límite 125 mg/L</div>
+                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-dqo-b" style="width:0%"></div></div>
+              </div>
+              <div class="cq-comp-card">
+                <div class="cq-comp-top"><span class="cq-comp-lbl">SST efluente</span><span class="cq-comp-trend" id="cq-c-sst-tr"></span></div>
+                <div><span class="cq-comp-val" id="cq-c-sst-v">—</span><span class="cq-comp-unit">mg/L</span></div>
+                <div class="cq-comp-sub" id="cq-c-sst-s">Límite 35 mg/L</div>
+                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-sst-b" style="width:0%"></div></div>
+              </div>
+              <div class="cq-comp-card">
+                <div class="cq-comp-top"><span class="cq-comp-lbl">NT efluente</span><span class="cq-comp-trend" id="cq-c-nt-tr"></span></div>
+                <div><span class="cq-comp-val" id="cq-c-nt-v">—</span><span class="cq-comp-unit">mg/L</span></div>
+                <div class="cq-comp-sub" id="cq-c-nt-s">Límite 15 mg/L</div>
+                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-nt-b" style="width:0%"></div></div>
+              </div>
+              <div class="cq-comp-card">
+                <div class="cq-comp-top"><span class="cq-comp-lbl">PT efluente</span><span class="cq-comp-trend" id="cq-c-pt-tr"></span></div>
+                <div><span class="cq-comp-val" id="cq-c-pt-v">—</span><span class="cq-comp-unit">mg/L</span></div>
+                <div class="cq-comp-sub" id="cq-c-pt-s">Límite 2 mg/L</div>
+                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-pt-b" style="width:0%"></div></div>
+              </div>
+              <div class="cq-head-actions">
+                <span id="cq-comp-verdict">—</span>
+                <button id="cq-export-toggle" onclick="cqToggleExport(event)" title="Exportar informe PDF">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Exportar informe <span class="cq-caret">▼</span>
+                </button>
+              </div>
             </div>
-            <div class="cq-kpi">
-              <div class="cq-kpi-lbl">TRH actual</div>
-              <div class="cq-kpi-val" style="color:#60a5fa" id="cq-trh-topval">— <span style="font-size:11px;font-weight:400;color:var(--muted)">h</span></div>
-              <div class="cq-kpi-sub">Reactor 2.167,9 m³</div>
+            <!-- Fila 2: estado de proceso + recomendaciones operativas -->
+            <div id="cq-decision">
+              <div class="cq-dec-col">
+                <div class="cq-dec-hd">▸ Estado de proceso</div>
+                <div class="cq-chips" id="cq-proc-chips"><span class="cq-chip"><span class="cq-chip-k">Cargando…</span></span></div>
+              </div>
+              <div class="cq-dec-col">
+                <div class="cq-dec-hd">▸ Recomendaciones operativas</div>
+                <div class="cq-reco" id="cq-reco-list"><div class="cq-reco-item"><span class="cq-reco-tx cq-reco-ok">Esperando datos del proceso…</span></div></div>
+              </div>
             </div>
-            <div class="cq-kpi">
-              <div class="cq-kpi-lbl">Efluente DQO</div>
-              <div class="cq-kpi-val" style="color:#10b981" id="cq-kpi-dqo">— <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span></div>
-              <div class="cq-kpi-sub">Límite RD: 125 mg/L</div>
-            </div>
-            <div class="cq-kpi">
-              <div class="cq-kpi-lbl">Efluente DBO₅</div>
-              <div class="cq-kpi-val" style="color:#10b981" id="cq-kpi-dbo">— <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span></div>
-              <div class="cq-kpi-sub">Límite RD: 25 mg/L</div>
-            </div>
-
-            <div class="cq-kpi-action">
-              <button id="cq-export-toggle" onclick="cqToggleExport(event)" title="Exportar informe PDF">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Exportar informe <span class="cq-caret">▼</span>
-              </button>
-            </div>
-
           </div>
           <!-- Overlay para cerrar el desglose al pulsar fuera -->
           <div id="cq-export-overlay" onclick="cqToggleExport()"></div>
@@ -9421,8 +9474,107 @@ if(typeof waitForFirebase==='function'){
 
   }
 
+  /* ─── Cuadro de mando: cumplimiento RD 509/1996 + decisión ──────────────── */
+  const _CQ_OK='#22c995', _CQ_WARN='#f0b033', _CQ_BAD='#e54a64';
+  const _CQ_EF_ALIAS={
+    dbo:['dbo_ef','DBO EFLUENTE','dbo_efluente','dbo5_ef'],
+    dqo:['dqo_ef','DQO EFLUENTE','dqo_efluente'],
+    sst:['ss_efluente','SS EFLUENTE','sst_efluente','ss_ef'],
+    nt: ['nt_ef','NT EFLUENTE','nt_efluente'],
+    pt: ['pt_ef','PT EFLUENTE','pt_efluente'],
+  };
+  const _CQ_PARAMS=[
+    {id:'dbo',lbl:'DBO₅',lim:25},
+    {id:'dqo',lbl:'DQO', lim:125},
+    {id:'sst',lbl:'SST', lim:35},
+    {id:'nt', lbl:'NT',  lim:15},
+    {id:'pt', lbl:'PT',  lim:2},
+  ];
+  function cqUpdateDecision(ST){
+    ST = ST || (window._cqGetDatos?window._cqGetDatos():(window._ST_dash||{reactor:{},caudales:{}}));
+    const R=ST.reactor||{}, fechas=Object.keys(R).sort();
+    const OK=_CQ_OK, WARN=_CQ_WARN, BAD=_CQ_BAD, MUT='var(--muted)';
+    // último valor válido de un campo (con alias)
+    function ultimo(al){
+      for(let i=fechas.length-1;i>=0;i--){ const r=R[fechas[i]]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:fechas[i]}; } }
+      return null;
+    }
+    // serie temporal para tendencia
+    function serie(al){ const out=[]; for(const f of fechas){ const r=R[f]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)){ out.push(+v); break; } } } return out; }
+    function tendencia(s){ if(s.length<2) return null; const last=s[s.length-1], prev=s[Math.max(0,s.length-1-7)]; return {last,prev,delta:last-prev}; }
+    const fmtVal=v=>v>=100?String(Math.round(v)):v.toFixed(v<10?1:0);
+
+    let excedidos=[], ajustados=[], nConDato=0;
+    _CQ_PARAMS.forEach(p=>{
+      const al=_CQ_EF_ALIAS[p.id];
+      const vEl=document.getElementById('cq-c-'+p.id+'-v');
+      const sEl=document.getElementById('cq-c-'+p.id+'-s');
+      const bEl=document.getElementById('cq-c-'+p.id+'-b');
+      const tEl=document.getElementById('cq-c-'+p.id+'-tr');
+      if(!vEl) return;
+      const u=ultimo(al);
+      if(!u){ vEl.textContent='—'; vEl.style.color=''; if(sEl) sEl.textContent='Límite '+p.lim+' · sin dato'; if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
+      nConDato++;
+      const val=u.v, ratio=val/p.lim;
+      const st = ratio>1?BAD : ratio>0.85?WARN : OK;
+      vEl.textContent=fmtVal(val); vEl.style.color=st;
+      const margen=(p.lim-val)/p.lim*100;
+      if(sEl) sEl.innerHTML='Límite '+p.lim+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
+      if(bEl){ bEl.style.width=Math.min(100,ratio*100).toFixed(0)+'%'; bEl.style.background=st; }
+      const tr=tendencia(serie(al));
+      if(tEl){
+        if(tr && Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0, col=baja?OK:BAD, ar=baja?'▼':'▲'; tEl.innerHTML='<span style="color:'+col+'">'+ar+' '+Math.abs(tr.delta).toFixed(tr.last<10?1:0)+'</span>'; }
+        else tEl.innerHTML='<span style="color:'+MUT+'">▬</span>';
+      }
+      if(ratio>1) excedidos.push({lbl:p.lbl,val:fmtVal(val),lim:p.lim});
+      else if(ratio>0.85) ajustados.push(p.lbl);
+    });
+
+    // Veredicto global
+    const vb=document.getElementById('cq-comp-verdict');
+    if(vb){
+      if(nConDato===0){ vb.textContent='SIN DATOS'; vb.style.background='var(--surface2)'; vb.style.color='var(--muted)'; vb.style.borderColor='var(--border)'; }
+      else if(excedidos.length){ vb.textContent='⛔ NO CONFORME'; vb.style.background='rgba(229,74,100,.15)'; vb.style.color=BAD; vb.style.borderColor=BAD; }
+      else if(ajustados.length){ vb.textContent='⚠ VIGILAR'; vb.style.background='rgba(240,176,51,.15)'; vb.style.color=WARN; vb.style.borderColor=WARN; }
+      else { vb.textContent='✓ CONFORME'; vb.style.background='rgba(34,201,149,.15)'; vb.style.color=OK; vb.style.borderColor=OK; }
+    }
+
+    // Estado de proceso (chips)
+    const chips=[];
+    const chip=(k,v,col)=>'<span class="cq-chip"><span class="cq-chip-dot" style="background:'+col+'"></span><span class="cq-chip-k">'+k+'</span> <span class="cq-chip-v" style="color:'+col+'">'+v+'</span></span>';
+    let edad=null;
+    for(let i=fechas.length-1;i>=0;i--){ const e=calcEdadFango(R[fechas[i]]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; break; } }
+    if(edad!=null){ const col=(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD; chips.push(chip('Edad fango',edad.toFixed(1)+' d',col)); }
+    let sstMg=null; const sstU=ultimo(['ss_reactor_gl']);
+    if(sstU){ sstMg=Math.round(sstU.v*1000); const col=(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD; chips.push(chip('SST reactor',sstMg.toLocaleString('es-ES')+' mg/L',col)); }
+    const trh=calcTRH(ST);
+    if(trh!=null){ const col=trh>=6?OK:(trh>=4?WARN:BAD); chips.push(chip('TRH',trh.toFixed(1)+' h',col)); }
+    const cf=Object.keys(ST.caudales||{}).sort();
+    for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const Q=(+(q&&q.edari)||0)+(+(q&&q.edaru)||0); if(Q>0){ chips.push(chip('Caudal','~'+_fmtK(Q)+' m³/d','var(--accent)')); break; } }
+    const pc=document.getElementById('cq-proc-chips');
+    if(pc) pc.innerHTML=chips.length?chips.join(''):'<span class="cq-chip"><span class="cq-chip-k">Sin datos de proceso</span></span>';
+
+    // Recomendaciones operativas (heurísticas ligadas a umbrales)
+    const recos=[];
+    excedidos.forEach(x=>recos.push({ic:'⛔',col:BAD,tx:'Incumplimiento de efluente: '+x.lbl+' '+x.val+' mg/L supera el límite RD 509/1996 ('+x.lim+'). Verificar decantación/proceso y registrar la no conformidad.'}));
+    if(edad!=null){
+      if(edad>22) recos.push({ic:'▲',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por encima de la banda óptima (15–20 d). Un SRT elevado favorece bacterias filamentosas (p. ej. Microthrix); valorar aumentar la purga.'});
+      else if(edad<12) recos.push({ic:'▼',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por debajo de 15 d: riesgo de nitrificación incompleta; valorar reducir la purga.'});
+    }
+    if(sstMg!=null){
+      if(sstMg>4500) recos.push({ic:'▲',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L elevado: revisar recirculación/purga y carga de sólidos al decantador.'});
+      else if(sstMg<1800) recos.push({ic:'▼',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L bajo: biomasa posiblemente insuficiente para la carga.'});
+    }
+    if(trh!=null&&trh<6) recos.push({ic:'▲',col:WARN,tx:'TRH '+trh.toFixed(1)+' h por debajo de 6 h: posible sobrecarga hidráulica; vigilar la sedimentación.'});
+    ajustados.forEach(p=>recos.push({ic:'⚠',col:WARN,tx:'Margen ajustado en '+p+' (por encima del 85 % del límite): parámetro a vigilar de cerca.'}));
+    if(!recos.length) recos.push({ic:'✓',col:OK,tx:nConDato?'Efluente conforme y proceso dentro de las bandas de referencia. Sin acciones requeridas.':'Sin datos suficientes. Carga el SMS Diario (M-04) para evaluar el estado del proceso.'});
+    const rl=document.getElementById('cq-reco-list');
+    if(rl) rl.innerHTML=recos.map(r=>'<div class="cq-reco-item"><span class="cq-reco-ic" style="color:'+r.col+'">'+r.ic+'</span><span class="cq-reco-tx'+(r.col===OK?' cq-reco-ok':'')+'">'+r.tx+'</span></div>').join('');
+  }
+
   function cqRedibujarTodo(){
     cqActualizaKPIs();
+    cqUpdateDecision();
     cqDibujaCaudal();
     cqDibujaConsumo();
     cqDibujaEdadFango();
@@ -9739,7 +9891,7 @@ if(typeof waitForFirebase==='function'){
     // Temporalmente sobreescribir _ST_dash con los datos enriquecidos
     const _backup=window._ST_dash;
     window._ST_dash=datos;
-    cqActualizaKPIs(); cqDibujaCaudal(); cqDibujaConsumo();
+    cqActualizaKPIs(); cqUpdateDecision(datos); cqDibujaCaudal(); cqDibujaConsumo();
     cqDibujaEdadFango(); cqDibujaRendimientos();
     window._ST_dash=_backup;
   }
