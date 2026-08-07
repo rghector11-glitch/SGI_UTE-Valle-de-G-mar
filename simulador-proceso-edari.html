@@ -1471,6 +1471,8 @@ function App(){
       return {
         iso:d.iso,
         tc:Number(dr.tc.toFixed(1)),
+        fm:Number(dr.FM.toFixed(3)),   // Carga másica F/M (kgDBO/kgSS·d)
+        cv:Number(dr.Cv.toFixed(3)),   // Carga volumétrica (kgDBO/m³·d)
         rend_dqo:Number(dr.rend_dqo.toFixed(1)),
         rend_dbo:Number(dr.rend_dbo.toFixed(1)),
         rend_nh4:Number(dr.rend_nh4.toFixed(1)),
@@ -1504,7 +1506,7 @@ function App(){
   function exportWeekPDF(){
     if(!weekSummary) return;
     const {days,startISO,endISO}=weekSummary;
-    const calc=weekCalc.length?weekCalc:days.map(d=>({iso:d.iso,tc:0,rend_dqo:0,rend_dbo:0,rend_nh4:0,rend_pt:0,fecha:d.iso.slice(5)}));
+    const calc=weekCalc.length?weekCalc:days.map(d=>({iso:d.iso,tc:0,fm:0,cv:0,rend_dqo:0,rend_dbo:0,rend_nh4:0,rend_pt:0,fecha:d.iso.slice(5)}));
     const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
 
     // ── SVG chart helper ──────────────────────────────────────────────────────
@@ -1534,6 +1536,9 @@ function App(){
       const vals=interpolateZeros(raw);
       const W=Math.max(480,data.length*38),H=110,PL=42,PR=10,PT=10,PB=22,gW=W-PL-PR,gH=H-PT-PB;
       const minV=Math.max(0,Math.min(...vals)*0.85), maxV=Math.max(...vals)*1.1||1, rng=maxV-minV||1;
+      // Decimales adaptativos: series pequeñas (F/M, Cv) necesitan más precisión que días o %
+      const nd=maxV<2?3:(maxV<10?2:1);
+      const fmt=v=>v.toFixed(nd);
       const pts=data.map((d,i)=>({x:PL+i/(data.length-1||1)*gW, y:PT+gH-(vals[i]-minV)/rng*gH, v:vals[i]}));
       const poly=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
       const area=[`${pts[0].x.toFixed(1)},${PT+gH}`,...pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`),`${pts[pts.length-1].x.toFixed(1)},${PT+gH}`].join(' ');
@@ -1543,8 +1548,8 @@ function App(){
       if(refV>minV&&refV<maxV) svg+=`<line x1="${PL}" y1="${refY.toFixed(1)}" x2="${W-PR}" y2="${refY.toFixed(1)}" stroke="${color}" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>`;
       [0,0.5,1].forEach(f=>{ svg+=`<line x1="${PL}" y1="${(PT+gH*f).toFixed(1)}" x2="${W-PR}" y2="${(PT+gH*f).toFixed(1)}" stroke="#d0dce8" stroke-width="0.5"/>`; });
       svg+=`<polyline points="${poly}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-      pts.forEach((p,i)=>{ const isReal=raw[i]!==0; svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${isReal?color:'#fff'}" stroke="${color}" stroke-width="1.2"/>${isReal?`<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="7" font-family="Arial" font-weight="700">${p.v.toFixed(1)}</text>`:''}`;});
-      [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svg+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${v.toFixed(1)}</text>`; });
+      pts.forEach((p,i)=>{ const isReal=raw[i]!==0; svg+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${isReal?color:'#fff'}" stroke="${color}" stroke-width="1.2"/>${isReal?`<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="middle" fill="${color}" font-size="7" font-family="Arial" font-weight="700">${fmt(p.v)}</text>`:''}`;});
+      [minV,(minV+maxV)/2,maxV].forEach((v,i)=>{ svg+=`<text x="${PL-4}" y="${(PT+gH*(1-i*0.5)+3).toFixed(1)}" text-anchor="end" fill="#7a8fa8" font-size="7" font-family="monospace">${fmt(v)}</text>`; });
       data.forEach((d,i)=>{ const p=pts[i]; svg+=`<text x="${p.x.toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#7a8fa8" font-size="6.5" font-family="monospace">${d.fecha||d.iso.slice(5)||''}</text>`; });
       svg+=`<text x="${PL-4}" y="${PT-2}" text-anchor="end" fill="#7a8fa8" font-size="6">${unit}</text>`;
       svg+=`</svg>`;
@@ -1561,9 +1566,14 @@ function App(){
       const tcCol=c.tc<10?'color:#cc1122':c.tc<20?'color:#cc7700':'color:#008855';
       const dqoCol=c.rend_dqo>85?'color:#008855':c.rend_dqo>70?'color:#cc7700':'color:#cc1122';
       const dboCol=c.rend_dbo>85?'color:#008855':c.rend_dbo>70?'color:#cc7700':'color:#cc1122';
+      const fm=c.fm||0, cv=c.cv||0;
+      const fmCol=(fm>=0.1&&fm<=0.4)?'color:#008855':'color:#cc7700'; // óptimo 0,10–0,40
+      const cvCol=(cv>=0.3&&cv<=1.0)?'color:#008855':'color:#cc7700'; // óptimo 0,3–1,0
       return `<tr>
         <td><b>${c.iso}</b></td>
         <td style="${tcCol};font-weight:700">${c.tc}</td>
+        <td style="${fmCol};font-weight:700">${fm.toFixed(3)}</td>
+        <td style="${cvCol};font-weight:700">${cv.toFixed(3)}</td>
         <td style="${dqoCol}">${c.rend_dqo}</td>
         <td style="${dboCol}">${c.rend_dbo}</td>
         <td>${c.rend_nh4}</td>
@@ -1603,15 +1613,19 @@ function App(){
     <h2>Datos de proceso (valores originales del Excel)</h2>
     <table><tr><th>Fecha</th>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>${rowsRaw}</table>
     <h2>Resultados calculados por día (simulador)</h2>
-    <p style="font-size:8px;color:#5a7090;margin:0 0 6px">Estos valores son los que calcula el simulador para cada día. Compara la columna <b>Edad fango</b> con el valor que obtienes al seleccionar ese mismo día en modo día individual.</p>
+    <p style="font-size:8px;color:#5a7090;margin:0 0 6px">Estos valores son los que calcula el simulador para cada día. Compara la columna <b>Edad fango</b> con el valor que obtienes al seleccionar ese mismo día en modo día individual. Rangos óptimos: <b>F/M</b> 0,10–0,40 kgDBO/kgSS·d · <b>Carga vol.</b> 0,3–1,0 kgDBO/m³·d (verde dentro de rango, ámbar fuera).</p>
     <table>
-      <tr><th>Fecha</th><th>Edad fango (d)</th><th>Rend. DQO (%)</th><th>Rend. DBO₅ (%)</th><th>Rend. NT (%)</th><th>Rend. PT (%)</th></tr>
+      <tr><th>Fecha</th><th>Edad fango (d)</th><th>F/M (kgDBO/kgSS·d)</th><th>Carga vol. (kgDBO/m³·d)</th><th>Rend. DQO (%)</th><th>Rend. DBO₅ (%)</th><th>Rend. NT (%)</th><th>Rend. PT (%)</th></tr>
       ${rowsCalc}
     </table>
     <h2>Tendencias calculadas por el simulador</h2>
     <div class="chart-row">
       <div class="chart-box"><div class="chart-lbl" style="color:#ffb300">Edad de Fango (días)</div>${svgLine(calc,'tc','#ffb300','Edad fango',15,'d')}</div>
       <div class="chart-box"><div class="chart-lbl" style="color:#00a8e8">Rendimiento DQO (%)</div>${svgLine(calc,'rend_dqo','#00a8e8','Rend DQO',75,'%')}</div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><div class="chart-lbl" style="color:#6633cc">Carga másica F/M (kgDBO/kgSS·d)</div>${svgLine(calc,'fm','#6633cc','F/M',0.25,'kg/kg')}</div>
+      <div class="chart-box"><div class="chart-lbl" style="color:#e5399e">Carga volumétrica Cv (kgDBO/m³·d)</div>${svgLine(calc,'cv','#e5399e','Cv',0.65,'kg/m³')}</div>
     </div>
     <div class="chart-row">
       <div class="chart-box"><div class="chart-lbl" style="color:#2ecc71">Rendimiento DBO₅ (%)</div>${svgLine(calc,'rend_dbo','#2ecc71','Rend DBO',80,'%')}</div>
