@@ -9635,6 +9635,12 @@ if(typeof waitForFirebase==='function'){
     function ultimoR(al){ for(let i=fechas.length-1;i>=0;i--){ const v=_pick(R[fechas[i]]||{},al); if(v!=null) return {v,f:fechas[i]}; } return null; }
     function serieRF(al){ const out=[]; for(const f of fechas){ const v=_pick(R[f]||{},al); if(v!=null) out.push({f,v}); } return out; }
     function subU(f){ return (SMS[f]&&SMS[f].edaru)||(R[f]&&R[f].edaru)||null; }
+    function subEdari(f){ return (SMS[f]&&SMS[f].edari)||(R[f]&&R[f].edari)||null; }
+    // Efluente EDARi combinando nodo reactor (plano) y sms_datos.edari (salida rutinaria)
+    const _fechasUni=[...new Set([...fechas, ...fechasSms])].sort();
+    function _pickEf(f, al, smsField){ let v=_pick(R[f]||{}, al); if(v==null&&smsField){ const s=subEdari(f); const sv=s&&s[smsField]; if(sv!=null&&sv!==''&&!isNaN(+sv)) v=+sv; } return v; }
+    function ultimoEf(al, smsField){ for(let i=_fechasUni.length-1;i>=0;i--){ const v=_pickEf(_fechasUni[i], al, smsField); if(v!=null) return {v, f:_fechasUni[i]}; } return null; }
+    function serieEf(al, smsField){ const out=[]; for(const f of _fechasUni){ const v=_pickEf(f, al, smsField); if(v!=null) out.push({f,v}); } return out; }
     function ultimoU(field){ const ks=fechasSms.length?fechasSms:fechas; for(let i=ks.length-1;i>=0;i--){ const s=subU(ks[i]); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:ks[i]}; } } return null; }
     function serieUF(field){ const out=[]; const ks=fechasSms.length?fechasSms:fechas; for(const f of ks){ const s=subU(f); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) out.push({f,v:+v}); } } return out; }
     function subUget(f,field){ const s=subU(f); const v=s&&s[field]; return (v!=null&&v!==''&&!isNaN(+v))?+v:null; }
@@ -9651,12 +9657,12 @@ if(typeof waitForFirebase==='function'){
     let slots;
     if(planta==='edari'){
       slots=[
-        {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, al:_CQ_EDARI_EF.dbo},
-        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, al:_CQ_EDARI_EF.dqo},
-        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, al:_CQ_EDARI_EF.sst},
-        {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  al:_CQ_EDARI_EF.nt},
-        {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  al:_CQ_EDARI_EF.pt},
-      ].map(p=>({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoR(p.al), serF:()=>serieRF(p.al), pinVal:()=>(R[pin]?_pick(R[pin],p.al):null)}));
+        {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, al:_CQ_EDARI_EF.dbo, sms:null},
+        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, al:_CQ_EDARI_EF.dqo, sms:'dqo_sal'},
+        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, al:_CQ_EDARI_EF.sst, sms:'sst_sal'},
+        {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  al:_CQ_EDARI_EF.nt,  sms:null},
+        {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  al:_CQ_EDARI_EF.pt,  sms:null},
+      ].map(p=>({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoEf(p.al,p.sms), serF:()=>serieEf(p.al,p.sms), pinVal:()=>_pickEf(pin,p.al,p.sms)}));
     } else {
       slots=[
         {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, nd:true},
@@ -9760,13 +9766,13 @@ if(typeof waitForFirebase==='function'){
     if(stripEl){
       let fuente, evalDia;
       if(planta==='edari'){
-        fuente=fechas;
-        evalDia=d=>{ const r=R[d]||{}; return [
-          {lbl:'DBO₅',v:_pick(r,_CQ_EDARI_EF.dbo),lim:_CQ_LIM.dbo},
-          {lbl:'DQO', v:_pick(r,_CQ_EDARI_EF.dqo),lim:_CQ_LIM.dqo},
-          {lbl:'SST', v:_pick(r,_CQ_EDARI_EF.sst),lim:_CQ_LIM.sst},
-          {lbl:'NT',  v:_pick(r,_CQ_EDARI_EF.nt), lim:_CQ_LIM.nt},
-          {lbl:'PT',  v:_pick(r,_CQ_EDARI_EF.pt), lim:_CQ_LIM.pt},
+        fuente=_fechasUni;
+        evalDia=d=>{ const r=R[d]||{}; const s=subEdari(d)||{}; const g=(al,smsField)=>{ let v=_pick(r,al); if(v==null&&smsField){ const sv=s[smsField]; if(sv!=null&&sv!==''&&!isNaN(+sv)) v=+sv; } return v; }; return [
+          {lbl:'DBO₅',v:g(_CQ_EDARI_EF.dbo,null),lim:_CQ_LIM.dbo},
+          {lbl:'DQO', v:g(_CQ_EDARI_EF.dqo,'dqo_sal'),lim:_CQ_LIM.dqo},
+          {lbl:'SST', v:g(_CQ_EDARI_EF.sst,'sst_sal'),lim:_CQ_LIM.sst},
+          {lbl:'NT',  v:g(_CQ_EDARI_EF.nt,null),lim:_CQ_LIM.nt},
+          {lbl:'PT',  v:g(_CQ_EDARI_EF.pt,null),lim:_CQ_LIM.pt},
         ]; };
       } else {
         fuente=fechasSms.length?fechasSms:fechas;
