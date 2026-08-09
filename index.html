@@ -2502,6 +2502,22 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-cumpl-legend{display:flex;gap:12px;font-size:8.5px;color:var(--muted);font-family:var(--mono);flex-wrap:wrap;}
             .cq-cumpl-leg-item{display:flex;align-items:center;gap:4px;}
             .cq-cumpl-leg-dot{width:9px;height:9px;border-radius:2px;}
+            .cq-cumpl-cell{cursor:pointer;}
+            /* Banner día fijado */
+            #cq-daysel-banner{display:none;align-items:center;justify-content:space-between;gap:10px;padding:5px 12px;background:rgba(0,168,232,.10);border-bottom:1px solid var(--border);font-size:10px;font-family:var(--mono);color:var(--accent2,#38bdf8);}
+            #cq-daysel-banner button{font-family:var(--mono);font-size:9px;font-weight:700;border:1px solid var(--accent2,#38bdf8);background:transparent;color:var(--accent2,#38bdf8);border-radius:5px;padding:3px 9px;cursor:pointer;white-space:nowrap;}
+            #cq-daysel-banner button:hover{background:var(--accent2,#38bdf8);color:#04231f;}
+            /* Estudio reactor biológico */
+            .cq-bio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+            .cq-bio-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 8px;min-width:0;}
+            .cq-bio-kpi-top{display:flex;justify-content:space-between;align-items:center;gap:4px;}
+            .cq-bio-kpi-l{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+            .cq-bio-kpi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+            .cq-bio-kpi-v{font-family:var(--cond);font-size:16px;font-weight:700;line-height:1.15;}
+            .cq-bio-kpi-u{font-size:7.5px;color:var(--muted);margin-left:2px;}
+            .cq-bio-kpi-band{font-size:7.5px;color:var(--muted2);font-family:var(--mono);margin-top:1px;}
+            .cq-bio-bulk{border-radius:8px;padding:8px 10px;font-size:9.5px;line-height:1.35;border:1px solid var(--border);}
+            .cq-bio-bulk-hd{font-size:8px;text-transform:uppercase;letter-spacing:.6px;font-family:var(--mono);margin-bottom:3px;font-weight:700;}
           </style>
 
           <!-- ══ CUADRO DE MANDO: cumplimiento RD 509/1996 + estado de proceso ══ -->
@@ -2514,6 +2530,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
               <span id="cq-plant-note">Línea biológica · reactor 2.167,9 m³ · 5 parámetros RD 509/1996</span>
             </div>
+            <!-- Banner de día fijado (histórico) -->
+            <div id="cq-daysel-banner"></div>
             <!-- Fila 1: cumplimiento del efluente -->
             <div id="cq-compliance">
               <div class="cq-comp-card">
@@ -2639,6 +2657,16 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <!-- Anillos SVG rendimientos calculados de reactor/{fecha} -->
               <div id="cq-rend-chart" style="padding:4px 12px 2px;flex-shrink:0;">
                 <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando rendimientos…</div>
+              </div>
+
+              <!-- Estudio del reactor biológico -->
+              <div class="cq-sec-hd" style="position:relative;border-top:1px solid var(--border)">
+                <div class="cq-sec-dot" style="background:#b388ff"></div>
+                <div class="cq-sec-title">Reactor biológico · <span id="cq-bio-sub">EDARi</span></div>
+              </div>
+              <div id="cq-bio" style="padding:8px 12px;flex-shrink:0;">
+                <div id="cq-bio-grid" class="cq-bio-grid"><div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</div></div>
+                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none"></div>
               </div>
 
               <!-- Histórico de cumplimiento (30 días) -->
@@ -9576,7 +9604,6 @@ if(typeof waitForFirebase==='function'){
   /* ─── Cuadro de mando: cumplimiento RD 509/1996 + decisión (por planta) ─── */
   const _CQ_OK='#22c995', _CQ_WARN='#f0b033', _CQ_BAD='#e54a64';
   const _CQ_LIM={dbo:25,dqo:125,sst:35,nt:15,pt:2};
-  // EDARi: campos planos del nodo reactor (efluente real medido, juego completo)
   const _CQ_EDARI_EF={
     dbo:['dbo_ef','DBO EFLUENTE','dbo_efluente','dbo5_ef'],
     dqo:['dqo_ef','DQO EFLUENTE','dqo_efluente'],
@@ -9585,6 +9612,9 @@ if(typeof waitForFirebase==='function'){
     pt: ['pt_ef','PT EFLUENTE','pt_efluente'],
   };
   let cqPlanta='edari';
+  let cqDiaSel=null; // día fijado desde el histórico (o null = último dato)
+  window.cqSelDia=function(f){ cqDiaSel=(cqDiaSel===f)?null:f; if(typeof cqRedibujarTodo==='function') cqRedibujarTodo(); };
+  window.cqVerUltimo=function(){ cqDiaSel=null; if(typeof cqRedibujarTodo==='function') cqRedibujarTodo(); };
   window.cqSetPlanta=function(p){
     if(p!=='edari'&&p!=='edaru') return;
     cqPlanta=p;
@@ -9600,33 +9630,41 @@ if(typeof waitForFirebase==='function'){
     const OK=_CQ_OK, WARN=_CQ_WARN, BAD=_CQ_BAD, MUT='var(--muted)';
     const fmtVal=v=>v>=100?String(Math.round(v)):v.toFixed(v<10?1:0);
     const planta=cqPlanta, plantaLbl=planta==='edari'?'EDARi':'EDARu';
-    // Acceso EDARi (campos planos del reactor)
-    function ultimoR(al){ for(let i=fechas.length-1;i>=0;i--){ const r=R[fechas[i]]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:fechas[i]}; } } return null; }
-    function serieR(al){ const out=[]; for(const f of fechas){ const r=R[f]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)){ out.push(+v); break; } } } return out; }
-    // Acceso EDARu (subobjeto sms_datos[fecha].edaru; fallback reactor[fecha].edaru)
+    const pin=cqDiaSel;
+    const _pick=(r,al)=>{ for(const a of al){ const v=r&&r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return +v; } return null; };
+    function ultimoR(al){ for(let i=fechas.length-1;i>=0;i--){ const v=_pick(R[fechas[i]]||{},al); if(v!=null) return {v,f:fechas[i]}; } return null; }
+    function serieRF(al){ const out=[]; for(const f of fechas){ const v=_pick(R[f]||{},al); if(v!=null) out.push({f,v}); } return out; }
     function subU(f){ return (SMS[f]&&SMS[f].edaru)||(R[f]&&R[f].edaru)||null; }
     function ultimoU(field){ const ks=fechasSms.length?fechasSms:fechas; for(let i=ks.length-1;i>=0;i--){ const s=subU(ks[i]); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:ks[i]}; } } return null; }
-    function serieU(field){ const out=[]; const ks=fechasSms.length?fechasSms:fechas; for(const f of ks){ const s=subU(f); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) out.push(+v); } } return out; }
-    function tendencia(s){ if(s.length<2) return null; const last=s[s.length-1], prev=s[Math.max(0,s.length-1-7)]; return {last,prev,delta:last-prev}; }
+    function serieUF(field){ const out=[]; const ks=fechasSms.length?fechasSms:fechas; for(const f of ks){ const s=subU(f); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) out.push({f,v:+v}); } } return out; }
+    function subUget(f,field){ const s=subU(f); const v=s&&s[field]; return (v!=null&&v!==''&&!isNaN(+v))?+v:null; }
+    function tendenciaF(sf, refDate){ if(!sf.length) return null; let idx=refDate?sf.findIndex(x=>x.f===refDate):sf.length-1; if(idx<0) idx=sf.length-1; const pIdx=Math.max(0,idx-7); if(pIdx===idx) return null; return {last:sf[idx].v, prev:sf[pIdx].v, delta:sf[idx].v-sf[pIdx].v}; }
 
-    // Slots fijos (dbo, dqo, sst, nt, pt) con fuente según planta
+    // Banner de día fijado
+    const banner=document.getElementById('cq-daysel-banner');
+    if(banner){
+      if(pin){ banner.style.display='flex'; banner.innerHTML='<span>📌 Viendo datos del <b>'+_fmtDM(pin)+'</b> (día fijado desde el histórico)</span><button onclick="cqVerUltimo()">Ver último ✕</button>'; }
+      else { banner.style.display='none'; banner.innerHTML=''; }
+    }
+
+    // Slots por planta
     let slots;
     if(planta==='edari'){
       slots=[
-        {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, get:()=>ultimoR(_CQ_EDARI_EF.dbo), ser:()=>serieR(_CQ_EDARI_EF.dbo)},
-        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, get:()=>ultimoR(_CQ_EDARI_EF.dqo), ser:()=>serieR(_CQ_EDARI_EF.dqo)},
-        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, get:()=>ultimoR(_CQ_EDARI_EF.sst), ser:()=>serieR(_CQ_EDARI_EF.sst)},
-        {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  get:()=>ultimoR(_CQ_EDARI_EF.nt),  ser:()=>serieR(_CQ_EDARI_EF.nt)},
-        {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  get:()=>ultimoR(_CQ_EDARI_EF.pt),  ser:()=>serieR(_CQ_EDARI_EF.pt)},
-      ];
+        {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, al:_CQ_EDARI_EF.dbo},
+        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, al:_CQ_EDARI_EF.dqo},
+        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, al:_CQ_EDARI_EF.sst},
+        {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  al:_CQ_EDARI_EF.nt},
+        {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  al:_CQ_EDARI_EF.pt},
+      ].map(p=>({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoR(p.al), serF:()=>serieRF(p.al), pinVal:()=>(R[pin]?_pick(R[pin],p.al):null)}));
     } else {
       slots=[
         {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, nd:true},
-        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, get:()=>ultimoU('dqo_sal'), ser:()=>serieU('dqo_sal')},
-        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, get:()=>ultimoU('sst_sal'), ser:()=>serieU('sst_sal')},
+        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, field:'dqo_sal'},
+        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, field:'sst_sal'},
         {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  nd:true},
         {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  nd:true},
-      ];
+      ].map(p=>p.nd?p:({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoU(p.field), serF:()=>serieUF(p.field), pinVal:()=>subUget(pin,p.field)}));
     }
 
     let excedidos=[], ajustados=[], nConDato=0;
@@ -9637,19 +9675,18 @@ if(typeof waitForFirebase==='function'){
       const tEl=document.getElementById('cq-c-'+p.id+'-tr');
       if(!vEl) return;
       if(p.nd){ vEl.textContent='s/d'; vEl.style.color='var(--muted)'; if(sEl) sEl.textContent='No medido en EDARu'; if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
-      const u=p.get();
-      if(!u){ vEl.textContent='—'; vEl.style.color=''; if(sEl) sEl.textContent='Límite '+p.lim+' · sin dato'; if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
+      let val=null, fref=null;
+      if(pin){ val=p.pinVal(); fref=pin; }
+      else { const u=p.get(); if(u){ val=u.v; fref=u.f; } }
+      if(val==null){ vEl.textContent=pin?'s/d':'—'; vEl.style.color=pin?'var(--muted)':''; if(sEl) sEl.textContent=pin?('Sin dato el '+_fmtDM(pin)):('Límite '+p.lim+' · sin dato'); if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
       nConDato++;
-      const val=u.v, ratio=val/p.lim, st=ratio>1?BAD:ratio>0.85?WARN:OK;
+      const ratio=val/p.lim, st=ratio>1?BAD:ratio>0.85?WARN:OK;
       vEl.textContent=fmtVal(val); vEl.style.color=st;
       const margen=(p.lim-val)/p.lim*100;
       if(sEl) sEl.innerHTML='Límite '+p.lim+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
       if(bEl){ bEl.style.width=Math.min(100,ratio*100).toFixed(0)+'%'; bEl.style.background=st; }
-      const tr=tendencia(p.ser());
-      if(tEl){
-        if(tr && Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0, col=baja?OK:BAD, ar=baja?'▼':'▲'; tEl.innerHTML='<span style="color:'+col+'">'+ar+' '+Math.abs(tr.delta).toFixed(tr.last<10?1:0)+'</span>'; }
-        else tEl.innerHTML='<span style="color:'+MUT+'">▬</span>';
-      }
+      const tr=tendenciaF(p.serF(), fref);
+      if(tEl){ if(tr && Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0, col=baja?OK:BAD, ar=baja?'▼':'▲'; tEl.innerHTML='<span style="color:'+col+'">'+ar+' '+Math.abs(tr.delta).toFixed(tr.last<10?1:0)+'</span>'; } else tEl.innerHTML='<span style="color:'+MUT+'">▬</span>'; }
       if(ratio>1) excedidos.push({lbl:p.lbl,val:fmtVal(val),lim:p.lim});
       else if(ratio>0.85) ajustados.push(p.lbl);
     });
@@ -9663,21 +9700,28 @@ if(typeof waitForFirebase==='function'){
       else { vb.textContent='✓ CONFORME'; vb.style.background='rgba(34,201,149,.15)'; vb.style.color=OK; vb.style.borderColor=OK; }
     }
 
-    // Estado de proceso (chips) + recomendaciones, por planta
+    // Estado de proceso (chips) + recomendaciones, por planta y respetando día fijado
     const chips=[], recos=[];
     const chip=(k,v,col)=>'<span class="cq-chip"><span class="cq-chip-dot" style="background:'+col+'"></span><span class="cq-chip-k">'+k+'</span> <span class="cq-chip-v" style="color:'+col+'">'+v+'</span></span>';
     excedidos.forEach(x=>recos.push({ic:'⛔',col:BAD,tx:'Incumplimiento de efluente ('+plantaLbl+'): '+x.lbl+' '+x.val+' mg/L supera el límite RD 509/1996 ('+x.lim+'). Verificar el proceso y registrar la no conformidad.'}));
 
     if(planta==='edari'){
       let edad=null;
-      for(let i=fechas.length-1;i>=0;i--){ const e=calcEdadFango(R[fechas[i]]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; break; } }
+      if(pin){ const e=calcEdadFango(R[pin]); if(e!=null&&!isNaN(e)&&e>0) edad=e; }
+      else { for(let i=fechas.length-1;i>=0;i--){ const e=calcEdadFango(R[fechas[i]]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; break; } } }
       if(edad!=null){ const col=(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD; chips.push(chip('Edad fango',edad.toFixed(1)+' d',col)); }
-      let sstMg=null; const sstU=ultimoR(['ss_reactor_gl']);
-      if(sstU){ sstMg=Math.round(sstU.v*1000); const col=(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD; chips.push(chip('SST reactor',sstMg.toLocaleString('es-ES')+' mg/L',col)); }
-      const trh=calcTRH(ST);
+      let sstMg=null;
+      if(pin){ const v=_pick(R[pin]||{},['ss_reactor_gl']); if(v!=null) sstMg=Math.round(v*1000); }
+      else { const sstU=ultimoR(['ss_reactor_gl']); if(sstU) sstMg=Math.round(sstU.v*1000); }
+      if(sstMg!=null){ const col=(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD; chips.push(chip('SST reactor',sstMg.toLocaleString('es-ES')+' mg/L',col)); }
+      let trh=null;
+      if(pin){ const qb=_pick(R[pin]||{},['caudal_bio']); const qi=(ST.caudales&&ST.caudales[pin]&&+ST.caudales[pin].edari)||0; const Q=qb||qi; if(Q>0) trh=2167.9/Q*24; }
+      else trh=calcTRH(ST);
       if(trh!=null){ const col=trh>=6?OK:(trh>=4?WARN:BAD); chips.push(chip('TRH',trh.toFixed(1)+' h',col)); }
-      const cf=Object.keys(ST.caudales||{}).sort();
-      for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const Qi=+(q&&q.edari)||0; if(Qi>0){ chips.push(chip('Caudal EDARi','~'+_fmtK(Qi)+' m³/d','var(--accent)')); break; } }
+      let qEdari=null;
+      if(pin){ const q=ST.caudales&&ST.caudales[pin]; const v=q&&+q.edari; if(v>0) qEdari=v; }
+      else { const cf=Object.keys(ST.caudales||{}).sort(); for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const v=+(q&&q.edari)||0; if(v>0){ qEdari=v; break; } } }
+      if(qEdari!=null) chips.push(chip('Caudal EDARi','~'+_fmtK(qEdari)+' m³/d','var(--accent)'));
       if(edad!=null){
         if(edad>22) recos.push({ic:'▲',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por encima de la banda óptima (15–20 d). Un SRT elevado favorece bacterias filamentosas (p. ej. Microthrix); valorar aumentar la purga.'});
         else if(edad<12) recos.push({ic:'▼',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por debajo de 15 d: riesgo de nitrificación incompleta; valorar reducir la purga.'});
@@ -9688,15 +9732,18 @@ if(typeof waitForFirebase==='function'){
       }
       if(trh!=null&&trh<6) recos.push({ic:'▲',col:WARN,tx:'TRH '+trh.toFixed(1)+' h por debajo de 6 h: posible sobrecarga hidráulica; vigilar la sedimentación.'});
     } else {
-      const cf=Object.keys(ST.caudales||{}).sort();
-      for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const Qu=+(q&&q.edaru)||0; if(Qu>0){ chips.push(chip('Caudal EDARu','~'+_fmtK(Qu)+' m³/d','var(--accent)')); break; } }
-      const dqoE=ultimoU('dqo_ent'), dqoS=ultimoU('dqo_sal');
+      const getU=field=> pin ? (subUget(pin,field)!=null?{v:subUget(pin,field),f:pin}:null) : ultimoU(field);
+      let qE=null;
+      if(pin){ const q=ST.caudales&&ST.caudales[pin]; const v=q&&+q.edaru; if(v>0) qE=v; }
+      else { const cf=Object.keys(ST.caudales||{}).sort(); for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const v=+(q&&q.edaru)||0; if(v>0){ qE=v; break; } } }
+      if(qE!=null) chips.push(chip('Caudal EDARu','~'+_fmtK(qE)+' m³/d','var(--accent)'));
+      const dqoE=getU('dqo_ent'), dqoS=getU('dqo_sal');
       if(dqoE&&dqoS&&dqoE.v>0){ const rend=Math.max(0,(dqoE.v-dqoS.v)/dqoE.v*100); const col=rend>=75?OK:rend>=60?WARN:BAD; chips.push(chip('Rend. DQO',rend.toFixed(0)+' %',col)); if(rend<75) recos.push({ic:'▼',col:WARN,tx:'Rendimiento de DQO en EDARu '+rend.toFixed(0)+' % por debajo del 75 % de referencia: revisar la línea de tratamiento.'}); }
-      const sstE=ultimoU('sst_ent'), sstS=ultimoU('sst_sal');
+      const sstE=getU('sst_ent'), sstS=getU('sst_sal');
       if(sstE&&sstS&&sstE.v>0){ const rend=Math.max(0,(sstE.v-sstS.v)/sstE.v*100); const col=rend>=80?OK:rend>=60?WARN:BAD; chips.push(chip('Rend. SST',rend.toFixed(0)+' %',col)); }
-      const ntu=ultimoU('ntu');
+      const ntu=getU('ntu');
       if(ntu){ const col=ntu.v<=20?OK:ntu.v<=40?WARN:BAD; chips.push(chip('Turbidez',ntu.v.toFixed(1)+' NTU',col)); if(ntu.v>40) recos.push({ic:'▲',col:WARN,tx:'Turbidez del efluente EDARu '+ntu.v.toFixed(1)+' NTU elevada: posible arrastre de sólidos.'}); }
-      const ce=ultimoU('ce');
+      const ce=getU('ce');
       if(ce){ chips.push(chip('Conductividad',_fmtK(ce.v)+' µS/cm','var(--accent)')); }
     }
 
@@ -9708,10 +9755,9 @@ if(typeof waitForFirebase==='function'){
     const rl=document.getElementById('cq-reco-list');
     if(rl) rl.innerHTML=recos.map(r=>'<div class="cq-reco-item"><span class="cq-reco-ic" style="color:'+r.col+'">'+r.ic+'</span><span class="cq-reco-tx'+(r.col===OK?' cq-reco-ok':'')+'">'+r.tx+'</span></div>').join('');
 
-    // ── Histórico de cumplimiento (30 días) ──────────────────────────────────
+    // ── Histórico de cumplimiento (30 días) — celdas pinchables ──────────────
     const stripEl=document.getElementById('cq-cumpl-strip');
     if(stripEl){
-      const _pick=(r,al)=>{ for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return +v; } return null; };
       let fuente, evalDia;
       if(planta==='edari'){
         fuente=fechas;
@@ -9724,9 +9770,9 @@ if(typeof waitForFirebase==='function'){
         ]; };
       } else {
         fuente=fechasSms.length?fechasSms:fechas;
-        evalDia=d=>{ const s=subU(d)||{}; const g=k=>(s[k]!=null&&s[k]!==''&&!isNaN(+s[k]))?+s[k]:null; return [
-          {lbl:'DQO',v:g('dqo_sal'),lim:_CQ_LIM.dqo},
-          {lbl:'SST',v:g('sst_sal'),lim:_CQ_LIM.sst},
+        evalDia=d=>{ return [
+          {lbl:'DQO',v:subUget(d,'dqo_sal'),lim:_CQ_LIM.dqo},
+          {lbl:'SST',v:subUget(d,'sst_sal'),lim:_CQ_LIM.sst},
         ]; };
       }
       const dias=fuente.slice(-30);
@@ -9741,8 +9787,10 @@ if(typeof waitForFirebase==='function'){
       const cells=evals.map(e=>{
         if(e.estado!=='nd'){ conData++; if(e.estado==='bad') incumpl++; else conformes++; }
         const col=e.estado==='ok'?OK:e.estado==='warn'?WARN:e.estado==='bad'?BAD:'var(--border)';
-        const tip=_fmtDM(e.d)+' · '+(e.estado==='nd'?'sin datos':e.estado==='bad'?('incumple: '+e.exc.join(', ')):e.estado==='warn'?'margen ajustado':'conforme');
-        return '<div class="cq-cumpl-cell" style="background:'+col+'" title="'+tip+'"></div>';
+        const sel=(e.d===pin);
+        const tip=_fmtDM(e.d)+' · '+(e.estado==='nd'?'sin datos':e.estado==='bad'?('incumple: '+e.exc.join(', ')):e.estado==='warn'?'margen ajustado':'conforme')+' — pulsa para fijar';
+        const style='background:'+col+(sel?';outline:2px solid var(--fg);outline-offset:1px':'');
+        return '<div class="cq-cumpl-cell" style="'+style+'" title="'+tip+'" onclick="cqSelDia(\''+e.d+'\')"></div>';
       });
       for(let i=evals.length-1;i>=0;i--){ const e=evals[i]; if(e.estado==='nd') continue; if(e.estado!=='bad') racha++; else break; }
       stripEl.innerHTML=cells.length?cells.join(''):'<span style="font-size:9px;color:var(--muted);font-family:var(--mono)">Sin datos en el periodo</span>';
@@ -9756,9 +9804,82 @@ if(typeof waitForFirebase==='function'){
       if(subEl) subEl.textContent=conData?(conData+' días con dato · '+plantaLbl):'sin datos · '+plantaLbl;
     }
   }
+
+  /* ─── Estudio del reactor biológico (EDARi) ──────────────────────────────── */
+  function cqUpdateBioReactor(ST){
+    ST = ST || (window._cqGetDatos?window._cqGetDatos():(window._ST_dash||{reactor:{},caudales:{}}));
+    const grid=document.getElementById('cq-bio-grid'); if(!grid) return;
+    const bulk=document.getElementById('cq-bio-bulk');
+    const sub=document.getElementById('cq-bio-sub');
+    const OK=_CQ_OK, WARN=_CQ_WARN, BAD=_CQ_BAD;
+    if(cqPlanta!=='edari'){
+      if(sub) sub.textContent='no aplica a EDARu';
+      grid.innerHTML='<div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono);padding:6px 2px">EDARu no dispone de reactor biológico de fangos activos. Selecciona EDARi para el estudio del proceso biológico.</div>';
+      if(bulk) bulk.style.display='none';
+      return;
+    }
+    const R=ST.reactor||{}, fechas=Object.keys(R).sort();
+    const _pick=(r,al)=>{ for(const a of al){ const v=r&&r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return +v; } return null; };
+    let fref=null;
+    if(cqDiaSel && R[cqDiaSel]) fref=cqDiaSel;
+    else { for(let i=fechas.length-1;i>=0;i--){ const r=R[fechas[i]]; if(r&&_pick(r,['ss_reactor_gl'])!=null){ fref=fechas[i]; break; } } }
+    if(!fref){ grid.innerHTML='<div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono);padding:6px 2px">Sin datos del reactor. Carga el SMS Diario (M-04).</div>'; if(sub) sub.textContent='EDARi · sin datos'; if(bulk) bulk.style.display='none'; return; }
+    if(sub) sub.textContent='EDARi · '+_fmtDM(fref);
+    const r=R[fref]||{};
+    const volP=_pick(r,['vol_reactor']); const V=(volP&&volP>0)?volP:2167.9;
+    const SSr=_pick(r,['ss_reactor_gl']);
+    const dboIn=_pick(r,['dbo_ent','DBO5 ENTRADA','dbo_entrada']);
+    const Qb=_pick(r,['caudal_bio']) || ((ST.caudales&&ST.caudales[fref]&&+ST.caudales[fref].edari)||null);
+    const Qr=_pick(r,['q_recirc']);
+    const Qp=_pick(r,['q_purga']);
+    const SSrc=_pick(r,['ss_recirc_gl']);
+    const M = (SSr!=null) ? SSr*V : null;
+    const FM = (dboIn!=null&&Qb!=null&&M) ? (dboIn*Qb/1000)/M : null;
+    const Cv = (dboIn!=null&&Qb!=null) ? dboIn*Qb/(1000*V) : null;
+    const IR = (Qr!=null&&Qb) ? Qr/Qb*100 : null;
+    const edad = calcEdadFango(r);
+    const purga = (Qp!=null&&SSrc!=null) ? Qp*SSrc : null;
+    const sstMg = (SSr!=null) ? Math.round(SSr*1000) : null;
+    const kpis=[
+      {l:'Edad de fango', v:edad, u:'d', band:'15–20', col: edad==null?'var(--muted)':(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD, dec:1},
+      {l:'Carga F/M', v:FM, u:'kgDBO/kgSS·d', band:'0,10–0,40', col: FM==null?'var(--muted)':(FM>=0.1&&FM<=0.4)?OK:WARN, dec:3},
+      {l:'Carga vol. Cv', v:Cv, u:'kgDBO/m³·d', band:'0,3–1,0', col: Cv==null?'var(--muted)':(Cv>=0.3&&Cv<=1)?OK:WARN, dec:3},
+      {l:'Índice recirc.', v:IR, u:'%', band:'50–150', col: IR==null?'var(--muted)':(IR>=50&&IR<=150)?OK:WARN, dec:0},
+      {l:'SST reactor', v:sstMg, u:'mg/L', band:'2.000–4.000', col: sstMg==null?'var(--muted)':(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD, dec:0, mil:true},
+      {l:'Purga sólidos', v:purga, u:'kgSS/d', band:'seguimiento', col:'var(--accent)', dec:0, mil:true},
+    ];
+    grid.innerHTML=kpis.map(k=>{
+      const val = k.v==null?'—':(k.mil?Math.round(k.v).toLocaleString('es-ES'):(k.dec===0?Math.round(k.v):(+k.v).toFixed(k.dec)));
+      return '<div class="cq-bio-kpi"><div class="cq-bio-kpi-top"><span class="cq-bio-kpi-l">'+k.l+'</span><span class="cq-bio-kpi-dot" style="background:'+k.col+'"></span></div>'+
+        '<div><span class="cq-bio-kpi-v" style="color:'+(k.v==null?'var(--muted)':k.col)+'">'+val+'</span><span class="cq-bio-kpi-u">'+k.u+'</span></div>'+
+        '<div class="cq-bio-kpi-band">Ópt. '+k.band+'</div></div>';
+    }).join('');
+
+    if(bulk){
+      bulk.style.display='block';
+      const srtAlto=edad!=null&&edad>20, srtMuyAlto=edad!=null&&edad>25;
+      const fmBajo=FM!=null&&FM<0.12, fmMuyBajo=FM!=null&&FM<0.08;
+      let nivel, col;
+      if((srtMuyAlto&&fmBajo)||(fmMuyBajo&&srtAlto)){ nivel='ALTO'; col=BAD; }
+      else if(srtAlto||fmBajo){ nivel='MEDIO'; col=WARN; }
+      else if(edad==null||FM==null){ nivel='SIN DATOS'; col='var(--muted)'; }
+      else { nivel='BAJO'; col=OK; }
+      const motivos=[];
+      if(edad!=null&&edad>20) motivos.push('edad de fango elevada ('+edad.toFixed(1)+' d)');
+      if(FM!=null&&FM<0.12) motivos.push('F/M baja ('+FM.toFixed(3)+')');
+      let consejo='';
+      if(nivel==='ALTO'||nivel==='MEDIO') consejo=' Condiciones que favorecen filamentosas tipo Microthrix parvicella. Valorar aumentar la purga para bajar el SRT y, si procede, cloración selectiva de la recirculación. Confirmar con microscopía (índice de Jenkins) y seguimiento de V30/IVF.';
+      else if(nivel==='BAJO') consejo=' Parámetros dentro de rango; mantener microscopía periódica y seguimiento de V30/IVF.';
+      const txt=(motivos.length?('Motivos: '+motivos.join(', ')+'.'):'')+consejo;
+      bulk.style.borderColor=col;
+      bulk.style.background = nivel==='ALTO'?'rgba(229,74,100,.08)':nivel==='MEDIO'?'rgba(240,176,51,.08)':nivel==='BAJO'?'rgba(34,201,149,.06)':'var(--surface2)';
+      bulk.innerHTML='<div class="cq-bio-bulk-hd" style="color:'+col+'">Riesgo de bulking filamentoso: '+nivel+'</div><div style="color:var(--muted2)">'+(txt||'—')+'</div>';
+    }
+  }
   function cqRedibujarTodo(){
     cqActualizaKPIs();
     cqUpdateDecision();
+    cqUpdateBioReactor();
     cqDibujaCaudal();
     cqDibujaConsumo();
     cqDibujaEdadFango();
@@ -10075,7 +10196,7 @@ if(typeof waitForFirebase==='function'){
     // Temporalmente sobreescribir _ST_dash con los datos enriquecidos
     const _backup=window._ST_dash;
     window._ST_dash=datos;
-    cqActualizaKPIs(); cqUpdateDecision(datos); cqDibujaCaudal(); cqDibujaConsumo();
+    cqActualizaKPIs(); cqUpdateDecision(datos); cqUpdateBioReactor(datos); cqDibujaCaudal(); cqDibujaConsumo();
     cqDibujaEdadFango(); cqDibujaRendimientos();
     window._ST_dash=_backup;
   }
