@@ -2457,6 +2457,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{left:12px;right:12px;width:auto;}}
             /* ══ Cuadro de mando profesional: cumplimiento + decisión ══ */
             #cq-head{display:flex;flex-direction:column;flex-shrink:0;border-bottom:1px solid var(--border);}
+            #cq-plant-tabs{display:flex;align-items:center;gap:10px;padding:6px 12px;border-bottom:1px solid var(--border);}
+            .cq-plant-seg{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:2px;gap:2px;flex-shrink:0;}
+            .cq-plant-btn{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px;padding:4px 16px;border:none;border-radius:5px;cursor:pointer;background:transparent;color:var(--muted);transition:all .15s;}
+            .cq-plant-btn:hover{color:var(--fg);}
+            .cq-plant-btn.active{background:var(--accent);color:#04231f;}
+            #cq-plant-note{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
             #cq-compliance{display:flex;align-items:stretch;overflow-x:auto;}
             .cq-comp-card{flex:1 1 0;min-width:118px;padding:7px 12px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
             .cq-comp-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
@@ -2485,10 +2491,29 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-reco-tx{color:var(--fg);}
             .cq-reco-ok{color:var(--muted2);}
             @media(max-width:900px){#cq-decision{grid-template-columns:1fr;}.cq-dec-col+.cq-dec-col{border-left:none;border-top:1px solid var(--border);}}
+            /* Histórico de cumplimiento 30 días */
+            .cq-cumpl-stats{display:flex;gap:8px;margin-bottom:10px;}
+            .cq-cumpl-stat{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 6px;text-align:center;}
+            .cq-cumpl-stat-v{font-family:var(--cond);font-size:20px;font-weight:700;line-height:1;}
+            .cq-cumpl-stat-l{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-family:var(--mono);margin-top:4px;}
+            .cq-cumpl-strip{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:9px;}
+            .cq-cumpl-cell{width:14px;height:14px;border-radius:3px;transition:transform .1s;}
+            .cq-cumpl-cell:hover{transform:scale(1.25);}
+            .cq-cumpl-legend{display:flex;gap:12px;font-size:8.5px;color:var(--muted);font-family:var(--mono);flex-wrap:wrap;}
+            .cq-cumpl-leg-item{display:flex;align-items:center;gap:4px;}
+            .cq-cumpl-leg-dot{width:9px;height:9px;border-radius:2px;}
           </style>
 
           <!-- ══ CUADRO DE MANDO: cumplimiento RD 509/1996 + estado de proceso ══ -->
           <div id="cq-head">
+            <!-- Selector de planta -->
+            <div id="cq-plant-tabs">
+              <div class="cq-plant-seg">
+                <button class="cq-plant-btn active" data-plant="edari" onclick="cqSetPlanta('edari')">EDARi</button>
+                <button class="cq-plant-btn" data-plant="edaru" onclick="cqSetPlanta('edaru')">EDARu</button>
+              </div>
+              <span id="cq-plant-note">Línea biológica · reactor 2.167,9 m³ · 5 parámetros RD 509/1996</span>
+            </div>
             <!-- Fila 1: cumplimiento del efluente -->
             <div id="cq-compliance">
               <div class="cq-comp-card">
@@ -2565,11 +2590,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <!-- Caudal chart -->
               <div class="cq-chart-block">
                 <div class="cq-chart-row">
-                  <div class="cq-chart-title">Caudal entrada</div>
+                  <div class="cq-chart-title" id="cq-caudal-title">Caudal entrada</div>
                   <div class="cq-chart-big" style="color:var(--accent)" id="cq-caudal-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span></div>
                 </div>
                 <div class="cq-chart-meta" id="cq-caudal-meta">Cargando…</div>
-                <div class="cq-leg">
+                <div class="cq-leg" id="cq-caudal-leg">
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:var(--accent)"></div>EDARI</div>
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#8b5cf6"></div>EDARU</div>
                 </div>
@@ -2579,11 +2604,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <!-- Eléctrico chart -->
               <div class="cq-chart-block">
                 <div class="cq-chart-row">
-                  <div class="cq-chart-title">Consumo eléctrico</div>
+                  <div class="cq-chart-title" id="cq-elec-title">Consumo eléctrico</div>
                   <div class="cq-chart-big" style="color:#a78bfa" id="cq-elec-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span></div>
                 </div>
                 <div class="cq-chart-meta" id="cq-elec-meta">Cargando…</div>
-                <div class="cq-leg">
+                <div class="cq-leg" id="cq-elec-leg">
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#10b981"></div>EDARI</div>
                   <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#a78bfa"></div>EDARU</div>
                 </div>
@@ -2593,7 +2618,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <!-- Edad fango -->
               <div class="cq-chart-block" style="border-bottom:none">
                 <div class="cq-chart-row">
-                  <div class="cq-chart-title">Edad de fango</div>
+                  <div class="cq-chart-title" id="cq-fango-title">Edad de fango</div>
                   <div class="cq-chart-big" style="color:#f59e0b" id="cq-fango-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span></div>
                 </div>
                 <div class="cq-chart-meta" id="cq-fango-meta">Cargando…</div>
@@ -2612,8 +2637,24 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="cq-sec-title">Rendimientos · <span id="cq-rend-sub">—</span></div>
               </div>
               <!-- Anillos SVG rendimientos calculados de reactor/{fecha} -->
-              <div id="cq-rend-chart" style="padding:4px 12px 2px;flex:1;overflow-y:auto;min-height:0;">
+              <div id="cq-rend-chart" style="padding:4px 12px 2px;flex-shrink:0;">
                 <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando rendimientos…</div>
+              </div>
+
+              <!-- Histórico de cumplimiento (30 días) -->
+              <div class="cq-sec-hd" style="position:relative;border-top:1px solid var(--border)">
+                <div class="cq-sec-dot" style="background:#60a5fa"></div>
+                <div class="cq-sec-title">Cumplimiento · <span id="cq-cumpl-sub">últimos 30 días</span></div>
+              </div>
+              <div id="cq-cumpl" style="padding:9px 12px;overflow-y:auto;flex:1;min-height:0;">
+                <div class="cq-cumpl-stats" id="cq-cumpl-stats"></div>
+                <div class="cq-cumpl-strip" id="cq-cumpl-strip"><span style="font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</span></div>
+                <div class="cq-cumpl-legend">
+                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:#22c995"></span>Conforme</div>
+                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:#f0b033"></span>Ajustado</div>
+                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:#e54a64"></span>Incumple</div>
+                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:var(--border)"></span>Sin dato</div>
+                </div>
               </div>
 
             </div><!-- /#cq-center -->
@@ -9206,12 +9247,20 @@ if(typeof waitForFirebase==='function'){
 
   /* ─── TRH ───────────────────────────────────────────────────────────────── */
   function calcTRH(ST){
-    const fechas = Object.keys(ST.caudales||{}).sort();
-    if(!fechas.length) return null;
-    for(let i=fechas.length-1;i>=0;i--){
-      const q = ST.caudales[fechas[i]];
-      const Q = (+(q&&q.edari)||0) + (+(q&&q.edaru)||0);
-      if(Q>0){ const V=2167.9; return (V/Q*24); }
+    const V=2167.9;
+    // 1) Preferir el caudal del biológico (reactor.caudal_bio), que es el que atraviesa el reactor EDARi
+    const fr=Object.keys(ST.reactor||{}).sort();
+    for(let i=fr.length-1;i>=0;i--){
+      const r=ST.reactor[fr[i]];
+      const Qb=+(r&&r.caudal_bio)||0;
+      if(Qb>0) return V/Qb*24;
+    }
+    // 2) Alternativa: caudal de entrada de EDARi (no se suma EDARu, que no pasa por este reactor)
+    const fc=Object.keys(ST.caudales||{}).sort();
+    for(let i=fc.length-1;i>=0;i--){
+      const q=ST.caudales[fc[i]];
+      const Qi=+(q&&q.edari)||0;
+      if(Qi>0) return V/Qi*24;
     }
     return null;
   }
@@ -9236,72 +9285,122 @@ if(typeof waitForFirebase==='function'){
   function cqDibujaCaudal(){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
-    const dias=ultimosDias(ST.caudales,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const pl=(typeof cqPlanta!=='undefined')?cqPlanta:'edari';
+    const key=pl==='edari'?'edari':'edaru';
+    const col=pl==='edari'?'var(--accent,#3aafe8)':'var(--purple,#9788e6)';
+    const lbl=pl==='edari'?'EDARi':'EDARu';
+    const ti=document.getElementById('cq-caudal-title'); if(ti) ti.textContent='Caudal entrada '+lbl;
+    const lg=document.getElementById('cq-caudal-leg'); if(lg) lg.innerHTML='<div class="cq-leg-item"><div class="cq-leg-dot" style="background:'+col+'"></div>'+lbl+'</div>';
+    const dias=ultimosDias(ST.caudales,30,v=>v&&(+v[key]>0));
     const cont=document.getElementById('cq-caudal-chart');
     if(!cont) return;
-    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos de caudal</div>'; return; }
-    const datos=dias.map(f=>({f, i:(ST.caudales[f]||{}).edari, u:(ST.caudales[f]||{}).edaru}));
+    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos de caudal ('+lbl+')</div>'; const tv=document.getElementById('cq-caudal-val'); if(tv) tv.innerHTML='— <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span>'; const tm=document.getElementById('cq-caudal-meta'); if(tm) tm.textContent=lbl+' · sin datos'; return; }
+    const datos=dias.map(f=>({f, v:(ST.caudales[f]||{})[key]}));
     const contH=Math.max(60,cont.clientHeight||90);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
-    const valsI=datos.map(d=>d.i).filter(v=>v!=null&&!isNaN(v));
-    const valsU=datos.map(d=>d.u).filter(v=>v!=null&&!isNaN(v));
-    const allV=[...valsI,...valsU].filter(Boolean);
-    if(!allV.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos</div>'; return; }
-    const minV=Math.min(...allV),maxV=Math.max(...allV),rng=maxV-minV||1;
+    const vals=datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v));
+    if(!vals.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos</div>'; return; }
+    const minV=Math.min(...vals),maxV=Math.max(...vals),rng=maxV-minV||1;
     const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
     const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
-    function poly(key){return datos.map((d,i)=>{const yy=y(d[key]);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');}
-    function pts(key,color,lbl){return datos.map((d,i)=>{const yy=y(d[key]);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="${color}" stroke="var(--surface)" stroke-width="1" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d[key])} m³/d"/>`;}).join('');}
+    const poly=datos.map((d,i)=>{const yy=y(d.v);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
+    const pts=datos.map((d,i)=>{const yy=y(d.v);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="${col}" stroke="var(--surface)" stroke-width="1" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d.v)} m³/d"/>`;}).join('');
     const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
     const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(minV)}</text>`;
     const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
     cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
       <line x1="${PL}" y1="${PT+gH/2}" x2="${W-PR}" y2="${PT+gH/2}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
-      ${poly('i')?`<polyline points="${poly('i')}" fill="none" stroke="var(--accent,#3aafe8)" stroke-width="1.6" stroke-linejoin="round"/>`:''} 
-      ${poly('u')?`<polyline points="${poly('u')}" fill="none" stroke="var(--purple,#9788e6)" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="4,2"/>`:''} 
-      ${pts('i','var(--accent,#3aafe8)','EDARi')}${pts('u','var(--purple,#9788e6)','EDARu')}
-      ${yL}${xL}
+      ${poly?`<polyline points="${poly}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/>`:''}
+      ${pts}${yL}${xL}
     </svg>`;
-    const lastI=[...datos].reverse().find(d=>d.i!=null);
-    const mediaI=valsI.length?valsI.reduce((a,v)=>a+v,0)/valsI.length:null;
-    const mediaU=valsU.length?valsU.reduce((a,v)=>a+v,0)/valsU.length:null;
+    const last=[...datos].reverse().find(d=>d.v!=null);
+    const media=vals.reduce((a,v)=>a+v,0)/vals.length;
     const tv=document.getElementById('cq-caudal-val');
-    if(tv) tv.innerHTML=_fmtK(lastI?lastI.i:null)+' <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span>';
+    if(tv) tv.innerHTML=_fmtK(last?last.v:null)+' <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span>';
     const tm=document.getElementById('cq-caudal-meta');
-    if(tm) tm.textContent=`EDARI+EDARU · ${dias.length} días · media: ${_fmtK(mediaI)} / ${_fmtK(mediaU)} m³/d`;
+    if(tm) tm.textContent=`${lbl} · ${dias.length} días · media: ${_fmtK(media)} m³/d`;
   }
 
   function cqDibujaConsumo(){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
-    const dias=ultimosDias(ST.consumo,30,v=>v&&((+v.edari>0)||(+v.edaru>0)));
+    const pl=(typeof cqPlanta!=='undefined')?cqPlanta:'edari';
+    const key=pl==='edari'?'edari':'edaru';
+    const col=pl==='edari'?'var(--accent,#3aafe8)':'var(--purple,#9788e6)';
+    const lbl=pl==='edari'?'EDARi':'EDARu';
+    const ti=document.getElementById('cq-elec-title'); if(ti) ti.textContent='Consumo eléctrico '+lbl;
+    const lg=document.getElementById('cq-elec-leg'); if(lg) lg.innerHTML='<div class="cq-leg-item"><div class="cq-leg-dot" style="background:'+col+'"></div>'+lbl+'</div>';
+    const dias=ultimosDias(ST.consumo,30,v=>v&&(+v[key]>0));
     const cont=document.getElementById('cq-elec-chart');
     if(!cont) return;
-    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos</div>'; return; }
-    const datos=dias.map(f=>({f,i:(ST.consumo[f]||{}).edari||0,u:(ST.consumo[f]||{}).edaru||0}));
-    const totales=datos.map(d=>d.i+d.u), maxT=Math.max(...totales,1);
+    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos ('+lbl+')</div>'; const tv=document.getElementById('cq-elec-val'); if(tv) tv.innerHTML='— <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span>'; const tm=document.getElementById('cq-elec-meta'); if(tm) tm.textContent=lbl+' · sin datos'; return; }
+    const datos=dias.map(f=>({f,v:(ST.consumo[f]||{})[key]||0}));
+    const maxT=Math.max(...datos.map(d=>d.v),1);
     const contH=Math.max(60,cont.clientHeight||90);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
     const bw=gW/datos.length;
     const barras=datos.map((d,k)=>{
       const xx=(PL+k*bw+0.5).toFixed(1), w=Math.max(1,bw-1.2).toFixed(1);
-      const hI=((d.i/maxT)*gH).toFixed(1), hU=((d.u/maxT)*gH).toFixed(1);
-      const yI=(PT+gH-+hI).toFixed(1), yU=(PT+gH-+hI-+hU).toFixed(1);
-      return `<rect class="br-int" x="${xx}" y="${yI}" width="${w}" height="${hI}" fill="var(--accent,#3aafe8)" opacity="0.7" data-tip="EDARi|${_fmtDM(d.f)}|${_fmtK(d.i)} kWh"/>
-              <rect class="br-int" x="${xx}" y="${yU}" width="${w}" height="${hU}" fill="var(--purple,#9788e6)" opacity="0.7" data-tip="EDARu|${_fmtDM(d.f)}|${_fmtK(d.u)} kWh"/>`;
+      const h=((d.v/maxT)*gH).toFixed(1), yy=(PT+gH-+h).toFixed(1);
+      return `<rect class="br-int" x="${xx}" y="${yy}" width="${w}" height="${h}" fill="${col}" opacity="0.75" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d.v)} kWh"/>`;
     }).join('');
     const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
     const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxT)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">0</text>`;
     const xL=idxs.map(i=>`<text x="${(PL+i*bw+bw/2).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
     cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">${barras}${yL}${xL}</svg>`;
-    const totMes=datos.reduce((a,d)=>a+d.i+d.u,0), media=totMes/datos.length;
+    const totMes=datos.reduce((a,d)=>a+d.v,0), media=totMes/datos.length;
     const tv=document.getElementById('cq-elec-val');
     if(tv) tv.innerHTML=_fmtK(totMes)+' <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span>';
     const tm=document.getElementById('cq-elec-meta');
-    if(tm) tm.textContent=`EDARI+EDARU · ${dias.length} días · media: ${_fmtK(media)} kWh/d`;
+    if(tm) tm.textContent=`${lbl} · ${dias.length} días · media: ${_fmtK(media)} kWh/d`;
+  }
+
+  /* Tercer gráfico para EDARu: Turbidez (NTU) o, si no hay, DQO salida */
+  function cqDibujaChart3EDARu(ST){
+    const cont=document.getElementById('cq-fango-chart');
+    if(!cont) return;
+    const SMS=ST.sms_datos||{}, R=ST.reactor||{};
+    const keysSms=Object.keys(SMS).sort(), keysR=Object.keys(R).sort();
+    const ks=keysSms.length?keysSms:keysR;
+    const subU=f=>(SMS[f]&&SMS[f].edaru)||(R[f]&&R[f].edaru)||null;
+    const tieneNtu=ks.some(f=>{const s=subU(f);return s&&s.ntu!=null&&s.ntu!==''&&!isNaN(+s.ntu);});
+    const field=tieneNtu?'ntu':'dqo_sal';
+    const titulo=tieneNtu?'Turbidez efluente':'DQO salida';
+    const unidad=tieneNtu?'NTU':'mg/L';
+    const col='#a78bfa';
+    const ti=document.getElementById('cq-fango-title'); if(ti) ti.textContent=titulo+' EDARu';
+    const tvEl=document.getElementById('cq-fango-val');
+    const tmEl=document.getElementById('cq-fango-meta');
+    const dias=ks.filter(f=>{const s=subU(f);return s&&s[field]!=null&&s[field]!==''&&!isNaN(+s[field]);}).slice(-30);
+    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos EDARu</div>'; if(tvEl) tvEl.innerHTML='— <span style="font-size:12px;font-weight:400;color:var(--muted)">'+unidad+'</span>'; if(tmEl) tmEl.textContent='EDARu · sin datos'; return; }
+    const datos=dias.map(f=>({f,v:+subU(f)[field]}));
+    const vals=datos.map(d=>d.v).filter(v=>!isNaN(v));
+    const contH=Math.max(60,cont.clientHeight||85);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const minV=Math.min(...vals),maxV=Math.max(...vals),rng=maxV-minV||1;
+    const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
+    const y=v=>PT+gH-(v-minV)/rng*gH;
+    const poly=datos.map((d,i)=>x(i).toFixed(1)+','+y(d.v).toFixed(1)).join(' ');
+    let areaPath='';
+    if(datos.length>=2){ const yB=(PT+gH).toFixed(1); areaPath=`<polygon points="${poly} ${x(datos.length-1).toFixed(1)},${yB} ${x(0).toFixed(1)},${yB}" fill="${col}" opacity="0.10"/>`; }
+    const pts=datos.map((d,i)=>`<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="2.2" fill="${col}" stroke="var(--surface)" stroke-width="1" data-tip="${titulo}|${_fmtDM(d.f)}|${_fmtK(d.v)} ${unidad}"/>`).join('');
+    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(minV)}</text>`;
+    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
+      ${areaPath}
+      ${poly?`<polyline points="${poly}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`:''}
+      ${pts}${yL}${xL}
+    </svg>`;
+    const ult=[...datos].reverse().find(d=>!isNaN(d.v));
+    if(tvEl) tvEl.innerHTML=(ult?_fmtK(ult.v):'—')+' <span style="font-size:12px;font-weight:400;color:var(--muted)">'+unidad+'</span>';
+    if(tmEl) tmEl.textContent=`EDARu · ${dias.length} días · ${ult?_fmtDM(ult.f):'—'}`;
   }
 
   function cqDibujaEdadFango(){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
+    const _pl=(typeof cqPlanta!=='undefined')?cqPlanta:'edari';
+    { const _tv=document.getElementById('cq-fango-val'); if(_tv) _tv.style.color=_pl==='edaru'?'#a78bfa':'#f59e0b'; }
+    if(_pl==='edaru'){ cqDibujaChart3EDARu(ST); return; }
+    { const _ti=document.getElementById('cq-fango-title'); if(_ti) _ti.textContent='Edad de fango'; }
     const dias=ultimosDias(ST.reactor,30,v=>v&&(+v.ss_reactor_gl>0)&&(+v.q_purga>0)&&(+v.ss_recirc_gl>0)); // vol_reactor usa 2167.9 si está vacío
     const cont=document.getElementById('cq-fango-chart');
     if(!cont) return;
@@ -9474,54 +9573,79 @@ if(typeof waitForFirebase==='function'){
 
   }
 
-  /* ─── Cuadro de mando: cumplimiento RD 509/1996 + decisión ──────────────── */
+  /* ─── Cuadro de mando: cumplimiento RD 509/1996 + decisión (por planta) ─── */
   const _CQ_OK='#22c995', _CQ_WARN='#f0b033', _CQ_BAD='#e54a64';
-  const _CQ_EF_ALIAS={
+  const _CQ_LIM={dbo:25,dqo:125,sst:35,nt:15,pt:2};
+  // EDARi: campos planos del nodo reactor (efluente real medido, juego completo)
+  const _CQ_EDARI_EF={
     dbo:['dbo_ef','DBO EFLUENTE','dbo_efluente','dbo5_ef'],
     dqo:['dqo_ef','DQO EFLUENTE','dqo_efluente'],
     sst:['ss_efluente','SS EFLUENTE','sst_efluente','ss_ef'],
     nt: ['nt_ef','NT EFLUENTE','nt_efluente'],
     pt: ['pt_ef','PT EFLUENTE','pt_efluente'],
   };
-  const _CQ_PARAMS=[
-    {id:'dbo',lbl:'DBO₅',lim:25},
-    {id:'dqo',lbl:'DQO', lim:125},
-    {id:'sst',lbl:'SST', lim:35},
-    {id:'nt', lbl:'NT',  lim:15},
-    {id:'pt', lbl:'PT',  lim:2},
-  ];
+  let cqPlanta='edari';
+  window.cqSetPlanta=function(p){
+    if(p!=='edari'&&p!=='edaru') return;
+    cqPlanta=p;
+    document.querySelectorAll('.cq-plant-btn').forEach(b=>b.classList.toggle('active', b.getAttribute('data-plant')===p));
+    const note=document.getElementById('cq-plant-note');
+    if(note) note.textContent = p==='edari' ? 'Línea biológica · reactor 2.167,9 m³ · 5 parámetros RD 509/1996' : 'Línea EDARu · control de DQO y SST (no mide DBO/NT/PT)';
+    if(typeof cqRedibujarTodo==='function') cqRedibujarTodo(); else cqUpdateDecision();
+  };
+
   function cqUpdateDecision(ST){
-    ST = ST || (window._cqGetDatos?window._cqGetDatos():(window._ST_dash||{reactor:{},caudales:{}}));
-    const R=ST.reactor||{}, fechas=Object.keys(R).sort();
+    ST = ST || (window._cqGetDatos?window._cqGetDatos():(window._ST_dash||{reactor:{},caudales:{},sms_datos:{}}));
+    const R=ST.reactor||{}, SMS=ST.sms_datos||{}, fechas=Object.keys(R).sort(), fechasSms=Object.keys(SMS).sort();
     const OK=_CQ_OK, WARN=_CQ_WARN, BAD=_CQ_BAD, MUT='var(--muted)';
-    // último valor válido de un campo (con alias)
-    function ultimo(al){
-      for(let i=fechas.length-1;i>=0;i--){ const r=R[fechas[i]]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:fechas[i]}; } }
-      return null;
-    }
-    // serie temporal para tendencia
-    function serie(al){ const out=[]; for(const f of fechas){ const r=R[f]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)){ out.push(+v); break; } } } return out; }
-    function tendencia(s){ if(s.length<2) return null; const last=s[s.length-1], prev=s[Math.max(0,s.length-1-7)]; return {last,prev,delta:last-prev}; }
     const fmtVal=v=>v>=100?String(Math.round(v)):v.toFixed(v<10?1:0);
+    const planta=cqPlanta, plantaLbl=planta==='edari'?'EDARi':'EDARu';
+    // Acceso EDARi (campos planos del reactor)
+    function ultimoR(al){ for(let i=fechas.length-1;i>=0;i--){ const r=R[fechas[i]]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:fechas[i]}; } } return null; }
+    function serieR(al){ const out=[]; for(const f of fechas){ const r=R[f]||{}; for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)){ out.push(+v); break; } } } return out; }
+    // Acceso EDARu (subobjeto sms_datos[fecha].edaru; fallback reactor[fecha].edaru)
+    function subU(f){ return (SMS[f]&&SMS[f].edaru)||(R[f]&&R[f].edaru)||null; }
+    function ultimoU(field){ const ks=fechasSms.length?fechasSms:fechas; for(let i=ks.length-1;i>=0;i--){ const s=subU(ks[i]); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:ks[i]}; } } return null; }
+    function serieU(field){ const out=[]; const ks=fechasSms.length?fechasSms:fechas; for(const f of ks){ const s=subU(f); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) out.push(+v); } } return out; }
+    function tendencia(s){ if(s.length<2) return null; const last=s[s.length-1], prev=s[Math.max(0,s.length-1-7)]; return {last,prev,delta:last-prev}; }
+
+    // Slots fijos (dbo, dqo, sst, nt, pt) con fuente según planta
+    let slots;
+    if(planta==='edari'){
+      slots=[
+        {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, get:()=>ultimoR(_CQ_EDARI_EF.dbo), ser:()=>serieR(_CQ_EDARI_EF.dbo)},
+        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, get:()=>ultimoR(_CQ_EDARI_EF.dqo), ser:()=>serieR(_CQ_EDARI_EF.dqo)},
+        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, get:()=>ultimoR(_CQ_EDARI_EF.sst), ser:()=>serieR(_CQ_EDARI_EF.sst)},
+        {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  get:()=>ultimoR(_CQ_EDARI_EF.nt),  ser:()=>serieR(_CQ_EDARI_EF.nt)},
+        {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  get:()=>ultimoR(_CQ_EDARI_EF.pt),  ser:()=>serieR(_CQ_EDARI_EF.pt)},
+      ];
+    } else {
+      slots=[
+        {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, nd:true},
+        {id:'dqo',lbl:'DQO', lim:_CQ_LIM.dqo, get:()=>ultimoU('dqo_sal'), ser:()=>serieU('dqo_sal')},
+        {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, get:()=>ultimoU('sst_sal'), ser:()=>serieU('sst_sal')},
+        {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  nd:true},
+        {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  nd:true},
+      ];
+    }
 
     let excedidos=[], ajustados=[], nConDato=0;
-    _CQ_PARAMS.forEach(p=>{
-      const al=_CQ_EF_ALIAS[p.id];
+    slots.forEach(p=>{
       const vEl=document.getElementById('cq-c-'+p.id+'-v');
       const sEl=document.getElementById('cq-c-'+p.id+'-s');
       const bEl=document.getElementById('cq-c-'+p.id+'-b');
       const tEl=document.getElementById('cq-c-'+p.id+'-tr');
       if(!vEl) return;
-      const u=ultimo(al);
+      if(p.nd){ vEl.textContent='s/d'; vEl.style.color='var(--muted)'; if(sEl) sEl.textContent='No medido en EDARu'; if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
+      const u=p.get();
       if(!u){ vEl.textContent='—'; vEl.style.color=''; if(sEl) sEl.textContent='Límite '+p.lim+' · sin dato'; if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
       nConDato++;
-      const val=u.v, ratio=val/p.lim;
-      const st = ratio>1?BAD : ratio>0.85?WARN : OK;
+      const val=u.v, ratio=val/p.lim, st=ratio>1?BAD:ratio>0.85?WARN:OK;
       vEl.textContent=fmtVal(val); vEl.style.color=st;
       const margen=(p.lim-val)/p.lim*100;
       if(sEl) sEl.innerHTML='Límite '+p.lim+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
       if(bEl){ bEl.style.width=Math.min(100,ratio*100).toFixed(0)+'%'; bEl.style.background=st; }
-      const tr=tendencia(serie(al));
+      const tr=tendencia(p.ser());
       if(tEl){
         if(tr && Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0, col=baja?OK:BAD, ar=baja?'▼':'▲'; tEl.innerHTML='<span style="color:'+col+'">'+ar+' '+Math.abs(tr.delta).toFixed(tr.last<10?1:0)+'</span>'; }
         else tEl.innerHTML='<span style="color:'+MUT+'">▬</span>';
@@ -9539,39 +9663,99 @@ if(typeof waitForFirebase==='function'){
       else { vb.textContent='✓ CONFORME'; vb.style.background='rgba(34,201,149,.15)'; vb.style.color=OK; vb.style.borderColor=OK; }
     }
 
-    // Estado de proceso (chips)
-    const chips=[];
+    // Estado de proceso (chips) + recomendaciones, por planta
+    const chips=[], recos=[];
     const chip=(k,v,col)=>'<span class="cq-chip"><span class="cq-chip-dot" style="background:'+col+'"></span><span class="cq-chip-k">'+k+'</span> <span class="cq-chip-v" style="color:'+col+'">'+v+'</span></span>';
-    let edad=null;
-    for(let i=fechas.length-1;i>=0;i--){ const e=calcEdadFango(R[fechas[i]]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; break; } }
-    if(edad!=null){ const col=(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD; chips.push(chip('Edad fango',edad.toFixed(1)+' d',col)); }
-    let sstMg=null; const sstU=ultimo(['ss_reactor_gl']);
-    if(sstU){ sstMg=Math.round(sstU.v*1000); const col=(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD; chips.push(chip('SST reactor',sstMg.toLocaleString('es-ES')+' mg/L',col)); }
-    const trh=calcTRH(ST);
-    if(trh!=null){ const col=trh>=6?OK:(trh>=4?WARN:BAD); chips.push(chip('TRH',trh.toFixed(1)+' h',col)); }
-    const cf=Object.keys(ST.caudales||{}).sort();
-    for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const Q=(+(q&&q.edari)||0)+(+(q&&q.edaru)||0); if(Q>0){ chips.push(chip('Caudal','~'+_fmtK(Q)+' m³/d','var(--accent)')); break; } }
-    const pc=document.getElementById('cq-proc-chips');
-    if(pc) pc.innerHTML=chips.length?chips.join(''):'<span class="cq-chip"><span class="cq-chip-k">Sin datos de proceso</span></span>';
+    excedidos.forEach(x=>recos.push({ic:'⛔',col:BAD,tx:'Incumplimiento de efluente ('+plantaLbl+'): '+x.lbl+' '+x.val+' mg/L supera el límite RD 509/1996 ('+x.lim+'). Verificar el proceso y registrar la no conformidad.'}));
 
-    // Recomendaciones operativas (heurísticas ligadas a umbrales)
-    const recos=[];
-    excedidos.forEach(x=>recos.push({ic:'⛔',col:BAD,tx:'Incumplimiento de efluente: '+x.lbl+' '+x.val+' mg/L supera el límite RD 509/1996 ('+x.lim+'). Verificar decantación/proceso y registrar la no conformidad.'}));
-    if(edad!=null){
-      if(edad>22) recos.push({ic:'▲',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por encima de la banda óptima (15–20 d). Un SRT elevado favorece bacterias filamentosas (p. ej. Microthrix); valorar aumentar la purga.'});
-      else if(edad<12) recos.push({ic:'▼',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por debajo de 15 d: riesgo de nitrificación incompleta; valorar reducir la purga.'});
+    if(planta==='edari'){
+      let edad=null;
+      for(let i=fechas.length-1;i>=0;i--){ const e=calcEdadFango(R[fechas[i]]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; break; } }
+      if(edad!=null){ const col=(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD; chips.push(chip('Edad fango',edad.toFixed(1)+' d',col)); }
+      let sstMg=null; const sstU=ultimoR(['ss_reactor_gl']);
+      if(sstU){ sstMg=Math.round(sstU.v*1000); const col=(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD; chips.push(chip('SST reactor',sstMg.toLocaleString('es-ES')+' mg/L',col)); }
+      const trh=calcTRH(ST);
+      if(trh!=null){ const col=trh>=6?OK:(trh>=4?WARN:BAD); chips.push(chip('TRH',trh.toFixed(1)+' h',col)); }
+      const cf=Object.keys(ST.caudales||{}).sort();
+      for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const Qi=+(q&&q.edari)||0; if(Qi>0){ chips.push(chip('Caudal EDARi','~'+_fmtK(Qi)+' m³/d','var(--accent)')); break; } }
+      if(edad!=null){
+        if(edad>22) recos.push({ic:'▲',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por encima de la banda óptima (15–20 d). Un SRT elevado favorece bacterias filamentosas (p. ej. Microthrix); valorar aumentar la purga.'});
+        else if(edad<12) recos.push({ic:'▼',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por debajo de 15 d: riesgo de nitrificación incompleta; valorar reducir la purga.'});
+      }
+      if(sstMg!=null){
+        if(sstMg>4500) recos.push({ic:'▲',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L elevado: revisar recirculación/purga y carga de sólidos al decantador.'});
+        else if(sstMg<1800) recos.push({ic:'▼',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L bajo: biomasa posiblemente insuficiente para la carga.'});
+      }
+      if(trh!=null&&trh<6) recos.push({ic:'▲',col:WARN,tx:'TRH '+trh.toFixed(1)+' h por debajo de 6 h: posible sobrecarga hidráulica; vigilar la sedimentación.'});
+    } else {
+      const cf=Object.keys(ST.caudales||{}).sort();
+      for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const Qu=+(q&&q.edaru)||0; if(Qu>0){ chips.push(chip('Caudal EDARu','~'+_fmtK(Qu)+' m³/d','var(--accent)')); break; } }
+      const dqoE=ultimoU('dqo_ent'), dqoS=ultimoU('dqo_sal');
+      if(dqoE&&dqoS&&dqoE.v>0){ const rend=Math.max(0,(dqoE.v-dqoS.v)/dqoE.v*100); const col=rend>=75?OK:rend>=60?WARN:BAD; chips.push(chip('Rend. DQO',rend.toFixed(0)+' %',col)); if(rend<75) recos.push({ic:'▼',col:WARN,tx:'Rendimiento de DQO en EDARu '+rend.toFixed(0)+' % por debajo del 75 % de referencia: revisar la línea de tratamiento.'}); }
+      const sstE=ultimoU('sst_ent'), sstS=ultimoU('sst_sal');
+      if(sstE&&sstS&&sstE.v>0){ const rend=Math.max(0,(sstE.v-sstS.v)/sstE.v*100); const col=rend>=80?OK:rend>=60?WARN:BAD; chips.push(chip('Rend. SST',rend.toFixed(0)+' %',col)); }
+      const ntu=ultimoU('ntu');
+      if(ntu){ const col=ntu.v<=20?OK:ntu.v<=40?WARN:BAD; chips.push(chip('Turbidez',ntu.v.toFixed(1)+' NTU',col)); if(ntu.v>40) recos.push({ic:'▲',col:WARN,tx:'Turbidez del efluente EDARu '+ntu.v.toFixed(1)+' NTU elevada: posible arrastre de sólidos.'}); }
+      const ce=ultimoU('ce');
+      if(ce){ chips.push(chip('Conductividad',_fmtK(ce.v)+' µS/cm','var(--accent)')); }
     }
-    if(sstMg!=null){
-      if(sstMg>4500) recos.push({ic:'▲',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L elevado: revisar recirculación/purga y carga de sólidos al decantador.'});
-      else if(sstMg<1800) recos.push({ic:'▼',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L bajo: biomasa posiblemente insuficiente para la carga.'});
-    }
-    if(trh!=null&&trh<6) recos.push({ic:'▲',col:WARN,tx:'TRH '+trh.toFixed(1)+' h por debajo de 6 h: posible sobrecarga hidráulica; vigilar la sedimentación.'});
+
+    const pc=document.getElementById('cq-proc-chips');
+    if(pc) pc.innerHTML=chips.length?chips.join(''):'<span class="cq-chip"><span class="cq-chip-k">Sin datos de proceso ('+plantaLbl+')</span></span>';
+
     ajustados.forEach(p=>recos.push({ic:'⚠',col:WARN,tx:'Margen ajustado en '+p+' (por encima del 85 % del límite): parámetro a vigilar de cerca.'}));
-    if(!recos.length) recos.push({ic:'✓',col:OK,tx:nConDato?'Efluente conforme y proceso dentro de las bandas de referencia. Sin acciones requeridas.':'Sin datos suficientes. Carga el SMS Diario (M-04) para evaluar el estado del proceso.'});
+    if(!recos.length) recos.push({ic:'✓',col:OK,tx:nConDato?'Efluente conforme y proceso dentro de las bandas de referencia. Sin acciones requeridas.':'Sin datos suficientes para '+plantaLbl+'. Carga el SMS Diario (M-04) para evaluar el estado.'});
     const rl=document.getElementById('cq-reco-list');
     if(rl) rl.innerHTML=recos.map(r=>'<div class="cq-reco-item"><span class="cq-reco-ic" style="color:'+r.col+'">'+r.ic+'</span><span class="cq-reco-tx'+(r.col===OK?' cq-reco-ok':'')+'">'+r.tx+'</span></div>').join('');
-  }
 
+    // ── Histórico de cumplimiento (30 días) ──────────────────────────────────
+    const stripEl=document.getElementById('cq-cumpl-strip');
+    if(stripEl){
+      const _pick=(r,al)=>{ for(const a of al){ const v=r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return +v; } return null; };
+      let fuente, evalDia;
+      if(planta==='edari'){
+        fuente=fechas;
+        evalDia=d=>{ const r=R[d]||{}; return [
+          {lbl:'DBO₅',v:_pick(r,_CQ_EDARI_EF.dbo),lim:_CQ_LIM.dbo},
+          {lbl:'DQO', v:_pick(r,_CQ_EDARI_EF.dqo),lim:_CQ_LIM.dqo},
+          {lbl:'SST', v:_pick(r,_CQ_EDARI_EF.sst),lim:_CQ_LIM.sst},
+          {lbl:'NT',  v:_pick(r,_CQ_EDARI_EF.nt), lim:_CQ_LIM.nt},
+          {lbl:'PT',  v:_pick(r,_CQ_EDARI_EF.pt), lim:_CQ_LIM.pt},
+        ]; };
+      } else {
+        fuente=fechasSms.length?fechasSms:fechas;
+        evalDia=d=>{ const s=subU(d)||{}; const g=k=>(s[k]!=null&&s[k]!==''&&!isNaN(+s[k]))?+s[k]:null; return [
+          {lbl:'DQO',v:g('dqo_sal'),lim:_CQ_LIM.dqo},
+          {lbl:'SST',v:g('sst_sal'),lim:_CQ_LIM.sst},
+        ]; };
+      }
+      const dias=fuente.slice(-30);
+      const evals=dias.map(d=>{
+        const items=evalDia(d).filter(it=>it.v!=null);
+        if(!items.length) return {d,estado:'nd',exc:[]};
+        let exc=[], warn=false;
+        items.forEach(it=>{ const ratio=it.v/it.lim; if(ratio>1) exc.push(it.lbl+' '+(it.v>=100?Math.round(it.v):(+it.v).toFixed(1))); else if(ratio>0.85) warn=true; });
+        return {d,estado:exc.length?'bad':(warn?'warn':'ok'),exc};
+      });
+      let conData=0, conformes=0, incumpl=0, racha=0;
+      const cells=evals.map(e=>{
+        if(e.estado!=='nd'){ conData++; if(e.estado==='bad') incumpl++; else conformes++; }
+        const col=e.estado==='ok'?OK:e.estado==='warn'?WARN:e.estado==='bad'?BAD:'var(--border)';
+        const tip=_fmtDM(e.d)+' · '+(e.estado==='nd'?'sin datos':e.estado==='bad'?('incumple: '+e.exc.join(', ')):e.estado==='warn'?'margen ajustado':'conforme');
+        return '<div class="cq-cumpl-cell" style="background:'+col+'" title="'+tip+'"></div>';
+      });
+      for(let i=evals.length-1;i>=0;i--){ const e=evals[i]; if(e.estado==='nd') continue; if(e.estado!=='bad') racha++; else break; }
+      stripEl.innerHTML=cells.length?cells.join(''):'<span style="font-size:9px;color:var(--muted);font-family:var(--mono)">Sin datos en el periodo</span>';
+      const pct=conData?Math.round(conformes/conData*100):null;
+      const stEl=document.getElementById('cq-cumpl-stats');
+      if(stEl) stEl.innerHTML=
+        '<div class="cq-cumpl-stat"><div class="cq-cumpl-stat-v" style="color:'+(pct==null?'var(--muted)':pct>=95?OK:pct>=80?WARN:BAD)+'">'+(pct==null?'—':pct+'%')+'</div><div class="cq-cumpl-stat-l">Conformidad</div></div>'+
+        '<div class="cq-cumpl-stat"><div class="cq-cumpl-stat-v" style="color:'+(racha>0?OK:'var(--muted)')+'">'+racha+'</div><div class="cq-cumpl-stat-l">Racha conforme</div></div>'+
+        '<div class="cq-cumpl-stat"><div class="cq-cumpl-stat-v" style="color:'+(incumpl>0?BAD:OK)+'">'+incumpl+'</div><div class="cq-cumpl-stat-l">Incumplim.</div></div>';
+      const subEl=document.getElementById('cq-cumpl-sub');
+      if(subEl) subEl.textContent=conData?(conData+' días con dato · '+plantaLbl):'sin datos · '+plantaLbl;
+    }
+  }
   function cqRedibujarTodo(){
     cqActualizaKPIs();
     cqUpdateDecision();
