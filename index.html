@@ -582,6 +582,11 @@ body.theme-midnight .da-card{background:linear-gradient(135deg,#161616,#111111);
 
 /* ── THEME PICKER UI ── */
 .theme-picker{position:relative;}
+.p-lang-btn{display:flex;align-items:center;gap:4px;width:auto;padding:0 8px;}
+.p-lang-code{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--muted);}
+.p-lang-btn:hover .p-lang-code{color:var(--accent);}
+.lang-flag{display:flex;align-items:center;justify-content:center;font-size:16px;}
+body.theme-light .p-lang-code{color:#64748b;}
 .theme-dropdown{
   display:none;
   position:absolute;
@@ -1142,71 +1147,71 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
       <div class="sb-nav">
         <button class="sb-btn active" id="sb-portal" onclick="sbNav('portal')" aria-label="Portal">
           <i class="ti ti-layout-dashboard" aria-hidden="true"></i>
-          <div class="sb-tip">PORTAL</div>
+          <div class="sb-tip" data-i18n="sbPortal">PORTAL</div>
         </button>
         <button class="sb-btn" id="sb-proceso" onclick="sbNav('proceso')" aria-label="Simulador">
           <i class="ti ti-cpu" aria-hidden="true"></i>
-          <div class="sb-tip">SIMULADOR</div>
+          <div class="sb-tip" data-i18n="sbSimulador">SIMULADOR</div>
         </button>
         <button class="sb-btn" id="sb-analitica" onclick="sbNav('analitica')" aria-label="Macroscopía y microscopía">
           <i class="ti ti-chart-line" aria-hidden="true"></i>
-          <div class="sb-tip">MACRO/MICRO</div>
+          <div class="sb-tip" data-i18n="sbMacroMicro">MACRO/MICRO</div>
         </button>
         <button class="sb-btn" id="sb-zonas" onclick="sbNav('zonas')" aria-label="Zonas anóxicas">
           <i class="ti ti-ripple" aria-hidden="true"></i>
-          <div class="sb-tip">ZONAS ANÓX.</div>
+          <div class="sb-tip" data-i18n="sbZonas">ZONAS ANÓX.</div>
         </button>
         <div class="sb-sep"></div>
         <button class="sb-btn" id="sb-informes" onclick="sbNav('informes')" aria-label="Informes">
           <i class="ti ti-file-analytics" aria-hidden="true"></i>
-          <div class="sb-tip">INFORMES</div>
+          <div class="sb-tip" data-i18n="sbInformes">INFORMES</div>
         </button>
         <button class="sb-btn" id="sb-alertas" onclick="sbNav('alertas')" aria-label="Alertas">
           <i class="ti ti-bell" aria-hidden="true"></i>
-          <div class="sb-tip">ALERTAS</div>
+          <div class="sb-tip" data-i18n="sbAlertas">ALERTAS</div>
           <span class="sb-badge" id="alertas-badge" style="display:none">0</span>
           <span id="alertas-asterisk" style="display:none;position:absolute;top:3px;right:4px;font-size:14px;font-weight:900;color:#ef4444;line-height:1;pointer-events:none;text-shadow:0 0 6px #ef444488;">*</span>
         </button>
         <button class="sb-btn" id="sb-descargas" onclick="toggleDownloads()" aria-label="Descargas">
           <i class="ti ti-download" aria-hidden="true"></i>
-          <div class="sb-tip">DESCARGAS</div>
+          <div class="sb-tip" data-i18n="sbDescargas">DESCARGAS</div>
           <span class="sb-badge" id="dl-badge" style="display:none">0</span>
         </button>
         <button class="sb-btn" id="sb-cargar-datos" onclick="toggleCargaPan()" aria-label="Cargar datos diarios">
           <i class="ti ti-database-import" aria-hidden="true"></i>
-          <div class="sb-tip">CARGAR DATOS</div>
+          <div class="sb-tip" data-i18n="sbCargarDatos">CARGAR DATOS</div>
         </button>
         <button class="sb-btn" id="sb-objetivos" onclick="toggleObjetivosPan()" aria-label="Objetivos anuales">
           <i class="ti ti-target-arrow" aria-hidden="true"></i>
-          <div class="sb-tip">OBJETIVOS</div>
+          <div class="sb-tip" data-i18n="sbObjetivos">OBJETIVOS</div>
         </button>
         <div class="sb-sep"></div>
         <button class="sb-btn" id="sb-tendencias" onclick="sbNav('tendencias')" aria-label="Tendencias">
           <i class="ti ti-trending-up" aria-hidden="true"></i>
-          <div class="sb-tip">TENDENCIAS</div>
+          <div class="sb-tip" data-i18n="sbTendencias">TENDENCIAS</div>
         </button>
         <button class="sb-btn" id="sb-gestion" onclick="sbNav('gestion')" aria-label="Gestión Supervisor">
           <i class="ti ti-shield-check" aria-hidden="true"></i>
-          <div class="sb-tip">GESTIÓN SUP.</div>
+          <div class="sb-tip" data-i18n="sbGestion">GESTIÓN SUP.</div>
         </button>
         <button class="sb-btn" id="sb-cuaderno" onclick="sbNav('cuaderno')" aria-label="Cuaderno Diario">
           <i class="ti ti-notebook" aria-hidden="true"></i>
-          <div class="sb-tip">CUADERNO</div>
+          <div class="sb-tip" data-i18n="sbCuaderno">CUADERNO</div>
         </button>
         <button class="sb-btn" id="sb-calidad" onclick="sbNav('calidad')" aria-label="Control de Calidad">
           <i class="ti ti-microscope" aria-hidden="true"></i>
-          <div class="sb-tip">CALIDAD</div>
+          <div class="sb-tip" data-i18n="sbCalidad">CALIDAD</div>
         </button>
       </div>
       <div class="sb-bottom">
         <div class="sb-sep"></div>
         <button class="sb-btn" id="sb-ajustes" onclick="sbNav('ajustes')" aria-label="Ajustes">
           <i class="ti ti-settings" aria-hidden="true"></i>
-          <div class="sb-tip">AJUSTES</div>
+          <div class="sb-tip" data-i18n="sbAjustes">AJUSTES</div>
         </button>
         <button class="sb-btn" onclick="toggleUserPop()" aria-label="Usuario">
           <i class="ti ti-user-circle" aria-hidden="true"></i>
-          <div class="sb-tip">USUARIO</div>
+          <div class="sb-tip" data-i18n="sbUsuario">USUARIO</div>
         </button>
       </div>
     </nav>
@@ -1222,21 +1227,21 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             <div class="p-brand-n">Valle de Güímar</div>
           </div>
         </div>
-        <div class="p-bc">SGI <i class="ti ti-chevron-right" aria-hidden="true"></i> <em id="p-bc-section">Portal</em></div>
+        <div class="p-bc">SGI <i class="ti ti-chevron-right" aria-hidden="true"></i> <em id="p-bc-section" data-i18n="sbPortal">Portal</em></div>
         <div class="p-spacer"></div>
         <div class="p-stat"><div class="p-dot ok" id="p-dot-fb"></div><span id="p-fb-label">FIREBASE OK</span></div>
         <!-- Theme picker -->
         <div class="theme-picker" id="theme-picker">
-          <button class="p-hbtn" id="p-theme-btn" onclick="toggleThemePicker()" title="Cambiar tema" aria-label="Cambiar tema">
+          <button class="p-hbtn" id="p-theme-btn" onclick="toggleThemePicker()" title="Cambiar tema" aria-label="Cambiar tema" data-i18n-title="themeBtnTitle">
             <i class="ti ti-palette" id="p-theme-ic"></i>
           </button>
           <div class="theme-dropdown" id="theme-dropdown" role="menu">
-            <div class="theme-dd-title">TEMA DEL PORTAL</div>
+            <div class="theme-dd-title" data-i18n="themeDdTitle">TEMA DEL PORTAL</div>
             <button class="theme-opt" data-theme="dark" onclick="applyTheme('dark')" role="menuitem">
               <span class="theme-swatch" style="background:linear-gradient(135deg,#070d18,#0c1424);border:2px solid #3aafe8;"></span>
               <span class="theme-opt-info">
                 <span class="theme-opt-name">Deep Blue</span>
-                <span class="theme-opt-desc">Predeterminado · Azul profundo</span>
+                <span class="theme-opt-desc" data-i18n="themeDarkDesc">Predeterminado · Azul profundo</span>
               </span>
               <i class="ti ti-check theme-opt-check" id="chk-dark"></i>
             </button>
@@ -1244,7 +1249,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <span class="theme-swatch" style="background:linear-gradient(135deg,#eef2f7,#ffffff);border:2px solid #0077c2;"></span>
               <span class="theme-opt-info">
                 <span class="theme-opt-name">Slate Light</span>
-                <span class="theme-opt-desc">Claro · Alta legibilidad</span>
+                <span class="theme-opt-desc" data-i18n="themeLightDesc">Claro · Alta legibilidad</span>
               </span>
               <i class="ti ti-check theme-opt-check" id="chk-light"></i>
             </button>
@@ -1252,7 +1257,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <span class="theme-swatch" style="background:linear-gradient(135deg,#0a1a0e,#112918);border:2px solid #2dd47a;"></span>
               <span class="theme-opt-info">
                 <span class="theme-opt-name">Forest</span>
-                <span class="theme-opt-desc">Oscuro · Verde industrial</span>
+                <span class="theme-opt-desc" data-i18n="themeForestDesc">Oscuro · Verde industrial</span>
               </span>
               <i class="ti ti-check theme-opt-check" id="chk-forest"></i>
             </button>
@@ -1260,13 +1265,47 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <span class="theme-swatch" style="background:linear-gradient(135deg,#000000,#0d0d0d);border:2px solid #f0a500;"></span>
               <span class="theme-opt-info">
                 <span class="theme-opt-name">Midnight</span>
-                <span class="theme-opt-desc">Negro · Acento ámbar</span>
+                <span class="theme-opt-desc" data-i18n="themeMidnightDesc">Negro · Acento ámbar</span>
               </span>
               <i class="ti ti-check theme-opt-check" id="chk-midnight"></i>
             </button>
           </div>
         </div>
-        <button class="p-hbtn" id="p-fs-btn" onclick="toggleFullscreen()" title="Pantalla completa" aria-label="Pantalla completa"><i class="ti ti-arrows-maximize" id="p-fs-ic"></i></button>
+        <!-- Language picker -->
+        <div class="theme-picker" id="lang-picker">
+          <button class="p-hbtn p-lang-btn" id="p-lang-btn" onclick="toggleLangPicker()" title="Cambiar idioma" aria-label="Cambiar idioma" data-i18n-title="langBtnTitle">
+            <i class="ti ti-language" id="p-lang-ic"></i>
+            <span class="p-lang-code" id="p-lang-code">ES</span>
+          </button>
+          <div class="theme-dropdown" id="lang-dropdown" role="menu">
+            <div class="theme-dd-title" data-i18n="langDdTitle">IDIOMA DEL PORTAL</div>
+            <button class="theme-opt" data-lang="es" onclick="applyLanguage('es')" role="menuitem">
+              <span class="theme-swatch lang-flag">🇪🇸</span>
+              <span class="theme-opt-info">
+                <span class="theme-opt-name">Español</span>
+                <span class="theme-opt-desc">Idioma predeterminado</span>
+              </span>
+              <i class="ti ti-check theme-opt-check" id="chk-lang-es"></i>
+            </button>
+            <button class="theme-opt" data-lang="en" onclick="applyLanguage('en')" role="menuitem">
+              <span class="theme-swatch lang-flag">🇬🇧</span>
+              <span class="theme-opt-info">
+                <span class="theme-opt-name">English</span>
+                <span class="theme-opt-desc" data-i18n="langEnDesc">Vocabulario técnico EDAR</span>
+              </span>
+              <i class="ti ti-check theme-opt-check" id="chk-lang-en"></i>
+            </button>
+            <button class="theme-opt" data-lang="fr" onclick="applyLanguage('fr')" role="menuitem">
+              <span class="theme-swatch lang-flag">🇫🇷</span>
+              <span class="theme-opt-info">
+                <span class="theme-opt-name">Français</span>
+                <span class="theme-opt-desc" data-i18n="langFrDesc">Vocabulario técnico EDAR</span>
+              </span>
+              <i class="ti ti-check theme-opt-check" id="chk-lang-fr"></i>
+            </button>
+          </div>
+        </div>
+        <button class="p-hbtn" id="p-fs-btn" onclick="toggleFullscreen()" title="Pantalla completa" aria-label="Pantalla completa" data-i18n-title="fsBtnTitle"><i class="ti ti-arrows-maximize" id="p-fs-ic"></i></button>
         <button class="p-user-btn" id="p-user-btn" onclick="toggleUserPop()">—</button>
         <div class="p-cl" id="p-clock">--/-- · --:--</div>
         <div class="p-ver">v1.0.0<br>H.Hernández</div>
@@ -1284,7 +1323,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             <div class="kpi-r warn">
               <div class="kpi-r-hd">
                 <div class="kpi-r-ic"><i class="ti ti-flask" aria-hidden="true"></i></div>
-                <div class="kpi-r-lbl">SST Reactor · EDARi</div>
+                <div class="kpi-r-lbl" data-i18n="kpiSstReactor">SST Reactor · EDARi</div>
               </div>
               <div class="kpi-r-data">
                 <div class="kpi-r-v" id="kpi-sst">— <span class="ku">mg/L</span></div>
@@ -1296,7 +1335,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             <div class="kpi-r danger">
               <div class="kpi-r-hd">
                 <div class="kpi-r-ic"><i class="ti ti-test-pipe" aria-hidden="true"></i></div>
-                <div class="kpi-r-lbl">Próximas calibraciones</div>
+                <div class="kpi-r-lbl" data-i18n="kpiCalibraciones">Próximas calibraciones</div>
               </div>
               <div class="kpi-r-data">
                 <div class="kpi-r-v" id="kpi-cal">— <span class="ku">instr.</span></div>
@@ -1322,7 +1361,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </div>
               </div>
               <div class="kpi-r-obj-info">
-                <div class="kpi-r-lbl">Objetivos Anuales</div>
+                <div class="kpi-r-lbl" data-i18n="kpiObjetivos">Objetivos Anuales</div>
                 <div class="kpi-r-obj-anio">Año <b id="kpi-obj-anio-big">2026</b></div>
                 <div class="kpi-r-obj-d">Metas del supervisor</div>
               </div>
@@ -1558,8 +1597,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Tareas</div>
-                <div class="mc-desc">Asignación supervisor → operario</div>
+                <div class="mc-title" data-i18n="mcTareasT">Tareas</div>
+                <div class="mc-desc" data-i18n="mcTareasD">Asignación supervisor → operario</div>
                 <div class="mc-tareas-ring-row">
                   <svg viewBox="0 0 36 36" class="mc-tareas-donut-svg" aria-hidden="true">
                     <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.8"/>
@@ -1608,8 +1647,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Calibraciones &amp; Verificaciones</div>
-                <div class="mc-desc">pH · OD · Tª · Conductividad</div>
+                <div class="mc-title" data-i18n="mcCalT">Calibraciones &amp; Verificaciones</div>
+                <div class="mc-desc" data-i18n="mcCalD">pH · OD · Tª · Conductividad</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Firebase <b id="mc-fb-cal">—</b></div>
@@ -1636,8 +1675,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Procedimientos Lab.</div>
-                <div class="mc-desc">Cloro · DBO₅ · Sólidos · Micro</div>
+                <div class="mc-title" data-i18n="mcProcT">Procedimientos Lab.</div>
+                <div class="mc-desc" data-i18n="mcProcD">Cloro · DBO₅ · Sólidos · Micro</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Guías <b>7</b></div>
@@ -1663,8 +1702,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Ruta Colectores</div>
-                <div class="mc-desc">Inspección red colectores</div>
+                <div class="mc-title" data-i18n="mcRutaT">Ruta Colectores</div>
+                <div class="mc-desc" data-i18n="mcRutaD">Inspección red colectores</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Puntos <b>24</b></div>
@@ -1691,8 +1730,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">SMS Diario</div>
-                <div class="mc-desc">Parte diario · carga Excel</div>
+                <div class="mc-title" data-i18n="mcSmsT">SMS Diario</div>
+                <div class="mc-desc" data-i18n="mcSmsD">Parte diario · carga Excel</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Hoy <b id="mc-sms-stat">pendiente</b></div>
@@ -1718,8 +1757,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Inventarios</div>
-                <div class="mc-desc">Almacenes · reactivos</div>
+                <div class="mc-title" data-i18n="mcInvT">Inventarios</div>
+                <div class="mc-desc" data-i18n="mcInvD">Almacenes · reactivos</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Firebase <b>✓</b></div>
@@ -1747,8 +1786,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Simulador EDARi</div>
-                <div class="mc-desc">Reactor biológico · balance masa</div>
+                <div class="mc-title" data-i18n="mcSimT">Simulador EDARi</div>
+                <div class="mc-desc" data-i18n="mcSimD">Reactor biológico · balance masa</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Edad <b id="mc-sim-edad">—</b></div>
@@ -1780,8 +1819,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Biología · Filamentosas</div>
-                <div class="mc-desc">Índice Jenkins · géneros · IVF</div>
+                <div class="mc-title" data-i18n="mcBioT">Biología · Filamentosas</div>
+                <div class="mc-desc" data-i18n="mcBioD">Índice Jenkins · géneros · IVF</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Último: <b id="mc-bio-fecha">—</b></div>
@@ -1808,8 +1847,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </svg>
               </div>
               <div class="mc-right"><div class="mc-body">
-                <div class="mc-title">Buzón de Sugerencias</div>
-                <div class="mc-desc">Consultas · propuestas mejora</div>
+                <div class="mc-title" data-i18n="mcSugT">Buzón de Sugerencias</div>
+                <div class="mc-desc" data-i18n="mcSugD">Consultas · propuestas mejora</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat" id="mc-buzon-stat-label">Sin leer <b id="mc-buzon-count">0</b></div>
@@ -1945,7 +1984,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: SIMULADOR ── -->
         <div class="p-panel" id="panel-proceso">
-          <div class="p-panel-header"><i class="ti ti-cpu" aria-hidden="true"></i>Simulador Proceso EDARi</div>
+          <div class="p-panel-header"><i class="ti ti-cpu" aria-hidden="true"></i><span data-i18n="phSimulador">Simulador Proceso EDARi</span></div>
           <div class="p-coming">
             <i class="ti ti-external-link" aria-hidden="true"></i>
             <p>ABRIENDO SIMULADOR...</p>
@@ -1955,7 +1994,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <!-- ── PANEL: ANALÍTICA BIOLÓGICA ── -->
         <div class="p-panel" id="panel-analitica" style="--panel:#2e5272;--border:#4a6d8a;">
           <div class="p-panel-header" style="align-items:center;">
-            <i class="ti ti-chart-line" aria-hidden="true"></i>Macroscopía y microscopía
+            <i class="ti ti-chart-line" aria-hidden="true"></i><span data-i18n="phMacro">Macroscopía y microscopía</span>
             <div style="margin-left:auto;display:flex;gap:5px;">
               <button class="bio-tab-btn active" id="bio-tab-form" onclick="bioTab('form')"><i class="ti ti-microscope" aria-hidden="true"></i> Informe Bio</button>
               <button class="bio-tab-btn" id="bio-tab-hist" onclick="bioTab('hist')"><i class="ti ti-chart-area" aria-hidden="true"></i> Tendencias</button>
@@ -2193,7 +2232,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <!-- ── PANEL: INFORMES ── -->
         <!-- ── PANEL: ZONAS ANÓXICAS ── -->
         <div class="p-panel" id="panel-zonas">
-          <div class="p-panel-header"><i class="ti ti-ripple" aria-hidden="true"></i>Zonas Anóxicas — Control de Proceso</div>
+          <div class="p-panel-header"><i class="ti ti-ripple" aria-hidden="true"></i><span data-i18n="phZonas">Zonas Anóxicas — Control de Proceso</span></div>
           <div class="zn-controls">
             <div class="zn-tabs" id="zn-tabs" role="tablist" aria-label="Zonas"></div>
             <div class="zn-spacer"></div>
@@ -2222,7 +2261,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         </div>
 
         <div class="p-panel" id="panel-informes">
-          <div class="p-panel-header"><i class="ti ti-file-analytics" aria-hidden="true"></i>Historial SMS Diario</div>
+          <div class="p-panel-header"><i class="ti ti-file-analytics" aria-hidden="true"></i><span data-i18n="phSmsHist">Historial SMS Diario</span></div>
           <div id="informes-list" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;">
             <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">CARGANDO...</div>
           </div>
@@ -2230,7 +2269,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: ALERTAS ── -->
         <div class="p-panel" id="panel-alertas">
-          <div class="p-panel-header"><i class="ti ti-bell" aria-hidden="true"></i>Alertas activas</div>
+          <div class="p-panel-header"><i class="ti ti-bell" aria-hidden="true"></i><span data-i18n="phAlertas">Alertas activas</span></div>
           <div id="alertas-list" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;">
             <div style="color:var(--muted);font-family:var(--mono);font-size:10px;text-align:center;padding:2rem;">CARGANDO...</div>
           </div>
@@ -2238,7 +2277,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: AJUSTES ── -->
         <div class="p-panel" id="panel-ajustes">
-          <div class="p-panel-header"><i class="ti ti-settings" aria-hidden="true"></i>Ajustes</div>
+          <div class="p-panel-header"><i class="ti ti-settings" aria-hidden="true"></i><span data-i18n="phAjustes">Ajustes</span></div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <div style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;">
               <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.08em;margin-bottom:8px;">USUARIOS DEL SISTEMA</div>
@@ -2282,8 +2321,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: TENDENCIAS ── -->
         <div class="p-panel" id="panel-tendencias">
-          <div class="p-panel-header" style="align-items:center;"><i class="ti ti-trending-up" aria-hidden="true"></i>Tendencias
-            <button onclick="limpiarTendencias()" title="Borrar datos de la semana cargada" style="margin-left:auto;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:4px;color:#f87171;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='rgba(239,68,68,.25)'" onmouseout="this.style.background='rgba(239,68,68,.12)'"><i class="ti ti-trash" aria-hidden="true"></i> Limpiar datos</button>
+          <div class="p-panel-header" style="align-items:center;"><i class="ti ti-trending-up" aria-hidden="true"></i><span data-i18n="phTendencias">Tendencias</span>
+            <button onclick="limpiarTendencias()" title="Borrar datos de la semana cargada" style="margin-left:auto;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:4px;color:#f87171;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:4px 10px;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='rgba(239,68,68,.25)'" onmouseout="this.style.background='rgba(239,68,68,.12)'"><i class="ti ti-trash" aria-hidden="true"></i> <span data-i18n="btnLimpiarDatos">Limpiar datos</span></button>
           </div>
           <!-- Selector de rango de fechas -->
           <div style="display:flex;align-items:center;gap:8px;padding:8px 0 10px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
@@ -2305,7 +2344,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: GESTIÓN SUPERVISOR ── -->
         <div class="p-panel" id="panel-gestion">
-          <div class="p-panel-header"><i class="ti ti-shield-check" aria-hidden="true"></i>Gestión Supervisor</div>
+          <div class="p-panel-header"><i class="ti ti-shield-check" aria-hidden="true"></i><span data-i18n="phGestion">Gestión Supervisor</span></div>
           <style>
             .gs-container{padding:14px 18px;display:flex;flex-direction:column;gap:12px;height:100%;overflow:hidden;min-height:0;}
             .gs-h-row{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:10px;flex-wrap:wrap;}
@@ -2344,7 +2383,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         <!-- ── PANEL: CUADERNO DIARIO ── -->
         <div class="p-panel" id="panel-cuaderno">
-          <div class="p-panel-header"><i class="ti ti-notebook" aria-hidden="true"></i>Cuaderno Diario</div>
+          <div class="p-panel-header"><i class="ti ti-notebook" aria-hidden="true"></i><span data-i18n="phCuaderno">Cuaderno Diario</span></div>
           <div style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;flex:1;padding:2rem;">
             <i class="ti ti-tools" style="font-size:48px;color:var(--muted);opacity:.4;"></i>
             <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.08em;">PRÓXIMAMENTE<br><span style="font-size:9px;opacity:.6;">Registro de turno · Checklist diario · Firma del operario</span></div>
@@ -3892,6 +3931,162 @@ document.addEventListener('click', function(e){
 if(document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', aplicarTemaInicial);
 } else { aplicarTemaInicial(); }
+
+// ── Sistema de idiomas (ES / EN / FR) — vocabulario técnico EDAR ──
+const I18N = {
+  es: {
+    sbPortal:'Portal', sbSimulador:'Simulador', sbMacroMicro:'Macro/Micro', sbZonas:'Zonas Anóx.',
+    sbInformes:'Informes', sbAlertas:'Alertas', sbDescargas:'Descargas', sbCargarDatos:'Cargar datos',
+    sbObjetivos:'Objetivos', sbTendencias:'Tendencias', sbGestion:'Gestión Sup.', sbCuaderno:'Cuaderno',
+    sbCalidad:'Calidad', sbAjustes:'Ajustes', sbUsuario:'Usuario',
+    themeBtnTitle:'Cambiar tema', themeDdTitle:'TEMA DEL PORTAL',
+    themeDarkDesc:'Predeterminado · Azul profundo', themeLightDesc:'Claro · Alta legibilidad',
+    themeForestDesc:'Oscuro · Verde industrial', themeMidnightDesc:'Negro · Acento ámbar',
+    langBtnTitle:'Cambiar idioma', langDdTitle:'IDIOMA DEL PORTAL',
+    langEnDesc:'Vocabulario técnico EDAR', langFrDesc:'Vocabulario técnico EDAR',
+    fsBtnTitle:'Pantalla completa',
+    kpiSstReactor:'SST Reactor · EDARi', kpiCalibraciones:'Próximas calibraciones', kpiObjetivos:'Objetivos Anuales',
+    mcTareasT:'Tareas', mcTareasD:'Asignación supervisor → operario',
+    mcCalT:'Calibraciones & Verificaciones', mcCalD:'pH · OD · Tª · Conductividad',
+    mcProcT:'Procedimientos Lab.', mcProcD:'Cloro · DBO₅ · Sólidos · Micro',
+    mcRutaT:'Ruta Colectores', mcRutaD:'Inspección red colectores',
+    mcSmsT:'SMS Diario', mcSmsD:'Parte diario · carga Excel',
+    mcInvT:'Inventarios', mcInvD:'Almacenes · reactivos',
+    mcSimT:'Simulador EDARi', mcSimD:'Reactor biológico · balance masa',
+    mcBioT:'Biología · Filamentosas', mcBioD:'Índice Jenkins · géneros · IVF',
+    mcSugT:'Buzón de Sugerencias', mcSugD:'Consultas · propuestas mejora',
+    phSimulador:'Simulador Proceso EDARi', phZonas:'Zonas Anóxicas — Control de Proceso',
+    phSmsHist:'Historial SMS Diario', phAlertas:'Alertas activas', phAjustes:'Ajustes',
+    phGestion:'Gestión Supervisor', phCuaderno:'Cuaderno Diario', phMacro:'Macroscopía y microscopía',
+    phTendencias:'Tendencias', btnLimpiarDatos:'Limpiar datos',
+  },
+  en: {
+    sbPortal:'Portal', sbSimulador:'Simulator', sbMacroMicro:'Macro/Micro', sbZonas:'Anoxic Zones',
+    sbInformes:'Reports', sbAlertas:'Alerts', sbDescargas:'Downloads', sbCargarDatos:'Load data',
+    sbObjetivos:'Targets', sbTendencias:'Trends', sbGestion:'Supervisor', sbCuaderno:'Logbook',
+    sbCalidad:'Quality', sbAjustes:'Settings', sbUsuario:'User',
+    themeBtnTitle:'Change theme', themeDdTitle:'PORTAL THEME',
+    themeDarkDesc:'Default · Deep blue', themeLightDesc:'Light · High readability',
+    themeForestDesc:'Dark · Industrial green', themeMidnightDesc:'Black · Amber accent',
+    langBtnTitle:'Change language', langDdTitle:'PORTAL LANGUAGE',
+    langEnDesc:'WWTP technical vocabulary', langFrDesc:'WWTP technical vocabulary',
+    fsBtnTitle:'Fullscreen',
+    kpiSstReactor:'TSS Reactor · EDARi', kpiCalibraciones:'Upcoming calibrations', kpiObjetivos:'Annual Targets',
+    mcTareasT:'Tasks', mcTareasD:'Supervisor → operator assignment',
+    mcCalT:'Calibrations & Verifications', mcCalD:'pH · DO · Temp · Conductivity',
+    mcProcT:'Lab Procedures', mcProcD:'Chlorine · BOD₅ · Solids · Micro',
+    mcRutaT:'Collector Route', mcRutaD:'Sewer network inspection',
+    mcSmsT:'Daily Report', mcSmsD:'Daily log · Excel upload',
+    mcInvT:'Inventory', mcInvD:'Warehouses · reagents',
+    mcSimT:'EDARi Simulator', mcSimD:'Biological reactor · mass balance',
+    mcBioT:'Biology · Filamentous', mcBioD:'Jenkins index · genera · SVI',
+    mcSugT:'Suggestion Box', mcSugD:'Queries · improvement proposals',
+    phSimulador:'EDARi Process Simulator', phZonas:'Anoxic Zones — Process Control',
+    phSmsHist:'Daily Report History', phAlertas:'Active Alerts', phAjustes:'Settings',
+    phGestion:'Supervisor Management', phCuaderno:'Daily Logbook', phMacro:'Macroscopy and microscopy',
+    phTendencias:'Trends', btnLimpiarDatos:'Clear data',
+  },
+  fr: {
+    sbPortal:'Portail', sbSimulador:'Simulateur', sbMacroMicro:'Macro/Micro', sbZonas:'Zones anoxiques',
+    sbInformes:'Rapports', sbAlertas:'Alertes', sbDescargas:'Téléchargements', sbCargarDatos:'Charger données',
+    sbObjetivos:'Objectifs', sbTendencias:'Tendances', sbGestion:'Superviseur', sbCuaderno:'Cahier',
+    sbCalidad:'Qualité', sbAjustes:'Réglages', sbUsuario:'Utilisateur',
+    themeBtnTitle:'Changer de thème', themeDdTitle:'THÈME DU PORTAIL',
+    themeDarkDesc:'Par défaut · Bleu profond', themeLightDesc:'Clair · Haute lisibilité',
+    themeForestDesc:'Sombre · Vert industriel', themeMidnightDesc:'Noir · Accent ambré',
+    langBtnTitle:'Changer de langue', langDdTitle:'LANGUE DU PORTAIL',
+    langEnDesc:'Vocabulaire technique STEP', langFrDesc:'Vocabulaire technique STEP',
+    fsBtnTitle:'Plein écran',
+    kpiSstReactor:'MES Bassin · EDARi', kpiCalibraciones:'Prochains étalonnages', kpiObjetivos:'Objectifs annuels',
+    mcTareasT:'Tâches', mcTareasD:'Attribution superviseur → opérateur',
+    mcCalT:'Étalonnages & Vérifications', mcCalD:'pH · OD · Temp. · Conductivité',
+    mcProcT:'Procédures labo', mcProcD:'Chlore · DBO₅ · Matières solides · Micro',
+    mcRutaT:'Tournée collecteurs', mcRutaD:'Inspection du réseau de collecte',
+    mcSmsT:'Rapport journalier', mcSmsD:'Compte-rendu journalier · import Excel',
+    mcInvT:'Inventaires', mcInvD:'Entrepôts · réactifs',
+    mcSimT:'Simulateur EDARi', mcSimD:'Bassin biologique · bilan massique',
+    mcBioT:'Biologie · Filamenteuses', mcBioD:'Indice de Jenkins · genres · IB',
+    mcSugT:'Boîte à suggestions', mcSugD:'Questions · propositions d\'amélioration',
+    phSimulador:'Simulateur de procédé EDARi', phZonas:'Zones anoxiques — Contrôle du procédé',
+    phSmsHist:'Historique rapports journaliers', phAlertas:'Alertes actives', phAjustes:'Réglages',
+    phGestion:'Gestion superviseur', phCuaderno:'Cahier journalier', phMacro:'Macroscopie et microscopie',
+    phTendencias:'Tendances', btnLimpiarDatos:'Effacer les données',
+  }
+};
+
+const LANG_NAMES = { es:'ES', en:'EN', fr:'FR' };
+let _langPickerOpen = false;
+
+function toggleLangPicker(){
+  _langPickerOpen = !_langPickerOpen;
+  const dd = document.getElementById('lang-dropdown');
+  if(dd) dd.classList.toggle('open', _langPickerOpen);
+}
+
+function applyLanguage(lang){
+  if(!I18N[lang]) lang = 'es';
+  const dict = I18N[lang];
+  // Textos de contenido
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(dict[key] !== undefined) el.textContent = dict[key];
+  });
+  // Atributos title
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if(dict[key] !== undefined){ el.setAttribute('title', dict[key]); el.setAttribute('aria-label', dict[key]); }
+  });
+  // Breadcrumb: re-traducir la sección activa actual
+  const activePanel = document.querySelector('.p-panel.active, .sb-btn.active');
+  const activeBtn = document.querySelector('.sb-btn.active');
+  if(activeBtn && activeBtn.id && activeBtn.id.startsWith('sb-')){
+    const id = activeBtn.id.replace('sb-','');
+    const bc = document.getElementById('p-bc-section');
+    const keyMap = {portal:'sbPortal',proceso:'sbSimulador',analitica:'sbMacroMicro',zonas:'sbZonas',
+      informes:'sbInformes',alertas:'sbAlertas',ajustes:'sbAjustes',tendencias:'sbTendencias',
+      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad'};
+    if(bc && keyMap[id] && dict[keyMap[id]]) bc.textContent = dict[keyMap[id]];
+  }
+  // Persistir
+  localStorage.setItem('ute-lang', lang);
+  // Sincronizar con el idioma del simulador embebido (usa 'edar_lang').
+  // El simulador (M06) sólo tiene diccionario ES/EN por ahora, así que en FR usamos EN como alternativa.
+  try{ localStorage.setItem('edar_lang', lang === 'es' ? 'es' : 'en'); }catch(e){}
+  // Actualizar botón / código de idioma
+  const codeEl = document.getElementById('p-lang-code');
+  if(codeEl) codeEl.textContent = LANG_NAMES[lang] || 'ES';
+  // Actualizar checks en dropdown
+  Object.keys(I18N).forEach(l => {
+    const chk = document.getElementById('chk-lang-'+l);
+    const opt = document.querySelector(`#lang-dropdown .theme-opt[data-lang="${l}"]`);
+    if(chk) chk.classList.toggle('visible', l === lang);
+    if(opt) opt.classList.toggle('active', l === lang);
+  });
+  // Cerrar dropdown
+  _langPickerOpen = false;
+  const dd = document.getElementById('lang-dropdown');
+  if(dd) dd.classList.remove('open');
+}
+
+function aplicarIdiomaInicial(){
+  const saved = localStorage.getItem('ute-lang') || 'es';
+  applyLanguage(saved);
+}
+
+// Cerrar picker al hacer click fuera
+document.addEventListener('click', function(e){
+  const picker = document.getElementById('lang-picker');
+  if(picker && !picker.contains(e.target)){
+    _langPickerOpen = false;
+    const dd = document.getElementById('lang-dropdown');
+    if(dd) dd.classList.remove('open');
+  }
+});
+
+// Aplicar al cargar
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', aplicarIdiomaInicial);
+} else { aplicarIdiomaInicial(); }
 
 // ── Pantalla completa ──
 function toggleFullscreen(){
@@ -5676,13 +5871,20 @@ function sbNav(id) {
   if(panel) panel.classList.add('active');
   const btn = document.getElementById('sb-' + id);
   if(btn) btn.classList.add('active');
-  // Update breadcrumb
+  // Update breadcrumb (respeta el idioma activo del portal)
   const labels = {portal:'Portal',proceso:'Simulador',analitica:'Macroscopía',zonas:'Zonas Anóxicas',
                   informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
                   tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario',
                   calidad:'Control de Calidad'};
   const bc = document.getElementById('p-bc-section');
-  if(bc) bc.textContent = labels[id] || id;
+  if(bc){
+    const curLang = localStorage.getItem('ute-lang') || 'es';
+    const keyMap = {portal:'sbPortal',proceso:'sbSimulador',analitica:'sbMacroMicro',zonas:'sbZonas',
+      informes:'sbInformes',alertas:'sbAlertas',ajustes:'sbAjustes',tendencias:'sbTendencias',
+      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad'};
+    const dict = (typeof I18N!=='undefined' && I18N[curLang]) ? I18N[curLang] : null;
+    bc.textContent = (dict && keyMap[id] && dict[keyMap[id]]) ? dict[keyMap[id]] : (labels[id] || id);
+  }
   // Side effects
   if(id === 'proceso') {
     setTimeout(() => openSimuladorProceso(), 100);
