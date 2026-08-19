@@ -1559,10 +1559,31 @@ function App(){
     // ── Tabla datos crudos ────────────────────────────────────────────────────
     const cols=['Q bio (m³/d)','DBO₅ E','DQO E','SST R (g/L)','SST Recirc (g/L)','NT E','Caudal Purga','DQO Ef','NT Ef','PT Ef'];
     const keys=['Caudal entrada Biologico','DBO5 ENTRADA','DQO ENTRADA','SS REACTOR','SS RECIRCULACIÓN','NT ENTRADA','CAUDAL PURGA','DQO EFLUENTE','NT FLUENTE','PT EFLUENTE'];
-    const rowsRaw=days.map(d=>`<tr><td><b>${d.iso}</b></td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==null&&d.row[k]!==''?d.row[k]:'—'}</td>`).join('')}</tr>`).join('');
+    // Promedio de cada columna cruda (ignorando vacíos/no numéricos)
+    const avgRawVals=keys.map(k=>{
+      const vals=days.map(d=>parseFloat(d.row[k])).filter(v=>!isNaN(v));
+      if(!vals.length) return '—';
+      const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+      return avg.toFixed(2);
+    });
+    const rowRawAvg=`<tr style="background:#eaf2fb;font-weight:700"><td><b>PROMEDIO</b></td>${avgRawVals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
+    const rowsRaw=rowRawAvg+days.map(d=>`<tr><td><b>${d.iso}</b></td>${keys.map(k=>`<td>${d.row[k]!==undefined&&d.row[k]!==null&&d.row[k]!==''?d.row[k]:'—'}</td>`).join('')}</tr>`).join('');
+
+    // Promedios de los resultados calculados por día
+    const avgCalc=(k)=>{ const vals=calc.map(c=>Number(c[k])||0); return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0; };
+    const rowCalcAvg=`<tr style="background:#eaf2fb;font-weight:700">
+        <td><b>PROMEDIO</b></td>
+        <td>${avgCalc('tc').toFixed(1)}</td>
+        <td>${avgCalc('fm').toFixed(3)}</td>
+        <td>${avgCalc('cv').toFixed(3)}</td>
+        <td>${avgCalc('rend_dqo').toFixed(1)}</td>
+        <td>${avgCalc('rend_dbo').toFixed(1)}</td>
+        <td>${avgCalc('rend_nh4').toFixed(1)}</td>
+        <td>${avgCalc('rend_pt').toFixed(1)}</td>
+      </tr>`;
 
     // Tabla de resultados calculados por día (permite comparar con modo día individual)
-    const rowsCalc=calc.map(c=>{
+    const rowsCalc=rowCalcAvg+calc.map(c=>{
       const tcCol=c.tc<10?'color:#cc1122':c.tc<20?'color:#cc7700':'color:#008855';
       const dqoCol=c.rend_dqo>85?'color:#008855':c.rend_dqo>70?'color:#cc7700':'color:#cc1122';
       const dboCol=c.rend_dbo>85?'color:#008855':c.rend_dbo>70?'color:#cc7700':'color:#cc1122';
