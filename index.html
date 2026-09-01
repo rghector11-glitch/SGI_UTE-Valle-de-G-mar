@@ -9749,10 +9749,8 @@ if(typeof waitForFirebase==='function'){
 
   function cqActualizaKPIs(){
     const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
-    // Fallback: leer del simulador si no hay Firebase
-    let simP=null;
-    try{ const r=localStorage.getItem('sgi-kpi-sim'); if(r) simP=JSON.parse(r); }catch(e){}
-    // SST Reactor — se prioriza el dato de AYER; si no existe, se cae al último día disponible
+    // SST Reactor — se prioriza el dato de AYER; si no existe, se cae al último día disponible.
+    // Fuente exclusiva: carga de datos diarios (Firebase reactor/{fecha}); no se usa el simulador.
     const _ayerISO=new Date(Date.now()-86400000).toISOString().slice(0,10);
     const fechasR=Object.keys(ST.reactor||{}).sort();
     const _ordenFechasR = fechasR.includes(_ayerISO)
@@ -9769,12 +9767,6 @@ if(typeof waitForFirebase==='function'){
         if(sub) sub.textContent='EDARI · '+(_ordenFechasR[i]===_ayerISO?'ayer':_fmtDM(_ordenFechasR[i]));
         sstOk=true; break;
       }
-    }
-    if(!sstOk && simP && simP.sst){
-      const el=document.getElementById('cq-kpi-sst');
-      if(el) el.innerHTML=Math.round(+simP.sst).toLocaleString('es-ES')+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
-      const sub=document.getElementById('cq-kpi-sst-sub');
-      if(sub) sub.textContent='Simulador · hoy';
     }
     // TRH
     const trh=calcTRH(ST);
@@ -10380,36 +10372,15 @@ if(typeof waitForFirebase==='function'){
     }
   };
 
-  /* ─── Getter unificado: Firebase ST + Simulador localStorage ─────────────── */
+  /* ─── Getter unificado: SOLO Firebase (carga de datos diarios) ────────────
+     Antes este getter también inyectaba datos del Simulador de Reactor (vía
+     localStorage 'sgi-kpi-sim' / window._simFullParams) cuando no había datos
+     de Firebase para "hoy". Se retira a petición expresa: el panel de Calidad
+     debe alimentarse EXCLUSIVAMENTE de la carga unificada de Excel
+     (reactor/{fecha}, caudales/{fecha}, etc. en Firebase), nunca del
+     simulador. */
   window._cqGetDatos=function(){
-    const ST=window._ST_dash||{caudales:{},consumo:{},reactor:{}};
-    // Intentar enriquecer con datos del simulador (localStorage sgi-kpi-sim)
-    try{
-      const raw=localStorage.getItem('sgi-kpi-sim');
-      if(raw){
-        const simP=JSON.parse(raw);
-        // window._simFullParams lo escribe el simulador con todos los parámetros
-        const fp=window._simFullParams||{};
-        const hoy=new Date().toISOString().slice(0,10);
-        // Solo inyectar si no hay datos Firebase para hoy
-        if(!ST.reactor[hoy] && (fp.dqo_entrada||fp.sst_reactor)){
-          ST.reactor[hoy]={
-            ss_reactor_gl:   fp.sst_reactor!=null   ? fp.sst_reactor/1000   : null,
-            ss_recirc_gl:    fp.sst_recirculacion!=null ? fp.sst_recirculacion/1000 : null,
-            ss_efluente:     fp.sst_efluente   ??null,
-            vol_reactor:     fp.vol_reactor    ??2167.9,
-            q_purga:         fp.caudal_purga_d ??null,
-            caudal_bio:      fp.caudal         ??null,
-            dqo_ent:         fp.dqo_entrada    ??null, dqo_ef: fp.dqo_efluente ??null,
-            dbo_ent:         fp.dbo_entrada    ??null, dbo_ef: fp.dbo_efluente ??null,
-            nt_ent:          fp.nh4_entrada    ??null, nt_ef:  fp.nh4_efluente ??null,
-            pt_ent:          fp.pt_entrada     ??null, pt_ef:  fp.pt_efluente  ??null,
-          };
-        }
-        if(fp.caudal && !ST.caudales[hoy]) ST.caudales[hoy]={edari:fp.caudal,edaru:0};
-      }
-    }catch(e){}
-    return ST;
+    return window._ST_dash||{caudales:{},consumo:{},reactor:{}};
   };
 
   /* Parchear funciones de dibujo para usar el getter unificado */
