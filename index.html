@@ -9785,15 +9785,16 @@ if(typeof waitForFirebase==='function'){
     for(let i=fechasR.length-1;i>=0;i--){
       const r=ST.reactor[fechasR[i]];
       if(!r) continue;
-      // DQO efluente: varios nombres posibles
+      // DQO efluente: varios nombres posibles. Un 0 exacto no es una medición real
+      // (día aún sin resultado de laboratorio cargado), así que no cuenta como dato.
       const dqoVal = r.dqo_ef ?? r['DQO EFLUENTE'] ?? r.dqo_efluente ?? null;
       const dboVal = r.dbo_ef ?? r['DBO EFLUENTE'] ?? r.dbo_efluente ?? r.dbo5_ef ?? null;
-      if(!dqoOk && dqoVal!=null && dqoVal!==''){
+      if(!dqoOk && dqoVal!=null && dqoVal!=='' && +dqoVal>0){
         const el=document.getElementById('cq-kpi-dqo');
         if(el) el.innerHTML=Math.round(+dqoVal)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
         dqoOk=true;
       }
-      if(!dboOk && dboVal!=null && dboVal!==''){
+      if(!dboOk && dboVal!=null && dboVal!=='' && +dboVal>0){
         const el=document.getElementById('cq-kpi-dbo');
         if(el) el.innerHTML=Math.round(+dboVal)+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
         dboOk=true;
@@ -9833,19 +9834,25 @@ if(typeof waitForFirebase==='function'){
     const fmtVal=v=>v>=100?String(Math.round(v)):v.toFixed(v<10?1:0);
     const planta=cqPlanta, plantaLbl=planta==='edari'?'EDARi':'EDARu';
     const pin=cqDiaSel;
-    const _pick=(r,al)=>{ for(const a of al){ const v=r&&r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return +v; } return null; };
+    // Nota: en los parámetros analíticos de efluente (DBO/DQO/SST/NT/PT) un 0 exacto
+    // no es una medición real de laboratorio — indica que ese día aún no se ha
+    // introducido el resultado en la carga unificada. Por eso aquí se exige > 0
+    // para considerar el dato como válido; así el KPI cae automáticamente al
+    // último día que sí tenga un valor real en vez de mostrar "0.0 · conforme".
+    const _valido=v=>v!=null&&v!==''&&!isNaN(+v)&&+v>0;
+    const _pick=(r,al)=>{ for(const a of al){ const v=r&&r[a]; if(_valido(v)) return +v; } return null; };
     function ultimoR(al){ for(let i=fechas.length-1;i>=0;i--){ const v=_pick(R[fechas[i]]||{},al); if(v!=null) return {v,f:fechas[i]}; } return null; }
     function serieRF(al){ const out=[]; for(const f of fechas){ const v=_pick(R[f]||{},al); if(v!=null) out.push({f,v}); } return out; }
     function subU(f){ return (SMS[f]&&SMS[f].edaru)||(R[f]&&R[f].edaru)||null; }
     function subEdari(f){ return (SMS[f]&&SMS[f].edari)||(R[f]&&R[f].edari)||null; }
     // Efluente EDARi combinando nodo reactor (plano) y sms_datos.edari (salida rutinaria)
     const _fechasUni=[...new Set([...fechas, ...fechasSms])].sort();
-    function _pickEf(f, al, smsField){ let v=_pick(R[f]||{}, al); if(v==null&&smsField){ const s=subEdari(f); const sv=s&&s[smsField]; if(sv!=null&&sv!==''&&!isNaN(+sv)) v=+sv; } return v; }
+    function _pickEf(f, al, smsField){ let v=_pick(R[f]||{}, al); if(v==null&&smsField){ const s=subEdari(f); const sv=s&&s[smsField]; if(_valido(sv)) v=+sv; } return v; }
     function ultimoEf(al, smsField){ for(let i=_fechasUni.length-1;i>=0;i--){ const v=_pickEf(_fechasUni[i], al, smsField); if(v!=null) return {v, f:_fechasUni[i]}; } return null; }
     function serieEf(al, smsField){ const out=[]; for(const f of _fechasUni){ const v=_pickEf(f, al, smsField); if(v!=null) out.push({f,v}); } return out; }
-    function ultimoU(field){ const ks=fechasSms.length?fechasSms:fechas; for(let i=ks.length-1;i>=0;i--){ const s=subU(ks[i]); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) return {v:+v,f:ks[i]}; } } return null; }
-    function serieUF(field){ const out=[]; const ks=fechasSms.length?fechasSms:fechas; for(const f of ks){ const s=subU(f); if(s){ const v=s[field]; if(v!=null&&v!==''&&!isNaN(+v)) out.push({f,v:+v}); } } return out; }
-    function subUget(f,field){ const s=subU(f); const v=s&&s[field]; return (v!=null&&v!==''&&!isNaN(+v))?+v:null; }
+    function ultimoU(field){ const ks=fechasSms.length?fechasSms:fechas; for(let i=ks.length-1;i>=0;i--){ const s=subU(ks[i]); if(s){ const v=s[field]; if(_valido(v)) return {v:+v,f:ks[i]}; } } return null; }
+    function serieUF(field){ const out=[]; const ks=fechasSms.length?fechasSms:fechas; for(const f of ks){ const s=subU(f); if(s){ const v=s[field]; if(_valido(v)) out.push({f,v:+v}); } } return out; }
+    function subUget(f,field){ const s=subU(f); const v=s&&s[field]; return _valido(v)?+v:null; }
     function tendenciaF(sf, refDate){ if(!sf.length) return null; let idx=refDate?sf.findIndex(x=>x.f===refDate):sf.length-1; if(idx<0) idx=sf.length-1; const pIdx=Math.max(0,idx-7); if(pIdx===idx) return null; return {last:sf[idx].v, prev:sf[pIdx].v, delta:sf[idx].v-sf[pIdx].v}; }
 
     // Banner de día fijado
