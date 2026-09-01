@@ -9752,17 +9752,21 @@ if(typeof waitForFirebase==='function'){
     // Fallback: leer del simulador si no hay Firebase
     let simP=null;
     try{ const r=localStorage.getItem('sgi-kpi-sim'); if(r) simP=JSON.parse(r); }catch(e){}
-    // SST Reactor
+    // SST Reactor — se prioriza el dato de AYER; si no existe, se cae al último día disponible
+    const _ayerISO=new Date(Date.now()-86400000).toISOString().slice(0,10);
     const fechasR=Object.keys(ST.reactor||{}).sort();
+    const _ordenFechasR = fechasR.includes(_ayerISO)
+      ? [_ayerISO, ...fechasR.filter(f=>f!==_ayerISO).reverse()]
+      : [...fechasR].reverse();
     let sstOk=false;
-    for(let i=fechasR.length-1;i>=0;i--){
-      const r=ST.reactor[fechasR[i]];
+    for(let i=0;i<_ordenFechasR.length;i++){
+      const r=ST.reactor[_ordenFechasR[i]];
       if(r&&r.ss_reactor_gl!=null&&!isNaN(r.ss_reactor_gl)&&r.ss_reactor_gl>0){
         const sst=Math.round(r.ss_reactor_gl*1000);
         const el=document.getElementById('cq-kpi-sst');
         if(el) el.innerHTML=sst.toLocaleString('es-ES')+' <span style="font-size:11px;font-weight:400;color:var(--muted)">mg/L</span>';
         const sub=document.getElementById('cq-kpi-sst-sub');
-        if(sub) sub.textContent='EDARI · '+_fmtDM(fechasR[i]);
+        if(sub) sub.textContent='EDARI · '+(_ordenFechasR[i]===_ayerISO?'ayer':_fmtDM(_ordenFechasR[i]));
         sstOk=true; break;
       }
     }
@@ -9781,9 +9785,10 @@ if(typeof waitForFirebase==='function'){
       if(el2) el2.textContent=trh.toFixed(1)+' h';
     }
     // Efluentes DQO / DBO — buscar en campos posibles (Firebase puede tener nombres distintos)
+    // Mismo criterio: se prioriza el dato de AYER antes que "el último disponible"
     let dqoOk=false, dboOk=false;
-    for(let i=fechasR.length-1;i>=0;i--){
-      const r=ST.reactor[fechasR[i]];
+    for(let i=0;i<_ordenFechasR.length;i++){
+      const r=ST.reactor[_ordenFechasR[i]];
       if(!r) continue;
       // DQO efluente: varios nombres posibles. Un 0 exacto no es una medición real
       // (día aún sin resultado de laboratorio cargado), así que no cuenta como dato.
@@ -9834,6 +9839,9 @@ if(typeof waitForFirebase==='function'){
     const fmtVal=v=>v>=100?String(Math.round(v)):v.toFixed(v<10?1:0);
     const planta=cqPlanta, plantaLbl=planta==='edari'?'EDARi':'EDARu';
     const pin=cqDiaSel;
+    // Día de referencia por defecto (sin día fijado manualmente): AYER, que es el
+    // día habitual con los resultados de laboratorio ya cerrados y cargados.
+    const _ayerISO=new Date(Date.now()-86400000).toISOString().slice(0,10);
     // Nota: en los parámetros analíticos de efluente (DBO/DQO/SST/NT/PT) un 0 exacto
     // no es una medición real de laboratorio — indica que ese día aún no se ha
     // introducido el resultado en la carga unificada. Por eso aquí se exige > 0
@@ -9871,7 +9879,7 @@ if(typeof waitForFirebase==='function'){
         {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, al:_CQ_EDARI_EF.sst, sms:'sst_sal'},
         {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  al:_CQ_EDARI_EF.nt,  sms:null},
         {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  al:_CQ_EDARI_EF.pt,  sms:null},
-      ].map(p=>({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoEf(p.al,p.sms), serF:()=>serieEf(p.al,p.sms), pinVal:()=>_pickEf(pin,p.al,p.sms)}));
+      ].map(p=>({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoEf(p.al,p.sms), serF:()=>serieEf(p.al,p.sms), pinVal:()=>_pickEf(pin,p.al,p.sms), valAt:f=>_pickEf(f,p.al,p.sms)}));
     } else {
       slots=[
         {id:'dbo',lbl:'DBO₅',lim:_CQ_LIM.dbo, nd:true},
@@ -9879,7 +9887,7 @@ if(typeof waitForFirebase==='function'){
         {id:'sst',lbl:'SST', lim:_CQ_LIM.sst, field:'sst_sal'},
         {id:'nt', lbl:'NT',  lim:_CQ_LIM.nt,  nd:true},
         {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  nd:true},
-      ].map(p=>p.nd?p:({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoU(p.field), serF:()=>serieUF(p.field), pinVal:()=>subUget(pin,p.field)}));
+      ].map(p=>p.nd?p:({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoU(p.field), serF:()=>serieUF(p.field), pinVal:()=>subUget(pin,p.field), valAt:f=>subUget(f,p.field)}));
     }
 
     let excedidos=[], ajustados=[], nConDato=0;
@@ -9890,15 +9898,20 @@ if(typeof waitForFirebase==='function'){
       const tEl=document.getElementById('cq-c-'+p.id+'-tr');
       if(!vEl) return;
       if(p.nd){ vEl.textContent='s/d'; vEl.style.color='var(--muted)'; if(sEl) sEl.textContent='No medido en EDARu'; if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
-      let val=null, fref=null;
+      let val=null, fref=null, usoAyer=false;
       if(pin){ val=p.pinVal(); fref=pin; }
-      else { const u=p.get(); if(u){ val=u.v; fref=u.f; } }
-      if(val==null){ vEl.textContent=pin?'s/d':'—'; vEl.style.color=pin?'var(--muted)':''; if(sEl) sEl.textContent=pin?('Sin dato el '+_fmtDM(pin)):('Límite '+p.lim+' · sin dato'); if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
+      else {
+        const vAyer=p.valAt(_ayerISO);
+        if(vAyer!=null){ val=vAyer; fref=_ayerISO; usoAyer=true; }
+        else { const u=p.get(); if(u){ val=u.v; fref=u.f; } }
+      }
+      if(val==null){ vEl.textContent=pin?'s/d':'—'; vEl.style.color=pin?'var(--muted)':''; if(sEl) sEl.textContent=pin?('Sin dato el '+_fmtDM(pin)):('Sin dato de ayer ('+_fmtDM(_ayerISO)+')'); if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
       nConDato++;
       const ratio=val/p.lim, st=ratio>1?BAD:ratio>0.85?WARN:OK;
       vEl.textContent=fmtVal(val); vEl.style.color=st;
       const margen=(p.lim-val)/p.lim*100;
-      if(sEl) sEl.innerHTML='Límite '+p.lim+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
+      const _refTxt = pin ? '' : (usoAyer ? ' · ayer' : ' · '+_fmtDM(fref));
+      if(sEl) sEl.innerHTML='Límite '+p.lim+_refTxt+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
       if(bEl){ bEl.style.width=Math.min(100,ratio*100).toFixed(0)+'%'; bEl.style.background=st; }
       const tr=tendenciaF(p.serF(), fref);
       if(tEl){ if(tr && Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0, col=baja?OK:BAD, ar=baja?'▼':'▲'; tEl.innerHTML='<span style="color:'+col+'">'+ar+' '+Math.abs(tr.delta).toFixed(tr.last<10?1:0)+'</span>'; } else tEl.innerHTML='<span style="color:'+MUT+'">▬</span>'; }
