@@ -10039,7 +10039,10 @@ if(typeof waitForFirebase==='function'){
       return;
     }
     const R=ST.reactor||{}, fechas=Object.keys(R).sort();
-    const _pick=(r,al)=>{ for(const a of al){ const v=r&&r[a]; if(v!=null&&v!==''&&!isNaN(+v)) return +v; } return null; };
+    // Un 0 exacto en SST del reactor no es una medición real (ese día aún no se ha
+    // tomado/cargado la lectura), así que no cuenta como "día con dato" — igual
+    // que en las tarjetas de cumplimiento de arriba.
+    const _pick=(r,al)=>{ for(const a of al){ const v=r&&r[a]; if(v!=null&&v!==''&&!isNaN(+v)&&+v>0) return +v; } return null; };
     let fref=null;
     if(cqDiaSel && R[cqDiaSel]) fref=cqDiaSel;
     else { for(let i=fechas.length-1;i>=0;i--){ const r=R[fechas[i]]; if(r&&_pick(r,['ss_reactor_gl'])!=null){ fref=fechas[i]; break; } } }
