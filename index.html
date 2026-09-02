@@ -2557,7 +2557,82 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-bio-kpi-band{font-size:7.5px;color:var(--muted2);font-family:var(--mono);margin-top:1px;}
             .cq-bio-bulk{border-radius:8px;padding:8px 10px;font-size:9.5px;line-height:1.35;border:1px solid var(--border);}
             .cq-bio-bulk-hd{font-size:8px;text-transform:uppercase;letter-spacing:.6px;font-family:var(--mono);margin-bottom:3px;font-weight:700;}
+
+            /* ═══ SUAVIZADO VISUAL — solo apartado Calidad ═══════════════════════
+               Tarjetas flotantes con esquinas redondeadas, sombra suave y un
+               ligero efecto "glass" (semitransparencia + desenfoque de fondo),
+               en vez de los bloques planos con bordes duros contiguos. */
+            #panel-calidad{--cq-radius:14px; --cq-radius-sm:10px;}
+            #panel-calidad .cq-glass{
+              background:rgba(255,255,255,.035);
+              -webkit-backdrop-filter:blur(14px) saturate(140%);
+              backdrop-filter:blur(14px) saturate(140%);
+              border:1px solid rgba(255,255,255,.08);
+              box-shadow:0 6px 20px -8px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+              transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+            }
+            #panel-calidad .cq-glass:hover{
+              border-color:rgba(255,255,255,.16);
+              box-shadow:0 10px 26px -8px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+            }
+            /* Franja de cumplimiento: pasa de tiras pegadas a tarjetas sueltas */
+            #cq-compliance{gap:9px;padding:10px 12px;background:transparent;}
+            #panel-calidad .cq-comp-card{
+              border-right:none;border-radius:var(--cq-radius-sm);padding:10px 13px;
+            }
+            #panel-calidad .cq-head-actions{border-left:none;border-radius:var(--cq-radius-sm);padding:8px 12px;margin:10px 12px 10px 0;}
+            #panel-calidad #cq-comp-verdict{border-radius:999px;padding:6px 13px;}
+            /* Tarjetas del reactor biológico, gauges, TRH, cumplimiento, chips, clima */
+            #panel-calidad .cq-bio-kpi,
+            #panel-calidad .cq-gauge,
+            #panel-calidad .cq-trh-item,
+            #panel-calidad .cq-cumpl-stat,
+            #panel-calidad .cq-wx-meta-item,
+            #panel-calidad .cq-wx-day,
+            #panel-calidad .cq-sec-row{
+              border-radius:var(--cq-radius-sm);
+            }
+            #panel-calidad .cq-bio-bulk{border-radius:var(--cq-radius);}
+            #panel-calidad .cq-chip{border-radius:999px;padding:4px 10px;}
+            #panel-calidad .cq-tag{border-radius:999px;padding:2px 8px;}
+            #panel-calidad .cq-plant-seg{border-radius:999px;padding:3px;}
+            #panel-calidad .cq-plant-btn{border-radius:999px;}
+            #panel-calidad .cq-btn,#panel-calidad .cq-month-btn{border-radius:999px;}
+            #panel-calidad .cq-pdf-btn{border-radius:12px;}
+            #panel-calidad .cq-comp-bar,#panel-calidad .cq-gauge-bar,#panel-calidad .cq-stock-bar{border-radius:99px;}
+            #panel-calidad .cq-comp-fill,#panel-calidad .cq-gauge-fill,#panel-calidad .cq-stock-fill{border-radius:99px;}
+            #panel-calidad .cq-cumpl-cell{border-radius:5px;}
+            /* Bordes generales del panel más suaves (menos "duros") */
+            #panel-calidad #cq-head{border-bottom-color:rgba(255,255,255,.06);}
+            #panel-calidad #cq-decision{border-top-color:rgba(255,255,255,.06);}
+            #panel-calidad .cq-dec-col+.cq-dec-col{border-left-color:rgba(255,255,255,.06);}
+            #panel-calidad .cq-sec-hd{border-bottom-color:rgba(255,255,255,.06);}
           </style>
+
+          <script>
+            // Aplica la clase "glass" a las tarjetas del panel de Calidad tras insertarlas en el DOM
+            (function(){
+              function cqAplicarGlass(){
+                const sel=['#cq-compliance .cq-comp-card','.cq-head-actions','#cq-comp-verdict',
+                  '.cq-bio-kpi','.cq-gauge','.cq-trh-item','.cq-cumpl-stat','.cq-wx-meta-item','.cq-wx-day',
+                  '.cq-sec-row','.cq-bio-bulk','.cq-chip'];
+                document.querySelectorAll(sel.join(',')).forEach(function(el){
+                  if(el.closest('#panel-calidad')) el.classList.add('cq-glass');
+                });
+              }
+              document.addEventListener('DOMContentLoaded',cqAplicarGlass);
+              // Reaplicar cada vez que Calidad redibuja sus tarjetas dinámicamente
+              const _mo=new MutationObserver(function(muts){
+                for(const m of muts){ if(m.addedNodes && m.addedNodes.length){ cqAplicarGlass(); break; } }
+              });
+              document.addEventListener('DOMContentLoaded',function(){
+                const p=document.getElementById('panel-calidad');
+                if(p) _mo.observe(p,{childList:true,subtree:true});
+              });
+              // Por si el panel ya existe al ejecutarse este script
+              cqAplicarGlass();
+            })();
+          </script>
 
           <!-- ══ CUADRO DE MANDO: cumplimiento RD 509/1996 + estado de proceso ══ -->
           <div id="cq-head">
