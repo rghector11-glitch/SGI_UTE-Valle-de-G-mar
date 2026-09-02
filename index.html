@@ -7382,6 +7382,22 @@ window.resolverAlerta = resolverAlerta;
 
 
 // ── Mensajes desde iframe SMS Diario ─────────────────────────────────────────
+// Calcula Carga F/M y Carga vol. Cv a partir de los parámetros completos que
+// pueda enviar el simulador de proceso (M06), para poder rellenarlos en Calidad
+// aunque ese módulo (fichero aparte, simulador-proceso-edari.html) no los
+// calcule y envíe ya hechos.
+function _cqComputeFMCv(pm){
+  try{
+    if(!pm) return null;
+    const Q=Number(pm.caudal)||0, V=Number(pm.vol_reactor)||0;
+    const Xr=Number(pm.sst_reactor)||0; // mg/L
+    const dboIn=Number(pm.dbo_entrada)||0;
+    if(!Q||!V||!Xr||!dboIn) return null;
+    const M=(Xr/1000)*V; // kgSS (SST reactor de mg/L a g/L × volumen)
+    if(!M) return null;
+    return { fm:+(dboIn*Q/1000/M).toFixed(3), cv:+(dboIn*Q/(1000*V)).toFixed(3) };
+  }catch(e){ return null; }
+}
 window.addEventListener('message', function(e) {
   if(!e.data || !e.data.type) return;
 
@@ -7389,8 +7405,15 @@ window.addEventListener('message', function(e) {
     // KPIs desde el simulador de proceso (M06)
     const {edad, sst, dqo} = e.data;
     // Guardar parámetros completos para módulo Calidad
-    try { localStorage.setItem('sgi-kpi-sim', JSON.stringify(e.data)); } catch(_){}
-    if(e.data.params) window._simFullParams = e.data.params; // params completos si los envía
+    const _payload = {...e.data};
+    if(e.data.params){
+      window._simFullParams = e.data.params; // params completos si los envía
+      if(_payload.fm==null || _payload.cv==null){
+        const fc=_cqComputeFMCv(e.data.params);
+        if(fc){ if(_payload.fm==null) _payload.fm=fc.fm; if(_payload.cv==null) _payload.cv=fc.cv; }
+      }
+    }
+    try { localStorage.setItem('sgi-kpi-sim', JSON.stringify(_payload)); } catch(_){}
     if(edad) {
       const elE = document.getElementById('kpi-edad');
       if(elE) elE.innerHTML = edad + ' <span class="ku">d</span>';
@@ -10748,7 +10771,15 @@ if(typeof waitForFirebase==='function'){
 
     window.addEventListener('message',function(e){
     if(!e.data||e.data.type!=='sim-kpi') return;
-    try{localStorage.setItem('sgi-kpi-sim',JSON.stringify(e.data));}catch(_){}
+    // Reutiliza el mismo enriquecido con Carga F/M y Carga vol. calculadas a
+    // partir de los parámetros del simulador (ver listener principal más arriba),
+    // en vez de sobrescribir con los datos en crudo.
+    const _payload={...e.data};
+    if(e.data.params&&(_payload.fm==null||_payload.cv==null)){
+      const fc=_cqComputeFMCv(e.data.params);
+      if(fc){ if(_payload.fm==null) _payload.fm=fc.fm; if(_payload.cv==null) _payload.cv=fc.cv; }
+    }
+    try{localStorage.setItem('sgi-kpi-sim',JSON.stringify(_payload));}catch(_){}
     const panel=document.getElementById('panel-calidad');
     if(panel&&panel.classList.contains('active')) setTimeout(cqRedibujarTodo,100);
   });
