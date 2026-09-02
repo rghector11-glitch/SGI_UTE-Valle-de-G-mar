@@ -2524,8 +2524,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
             .cq-chip-k{color:var(--muted);}
             .cq-chip-v{font-weight:700;}
-            .cq-reco{display:flex;flex-direction:column;gap:4px;max-height:62px;overflow-y:auto;padding-right:4px;}
-            .cq-reco-item{display:flex;gap:6px;align-items:flex-start;font-size:9.5px;line-height:1.3;}
+            .cq-reco{display:flex;flex-direction:column;gap:6px;max-height:104px;overflow-y:auto;padding-right:4px;}
+            .cq-reco-item{display:flex;gap:6px;align-items:flex-start;font-size:10px;line-height:1.4;}
             .cq-reco-ic{flex-shrink:0;font-size:10px;line-height:1.35;font-weight:700;}
             .cq-reco-tx{color:var(--fg);}
             .cq-reco-ok{color:var(--muted2);}
@@ -2547,14 +2547,14 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #cq-daysel-banner button{font-family:var(--mono);font-size:9px;font-weight:700;border:1px solid var(--accent2,#38bdf8);background:transparent;color:var(--accent2,#38bdf8);border-radius:5px;padding:3px 9px;cursor:pointer;white-space:nowrap;}
             #cq-daysel-banner button:hover{background:var(--accent2,#38bdf8);color:#04231f;}
             /* Estudio reactor biológico */
-            .cq-bio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
-            .cq-bio-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 8px;min-width:0;}
+            .cq-bio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px;}
+            .cq-bio-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:11px 13px;min-width:0;}
             .cq-bio-kpi-top{display:flex;justify-content:space-between;align-items:center;gap:4px;}
             .cq-bio-kpi-l{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
             .cq-bio-kpi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-            .cq-bio-kpi-v{font-family:var(--cond);font-size:16px;font-weight:700;line-height:1.15;}
-            .cq-bio-kpi-u{font-size:7.5px;color:var(--muted);margin-left:2px;}
-            .cq-bio-kpi-band{font-size:7.5px;color:var(--muted2);font-family:var(--mono);margin-top:1px;}
+            .cq-bio-kpi-v{font-family:var(--cond);font-size:21px;font-weight:700;line-height:1.15;}
+            .cq-bio-kpi-u{font-size:8.5px;color:var(--muted);margin-left:2px;}
+            .cq-bio-kpi-band{font-size:8px;color:var(--muted2);font-family:var(--mono);margin-top:3px;}
             .cq-bio-bulk{border-radius:8px;padding:8px 10px;font-size:9.5px;line-height:1.35;border:1px solid var(--border);}
             .cq-bio-bulk-hd{font-size:8px;text-transform:uppercase;letter-spacing:.6px;font-family:var(--mono);margin-bottom:3px;font-weight:700;}
 
@@ -2615,7 +2615,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               function cqAplicarGlass(){
                 const sel=['#cq-compliance .cq-comp-card','.cq-head-actions','#cq-comp-verdict',
                   '.cq-bio-kpi','.cq-gauge','.cq-trh-item','.cq-cumpl-stat','.cq-wx-meta-item','.cq-wx-day',
-                  '.cq-sec-row','.cq-bio-bulk','.cq-chip'];
+                  '.cq-sec-row','.cq-bio-bulk','.cq-chip','#cq-trend-wrap'];
                 document.querySelectorAll(sel.join(',')).forEach(function(el){
                   if(el.closest('#panel-calidad')) el.classList.add('cq-glass');
                 });
@@ -2643,9 +2643,18 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <button class="cq-plant-btn" data-plant="edaru" onclick="cqSetPlanta('edaru')">EDARu</button>
               </div>
               <span id="cq-plant-note">Línea biológica · reactor 2.167,9 m³ · 5 parámetros RD 509/1996</span>
+              <button id="cq-trend-toggle" class="cq-btn" style="margin-left:auto;" onclick="cqToggleTrend()">📈 Tendencia 30 días <span id="cq-trend-caret">▾</span></button>
             </div>
             <!-- Banner de día fijado (histórico) -->
             <div id="cq-daysel-banner"></div>
+            <!-- Gráfico desplegable: % del límite de los 5 parámetros, últimos 30 días -->
+            <div id="cq-trend-wrap" style="display:none;padding:8px 12px;border-bottom:1px solid var(--border);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.4px;text-transform:uppercase;">% del límite RD 509/1996 · últimos 30 días</span>
+                <div class="cq-leg" id="cq-trend-legend" style="margin-bottom:0;"></div>
+              </div>
+              <div id="cq-trend-chart" style="height:150px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Cargando…</div></div>
+            </div>
             <!-- Fila 1: cumplimiento del efluente -->
             <div id="cq-compliance">
               <div class="cq-comp-card">
@@ -2778,25 +2787,9 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div class="cq-sec-dot" style="background:#b388ff"></div>
                 <div class="cq-sec-title">Reactor biológico · <span id="cq-bio-sub">EDARi</span></div>
               </div>
-              <div id="cq-bio" style="padding:8px 12px;flex-shrink:0;">
+              <div id="cq-bio" style="padding:14px 16px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;justify-content:center;">
                 <div id="cq-bio-grid" class="cq-bio-grid"><div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</div></div>
-                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none"></div>
-              </div>
-
-              <!-- Histórico de cumplimiento (30 días) -->
-              <div class="cq-sec-hd" style="position:relative;border-top:1px solid var(--border)">
-                <div class="cq-sec-dot" style="background:#60a5fa"></div>
-                <div class="cq-sec-title">Cumplimiento · <span id="cq-cumpl-sub">últimos 30 días</span></div>
-              </div>
-              <div id="cq-cumpl" style="padding:9px 12px;overflow-y:auto;flex:1;min-height:0;">
-                <div class="cq-cumpl-stats" id="cq-cumpl-stats"></div>
-                <div class="cq-cumpl-strip" id="cq-cumpl-strip"><span style="font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</span></div>
-                <div class="cq-cumpl-legend">
-                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:#22c995"></span>Conforme</div>
-                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:#f0b033"></span>Ajustado</div>
-                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:#e54a64"></span>Incumple</div>
-                  <div class="cq-cumpl-leg-item"><span class="cq-cumpl-leg-dot" style="background:var(--border)"></span>Sin dato</div>
-                </div>
+                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none;margin-top:8px;"></div>
               </div>
 
             </div><!-- /#cq-center -->
@@ -9631,12 +9624,29 @@ if(typeof waitForFirebase==='function'){
     const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
     const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
     const poly=datos.map((d,i)=>{const yy=y(d.v);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
+    // Área de relleno bajo la curva, en un tono pastel suave (degradado hacia transparente)
+    const validPts=datos.map((d,i)=>({x:x(i),y:y(d.v)})).filter(p=>p.y!=null);
+    let areaPath='';
+    if(validPts.length){
+      areaPath='M'+validPts[0].x.toFixed(1)+','+(PT+gH).toFixed(1)+' '+
+        validPts.map(p=>'L'+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')+
+        ' L'+validPts[validPts.length-1].x.toFixed(1)+','+(PT+gH).toFixed(1)+' Z';
+    }
+    const fillId='cqCaudalFill_'+pl;
+    const pastel=pl==='edari'?'#7dd8c7':'#c3b8f2'; // menta pastel / lavanda pastel
     const pts=datos.map((d,i)=>{const yy=y(d.v);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="${col}" stroke="var(--surface)" stroke-width="1" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d.v)} m³/d"/>`;}).join('');
     const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
     const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(minV)}</text>`;
     const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
     cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${pastel}" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="${pastel}" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
       <line x1="${PL}" y1="${PT+gH/2}" x2="${W-PR}" y2="${PT+gH/2}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
+      ${areaPath?`<path d="${areaPath}" fill="url(#${fillId})" stroke="none"/>`:''}
       ${poly?`<polyline points="${poly}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/>`:''}
       ${pts}${yL}${xL}
     </svg>`;
@@ -9911,6 +9921,55 @@ if(typeof waitForFirebase==='function'){
   };
   let cqPlanta='edari';
   let cqDiaSel=null; // día fijado desde el histórico (o null = último dato)
+  let cqTrendOpen=false;
+  function cqToggleTrend(){
+    cqTrendOpen=!cqTrendOpen;
+    const w=document.getElementById('cq-trend-wrap');
+    if(w) w.style.display=cqTrendOpen?'block':'none';
+    const c=document.getElementById('cq-trend-caret');
+    if(c) c.textContent=cqTrendOpen?'▴':'▾';
+    const b=document.getElementById('cq-trend-toggle');
+    if(b) b.classList.toggle('cq-btn-accent',cqTrendOpen);
+    if(cqTrendOpen) cqDibujaTendencia5();
+  }
+  function cqDibujaTendencia5(){
+    const cont=document.getElementById('cq-trend-chart');
+    if(!cont) return;
+    const slots=window._cqLastSlots||[];
+    const COLORS={dbo:'#fbbf24',dqo:'#38bdf8',sst:'#34d399',nt:'#c084fc',pt:'#f87171'};
+    const activos=slots.filter(p=>!p.nd);
+    if(!activos.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">Sin parámetros disponibles ('+(cqPlanta==='edari'?'EDARi':'EDARu')+')</div>'; return; }
+    const series=activos.map(p=>({id:p.id,lbl:p.lbl,lim:p.lim,col:COLORS[p.id]||'#9ca3af',pts:p.serF().slice(-30)}));
+    const allFechas=[...new Set(series.flatMap(s=>s.pts.map(pt=>pt.f)))].sort().slice(-30);
+    if(!allFechas.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">Sin datos en los últimos 30 días</div>'; return; }
+    const W=700,H=150,PL=34,PR=10,PT_=8,PB=18,gW=W-PL-PR,gH=H-PT_-PB;
+    const maxY=140; // techo visual del eje, en % del límite
+    const x=i=>PL+(allFechas.length>1?i/(allFechas.length-1)*gW:gW/2);
+    const y=v=>PT_+gH-Math.min(v,maxY)/maxY*gH;
+    let anyLine=false;
+    const lines=series.map(s=>{
+      const byF={}; s.pts.forEach(pt=>byF[pt.f]=pt.v);
+      const coords=[];
+      allFechas.forEach((f,i)=>{ const v=byF[f]; if(v!=null) coords.push({i,pct:v/s.lim*100}); });
+      if(!coords.length) return '';
+      anyLine=true;
+      const poly=coords.map(c=>x(c.i).toFixed(1)+','+y(c.pct).toFixed(1)).join(' ');
+      const dots=coords.map(c=>`<circle cx="${x(c.i).toFixed(1)}" cy="${y(c.pct).toFixed(1)}" r="1.7" fill="${s.col}"/>`).join('');
+      return `<polyline points="${poly}" fill="none" stroke="${s.col}" stroke-width="1.5" stroke-linejoin="round" opacity="0.95"/>${dots}`;
+    }).join('');
+    if(!anyLine){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">Sin datos en los últimos 30 días</div>'; return; }
+    const limitY=y(100).toFixed(1);
+    const idxs=[0,Math.floor((allFechas.length-1)/2),allFechas.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(allFechas[i])}</text>`).join('');
+    const yTicks=[0,50,100].map(p=>`<text x="${PL-3}" y="${(y(p)+2).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${p}%</text>`).join('');
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
+      <line x1="${PL}" y1="${limitY}" x2="${W-PR}" y2="${limitY}" stroke="var(--muted)" stroke-width="0.7" stroke-dasharray="3,3" opacity="0.7"/>
+      <text x="${W-PR}" y="${(+limitY-3).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">límite (100%)</text>
+      ${lines}${xL}${yTicks}
+    </svg>`;
+    const leg=document.getElementById('cq-trend-legend');
+    if(leg) leg.innerHTML=series.map(s=>'<div class="cq-leg-item"><div class="cq-leg-dot" style="background:'+s.col+'"></div>'+s.lbl+'</div>').join('');
+  }
   window.cqSelDia=function(f){ cqDiaSel=(cqDiaSel===f)?null:f; if(typeof cqRedibujarTodo==='function') cqRedibujarTodo(); };
   window.cqVerUltimo=function(){ cqDiaSel=null; if(typeof cqRedibujarTodo==='function') cqRedibujarTodo(); };
   window.cqSetPlanta=function(p){
@@ -9979,6 +10038,8 @@ if(typeof waitForFirebase==='function'){
         {id:'pt', lbl:'PT',  lim:_CQ_LIM.pt,  nd:true},
       ].map(p=>p.nd?p:({id:p.id,lbl:p.lbl,lim:p.lim, get:()=>ultimoU(p.field), serF:()=>serieUF(p.field), pinVal:()=>subUget(pin,p.field), valAt:f=>subUget(f,p.field)}));
     }
+    window._cqLastSlots=slots;
+    if(cqTrendOpen) cqDibujaTendencia5();
 
     let excedidos=[], ajustados=[], nConDato=0;
     slots.forEach(p=>{
@@ -10073,54 +10134,7 @@ if(typeof waitForFirebase==='function'){
     const rl=document.getElementById('cq-reco-list');
     if(rl) rl.innerHTML=recos.map(r=>'<div class="cq-reco-item"><span class="cq-reco-ic" style="color:'+r.col+'">'+r.ic+'</span><span class="cq-reco-tx'+(r.col===OK?' cq-reco-ok':'')+'">'+r.tx+'</span></div>').join('');
 
-    // ── Histórico de cumplimiento (30 días) — celdas pinchables ──────────────
-    const stripEl=document.getElementById('cq-cumpl-strip');
-    if(stripEl){
-      let fuente, evalDia;
-      if(planta==='edari'){
-        fuente=_fechasUni;
-        evalDia=d=>{ const r=R[d]||{}; const s=subEdari(d)||{}; const g=(al,smsField)=>{ let v=_pick(r,al); if(v==null&&smsField){ const sv=s[smsField]; if(sv!=null&&sv!==''&&!isNaN(+sv)) v=+sv; } return v; }; return [
-          {lbl:'DBO₅',v:g(_CQ_EDARI_EF.dbo,null),lim:_CQ_LIM.dbo},
-          {lbl:'DQO', v:g(_CQ_EDARI_EF.dqo,'dqo_sal'),lim:_CQ_LIM.dqo},
-          {lbl:'SST', v:g(_CQ_EDARI_EF.sst,'sst_sal'),lim:_CQ_LIM.sst},
-          {lbl:'NT',  v:g(_CQ_EDARI_EF.nt,null),lim:_CQ_LIM.nt},
-          {lbl:'PT',  v:g(_CQ_EDARI_EF.pt,null),lim:_CQ_LIM.pt},
-        ]; };
-      } else {
-        fuente=fechasSms.length?fechasSms:fechas;
-        evalDia=d=>{ return [
-          {lbl:'DQO',v:subUget(d,'dqo_sal'),lim:_CQ_LIM.dqo},
-          {lbl:'SST',v:subUget(d,'sst_sal'),lim:_CQ_LIM.sst},
-        ]; };
-      }
-      const dias=fuente.slice(-30);
-      const evals=dias.map(d=>{
-        const items=evalDia(d).filter(it=>it.v!=null);
-        if(!items.length) return {d,estado:'nd',exc:[]};
-        let exc=[], warn=false;
-        items.forEach(it=>{ const ratio=it.v/it.lim; if(ratio>1) exc.push(it.lbl+' '+(it.v>=100?Math.round(it.v):(+it.v).toFixed(1))); else if(ratio>0.85) warn=true; });
-        return {d,estado:exc.length?'bad':(warn?'warn':'ok'),exc};
-      });
-      let conData=0, conformes=0, incumpl=0, racha=0;
-      const cells=evals.map(e=>{
-        if(e.estado!=='nd'){ conData++; if(e.estado==='bad') incumpl++; else conformes++; }
-        const col=e.estado==='ok'?OK:e.estado==='warn'?WARN:e.estado==='bad'?BAD:'var(--border)';
-        const sel=(e.d===pin);
-        const tip=_fmtDM(e.d)+' · '+(e.estado==='nd'?'sin datos':e.estado==='bad'?('incumple: '+e.exc.join(', ')):e.estado==='warn'?'margen ajustado':'conforme')+' — pulsa para fijar';
-        const style='background:'+col+(sel?';outline:2px solid var(--fg);outline-offset:1px':'');
-        return '<div class="cq-cumpl-cell" style="'+style+'" title="'+tip+'" onclick="cqSelDia(\''+e.d+'\')"></div>';
-      });
-      for(let i=evals.length-1;i>=0;i--){ const e=evals[i]; if(e.estado==='nd') continue; if(e.estado!=='bad') racha++; else break; }
-      stripEl.innerHTML=cells.length?cells.join(''):'<span style="font-size:9px;color:var(--muted);font-family:var(--mono)">Sin datos en el periodo</span>';
-      const pct=conData?Math.round(conformes/conData*100):null;
-      const stEl=document.getElementById('cq-cumpl-stats');
-      if(stEl) stEl.innerHTML=
-        '<div class="cq-cumpl-stat"><div class="cq-cumpl-stat-v" style="color:'+(pct==null?'var(--muted)':pct>=95?OK:pct>=80?WARN:BAD)+'">'+(pct==null?'—':pct+'%')+'</div><div class="cq-cumpl-stat-l">Conformidad</div></div>'+
-        '<div class="cq-cumpl-stat"><div class="cq-cumpl-stat-v" style="color:'+(racha>0?OK:'var(--muted)')+'">'+racha+'</div><div class="cq-cumpl-stat-l">Racha conforme</div></div>'+
-        '<div class="cq-cumpl-stat"><div class="cq-cumpl-stat-v" style="color:'+(incumpl>0?BAD:OK)+'">'+incumpl+'</div><div class="cq-cumpl-stat-l">Incumplim.</div></div>';
-      const subEl=document.getElementById('cq-cumpl-sub');
-      if(subEl) subEl.textContent=conData?(conData+' días con dato · '+plantaLbl):'sin datos · '+plantaLbl;
-    }
+    // (Histórico de cumplimiento 30 días eliminado a petición: ya no se calcula ni se pinta)
   }
 
   /* ─── Estudio del reactor biológico (EDARi) ──────────────────────────────── */
