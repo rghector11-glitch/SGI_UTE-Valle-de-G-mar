@@ -11887,5 +11887,43 @@ ${fotosHtml}
 })();
 </script>
 
+<script>
+  /* ─── Ajuste automático de escala a la altura de pantalla ──────────────────
+     El panel está pensado para una altura cómoda (~900px). En portátiles con
+     pantallas más bajas (habitual 720–800px de alto) el contenido no entraba
+     y se cortaba; en monitores externos con más resolución sí cabía entero.
+     Esto reduce ligeramente la escala visual (zoom CSS) cuando la ventana es
+     más baja de lo previsto, para que TODO el panel quepa sin recortarse,
+     y vuelve a escala 100% en pantallas grandes (monitor). */
+  (function(){
+    var REF_H = 900;   // altura de referencia con la que está maquetado el SGI
+    var MIN_ZOOM = 0.72; // no reducir más de esto para que el texto siga siendo legible
+    var shell = null;
+    function getShell(){
+      if(!shell) shell = document.getElementById('portal-shell');
+      return shell;
+    }
+    function ajustarEscala(){
+      var el = getShell();
+      if(!el) return;
+      var h = window.innerHeight;
+      if(h < REF_H){
+        var z = Math.max(MIN_ZOOM, +(h/REF_H).toFixed(3));
+        el.style.zoom = z;
+      } else {
+        el.style.zoom = 1;
+      }
+    }
+    window.addEventListener('resize', ajustarEscala);
+    window.addEventListener('DOMContentLoaded', ajustarEscala);
+    // Reintentos tempranos por si el layout aún no ha terminado de montarse
+    ajustarEscala();
+    setTimeout(ajustarEscala, 200);
+    setTimeout(ajustarEscala, 800);
+    // Exponerlo por si algún panel necesita forzar un recálculo tras abrirse
+    window.cqAjustarEscalaPantalla = ajustarEscala;
+  })();
+</script>
+
 </body>
 </html>
