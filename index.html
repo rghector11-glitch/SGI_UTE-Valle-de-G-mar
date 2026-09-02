@@ -2415,7 +2415,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-chart-block{padding:6px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;flex:1;min-height:80px;}
             .cq-chart-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
             .cq-chart-title{font-size:12px;font-weight:600;}
-            .cq-chart-big{font-family:var(--cond);font-size:19px;font-weight:700;line-height:1;}
+            .cq-chart-big{font-family:var(--cond);font-size:17px;font-weight:700;line-height:1;}
             .cq-chart-meta{font-size:9px;color:var(--muted);margin-bottom:2px;}
             .cq-leg{display:flex;gap:10px;margin-bottom:3px;}
             .cq-leg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted2);}
@@ -2507,7 +2507,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-comp-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
             .cq-comp-lbl{font-size:9px;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;font-family:var(--mono);white-space:nowrap;}
             .cq-comp-trend{font-size:9px;font-family:var(--mono);font-weight:700;white-space:nowrap;}
-            .cq-comp-val{font-family:var(--cond);font-size:19px;font-weight:700;line-height:1;}
+            .cq-comp-val{font-family:var(--cond);font-size:21px;font-weight:700;line-height:1;}
             .cq-comp-unit{font-size:10px;font-weight:400;color:var(--muted);margin-left:2px;}
             .cq-comp-sub{font-size:8.5px;color:var(--muted2);font-family:var(--mono);white-space:nowrap;}
             .cq-comp-bar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin-top:3px;}
@@ -2516,7 +2516,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #cq-comp-verdict{font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.5px;padding:5px 10px;border-radius:6px;white-space:nowrap;border:1px solid var(--border);background:var(--surface2);color:var(--muted);}
             /* Fila estado de proceso + recomendaciones */
             #cq-decision{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);border-top:1px solid var(--border);flex-shrink:0;}
-            .cq-dec-col{padding:6px 12px 7px;min-width:0;}
+            .cq-dec-col{padding:11px 14px 12px;min-width:0;}
             .cq-dec-col+.cq-dec-col{border-left:1px solid var(--border);}
             .cq-dec-hd{font-size:8.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-family:var(--mono);margin-bottom:5px;}
             .cq-chips{display:flex;flex-wrap:wrap;gap:5px;}
@@ -2746,7 +2746,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div class="cq-chart-block">
                 <div class="cq-chart-row">
                   <div class="cq-chart-title" id="cq-elec-title">Consumo eléctrico</div>
-                  <div class="cq-chart-big" style="color:#a78bfa" id="cq-elec-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span></div>
+                  <div class="cq-chart-big" style="color:#b388ff" id="cq-elec-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span></div>
                 </div>
                 <div class="cq-chart-meta" id="cq-elec-meta">Cargando…</div>
                 <div class="cq-leg" id="cq-elec-leg">
@@ -2789,7 +2789,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
               <div id="cq-bio" style="padding:14px 16px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;justify-content:center;">
                 <div id="cq-bio-grid" class="cq-bio-grid"><div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</div></div>
-                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none;margin-top:8px;"></div>
+                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none;margin-top:16px;"></div>
               </div>
 
             </div><!-- /#cq-center -->
@@ -9801,18 +9801,19 @@ if(typeof waitForFirebase==='function'){
     }
     const dias=ultimosDias(ST.reactor,30,v=>v&&((+v.dqo_ent>0&&v.dqo_ef!=null)||(+v.dbo_ent>0&&v.dbo_ef!=null)||(+v.nt_ent>0&&v.nt_ef!=null)||(+v.pt_ent>0&&v.pt_ef!=null)));
     const params=[
-      {lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias), tipo:'semi'},
-      {lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias), tipo:'semi'},
-      {lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias), tipo:'bar'},
-      {lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias), tipo:'bar'},
+      {lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias)},
+      {lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias)},
+      {lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias)},
+      {lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias)},
     ];
     function colRend(v){return v>=85?'#22c995':v>=70?'#f0b033':'#e54a64';}
     const W=440, H=100;
     const cxAll=[55,165,275,385];
     const rSemi=38, cySemi=58, swSemi=9;
     const semiPerim=Math.PI*rSemi;
-    /* Semicírculos (DQO, DBO₅) */
-    const semis=params.slice(0,2).map((p,i)=>{
+    /* Los 4 parámetros (DQO, DBO₅, NT, PT) con el mismo formato de arco semicircular,
+       para que se lean como un mismo grupo de indicadores en vez de dos estilos distintos. */
+    const semis=params.map((p,i)=>{
       const cx=cxAll[i];
       const bgPath=`M ${cx-rSemi} ${cySemi} A ${rSemi} ${rSemi} 0 0 1 ${cx+rSemi} ${cySemi}`;
       if(!p.res) return `<g>
@@ -9831,25 +9832,7 @@ if(typeof waitForFirebase==='function'){
         <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
       </g>`;
     }).join('');
-    /* Barras (NT, PT) */
-    const barH=14, barW=62, barR=3, yTop=22, gap=28;
-    const bars=params.slice(2).map((p,i)=>{
-      const cx=cxAll[i+2];
-      if(!p.res) return `<g>
-        <rect x="${cx-barW/2}" y="${yTop}" width="${barW}" height="${barH}" rx="${barR}" fill="var(--border,#1f3252)"/>
-        <text x="${cx}" y="${yTop+barH/2+4}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="var(--mono)">—</text>
-        <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted)" font-size="14" font-family="var(--cond,sans-serif)">${p.lbl}</text>
-      </g>`;
-      const v=p.res.rend, col=colRend(v), fw=(v/100)*barW;
-      return `<g title="${p.lbl} · ${p.res.n}d · ${v.toFixed(1)}%" style="cursor:pointer">
-        <rect x="${cx-barW/2}" y="${yTop}" width="${barW}" height="${barH}" rx="${barR}" fill="var(--border,#1f3252)"/>
-        <rect x="${cx-barW/2}" y="${yTop}" width="${fw.toFixed(1)}" height="${barH}" rx="${barR}" fill="${col}" style="transition:width .6s ease"/>
-        <text x="${cx}" y="${yTop+barH/2+4}" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="var(--mono,monospace)">${Math.round(v)}%</text>
-        <text x="${cx}" y="${yTop+barH+14}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="var(--mono,monospace)">${p.res.mE!=null?p.res.mE.toFixed(0)+'→'+p.res.mS.toFixed(0)+' mg/L':p.res.n+'d'}</text>
-        <text x="${cx}" y="${cySemi+24}" text-anchor="middle" fill="var(--muted)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
-      </g>`;
-    }).join('');
-    if(cont) cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:110px" preserveAspectRatio="xMidYMid meet">${semis}${bars}</svg>`;
+    if(cont) cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:110px" preserveAspectRatio="xMidYMid meet">${semis}</svg>`;
     const nOk=params.filter(p=>p.res&&p.res.rend>=70).length;
     const rs=document.getElementById('cq-rend-sub');
     if(rs) rs.textContent=dias.length>0?`${dias.length} días · ${nOk}/${params.length} parámetros OK`:'Sin datos analíticos · carga SMS Diario';
@@ -10062,7 +10045,8 @@ if(typeof waitForFirebase==='function'){
       vEl.textContent=fmtVal(val); vEl.style.color=st;
       const margen=(p.lim-val)/p.lim*100;
       const _refTxt = pin ? '' : (usoAyer ? ' · ayer' : ' · '+_fmtDM(fref));
-      if(sEl) sEl.innerHTML='Límite '+p.lim+_refTxt+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
+      const _refSpan = _refTxt ? '<span style="color:#d4a373">'+_refTxt+'</span>' : '';
+      if(sEl) sEl.innerHTML='Límite '+p.lim+_refSpan+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
       if(bEl){ bEl.style.width=Math.min(100,ratio*100).toFixed(0)+'%'; bEl.style.background=st; }
       const tr=tendenciaF(p.serF(), fref);
       if(tEl){ if(tr && Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0, col=baja?OK:BAD, ar=baja?'▼':'▲'; tEl.innerHTML='<span style="color:'+col+'">'+ar+' '+Math.abs(tr.delta).toFixed(tr.last<10?1:0)+'</span>'; } else tEl.innerHTML='<span style="color:'+MUT+'">▬</span>'; }
@@ -10217,7 +10201,7 @@ if(typeof waitForFirebase==='function'){
       const val = k.v==null?'—':(k.mil?Math.round(k.v).toLocaleString('es-ES'):(k.dec===0?Math.round(k.v):(+k.v).toFixed(k.dec)));
       return '<div class="cq-bio-kpi"><div class="cq-bio-kpi-top"><span class="cq-bio-kpi-l">'+k.l+'</span><span class="cq-bio-kpi-dot" style="background:'+k.col+'"></span></div>'+
         '<div><span class="cq-bio-kpi-v" style="color:'+(k.v==null?'var(--muted)':k.col)+'">'+val+'</span><span class="cq-bio-kpi-u">'+k.u+'</span></div>'+
-        '<div class="cq-bio-kpi-band">Ópt. '+k.band+' <span style="opacity:.75">'+(k.v==null?'':k.fuente)+'</span></div></div>';
+        '<div class="cq-bio-kpi-band">Ópt. '+k.band+' <span style="color:#d4a373;opacity:.9">'+(k.v==null?'':k.fuente)+'</span></div></div>';
     }).join('');
 
     if(bulk){
