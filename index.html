@@ -2566,6 +2566,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-bio-kpi-v{font-family:var(--cond);font-size:21px;font-weight:700;line-height:1.15;}
             .cq-bio-kpi-u{font-size:8.5px;color:var(--muted);margin-left:2px;}
             .cq-bio-kpi-band{font-size:8px;color:var(--muted2);font-family:var(--mono);margin-top:3px;}
+            .cq-bio-kpi-avg{font-size:8px;color:#7dd8c7;font-family:var(--mono);margin-top:2px;opacity:.85;}
             .cq-bio-bulk{border-radius:8px;padding:8px 10px;font-size:9.5px;line-height:1.35;border:1px solid var(--border);}
             .cq-bio-bulk-hd{font-size:8px;text-transform:uppercase;letter-spacing:.6px;font-family:var(--mono);margin-bottom:3px;font-weight:700;}
 
@@ -10221,19 +10222,46 @@ if(typeof waitForFirebase==='function'){
     const edadFB=edadFecha?'· '+_fmtDM(edadFecha):'';
     const irFB=irFecha?'· '+_fmtDM(irFecha):'';
     const purgaFB=purgaFecha?'· '+_fmtDM(purgaFecha):'';
+    // Media de los últimos 30 días con dato real (mismo criterio >0 que el resto),
+    // calculada día a día con las mismas fórmulas que el valor "actual" de cada tarjeta.
+    const _ultimos30=fechas.slice(-30);
+    function _cqMedia30(fn){
+      const vals=_ultimos30.map(f=>fn(R[f]||{},f)).filter(v=>v!=null&&!isNaN(v));
+      if(!vals.length) return null;
+      return vals.reduce((a,b)=>a+b,0)/vals.length;
+    }
+    const edadMedia = _cqMedia30(rr=>calcEdadFango(rr));
+    const irMedia = _cqMedia30((rr,f)=>{ const qr=_pick(rr,['q_recirc']), qb=_cqQb(rr,f); return (qr!=null&&qb)?qr/qb*100:null; });
+    const purgaMedia = _cqMedia30(rr=>{ const qp=_pick(rr,['q_purga']), ssrc=_pick(rr,['ss_recirc_gl']); return (qp!=null&&ssrc!=null)?qp*ssrc:null; });
+    const sstMedia = _cqMedia30(rr=>{ const ssr=_pick(rr,['ss_reactor_gl']); return ssr!=null?ssr*1000:null; });
+    const fmMedia = _cqMedia30((rr,f)=>{
+      const dIn=_pick(rr,['dbo_ent','DBO5 ENTRADA','dbo_entrada']), qbb=_cqQb(rr,f);
+      const ssrr=_pick(rr,['ss_reactor_gl']); const vv=(_pick(rr,['vol_reactor'])>0)?_pick(rr,['vol_reactor']):2167.9;
+      const mm=(ssrr!=null)?ssrr*vv:null;
+      return (dIn!=null&&qbb!=null&&mm)?(dIn*qbb/1000)/mm:null;
+    });
+    const cvMedia = _cqMedia30((rr,f)=>{
+      const dIn=_pick(rr,['dbo_ent','DBO5 ENTRADA','dbo_entrada']), qbb=_cqQb(rr,f);
+      const vv=(_pick(rr,['vol_reactor'])>0)?_pick(rr,['vol_reactor']):2167.9;
+      return (dIn!=null&&qbb!=null)?dIn*qbb/(1000*vv):null;
+    });
     const kpis=[
-      {l:'Edad de fango', v:edad, u:'d', band:'15–20', fuente:edadFB, col: edad==null?'var(--muted)':(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD, dec:1},
-      {l:'Carga F/M', v:FM, u:'kgDBO/kgSS·d', band:'0,10–0,40', fuente: fmCvDeSimulador?fmCvFuenteTxt:fechaFB, col: FM==null?'var(--muted)':(FM>=0.1&&FM<=0.4)?OK:WARN, dec:3},
-      {l:'Carga vol. Cv', v:Cv, u:'kgDBO/m³·d', band:'0,3–1,0', fuente: fmCvDeSimulador?fmCvFuenteTxt:fechaFB, col: Cv==null?'var(--muted)':(Cv>=0.3&&Cv<=1)?OK:WARN, dec:3},
-      {l:'Índice recirc.', v:IR, u:'%', band:'50–150', fuente:irFB, col: IR==null?'var(--muted)':(IR>=50&&IR<=150)?OK:WARN, dec:0},
-      {l:'SST reactor', v:sstMg, u:'mg/L', band:'2.000–4.000', fuente:fechaFB, col: sstMg==null?'var(--muted)':(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD, dec:0, mil:true},
-      {l:'Purga sólidos', v:purga, u:'kgSS/d', band:'seguimiento', fuente:purgaFB, col:'var(--accent)', dec:0, mil:true},
+      {l:'Edad de fango', v:edad, u:'d', band:'15–20', fuente:edadFB, col: edad==null?'var(--muted)':(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD, dec:1, avg:edadMedia},
+      {l:'Carga F/M', v:FM, u:'kgDBO/kgSS·d', band:'0,10–0,40', fuente: fmCvDeSimulador?fmCvFuenteTxt:fechaFB, col: FM==null?'var(--muted)':(FM>=0.1&&FM<=0.4)?OK:WARN, dec:3, avg:fmMedia},
+      {l:'Carga vol. Cv', v:Cv, u:'kgDBO/m³·d', band:'0,3–1,0', fuente: fmCvDeSimulador?fmCvFuenteTxt:fechaFB, col: Cv==null?'var(--muted)':(Cv>=0.3&&Cv<=1)?OK:WARN, dec:3, avg:cvMedia},
+      {l:'Índice recirc.', v:IR, u:'%', band:'50–150', fuente:irFB, col: IR==null?'var(--muted)':(IR>=50&&IR<=150)?OK:WARN, dec:0, avg:irMedia},
+      {l:'SST reactor', v:sstMg, u:'mg/L', band:'2.000–4.000', fuente:fechaFB, col: sstMg==null?'var(--muted)':(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD, dec:0, mil:true, avg:sstMedia},
+      {l:'Purga sólidos', v:purga, u:'kgSS/d', band:'seguimiento', fuente:purgaFB, col:'var(--accent)', dec:0, mil:true, avg:purgaMedia},
     ];
     grid.innerHTML=kpis.map(k=>{
-      const val = k.v==null?'—':(k.mil?Math.round(k.v).toLocaleString('es-ES'):(k.dec===0?Math.round(k.v):(+k.v).toFixed(k.dec)));
+      const fmt=n=>k.mil?Math.round(n).toLocaleString('es-ES'):(k.dec===0?Math.round(n):(+n).toFixed(k.dec));
+      const val = k.v==null?'—':fmt(k.v);
+      const avgTxt = k.avg==null?'':('Media 30d '+fmt(k.avg)+' '+k.u);
       return '<div class="cq-bio-kpi"><div class="cq-bio-kpi-top"><span class="cq-bio-kpi-l">'+k.l+'</span><span class="cq-bio-kpi-dot" style="background:'+k.col+'"></span></div>'+
         '<div><span class="cq-bio-kpi-v" style="color:'+(k.v==null?'var(--muted)':k.col)+'">'+val+'</span><span class="cq-bio-kpi-u">'+k.u+'</span></div>'+
-        '<div class="cq-bio-kpi-band">Ópt. '+k.band+' <span style="color:#d4a373;opacity:.9">'+(k.v==null?'':k.fuente)+'</span></div></div>';
+        '<div class="cq-bio-kpi-band">Ópt. '+k.band+' <span style="color:#d4a373;opacity:.9">'+(k.v==null?'':k.fuente)+'</span></div>'+
+        (avgTxt?'<div class="cq-bio-kpi-avg">'+avgTxt+'</div>':'')+
+        '</div>';
     }).join('');
 
     if(bulk){
