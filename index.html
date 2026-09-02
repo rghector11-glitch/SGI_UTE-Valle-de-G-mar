@@ -9922,7 +9922,7 @@ if(typeof waitForFirebase==='function'){
   let cqPlanta='edari';
   let cqDiaSel=null; // día fijado desde el histórico (o null = último dato)
   let cqTrendOpen=false;
-  function cqToggleTrend(){
+  window.cqToggleTrend=function(){
     cqTrendOpen=!cqTrendOpen;
     const w=document.getElementById('cq-trend-wrap');
     if(w) w.style.display=cqTrendOpen?'block':'none';
@@ -9931,7 +9931,7 @@ if(typeof waitForFirebase==='function'){
     const b=document.getElementById('cq-trend-toggle');
     if(b) b.classList.toggle('cq-btn-accent',cqTrendOpen);
     if(cqTrendOpen) cqDibujaTendencia5();
-  }
+  };
   function cqDibujaTendencia5(){
     const cont=document.getElementById('cq-trend-chart');
     if(!cont) return;
