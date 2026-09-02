@@ -1496,7 +1496,10 @@ function App(){
           type:'sim-kpi',
           edad:String(lastDay.tc),
           sst: sstLast?Math.round(sstLast*1000):undefined,
-          dqo: String(lastDay.rend_dqo)
+          dqo: String(lastDay.rend_dqo),
+          fm: String(lastDay.fm),
+          cv: String(lastDay.cv),
+          fecha: lastDay.iso
         }, '*');
       }catch(e){}
     }
@@ -1693,7 +1696,9 @@ function App(){
         type:'sim-kpi',
         edad:res.tc.toFixed(1),
         sst: p.sst_reactor,
-        dqo: res.rend_dqo.toFixed(1)
+        dqo: res.rend_dqo.toFixed(1),
+        fm: res.FM.toFixed(3),
+        cv: res.Cv.toFixed(3)
       }, '*');
     }catch(_){}
   },[p]);

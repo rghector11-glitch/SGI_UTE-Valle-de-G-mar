@@ -10084,11 +10084,14 @@ if(typeof waitForFirebase==='function'){
     let Cv = (dboIn!=null&&Qb!=null) ? dboIn*Qb/(1000*V) : null;
     // Carga F/M y Carga vol. se toman del Simulador de Proceso (M06), que las calcula
     // con el mismo motor de fórmulas a partir de los parámetros que se ajustan allí.
-    let fmCvDeSimulador=false;
+    let fmCvDeSimulador=false, fmCvFuenteTxt='· simulador';
     try{
       const sim=JSON.parse(localStorage.getItem('sgi-kpi-sim')||'null');
       if(sim && sim.fm!=null && !isNaN(+sim.fm)){ FM=+sim.fm; fmCvDeSimulador=true; }
       if(sim && sim.cv!=null && !isNaN(+sim.cv)){ Cv=+sim.cv; fmCvDeSimulador=true; }
+      // Si el simulador cargó un rango de Excel, viene con la fecha real del
+      // último día calculado; si no (modo manual/en vivo), se indica "simulador".
+      if(fmCvDeSimulador && sim.fecha){ fmCvFuenteTxt='· '+_fmtDM(sim.fecha)+' (sim.)'; }
     }catch(e){}
     const IR = (Qr!=null&&Qb) ? Qr/Qb*100 : null;
     const edad = calcEdadFango(r);
@@ -10097,8 +10100,8 @@ if(typeof waitForFirebase==='function'){
     const fechaFB='· '+_fmtDM(fref);
     const kpis=[
       {l:'Edad de fango', v:edad, u:'d', band:'15–20', fuente:fechaFB, col: edad==null?'var(--muted)':(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD, dec:1},
-      {l:'Carga F/M', v:FM, u:'kgDBO/kgSS·d', band:'0,10–0,40', fuente: fmCvDeSimulador?'· simulador':fechaFB, col: FM==null?'var(--muted)':(FM>=0.1&&FM<=0.4)?OK:WARN, dec:3},
-      {l:'Carga vol. Cv', v:Cv, u:'kgDBO/m³·d', band:'0,3–1,0', fuente: fmCvDeSimulador?'· simulador':fechaFB, col: Cv==null?'var(--muted)':(Cv>=0.3&&Cv<=1)?OK:WARN, dec:3},
+      {l:'Carga F/M', v:FM, u:'kgDBO/kgSS·d', band:'0,10–0,40', fuente: fmCvDeSimulador?fmCvFuenteTxt:fechaFB, col: FM==null?'var(--muted)':(FM>=0.1&&FM<=0.4)?OK:WARN, dec:3},
+      {l:'Carga vol. Cv', v:Cv, u:'kgDBO/m³·d', band:'0,3–1,0', fuente: fmCvDeSimulador?fmCvFuenteTxt:fechaFB, col: Cv==null?'var(--muted)':(Cv>=0.3&&Cv<=1)?OK:WARN, dec:3},
       {l:'Índice recirc.', v:IR, u:'%', band:'50–150', fuente:fechaFB, col: IR==null?'var(--muted)':(IR>=50&&IR<=150)?OK:WARN, dec:0},
       {l:'SST reactor', v:sstMg, u:'mg/L', band:'2.000–4.000', fuente:fechaFB, col: sstMg==null?'var(--muted)':(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD, dec:0, mil:true},
       {l:'Purga sólidos', v:purga, u:'kgSS/d', band:'seguimiento', fuente:fechaFB, col:'var(--accent)', dec:0, mil:true},
