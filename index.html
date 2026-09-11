@@ -2411,8 +2411,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-btn{font-size:9px;font-weight:600;padding:3px 8px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--fg);letter-spacing:.3px;transition:all .15s;font-family:var(--mono);}
             .cq-btn:hover{background:var(--accent);color:#000;border-color:var(--accent);}
             .cq-btn-accent{background:rgba(0,201,167,.1);border-color:var(--accent);color:var(--accent);}
-            /* chart blocks */
-            .cq-chart-block{padding:6px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;flex:1;min-height:80px;}
+            /* chart blocks: ahora son tarjetas sueltas en fila (4-across), no bloques apilados */
+            .cq-chart-block{padding:10px 13px;border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;height:158px;min-width:0;}
             .cq-chart-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
             .cq-chart-title{font-size:12px;font-weight:600;}
             .cq-chart-big{font-family:var(--cond);font-size:17px;font-weight:700;line-height:1;}
@@ -2486,9 +2486,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-pdf-btn{width:100%;padding:8px;border-radius:6px;background:var(--accent);color:#000;font-weight:700;font-size:11px;letter-spacing:.5px;border:none;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:5px;font-family:var(--mono);}
             .cq-pdf-btn:hover{opacity:.85;}
             .cq-pdf-btn:disabled{opacity:.4;cursor:not-allowed;}
-            /* 2-col layout (el informe pasó a desglose) */
-            #cq-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.9fr);flex:1;overflow:hidden;min-height:0;}
-            #cq-left{overflow:hidden;border-right:1px solid var(--border);min-height:0;display:flex;flex-direction:column;}
+            /* Cuadro de mando en filas: 4 gráficos en fila + reactor/incidencias + bulking */
+            #cq-body{display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;padding-bottom:4px;}
+            #cq-charts-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:8px 12px;flex-shrink:0;align-items:start;}
+            #cq-lowrow{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:10px;padding:0 12px 10px;flex:1;min-height:220px;}
+            #cq-bioblock,#cq-incidblock{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:0;}
+            @media(max-width:1100px){#cq-charts-row{grid-template-columns:repeat(2,1fr);}#cq-lowrow{grid-template-columns:1fr;}}
             /* Botón de apertura del desglose de informe */
             .cq-kpi-action{flex:0 0 auto;display:flex;align-items:center;padding:0 12px;}
             #cq-export-toggle{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.4px;padding:6px 12px;border-radius:6px;cursor:pointer;border:1px solid #ef4444;background:rgba(239,68,68,.10);color:#ef4444;white-space:nowrap;transition:all .15s;}
@@ -2504,7 +2507,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               box-shadow:0 10px 32px rgba(0,0,0,.5);z-index:40;display:none;flex-direction:column;
               overflow:hidden;min-height:0;}
             #cq-right.open{display:flex;}
-            @media(max-width:900px){#cq-body{grid-template-columns:1fr;}#cq-right{left:12px;right:12px;width:auto;}}
+            @media(max-width:900px){#cq-right{left:12px;right:12px;width:auto;}}
             /* ══ Cuadro de mando profesional: cumplimiento + decisión ══ */
             #cq-head{display:flex;flex-direction:column;flex-shrink:0;border-bottom:1px solid var(--border);}
             #cq-plant-tabs{display:flex;align-items:center;gap:10px;padding:6px 12px;border-bottom:1px solid var(--border);}
@@ -2537,6 +2540,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-chip-v{font-weight:700;}
             .cq-reco{display:flex;flex-direction:column;gap:6px;max-height:104px;overflow-y:auto;padding-right:4px;}
             .cq-reco-item{display:flex;gap:6px;align-items:flex-start;font-size:10px;line-height:1.4;}
+            .cq-inc-row{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;margin-bottom:8px;}
+            .cq-inc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+            .cq-inc-detail{margin-top:6px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
+            .cq-inc-item{font-size:9.5px;line-height:1.4;}
             .cq-reco-ic{flex-shrink:0;font-size:10px;line-height:1.35;font-weight:700;}
             .cq-reco-tx{color:var(--fg);}
             .cq-reco-ok{color:var(--muted2);}
@@ -2640,7 +2647,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               function cqAplicarGlass(){
                 const sel=['#cq-compliance .cq-comp-card','.cq-head-actions','#cq-comp-verdict',
                   '.cq-bio-kpi','.cq-gauge','.cq-trh-item','.cq-cumpl-stat','.cq-wx-meta-item','.cq-wx-day',
-                  '.cq-sec-row','.cq-bio-bulk','.cq-chip','.cq-trend-card'];
+                  '.cq-sec-row','.cq-bio-bulk','.cq-chip','.cq-trend-card','.cq-chart-block','#cq-bioblock','#cq-incidblock'];
                 document.querySelectorAll(sel.join(',')).forEach(function(el){
                   if(el.closest('#panel-calidad')) el.classList.add('cq-glass');
                 });
@@ -2723,11 +2730,11 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 </button>
               </div>
             </div>
-            <!-- Fila 2: estado de proceso + recomendaciones operativas -->
+            <!-- Fila 2: riesgo de bulking + recomendaciones operativas -->
             <div id="cq-decision">
               <div class="cq-dec-col">
-                <div class="cq-dec-hd">▸ Estado de proceso</div>
-                <div class="cq-chips" id="cq-proc-chips"><span class="cq-chip"><span class="cq-chip-k">Cargando…</span></span></div>
+                <div class="cq-dec-hd">▸ Riesgo de bulking filamentoso</div>
+                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none;margin:0;"></div>
               </div>
               <div class="cq-dec-col">
                 <div class="cq-dec-hd">▸ Recomendaciones operativas</div>
@@ -2741,20 +2748,17 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
           <!-- BODY grid -->
           <div id="cq-body">
 
-            <!-- LEFT: analítica (gráficas) -->
-            <div id="cq-left">
-
-              <!-- Sec: análisis -->
-              <div class="cq-sec-hd">
-                <div class="cq-sec-dot" style="background:var(--accent)"></div>
-                <div class="cq-sec-title">Análisis Operacional</div>
-                <div class="cq-sec-right">
-                  <button class="cq-btn cq-btn-accent" onclick="cqExportPDF()">↓ PDF Mes</button>
-                </div>
+            <!-- Cabecera de la sección de análisis -->
+            <div class="cq-sec-hd" style="flex-shrink:0;">
+              <div class="cq-sec-dot" style="background:var(--accent)"></div>
+              <div class="cq-sec-title">Análisis Operacional</div>
+              <div class="cq-sec-right">
+                <button class="cq-btn cq-btn-accent" onclick="cqExportPDF()">↓ PDF Mes</button>
               </div>
+            </div>
 
-                <!-- Gráficas -->
-                <div style="display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;">
+            <!-- FILA 1: los 4 gráficos operacionales, uno junto a otro -->
+            <div id="cq-charts-row">
 
               <!-- Caudal chart -->
               <div class="cq-chart-block">
@@ -2784,8 +2788,18 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div id="cq-elec-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
+              <!-- Rendimientos -->
+              <div class="cq-chart-block">
+                <div class="cq-chart-row">
+                  <div class="cq-chart-title">Rendimientos · <span id="cq-rend-sub">—</span></div>
+                </div>
+                <div id="cq-rend-chart" style="flex:1;display:flex;align-items:center;">
+                  <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando…</div>
+                </div>
+              </div>
+
               <!-- Edad fango -->
-              <div class="cq-chart-block" style="border-bottom:none">
+              <div class="cq-chart-block">
                 <div class="cq-chart-row">
                   <div class="cq-chart-title" id="cq-fango-title">Edad de fango</div>
                   <div class="cq-chart-big" style="color:#f59e0b" id="cq-fango-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span></div>
@@ -2794,35 +2808,34 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <div id="cq-fango-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
               </div>
 
-                </div><!-- /graficas -->
-            </div><!-- /#cq-left -->
+            </div><!-- /#cq-charts-row -->
 
-            <!-- CENTRO: Rendimientos -->
-            <div id="cq-center" style="overflow:hidden;display:flex;flex-direction:column;border-right:1px solid var(--border);min-height:0;">
+            <!-- FILA 2: Reactor biológico (ancho) + Últimas incidencias (estrecho) -->
+            <div id="cq-lowrow">
 
-              <!-- Rendimientos -->
-              <div class="cq-sec-hd" style="position:relative">
-                <div class="cq-sec-dot" style="background:#10b981"></div>
-                <div class="cq-sec-title">Rendimientos · <span id="cq-rend-sub">—</span></div>
-              </div>
-              <!-- Anillos SVG rendimientos calculados de reactor/{fecha} -->
-              <div id="cq-rend-chart" style="padding:4px 12px 2px;flex-shrink:0;">
-                <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando rendimientos…</div>
-              </div>
-
-              <!-- Estudio del reactor biológico -->
-              <div class="cq-sec-hd" style="position:relative;border-top:1px solid var(--border)">
-                <div class="cq-sec-dot" style="background:#b388ff"></div>
-                <div class="cq-sec-title">Reactor biológico · <span id="cq-bio-sub">EDARi</span></div>
-              </div>
-              <div id="cq-bio" style="padding:14px 16px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;justify-content:center;">
-                <div id="cq-bio-grid" class="cq-bio-grid"><div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</div></div>
-                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none;margin-top:16px;"></div>
+              <div id="cq-bioblock">
+                <div class="cq-sec-hd" style="position:relative">
+                  <div class="cq-sec-dot" style="background:#b388ff"></div>
+                  <div class="cq-sec-title">Reactor biológico · <span id="cq-bio-sub">EDARi</span></div>
+                </div>
+                <div id="cq-bio" style="padding:14px 16px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;justify-content:center;">
+                  <div id="cq-bio-grid" class="cq-bio-grid"><div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</div></div>
+                </div>
               </div>
 
-            </div><!-- /#cq-center -->
+              <div id="cq-incidblock">
+                <div class="cq-sec-hd">
+                  <div class="cq-sec-dot" style="background:#60a5fa"></div>
+                  <div class="cq-sec-title">Últimas incidencias</div>
+                </div>
+                <div id="cq-incid-list" style="padding:10px 14px;flex:1;overflow-y:auto;min-height:0;">
+                  <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Calculando…</div>
+                </div>
+              </div>
 
-            <!-- RIGHT: PDF -->
+            </div><!-- /#cq-lowrow -->
+
+            <!-- RIGHT: PDF (panel flotante, se abre con el botón "Exportar informe") -->
             <div id="cq-right">
 
               <!-- PDF -->
@@ -8545,6 +8558,8 @@ document.addEventListener('keydown',e=>{
 .bio-sb-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:1px;}
 </style>
 
+</style>
+
 <div id="bio-overlay" onclick="bioCerrar()"></div>
 <div id="bio-drawer">
   <div class="bio-h">
@@ -10163,6 +10178,21 @@ if(typeof waitForFirebase==='function'){
     if(!recos.length) recos.push({ic:'✓',col:OK,tx:nConDato?'Efluente conforme y proceso dentro de las bandas de referencia. Sin acciones requeridas.':'Sin datos suficientes para '+plantaLbl+'. Carga el SMS Diario (M-04) para evaluar el estado.'});
     const rl=document.getElementById('cq-reco-list');
     if(rl) rl.innerHTML=recos.map(r=>'<div class="cq-reco-item"><span class="cq-reco-ic" style="color:'+r.col+'">'+r.ic+'</span><span class="cq-reco-tx'+(r.col===OK?' cq-reco-ok':'')+'">'+r.tx+'</span></div>').join('');
+    // ── Últimas incidencias: resumen derivado de las mismas recomendaciones ──
+    const icEl=document.getElementById('cq-incid-list');
+    if(icEl){
+      const nCrit=recos.filter(r=>r.col===BAD).length;
+      const nWarn=recos.filter(r=>r.col===WARN).length;
+      let html='<div class="cq-inc-row"><span class="cq-inc-dot" style="background:'+(nCrit>0?BAD:OK)+'"></span>'+
+        (nCrit>0?(nCrit+' incidencia'+(nCrit>1?'s':'')+' crítica'+(nCrit>1?'s':'')):'Sin incidencias críticas')+'</div>';
+      html+='<div class="cq-inc-row"><span class="cq-inc-dot" style="background:'+(nWarn>0?WARN:OK)+'"></span>'+
+        (nWarn>0?(nWarn+' aviso'+(nWarn>1?'s':'')+' informativo'+(nWarn>1?'s':'')):'Sin avisos')+'</div>';
+      const detalladas=recos.filter(r=>r.col!==OK).slice(0,4);
+      if(detalladas.length){
+        html+='<div class="cq-inc-detail">'+detalladas.map(r=>'<div class="cq-inc-item" style="color:'+r.col+'">'+r.ic+' <span style="color:var(--text2)">'+r.tx+'</span></div>').join('')+'</div>';
+      }
+      icEl.innerHTML=html;
+    }
 
     // (Histórico de cumplimiento 30 días eliminado a petición: ya no se calcula ni se pinta)
   }
@@ -10561,7 +10591,7 @@ if(typeof waitForFirebase==='function'){
             const p=document.getElementById('panel-calidad');
             if(p&&p.classList.contains('active')){ cqRQRenderTanks(); cqRedibujarTodo(); }
           });
-          ['cq-left','cq-center'].forEach(id=>{ const el=document.getElementById(id); if(el) window._cqResizeObs.observe(el); });
+          ['cq-charts-row','cq-lowrow'].forEach(id=>{ const el=document.getElementById(id); if(el) window._cqResizeObs.observe(el); });
         }
         let intentos=0;
         const retry=setInterval(()=>{
