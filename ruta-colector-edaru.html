@@ -217,7 +217,10 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
   .pr-well table{width:100%;border-collapse:collapse;font-size:9pt;}
   .pr-well td,th{border:1px solid #ddd;padding:3pt 5pt;}
   .pr-well th{background:#e8f2fa;font-weight:bold;}
-  .pr-photos img{width:70pt;height:70pt;object-fit:cover;border-radius:3pt;margin:2pt;}
+  .pr-photo-group{margin-top:8pt;}
+  .pr-photo-group-title{font-size:8pt;font-weight:bold;color:#4a5568;margin-bottom:3pt;}
+  .pr-photos{display:flex;flex-wrap:wrap;}
+  .pr-photos img{width:90pt;height:90pt;object-fit:cover;border-radius:3pt;margin:0 4pt 4pt 0;border:1px solid #ccc;}
   .print-cover{text-align:center;margin-bottom:24pt;padding-bottom:12pt;border-bottom:2px solid #005b99;}
   .print-cover h1{font-size:18pt;color:#003e6b;}
   .print-cover p{font-size:10pt;color:#555;}
@@ -1141,11 +1144,16 @@ async function exportPDF(){
         html+=`<tr><td>${r.date}</td><td>${r.type}</td><td>${r.tech||'—'}</td><td>${r.result||'—'}</td><td>${r.desc||'—'}</td><td>${np||'—'}</td></tr>`;
       });
       html+=`</table>`;
-      // Include photos in PDF (small thumbnails)
-      const allPhotos=recs.flatMap(r=>photos[r.id]||[]);
-      if(allPhotos.length){
-        html+=`<div class="pr-photos">${allPhotos.map(p=>`<img src="${p}" alt="foto">`).join('')}</div>`;
-      }
+      // Fotos agrupadas por incidencia, con fecha y tipo como pie de foto
+      recs.forEach(r=>{
+        const ps=photos[r.id]||[];
+        if(ps.length){
+          html+=`<div class="pr-photo-group">
+            <div class="pr-photo-group-title">${r.date} · ${r.type}${r.tech?' · '+r.tech:''}</div>
+            <div class="pr-photos">${ps.map(p=>`<img src="${p}" alt="foto incidencia ${r.date}">`).join('')}</div>
+          </div>`;
+        }
+      });
     }
     html+=`</div>`;
   });
