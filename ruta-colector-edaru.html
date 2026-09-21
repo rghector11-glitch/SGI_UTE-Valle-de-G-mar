@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -205,7 +206,8 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
   .print-logo-header img { width: 70px; height: 70px; object-fit: contain; }
   .print-logo-header .print-title { font-size: 14px; font-weight: 700; color: #003e6b; }
   .print-logo-header .print-sub { font-size: 10px; color: #4a5568; }
-  body{overflow:auto!important;font-size:11pt;color:#000;}
+  html{overflow:visible!important;height:auto!important;}
+  body{overflow:auto!important;height:auto!important;font-size:11pt;color:#000;}
   .shell,.main{display:block!important;height:auto!important;overflow:visible!important;}
   .app-header,.panel-left,.map-wrap,.panel-right,.detail-footer,.inc-btn,.close-btn,.photo-dl{display:none!important;}
   .print-report{display:block!important;}
@@ -344,7 +346,7 @@ if(window.self !== window.top) {
         <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M5 7l3 3 3-3M3 13h10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Excel
       </button>
-      <button class="hdr-btn pdf" onclick="exportPDF()">
+      <button class="hdr-btn pdf" id="btn-pdf" onclick="exportPDF()">
         <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h6l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke-width="1.4"/><path d="M9 2v4h4M6 9h4M6 11h2" stroke-width="1.4" stroke-linecap="round"/></svg>
         PDF
       </button>
@@ -1006,8 +1008,8 @@ function exportXLS(){
   XLSX.writeFile(wb,`colector_EDARu_${dateStr}.xlsx`);
 }
 
-// ─── MAPA DE RUTA (esquemático, para cabecera de informe) ──────────────────────
-function generateRouteMapDataURL(){
+// ─── MAPA DE RUTA (esquemático, respaldo si falla la captura real) ─────────────
+function generateRouteMapSchematic(){
   const W=1000,H=470,pad=44,legendH=44;
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const ctx=cv.getContext('2d');
@@ -1032,13 +1034,11 @@ function generateRouteMapDataURL(){
     pad+(1-(lat-minLat)/(maxLat-minLat))*(mapH-2*pad)
   ];
 
-  // línea de ruta (orden de nº de pozo)
   ctx.strokeStyle='#005b99'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.lineCap='round';
   ctx.beginPath();
   ws.forEach((w,i)=>{ const [x,y]=project(w.lat,w.lon); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.stroke();
 
-  // marcadores de pozo
   ws.forEach(w=>{
     const [x,y]=project(w.lat,w.lon);
     ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2);
@@ -1048,7 +1048,6 @@ function generateRouteMapDataURL(){
     ctx.fillText(w.num<=99?w.num:'?', x, y+0.5);
   });
 
-  // leyenda de estados
   const legendY=mapH+legendH/2;
   ctx.font='12px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
   let lx=pad;
@@ -1058,15 +1057,60 @@ function generateRouteMapDataURL(){
     lx+=13+ctx.measureText(label).width+26;
   });
 
-  return cv.toDataURL('image/png');
+  return {url:cv.toDataURL('image/png'), real:false};
+}
+
+// ─── MAPA DE RUTA (captura real, con calles de fondo) ──────────────────────────
+async function generateRouteMapImage(){
+  const ws=wells.slice().sort((a,b)=>a.num-b.num);
+  if(!ws.length || !window.html2canvas) return generateRouteMapSchematic();
+
+  const container=document.createElement('div');
+  container.style.cssText='position:fixed;left:-99999px;top:0;width:1000px;height:470px;background:#eef3f8;';
+  document.body.appendChild(container);
+
+  try{
+    const exportMap=L.map(container,{attributionControl:false,zoomControl:false,fadeAnimation:false,dragging:false});
+    const tileLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',{
+      maxZoom:19, subdomains:'abcd', crossOrigin:true
+    }).addTo(exportMap);
+
+    const bounds=L.latLngBounds(ws.map(w=>[w.lat,w.lon]));
+    exportMap.fitBounds(bounds.pad(0.2));
+    exportMap.invalidateSize();
+
+    L.polyline(ws.map(w=>[w.lat,w.lon]),{color:'#005b99',weight:4,opacity:0.85}).addTo(exportMap);
+    ws.forEach(w=>{ L.marker([w.lat,w.lon],{icon:makeIcon(w)}).addTo(exportMap); });
+
+    await new Promise(resolve=>{
+      let done=false;
+      tileLayer.on('load',()=>{ if(!done){done=true; resolve();} });
+      setTimeout(()=>{ if(!done){done=true; resolve();} },4000);
+    });
+    await new Promise(r=>setTimeout(r,200));
+
+    const canvas=await html2canvas(container,{useCORS:true,backgroundColor:'#eef3f8',scale:1.5});
+    exportMap.remove();
+    document.body.removeChild(container);
+    return {url:canvas.toDataURL('image/png'), real:true};
+  }catch(e){
+    console.warn('No se pudo capturar el mapa real, se usa el esquema de respaldo:',e);
+    try{ document.body.removeChild(container); }catch(_){}
+    return generateRouteMapSchematic();
+  }
 }
 
 // ─── EXPORT PDF ───────────────────────────────────────────────────────────────
-function exportPDF(){
+async function exportPDF(){
+  const btn=document.getElementById('btn-pdf');
+  if(btn){ btn.disabled=true; btn.style.opacity='0.55'; btn.style.cursor='wait'; }
+
   const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
   const counts={Operativo:0,Avería:0,Reparación:0,Mantenimiento:0};
   wells.forEach(w=>{if(counts[w.state]!==undefined) counts[w.state]++;});
-  const mapImg=generateRouteMapDataURL();
+  const mapResult=await generateRouteMapImage();
+
+  if(btn){ btn.disabled=false; btn.style.opacity=''; btn.style.cursor=''; }
 
   let html=`<div class="print-cover">
     <h1>Ruta Colector EDARu</h1>
@@ -1075,8 +1119,8 @@ function exportPDF(){
     <p>Total pozos: ${wells.length} &nbsp;|&nbsp; Operativos: ${counts.Operativo} &nbsp;|&nbsp; Averías: ${counts.Avería} &nbsp;|&nbsp; En reparación: ${counts.Reparación} &nbsp;|&nbsp; Mantenimiento: ${counts.Mantenimiento}</p>
   </div>
   <div class="pr-map-wrap">
-    <img src="${mapImg}" alt="Mapa de la ruta del colector">
-    <div class="pr-map-cap">Mapa esquemático de la ruta (orden de pozos y estado actual)</div>
+    <img src="${mapResult.url}" alt="Mapa de la ruta del colector">
+    <div class="pr-map-cap">${mapResult.real?'Mapa de la ruta sobre cartografía real (orden de pozos y estado actual) · © OpenStreetMap contributors © CARTO':'Mapa esquemático de la ruta (orden de pozos y estado actual)'}</div>
   </div>`;
 
   wells.sort((a,b)=>a.num-b.num).forEach(w=>{
