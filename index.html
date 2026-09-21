@@ -8747,7 +8747,8 @@ function rcRender(){
 function rcAbrirRuta(archivo, titulo){
   if(!archivo){ alert('Esta ruta no tiene archivo asignado.'); return; }
   toggleRutaColectorDrawer(false);
-  openRutaColectorIframe(archivo, titulo || 'Ruta Colector');
+  const archivoFresco = archivo + (archivo.includes('?') ? '&' : '?') + 'v=' + Date.now();
+  openRutaColectorIframe(archivoFresco, titulo || 'Ruta Colector');
 }
 async function rcCrearRuta(){
   const nombre = document.getElementById('rc-nombre').value.trim();
