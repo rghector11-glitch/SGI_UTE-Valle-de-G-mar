@@ -297,12 +297,17 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <script>
-// Si estamos dentro de un iframe (portal), ocultamos nuestra propia cabecera
-// para evitar la doble barra de navegación
+// Si estamos dentro de un iframe (portal), ocultamos solo la parte duplicada
+// de la cabecera (logo, marca y botón "Inicio"), pero mantenemos visibles
+// los botones de exportación (Excel/PDF), que son propios de este módulo.
 if(window.self !== window.top) {
   document.addEventListener('DOMContentLoaded', function() {
-    var h = document.querySelector('.app-header');
-    if(h) h.style.display = 'none';
+    var btnVolver = document.getElementById('btn-volver');
+    var logo = document.querySelector('.hdr-logo');
+    var brand = document.querySelector('.hdr-brand');
+    if(btnVolver) btnVolver.style.display = 'none';
+    if(logo) logo.style.display = 'none';
+    if(brand) brand.style.display = 'none';
   });
 }
 </script>
