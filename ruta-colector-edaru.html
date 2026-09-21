@@ -219,6 +219,9 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
   .print-cover{text-align:center;margin-bottom:24pt;padding-bottom:12pt;border-bottom:2px solid #005b99;}
   .print-cover h1{font-size:18pt;color:#003e6b;}
   .print-cover p{font-size:10pt;color:#555;}
+  .pr-map-wrap{margin:10pt 0 16pt;}
+  .pr-map-wrap img{width:100%;max-height:230pt;object-fit:contain;border:1px solid #dde3ec;border-radius:4pt;background:#eef3f8;}
+  .pr-map-cap{font-size:8pt;color:#8898aa;margin-top:3pt;}
 }
 .print-report{display:none;}
 
@@ -942,23 +945,25 @@ function exportXLS(){
   wsP['A1']={v:'UTE Valle de Güímar — Ruta Colector EDARu',s:S.title,t:'s'};
   wsP['A2']={v:`Generado: ${dateStr}   ·   Total pozos: ${wells.length}`,s:S.sub,t:'s'};
   wsP['A3']={v:'',t:'s'};
-  ['Nº','Nombre','Profundidad','Estado','Latitud','Longitud','Registros','Notas'].forEach((h,ci)=>{ wsP[XLSX.utils.encode_cell({r:3,c:ci})]={v:h,s:S.hdr,t:'s'}; });
+  ['Nº','Nombre','Profundidad','Estado','Latitud','Longitud','Mapa','Registros','Notas'].forEach((h,ci)=>{ wsP[XLSX.utils.encode_cell({r:3,c:ci})]={v:h,s:S.hdr,t:'s'}; });
   wells.sort((a,b)=>a.num-b.num).forEach((w,ri)=>{
     const alt=ri%2===1; const row=ri+4;
     const nr=(records[w.id]||[]).length;
+    const linkStyle={font:{sz:10,color:{rgb:'005B99'},underline:true,name:'Calibri'},fill:(alt?S.alt:S.cell).fill,alignment:{horizontal:'center',vertical:'center'},border:BD};
     wsP[XLSX.utils.encode_cell({r:row,c:0})]={v:w.num,s:alt?S.altm:S.mono,t:'n'};
     wsP[XLSX.utils.encode_cell({r:row,c:1})]={v:w.name,s:alt?S.alt:S.cell,t:'s'};
     wsP[XLSX.utils.encode_cell({r:row,c:2})]={v:w.depth||'',s:alt?S.altm:S.mono,t:'s'};
     wsP[XLSX.utils.encode_cell({r:row,c:3})]={v:w.state,s:stateStyle(w.state),t:'s'};
     wsP[XLSX.utils.encode_cell({r:row,c:4})]={v:w.lat,s:alt?S.altm:S.mono,t:'n'};
     wsP[XLSX.utils.encode_cell({r:row,c:5})]={v:w.lon,s:alt?S.altm:S.mono,t:'n'};
-    wsP[XLSX.utils.encode_cell({r:row,c:6})]={v:nr,s:alt?S.altm:S.mono,t:'n'};
-    wsP[XLSX.utils.encode_cell({r:row,c:7})]={v:w.notes||'',s:alt?S.alt:S.cell,t:'s'};
+    wsP[XLSX.utils.encode_cell({r:row,c:6})]={v:'Ver ubicación',s:linkStyle,t:'s',l:{Target:`https://www.google.com/maps?q=${w.lat},${w.lon}`,Tooltip:'Abrir ubicación en Google Maps'}};
+    wsP[XLSX.utils.encode_cell({r:row,c:7})]={v:nr,s:alt?S.altm:S.mono,t:'n'};
+    wsP[XLSX.utils.encode_cell({r:row,c:8})]={v:w.notes||'',s:alt?S.alt:S.cell,t:'s'};
   });
-  const pRef=XLSX.utils.encode_range({s:{r:3,c:0},e:{r:3+wells.length,c:7}});
-  wsP['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:3+wells.length,c:7}});
-  wsP['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}},{s:{r:2,c:0},e:{r:2,c:7}}];
-  wsP['!cols']=[{wch:5},{wch:14},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10},{wch:40}];
+  const pRef=XLSX.utils.encode_range({s:{r:3,c:0},e:{r:3+wells.length,c:8}});
+  wsP['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:3+wells.length,c:8}});
+  wsP['!merges']=[{s:{r:0,c:0},e:{r:0,c:8}},{s:{r:1,c:0},e:{r:1,c:8}},{s:{r:2,c:0},e:{r:2,c:8}}];
+  wsP['!cols']=[{wch:5},{wch:14},{wch:12},{wch:14},{wch:14},{wch:14},{wch:14},{wch:10},{wch:40}];
   wsP['!rows']=[{hpt:20},{hpt:14},{hpt:8},{hpt:28}];
   wsP['!autofilter']={ref:pRef};
   XLSX.utils.book_append_sheet(wb,wsP,'Pozos');
@@ -996,17 +1001,77 @@ function exportXLS(){
   XLSX.writeFile(wb,`colector_EDARu_${dateStr}.xlsx`);
 }
 
+// ─── MAPA DE RUTA (esquemático, para cabecera de informe) ──────────────────────
+function generateRouteMapDataURL(){
+  const W=1000,H=470,pad=44,legendH=44;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#eef3f8'; ctx.fillRect(0,0,W,H);
+
+  const ws=wells.slice().sort((a,b)=>a.num-b.num);
+  const stateColor=st=>st==='Operativo'?'#2e7d32':st==='Avería'?'#b91c1c':st==='Reparación'?'#1565c0':'#b45309';
+
+  if(!ws.length){
+    ctx.fillStyle='#8898aa'; ctx.font='16px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Sin pozos para mostrar en el mapa', W/2, H/2);
+    return cv.toDataURL('image/png');
+  }
+
+  let minLat=Math.min(...ws.map(w=>w.lat)), maxLat=Math.max(...ws.map(w=>w.lat));
+  let minLon=Math.min(...ws.map(w=>w.lon)), maxLon=Math.max(...ws.map(w=>w.lon));
+  if(maxLat-minLat<0.0003){maxLat+=0.00015;minLat-=0.00015;}
+  if(maxLon-minLon<0.0003){maxLon+=0.00015;minLon-=0.00015;}
+  const mapH=H-legendH;
+  const project=(lat,lon)=>[
+    pad+(lon-minLon)/(maxLon-minLon)*(W-2*pad),
+    pad+(1-(lat-minLat)/(maxLat-minLat))*(mapH-2*pad)
+  ];
+
+  // línea de ruta (orden de nº de pozo)
+  ctx.strokeStyle='#005b99'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.beginPath();
+  ws.forEach((w,i)=>{ const [x,y]=project(w.lat,w.lon); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+
+  // marcadores de pozo
+  ws.forEach(w=>{
+    const [x,y]=project(w.lat,w.lon);
+    ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2);
+    ctx.fillStyle=stateColor(w.state); ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='bold 11px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(w.num<=99?w.num:'?', x, y+0.5);
+  });
+
+  // leyenda de estados
+  const legendY=mapH+legendH/2;
+  ctx.font='12px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  let lx=pad;
+  [['Operativo','#2e7d32'],['Avería','#b91c1c'],['Reparación','#1565c0'],['Mantenimiento','#b45309']].forEach(([label,color])=>{
+    ctx.beginPath(); ctx.arc(lx,legendY,7,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+    ctx.fillStyle='#1a2332'; ctx.fillText(label,lx+13,legendY);
+    lx+=13+ctx.measureText(label).width+26;
+  });
+
+  return cv.toDataURL('image/png');
+}
+
 // ─── EXPORT PDF ───────────────────────────────────────────────────────────────
 function exportPDF(){
   const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
   const counts={Operativo:0,Avería:0,Reparación:0,Mantenimiento:0};
   wells.forEach(w=>{if(counts[w.state]!==undefined) counts[w.state]++;});
+  const mapImg=generateRouteMapDataURL();
 
   let html=`<div class="print-cover">
     <h1>Ruta Colector EDARu</h1>
     <p>UTE Valle de Güímar · Tasagaya, Tenerife</p>
     <p>Informe generado: ${dateStr}</p>
     <p>Total pozos: ${wells.length} &nbsp;|&nbsp; Operativos: ${counts.Operativo} &nbsp;|&nbsp; Averías: ${counts.Avería} &nbsp;|&nbsp; En reparación: ${counts.Reparación} &nbsp;|&nbsp; Mantenimiento: ${counts.Mantenimiento}</p>
+  </div>
+  <div class="pr-map-wrap">
+    <img src="${mapImg}" alt="Mapa de la ruta del colector">
+    <div class="pr-map-cap">Mapa esquemático de la ruta (orden de pozos y estado actual)</div>
   </div>`;
 
   wells.sort((a,b)=>a.num-b.num).forEach(w=>{
