@@ -1172,8 +1172,8 @@ async function generateRouteMapImage(){
 
   try{
     const exportMap=L.map(container,{attributionControl:false,zoomControl:false,fadeAnimation:false,dragging:false});
-    const tileLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',{
-      maxZoom:19, subdomains:'abcd', crossOrigin:true
+    const tileLayer=L.tileLayer('https://{s}.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{
+      maxZoom:19, subdomains:['server','services'], crossOrigin:true
     }).addTo(exportMap);
 
     const bounds=L.latLngBounds(ws.map(w=>[w.lat,w.lon]));
@@ -1215,13 +1215,13 @@ async function exportPDF(){
 
   let html=`<div class="print-cover">
     <h1>Ruta Colector EDARu</h1>
-    <p>UTE Valle de Güímar · Tasagaya, Tenerife</p>
+    <p>Realizado: Héctor Hernández Hernández</p>
     <p>Informe generado: ${dateStr}</p>
     <p>Total pozos: ${wells.length} &nbsp;|&nbsp; Operativos: ${counts.Operativo} &nbsp;|&nbsp; Averías: ${counts.Avería} &nbsp;|&nbsp; En reparación: ${counts.Reparación} &nbsp;|&nbsp; Mantenimiento: ${counts.Mantenimiento}</p>
   </div>
   <div class="pr-map-wrap">
     <img src="${mapResult.url}" alt="Mapa de la ruta del colector">
-    <div class="pr-map-cap">${mapResult.real?'Mapa de la ruta sobre cartografía real (orden de pozos y estado actual) · © OpenStreetMap contributors © CARTO':'Mapa esquemático de la ruta (orden de pozos y estado actual)'}</div>
+    <div class="pr-map-cap">${mapResult.real?'Mapa de la ruta sobre cartografía real (orden de pozos y estado actual) · Esri, HERE, OpenStreetMap contributors':'Mapa esquemático de la ruta (orden de pozos y estado actual)'}</div>
   </div>`;
 
   wells.sort((a,b)=>a.num-b.num).forEach(w=>{
