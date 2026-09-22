@@ -391,7 +391,16 @@ async function cargarTodo(){
     const rutas = snapMeta.val() || {};
     for(const [id, info] of Object.entries(rutas)){
       try{
-        const snapData = await get(ref(db,'colectores/'+id));
+        // El id real de almacenamiento es el valor del parámetro ?ruta= dentro
+        // del archivo registrado (puede no coincidir con la clave de Firebase
+        // de rutas_colector, si el archivo se escribió a mano al crear la ruta).
+        let storageId = id;
+        try{
+          const url = new URL(info.archivo, window.location.href);
+          const rutaParam = url.searchParams.get('ruta');
+          if(rutaParam) storageId = rutaParam;
+        }catch(e){}
+        const snapData = await get(ref(db,'colectores/'+storageId));
         const wells = (snapData.val()||{}).wells || [];
         addRutaLayer(id,
           {nombre:info.nombre, descripcion:info.descripcion, archivo:info.archivo||('ruta-colector-edaru.html?ruta='+id), color:PALETA[colorIdx++%PALETA.length]},
