@@ -123,6 +123,9 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .hist-item.Inspección{border-left-color:var(--ok);}
 .hist-item.Reparación{border-left-color:var(--rep);}
 .hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem;}
+.hist-rm-btn{background:rgba(185,28,28,.12);border:none;border-radius:4px;color:#b91c1c;cursor:pointer;padding:3px 5px;display:flex;align-items:center;}
+.hist-rm-btn:hover{background:rgba(185,28,28,.25);}
+.hist-rm-btn svg{width:11px;height:11px;stroke:currentColor;}
 .hist-type{font-size:.7rem;font-weight:700;}
 .hist-date{font-size:.65rem;color:var(--text3);font-family:var(--mono);}
 .hist-tech{font-size:.7rem;color:var(--text2);margin-bottom:.15rem;}
@@ -303,14 +306,13 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 </script>
 <script>
 // Si estamos dentro de un iframe (portal), ocultamos solo la parte duplicada
-// de la cabecera (logo, marca y botón "Inicio"), pero mantenemos visibles
-// los botones de exportación (Excel/PDF), que son propios de este módulo.
+// de la cabecera (logo y marca), pero mantenemos visible el botón de volver
+// (es el único mecanismo para cerrar el visor y regresar al portal) y los
+// botones de exportación/importación, propios de este módulo.
 if(window.self !== window.top) {
   document.addEventListener('DOMContentLoaded', function() {
-    var btnVolver = document.getElementById('btn-volver');
     var logo = document.querySelector('.hdr-logo');
     var brand = document.querySelector('.hdr-brand');
-    if(btnVolver) btnVolver.style.display = 'none';
     if(logo) logo.style.display = 'none';
     if(brand) brand.style.display = 'none';
   });
@@ -834,14 +836,28 @@ function renderHist(id){
       </div>`).join('')}</div>`:'';
     return `<div class="hist-item ${r.type}">
       <div class="hist-top">
-        <span class="hist-type" style="color:${THEX[r.type]}">${r.type}</span>
-        <span class="hist-date">${r.date}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="hist-type" style="color:${THEX[r.type]}">${r.type}</span>
+          <span class="hist-date">${r.date}</span>
+        </span>
+        <button class="hist-rm-btn" title="Eliminar registro" onclick="deleteRecord('${id}','${r.id}')">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M5 4l.5 9h5L11 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
       ${r.tech?`<div class="hist-tech">${r.tech}</div>`:''}
       ${r.desc?`<div class="hist-desc">${r.desc}</div>`:''}
       ${photoHtml}
     </div>`;
   }).join('');
+}
+
+function deleteRecord(wellId, recId){
+  if(!confirm('¿Eliminar este registro y sus fotos asociadas? Esta acción no se puede deshacer.')) return;
+  if(records[wellId]) records[wellId]=records[wellId].filter(r=>r.id!==recId);
+  if(photos[recId]) delete photos[recId];
+  save();
+  renderHist(wellId);
+  renderList();
 }
 
 function closeDetail(){ selectedId=null; document.getElementById('panel-right').classList.add('hidden'); renderList(); }
