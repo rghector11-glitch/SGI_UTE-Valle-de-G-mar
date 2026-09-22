@@ -345,6 +345,11 @@ if(window.self !== window.top) {
     </div>
     <div class="hdr-stats" id="hdr-stats"></div>
     <div class="hdr-actions">
+      <button class="hdr-btn kml" id="btn-kml" onclick="document.getElementById('kml-input').click()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 13l4-6 3 4 2-3 3 5H2z" stroke-width="1.3" stroke-linejoin="round"/><circle cx="12" cy="4" r="1.6" stroke-width="1.3"/></svg>
+        Importar KML
+      </button>
+      <input type="file" id="kml-input" accept=".kml,.xml" style="display:none" onchange="handleKmlFile(event)">
       <button class="hdr-btn photos" id="btn-bulk-photos" onclick="document.getElementById('bulk-photo-input').click()">
         <svg viewBox="0 0 16 16" fill="none"><path d="M2 5a1 1 0 011-1h3l1.2 1.4H13a1 1 0 011 1V12a1 1 0 01-1 1H3a1 1 0 01-1-1V5z" stroke-width="1.4" stroke-linejoin="round"/></svg>
         Importar fotos
@@ -497,6 +502,30 @@ if(window.self !== window.top) {
     <div class="modal-footer">
       <button class="btn" onclick="closeModals()">Cancelar</button>
       <button class="btn primary" onclick="saveWell()">Guardar pozo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Importar KML -->
+<div id="modal-kml" class="modal-overlay" style="display:none" onclick="closeModals(event)">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:560px">
+    <div class="modal-title">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 13l4-6 3 4 2-3 3 5H2z" stroke-width="1.3" stroke-linejoin="round"/><circle cx="12" cy="4" r="1.6" stroke-width="1.3"/></svg>
+      <span>Importar puntos desde KML</span>
+    </div>
+    <div style="font-size:.72rem;color:var(--text3);margin-bottom:8px">
+      Se han detectado <b id="kml-total-count">0</b> puntos repartidos en <b id="kml-group-count">0</b> grupo(s), separados por saltos de distancia grandes. Marca el/los grupo(s) que quieras importar como pozos de esta ruta.
+    </div>
+    <div id="kml-group-list" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:10px"></div>
+    <div class="fg-grid">
+      <div class="fg"><label>Empezar numeración en</label><input id="kml-start-num" type="number" min="1" step="1"></div>
+      <div class="fg" style="justify-content:flex-end"><label style="opacity:0">t</label>
+        <div style="font-size:.68rem;color:var(--text3);line-height:1.5">Por defecto, continúa después del último pozo existente.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModals()">Cancelar</button>
+      <button class="btn primary" onclick="confirmKmlImport()">Importar seleccionados</button>
     </div>
   </div>
 </div>
@@ -1265,12 +1294,109 @@ function closeModals(e){
   if(e&&e.target!==e.currentTarget) return;
   document.getElementById('modal-well').style.display='none';
   document.getElementById('modal-rec').style.display='none';
+  const mk=document.getElementById('modal-kml'); if(mk) mk.style.display='none';
   pickingCoords=false;
 }
 
 function renderAll(){ renderList(); renderMarkers(); updateStats(); }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// ─── IMPORTACIÓN DE RUTA DESDE KML ─────────────────────────────────────────────
+let _kmlGroups=[]; // grupos detectados en el último KML cargado
+
+function _haversineM(lat1,lon1,lat2,lon2){
+  const R=6371000, toRad=d=>d*Math.PI/180;
+  const dphi=toRad(lat2-lat1), dl=toRad(lon2-lon1);
+  const a=Math.sin(dphi/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dl/2)**2;
+  return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// Recorre recursivamente el KML recogiendo Placemarks de tipo Point, ignorando
+// cualquier carpeta cuyo nombre acabe en "_TEXTOS" (capas de rótulos de CAD, no pozos reales)
+function _kmlCollectPoints(el, ns, out){
+  for(const child of el.children){
+    const tag=child.localName;
+    if(tag==='Folder' || tag==='Document'){
+      const nameEl=Array.from(child.children).find(c=>c.localName==='name');
+      const folderName=nameEl?nameEl.textContent.trim():'';
+      if(/_TEXTOS$/i.test(folderName)) continue; // saltar capas de rótulos
+      _kmlCollectPoints(child, ns, out);
+    } else if(tag==='Placemark'){
+      const pt=Array.from(child.children).find(c=>c.localName==='Point');
+      if(!pt) continue;
+      const coordEl=Array.from(pt.children).find(c=>c.localName==='coordinates');
+      if(!coordEl) continue;
+      const parts=coordEl.textContent.trim().split(',');
+      const lon=parseFloat(parts[0]), lat=parseFloat(parts[1]);
+      if(isNaN(lat)||isNaN(lon)) continue;
+      const nameEl=Array.from(child.children).find(c=>c.localName==='name');
+      out.push({name:nameEl?nameEl.textContent.trim():'(sin nombre)', lat, lon});
+    }
+  }
+}
+
+function handleKmlFile(evt){
+  const file=evt.target.files[0];
+  evt.target.value='';
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    let xml;
+    try{ xml=new DOMParser().parseFromString(e.target.result,'application/xml'); }
+    catch(err){ alert('No se pudo leer el archivo KML.'); return; }
+    if(xml.getElementsByTagName('parsererror').length){ alert('El archivo KML no es válido.'); return; }
+    const pts=[];
+    _kmlCollectPoints(xml.documentElement, xml.documentElement.namespaceURI, pts);
+    if(!pts.length){ alert('No se encontraron puntos en el archivo KML.'); return; }
+
+    // Segmentar en grupos: un salto de más de 300 m entre puntos consecutivos
+    // indica que son tramos/estructuras distintas, no una única ruta continua.
+    const THRESH=300;
+    const groups=[[pts[0]]];
+    for(let i=1;i<pts.length;i++){
+      const d=_haversineM(pts[i-1].lat,pts[i-1].lon,pts[i].lat,pts[i].lon);
+      if(d>THRESH) groups.push([]);
+      groups[groups.length-1].push(pts[i]);
+    }
+    _kmlGroups=groups;
+
+    document.getElementById('kml-total-count').textContent=pts.length;
+    document.getElementById('kml-group-count').textContent=groups.length;
+    const list=document.getElementById('kml-group-list');
+    list.innerHTML=groups.map((g,i)=>`
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:.76rem;cursor:pointer">
+        <input type="checkbox" data-kml-group="${i}" ${groups.length===1?'checked':''}>
+        <span><b>Grupo ${i+1}</b> — ${g.length} punto(s), de "${g[0].name}" a "${g[g.length-1].name}"</span>
+      </label>`).join('');
+
+    const mx=wells.length?Math.max(...wells.map(w=>w.num)):0;
+    document.getElementById('kml-start-num').value=mx+1;
+    document.getElementById('modal-kml').style.display='flex';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function confirmKmlImport(){
+  const checked=[...document.querySelectorAll('#kml-group-list input[type=checkbox]:checked')]
+    .map(cb=>parseInt(cb.dataset.kmlGroup,10));
+  if(!checked.length){ alert('Selecciona al menos un grupo para importar.'); return; }
+  let startNum=parseInt(document.getElementById('kml-start-num').value,10);
+  if(isNaN(startNum)||startNum<1) startNum=(wells.length?Math.max(...wells.map(w=>w.num)):0)+1;
+
+  const pts=checked.sort((a,b)=>a-b).flatMap(i=>_kmlGroups[i]);
+  let n=startNum;
+  pts.forEach(p=>{
+    wells.push({
+      id:uid(), num:n, name:'Pozo '+n, depth:'', state:'Operativo',
+      lat:p.lat, lon:p.lon,
+      notes:'Importado de KML (nombre original: '+p.name+')'
+    });
+    n++;
+  });
+  save(); closeModals(); renderAll();
+  alert(`Importados ${pts.length} pozo(s), numerados del ${startNum} al ${startNum+pts.length-1}.`);
+}
+
+
 load(); initMap(); renderAll();
 </script>
 </body>
