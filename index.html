@@ -3270,24 +3270,84 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #panel-energia .en-cl.crit .en-cl__ic{background:var(--sg-crit);color:#fff;} #panel-energia .en-cl.warn .en-cl__ic{background:var(--sg-warn);color:#1d1400;} #panel-energia .en-cl.ok .en-cl__ic{background:var(--sg-ok-soft);color:var(--sg-ok);} #panel-energia .en-cl.info .en-cl__ic{background:var(--sg-brand-soft);color:var(--sg-brand);}
             body.theme-light #panel-energia .en-cl.warn .en-cl__ic{color:#fff;}
             #panel-energia .mut{color:var(--sg-muted);}
+            #panel-energia .en-link{background:none;border:none;padding:0;color:var(--sg-brand);font:600 12px/16px var(--sg-sans);cursor:pointer;text-decoration:underline;}
+            #panel-energia .en-pbtn{font:600 13px/18px var(--sg-sans);padding:5px 12px;border-radius:6px;border:1px solid var(--sg-line);background:var(--sg-card);color:var(--sg-ink);cursor:pointer;white-space:nowrap;}
+            #panel-energia .en-pbtn:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
+            #panel-energia .en-pbtn.pri{background:var(--sg-brand);border-color:var(--sg-brand);color:#04202e;}
+            body.theme-light #panel-energia .en-pbtn.pri{color:#fff;}
+            #panel-energia .en-precio-w{position:relative;}
+            #en-precio-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;width:360px;display:none;background:var(--sg-card);border:1px solid var(--sg-line);border-radius:10px;padding:12px 14px;box-shadow:0 14px 36px rgba(0,0,0,.45);}
+            #en-precio-pop.open{display:block;}
+            #panel-energia .en-pop__t{font-size:15px;font-weight:600;margin-bottom:4px;}
+            #en-precio-pop p{font-size:12.5px;line-height:1.45;color:var(--sg-muted);margin:0 0 8px;}
+            #en-precio-pop label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--sg-muted);margin:6px 0;}
+            #en-precio-pop input{width:190px!important;text-align:left!important;}
+            #panel-energia .en-pop__b{display:flex;gap:8px;margin-top:8px;}
+            #panel-energia .en-pop__s{font-size:12px;color:var(--sg-subtle);margin-top:8px;}
+            #panel-energia .en-help-btn{margin-left:auto;}
+            #en-note{flex-basis:100%;order:9;}
+            #en-note b{color:var(--sg-ink);font-weight:600;}
+            #en-help{position:absolute;inset:0;z-index:70;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;}
+            #en-help.open{display:flex;}
+            #panel-energia .en-help__card{width:min(880px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--sg-card);border:1px solid var(--sg-line);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.5);}
+            #panel-energia .en-help__h{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--sg-line);}
+            #panel-energia .en-help__h h3{margin:0;font-size:18px;font-weight:600;}
+            #panel-energia .en-help__x{margin-left:auto;background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:6px;color:var(--sg-muted);cursor:pointer;padding:5px 10px;}
+            #panel-energia .en-help__b{overflow-y:auto;padding:4px 18px 18px;font-size:14px;line-height:1.55;}
+            #panel-energia .en-help__b h4{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sg-brand);margin:16px 0 6px;}
+            #panel-energia .en-help__b ul{margin:0;padding-left:20px;} #panel-energia .en-help__b li{margin:4px 0;} #panel-energia .en-help__b p{margin:6px 0;}
             @media (max-width:1100px){ #en-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} #panel-energia .en-row{grid-template-columns:1fr;} #en-body{grid-template-rows:auto auto auto;} #panel-energia .en-chart{height:230px;flex:none;} }
           </style>
           <div id="en-head">
             <div class="en-seg" aria-label="Planta"><button class="active" data-pl="edari" onclick="enSetPlanta('edari')">EDARi</button><button data-pl="edaru" onclick="enSetPlanta('edaru')">EDARu</button></div>
             <label class="en-f">Periodo <select id="en-mes" onchange="enRender()"></select></label>
             <label class="en-f">Línea base <select id="en-base" onchange="enRender()"><option value="prev12">12 meses anteriores</option><option value="prevYear">Año natural anterior</option><option value="all">Todo el histórico anterior</option></select></label>
-            <label class="en-f">Precio <input type="number" id="en-precio" step="0.01" min="0" onchange="enGuardarPrecio();enRender()"> €/kWh</label>
+            <label class="en-f">Variables <select id="en-vars" onchange="enRender()" title="Qué variables explican el consumo en la línea base"><option value="auto">Automático (mejor ajuste)</option><option value="q">Caudal</option><option value="c">Carga de DQO</option><option value="qc">Caudal + carga de DQO</option></select></label>
+            <div class="en-precio-w">
+              <button type="button" class="en-pbtn" onclick="enPrecioPop()" aria-haspopup="dialog">Precio <b id="en-precio-v">—</b> €/kWh ▾</button>
+              <div id="en-precio-pop" role="dialog" aria-label="Precio de la energía">
+                <div class="en-pop__t">Precio medio de la energía</div>
+                <p>El portal no lee la factura: introduce el <b>precio medio real</b> de tu última factura eléctrica = <b>importe de energía</b> (término de energía + peajes y cargos + impuesto eléctrico, sin IVA ni término de potencia) <b>÷ kWh facturados</b>. Se guarda para todos los usuarios.</p>
+                <label>€/kWh <input type="number" id="en-precio" step="0.001" min="0"></label>
+                <label>Origen <input type="text" id="en-precio-origen" placeholder="Ej.: factura agosto 2026" maxlength="60"></label>
+                <div class="en-pop__b"><button type="button" class="en-pbtn pri" onclick="enGuardarPrecio()">Guardar</button><button type="button" class="en-pbtn" onclick="enPrecioPop(false)">Cancelar</button></div>
+                <div class="en-pop__s" id="en-precio-src"></div>
+              </div>
+            </div>
+            <button type="button" class="en-pbtn en-help-btn" onclick="enAyuda()">¿Cómo se calcula?</button>
             <span id="en-note"></span>
           </div>
           <div id="en-body">
             <div><div class="sg-sec"><span class="sg-label" id="en-kpi-title">Indicadores de desempeño energético (IDEn)</span><span class="sg-caption">ISO 50001 · ISO 50006</span></div><div id="en-kpis"><div class="sg-caption">⟳ Calculando…</div></div></div>
             <div class="en-row">
               <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">kWh/m³ por mes</span><span class="sg-caption" id="en-m-sub"></span></div><div class="en-chart" id="en-c-mes"></div></div>
-              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Línea de base energética</span><span class="sg-caption" id="en-r-sub"></span></div><div class="en-chart" id="en-c-reg"></div></div>
+              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Línea base: consumo real frente al esperado</span><span class="sg-caption" id="en-r-sub"></span></div><div class="en-chart" id="en-c-reg"></div></div>
             </div>
             <div class="en-row">
-              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Desviación acumulada (CUSUM) del periodo</span><span class="sg-caption">Por debajo de 0 = ahorro frente a la línea base</span></div><div class="en-chart" id="en-c-cusum"></div></div>
+              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Desviación acumulada (CUSUM) del periodo</span><span class="sg-caption">Sube = se gasta más de lo esperado · baja = ahorro · <button type="button" class="en-link" onclick="enAyuda('cusum')">¿Qué significa?</button></span></div><div class="en-chart" id="en-c-cusum"></div></div>
               <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Conclusiones</span><span id="en-badges"></span></div><div id="en-concl"></div></div>
+            </div>
+          </div>
+          <div id="en-help" aria-hidden="true" onclick="if(event.target===this)enAyudaCerrar()">
+            <div class="en-help__card" role="dialog" aria-modal="true" aria-labelledby="en-help-t">
+              <div class="en-help__h"><h3 id="en-help-t">¿Cómo se calculan los indicadores energéticos?</h3><button class="en-help__x" onclick="enAyudaCerrar()" aria-label="Cerrar">✕</button></div>
+              <div class="en-help__b">
+                <section id="en-help-iden"><h4>1 · Indicadores (IDEn)</h4>
+                  <ul><li><b>kWh/m³ tratado</b> = consumo eléctrico del periodo ÷ m³ tratados. Datos: <i>Consumo EDARi/EDARu</i> y <i>Q entrada</i> del SMS Diario.</li>
+                  <li><b>kWh/kg DQO eliminada</b> = consumo ÷ [caudal × (DQO entrada − DQO salida)], solo en los días con las dos analíticas de DQO.</li></ul></section>
+                <section id="en-help-ref"><h4>2 · ¿De dónde salen las «referencias»?</h4>
+                  <p>Son los mismos indicadores calculados en el <b>periodo de referencia</b> (la línea base de la ISO 50001), que eliges arriba: 12 meses anteriores al periodo, año natural anterior o todo el histórico anterior. En la cabecera se ven las fechas exactas y los días con datos. Si hay menos de 60 días, se amplía a todo el histórico anterior.</p></section>
+                <section id="en-help-lb"><h4>3 · Línea base y consumo esperado (ISO 50006)</h4>
+                  <p>Con los días de referencia se busca qué explica el consumo diario. Se prueban cuatro modelos y, en «Automático», se queda el de mejor <b>R² ajustado</b>:</p>
+                  <ul><li><b>Caudal</b>: kWh/d = a + b·Q</li><li><b>Carga de DQO de entrada</b>: kWh/d = a + c·(Q × DQO entrada). La DQO no se analiza a diario: entre dos analíticas se interpola (hueco máximo 10 días).</li><li><b>Caudal + carga de DQO</b>: kWh/d = a + b·Q + c·DQO</li><li><b>Consumo medio</b>: si ninguna variable explica al menos un 15 % de la variación, la referencia es el consumo medio diario.</li></ul>
+                  <p><b>a</b> es la parte fija (equipos que consumen igual pase lo que pase) y b, c lo que se añade por cada m³ o kg de DQO. El <b>consumo esperado</b> es el modelo aplicado al caudal y a la DQO reales de cada día del periodo: así un mes con más agua o más carga no se penaliza.</p>
+                  <p><b>R²</b> (0–1): qué parte de la variación diaria explica el modelo. <b>CV(RMSE)</b>: error típico en % del consumo medio. Orientación: R² ≥ 0,5 y CV(RMSE) ≤ 20 % en datos diarios.</p></section>
+                <section id="en-help-cusum"><h4>4 · Desviación acumulada (CUSUM)</h4>
+                  <p>Cada día se calcula <b>real − esperado</b> y se va sumando. Cómo leerlo:</p>
+                  <ul><li>Si la línea <b>sube</b>, esos días se gastó más de lo que tocaba; si <b>baja</b>, se ahorró.</li><li>Cuanto más <b>inclinada</b>, mayor la diferencia diaria.</li><li>Un <b>cambio de pendiente</b> marca cuándo empezó algo (una soplante, un variador, un cambio de consigna de O₂).</li><li>El <b>valor final</b> es el exceso o ahorro total del periodo, el mismo de la tarjeta «Exceso/Ahorro».</li></ul></section>
+                <section id="en-help-precio"><h4>5 · Precio del kWh</h4>
+                  <p>No viene de ningún sistema: lo introduce el usuario con el botón «Precio». Usa el <b>precio medio de tu factura</b> (importe de energía sin IVA ni potencia ÷ kWh facturados). Se guarda en Firebase (<i>config/energia</i>) con quién y cuándo lo cambió, y lo ven todos los usuarios. Solo sirve para pasar a € el exceso o ahorro.</p></section>
+              </div>
             </div>
           </div>
         </div><!-- /#panel-energia -->
@@ -13243,44 +13303,120 @@ ${fotosHtml}
 <!-- ══ ENERGÍA (ISO 50001 / 50006): scripts ═════════════════════════════════ -->
 <script>
 (function(){
-  /* Indicadores de desempeño energético (IDEn):
-     · kWh/m³ tratado · kWh/kg DQO eliminada
-     · Línea de base energética (LBE) por regresión lineal kWh/d = a + b·Q (m³/d)
-       ajustada en el periodo de referencia (ISO 50006). Se valida con R² y CV(RMSE).
-     · Consumo esperado del periodo = Σ(a + b·Q_día); desviación y CUSUM = real − esperado. */
+  /* Indicadores de desempeño energético (IDEn), ISO 50001 / ISO 50006:
+     · kWh/m³ tratado y kWh/kg DQO eliminada (periodo frente a referencia).
+     · Línea de base energética (LBE): regresión del consumo diario con las variables
+       que lo explican (caudal y/o carga de DQO de entrada). Se elige automáticamente el
+       modelo con mejor R² ajustado; si ninguna variable explica el consumo, la LBE es el
+       consumo medio diario. Validación con R² y CV(RMSE).
+     · Consumo esperado = LBE aplicada a las condiciones reales de cada día del periodo.
+     · CUSUM = suma acumulada de (real − esperado).
+     · Precio €/kWh: lo introduce el usuario (factura) y se guarda en Firebase config/energia. */
   const DAY=864e5; let enPlanta='edari';
   const nf=(n,d)=>(n==null||isNaN(n))?'—':(+n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
   const tOf=f=>Date.parse(f+'T12:00:00');
   const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const fDMY=f=>f?f.slice(8)+'/'+f.slice(5,7)+'/'+f.slice(0,4):'—';
+  const fDM=f=>f?f.slice(8)+'/'+f.slice(5,7):'—';
   const ok=v=>v!=null&&v!==''&&!isNaN(+v)&&+v>0;
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const datos=()=>(window._cqGetDatos?window._cqGetDatos():window._ST_dash)||{};
-  try{ const p=localStorage.getItem('en-precio'); document.addEventListener('DOMContentLoaded',()=>{ const e=document.getElementById('en-precio'); if(e) e.value=p||'0.15'; }); }catch(e){}
-  window.enGuardarPrecio=function(){ try{ localStorage.setItem('en-precio',document.getElementById('en-precio').value); }catch(e){} };
 
-  function dqoElim(ST,f,Q){
+  /* ── Precio del kWh: dato de la factura, compartido en Firebase ── */
+  let precio={v:0.15,origen:'',por:'',ts:null,guardado:false};
+  try{ const l=JSON.parse(localStorage.getItem('en-precio-cfg')||'null'); if(l) precio=Object.assign(precio,l); }catch(e){}
+  function pintarPrecio(){
+    const i=document.getElementById('en-precio'), o=document.getElementById('en-precio-src');
+    const pv=document.getElementById('en-precio-v'); if(pv) pv.textContent=nf(precio.v,3);
+    if(i&&document.activeElement!==i) i.value=precio.v;
+    if(o) o.innerHTML=precio.guardado?`${precio.origen?esc(precio.origen)+' · ':''}guardado por ${esc(precio.por||'—')}${precio.ts?' el '+new Date(precio.ts).toLocaleDateString('es-ES'):''}`:'<span style="color:var(--sg-warn)">valor por defecto: introduce el de tu factura</span>';
+  }
+  function escucharPrecio(){
+    if(!window._fb||!window._fb.onValue||escucharPrecio.ok) return; escucharPrecio.ok=true;
+    try{ window._fb.onValue(window._fb.ref(window._fb.db,'config/energia'),s=>{ const c=s.val(); if(c&&c.precio_kwh>0){ precio={v:+c.precio_kwh,origen:c.origen||'',por:c.actualizado_por||'',ts:c.ts||null,guardado:true}; try{ localStorage.setItem('en-precio-cfg',JSON.stringify(precio)); }catch(e){} pintarPrecio(); render(); } }); }catch(e){}
+  }
+  if(window._fb&&window._fb.onValue) escucharPrecio(); else { window.addEventListener('firebase-ready',escucharPrecio,{once:true}); setTimeout(escucharPrecio,2500); }
+  window.enGuardarPrecio=async function(){
+    const v=parseFloat(String(document.getElementById('en-precio').value).replace(',','.'));
+    const origen=(document.getElementById('en-precio-origen')||{}).value||'';
+    if(!(v>0)) return;
+    let s={}; try{ s=JSON.parse(localStorage.getItem('ute-session'))||{}; }catch(e){}
+    precio={v,origen:origen.trim(),por:s.username||'—',ts:Date.now(),guardado:true};
+    try{ localStorage.setItem('en-precio-cfg',JSON.stringify(precio)); }catch(e){}
+    try{ if(window._fb) await window._fb.set(window._fb.ref(window._fb.db,'config/energia'),{precio_kwh:v,origen:precio.origen,actualizado_por:precio.por,ts:precio.ts}); }catch(e){ console.warn('precio',e); }
+    enPrecioPop(false); pintarPrecio(); render();
+  };
+  window.enPrecioPop=function(open){ const p=document.getElementById('en-precio-pop'); if(!p) return; const o=open==null?!p.classList.contains('open'):open; p.classList.toggle('open',o); if(o){ document.getElementById('en-precio').value=precio.v; document.getElementById('en-precio-origen').value=precio.origen||''; document.getElementById('en-precio').focus(); } };
+
+  /* ── Datos diarios ── */
+  const pick=(o,al)=>{ for(const a of al){ if(o&&ok(o[a])) return +o[a]; } return null; };
+  function dqoDia(ST,f){
     const R=(ST.reactor||{})[f]||{}, S=(ST.sms_datos||{})[f]||{};
-    const pick=(o,al)=>{ for(const a of al){ if(o&&ok(o[a])) return +o[a]; } return null; };
     let e=null,s=null;
     if(enPlanta==='edari'){ e=pick(R,['dqo_ent','DQO ENTRADA','dqo_entrada']); s=pick(R,['dqo_ef','DQO EFLUENTE','dqo_efluente']); const x=S.edari||R.edari; if(e==null) e=pick(x,['dqo_ent']); if(s==null) s=pick(x,['dqo_sal']); }
     else { const x=S.edaru||R.edaru; e=pick(x,['dqo_ent']); s=pick(x,['dqo_sal']); }
-    return (e!=null&&s!=null&&e>s)?Q*(e-s)/1000:null;
+    return {e,s};
   }
   function dias(){
     const ST=datos(), C=ST.caudales||{}, E=ST.consumo||{};
-    return Object.keys(E).sort().map(f=>{ const k=E[f]&&E[f][enPlanta], q=C[f]&&C[f][enPlanta]; if(!ok(k)||!ok(q)) return null; return {f,k:+k,q:+q,dqo:dqoElim(ST,f,+q)}; }).filter(Boolean);
+    const D=Object.keys(E).sort().map(f=>{ const k=E[f]&&E[f][enPlanta], q=C[f]&&C[f][enPlanta]; if(!ok(k)||!ok(q)) return null; const d=dqoDia(ST,f); return {f,t:tOf(f),k:+k,q:+q,dqoE:d.e,dqoS:d.s}; }).filter(Boolean);
+    // Carga de DQO de entrada diaria (kg/d) = caudal del día × DQO de entrada.
+    // La DQO no se analiza todos los días: entre analíticas se interpola (hueco máx. 10 días).
+    const an=D.filter(p=>p.dqoE!=null);
+    D.forEach(p=>{
+      let c=p.dqoE, est=false;
+      if(c==null&&an.length){
+        let a=null,b=null; for(const x of an){ if(x.t<=p.t) a=x; else { b=x; break; } }
+        const da=a?(p.t-a.t)/DAY:Infinity, db=b?(b.t-p.t)/DAY:Infinity;
+        if(da<=10&&db<=10) c=a.dqoE+(b.dqoE-a.dqoE)*da/(da+db); else if(da<=10) c=a.dqoE; else if(db<=10) c=b.dqoE;
+        est=c!=null;
+      }
+      p.cargaDQO=c!=null?p.q*c/1000:null; p.dqoInterp=est;
+      p.dqoElim=(p.dqoE!=null&&p.dqoS!=null&&p.dqoE>p.dqoS)?p.q*(p.dqoE-p.dqoS)/1000:null;
+    });
+    return D;
   }
-  function ols(P){ const n=P.length; if(n<3) return null; const xm=P.reduce((s,p)=>s+p.q,0)/n, ym=P.reduce((s,p)=>s+p.k,0)/n; let sxx=0,sxy=0,syy=0; P.forEach(p=>{ sxx+=(p.q-xm)**2; sxy+=(p.q-xm)*(p.k-ym); syy+=(p.k-ym)**2; });
-    const b=sxx>0?sxy/sxx:0, a=ym-b*xm, sse=P.reduce((s,p)=>s+(p.k-a-b*p.q)**2,0), r2=syy>0?1-sse/syy:0, rmse=Math.sqrt(sse/Math.max(1,n-2));
-    return {a,b,r2,cv:rmse/ym,n,xm,ym}; }
   const suma=(A,k)=>A.reduce((s,p)=>s+(p[k]||0),0);
-  const ratioDQO=A=>{ const B=A.filter(p=>p.dqo>0); const kg=suma(B,'dqo'); return kg>0?{v:suma(B,'k')/kg,n:B.length}:null; };
+  const ratioDQO=A=>{ const B=A.filter(p=>p.dqoElim>0); const kg=suma(B,'dqoElim'); return kg>0?{v:suma(B,'k')/kg,n:B.length}:null; };
 
+  /* ── Regresión lineal múltiple (mínimos cuadrados) ── */
+  function resolver(A,b){ const n=b.length, M=A.map((r,i)=>r.concat([b[i]]));
+    for(let c=0;c<n;c++){ let p=c; for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r; [M[c],M[p]]=[M[p],M[c]]; if(Math.abs(M[c][c])<1e-12) return null;
+      for(let r=0;r<n;r++){ if(r===c) continue; const f=M[r][c]/M[c][c]; for(let k=c;k<=n;k++) M[r][k]-=f*M[c][k]; } }
+    return M.map((r,i)=>r[n]/r[i]); }
+  const VARS={q:{lbl:'caudal',art:'el caudal',u:'m³/d',get:p=>p.q},c:{lbl:'carga de DQO de entrada',art:'la carga de DQO de entrada',u:'kg/d',get:p=>p.cargaDQO}};
+  function ajustar(P,vars){
+    const rows=P.filter(p=>vars.every(v=>VARS[v].get(p)!=null)); const n=rows.length, p=vars.length;
+    if(n<Math.max(14,p*8)) return null;
+    const X=rows.map(r=>[1].concat(vars.map(v=>VARS[v].get(r)))), y=rows.map(r=>r.k);
+    const XtX=X[0].map((_,i)=>X[0].map((_,j)=>X.reduce((s,r)=>s+r[i]*r[j],0))), Xty=X[0].map((_,i)=>X.reduce((s,r,k)=>s+r[i]*y[k],0));
+    const b=resolver(XtX,Xty); if(!b) return null;
+    const ym=y.reduce((s,v)=>s+v,0)/n, pred=X.map(r=>r.reduce((s,v,i)=>s+v*b[i],0));
+    const sse=y.reduce((s,v,i)=>s+(v-pred[i])**2,0), sst=y.reduce((s,v)=>s+(v-ym)**2,0);
+    const r2=sst>0?1-sse/sst:0, r2a=1-(1-r2)*(n-1)/Math.max(1,n-p-1), rmse=Math.sqrt(sse/Math.max(1,n-p-1));
+    return {vars,b,n,r2,r2a,cv:rmse/ym,ym,predict:d=>vars.every(v=>VARS[v].get(d)!=null)?[1].concat(vars.map(v=>VARS[v].get(d))).reduce((s,v,i)=>s+v*b[i],0):null};
+  }
+  function constante(P){ const n=P.length, ym=suma(P,'k')/n, sse=P.reduce((s,p)=>s+(p.k-ym)**2,0); return {vars:[],b:[ym],n,r2:0,r2a:0,cv:Math.sqrt(sse/Math.max(1,n-1))/ym,ym,predict:()=>ym}; }
+  function lineaBase(base,modo){
+    const cand={q:ajustar(base,['q']),c:ajustar(base,['c']),qc:ajustar(base,['q','c'])};
+    const k0=constante(base);
+    let m, porque='';
+    if(modo==='auto'){
+      const vals=Object.values(cand).filter(Boolean).sort((a,b)=>b.r2a-a.r2a);
+      m=vals[0]&&vals[0].r2a>=0.15?vals[0]:k0;
+      // si añadir una segunda variable apenas mejora (<0,02 de R² ajustado), se prefiere la simple
+      if(m.vars.length===2){ const s=[cand.q,cand.c].filter(Boolean).sort((a,b)=>b.r2a-a.r2a)[0]; if(s&&m.r2a-s.r2a<0.02) m=s; }
+      porque=m===k0?'ninguna variable explica el consumo (R² ajustado < 0,15)':'mejor R² ajustado de los modelos probados';
+    } else m=cand[modo]||k0;
+    const fb=[cand.q,k0].filter(Boolean)[0]; // para días sin dato de DQO
+    return {m,cand,k0,fb,porque};
+  }
   function estudio(){
     const D=dias(); if(!D.length) return null;
     const meses=[...new Set(D.map(p=>p.f.slice(0,7)))].sort();
     const sel=document.getElementById('en-mes');
     if(sel){ const cur=sel.value; sel.innerHTML=meses.slice().reverse().map(m=>{ const [y,mm]=m.split('-'); const hoy=new Date(); const enCurso=+y===hoy.getFullYear()&&+mm===hoy.getMonth()+1; return `<option value="${m}">${MES[+mm-1]} ${y}${enCurso?' (en curso)':''}</option>`; }).join(''); sel.value=meses.includes(cur)?cur:meses[meses.length-1]; }
-    const mes=sel?sel.value:meses[meses.length-1], modo=(document.getElementById('en-base')||{}).value||'prev12';
+    const mes=sel&&sel.value?sel.value:meses[meses.length-1], modo=(document.getElementById('en-base')||{}).value||'prev12', vmod=(document.getElementById('en-vars')||{}).value||'auto';
     const per=D.filter(p=>p.f.startsWith(mes)), ini=mes+'-01';
     let base, baseTxt;
     if(modo==='prevYear'){ const y=+mes.slice(0,4)-1; base=D.filter(p=>p.f.startsWith(String(y))); baseTxt='año '+y; }
@@ -13289,93 +13425,119 @@ ${fotosHtml}
     let aviso='';
     if(base.length<60){ const ant=D.filter(p=>p.f<ini); if(ant.length>base.length){ base=ant; baseTxt='todo el histórico anterior'; aviso='La referencia elegida tenía pocos días; se usa todo el histórico anterior.'; } }
     if(base.length<14){ aviso='Histórico anterior insuficiente (<14 días): la línea base se calcula con el propio periodo y no mide ahorro.'; base=per; baseTxt='propio periodo'; }
-    const m=ols(base);
-    const esp=per.map(p=>({f:p.f,real:p.k,esp:m?m.a+m.b*p.q:p.q*(suma(base,'k')/suma(base,'q'))}));
-    let cus=0; const cusum=esp.map(p=>{ cus+=p.real-p.esp; return {f:p.f,v:cus}; });
+    const LB=lineaBase(base,vmod), m=LB.m;
+    const esp=per.map(p=>{ let e=m.predict(p), usa=m; if(e==null){ e=LB.fb.predict(p); usa=LB.fb; } return {f:p.f,real:p.k,esp:e,q:p.q,c:p.cargaDQO,fb:usa!==m}; });
+    const espBase=base.map(p=>({f:p.f,real:p.k,esp:m.predict(p)})).filter(p=>p.esp!=null);
+    let cus=0; const cusum=esp.map(p=>{ cus+=p.real-p.esp; return {f:p.f,v:cus,d:p.real-p.esp,real:p.real,esp:p.esp}; });
     const kP=suma(per,'k'), qP=suma(per,'q'), eP=suma(esp,'esp'), kB=suma(base,'k'), qB=suma(base,'q');
     const porMes=meses.slice(-13).map(mm=>{ const A=D.filter(p=>p.f.startsWith(mm)); return {m:mm,v:suma(A,'k')/suma(A,'q'),n:A.length}; });
-    return {D,mes,per,base,baseTxt,aviso,m,esp,cusum,kP,qP,eP,kB,qB,epiP:kP/qP,epiB:kB/qB,dqoP:ratioDQO(per),dqoB:ratioDQO(base),porMes,desv:(kP-eP)/eP};
+    const bIni=base.length?base[0].f:null, bFin=base.length?base[base.length-1].f:null;
+    const cobDQO={base:base.filter(p=>p.cargaDQO!=null).length,per:per.filter(p=>p.cargaDQO!=null).length,anPer:per.filter(p=>p.dqoE!=null).length};
+    return {D,mes,per,base,baseTxt,bIni,bFin,aviso,LB,m,esp,espBase,cusum,kP,qP,eP,kB,qB,epiP:kP/qP,epiB:kB/qB,dqoP:ratioDQO(per),dqoB:ratioDQO(base),porMes,desv:(kP-eP)/eP,cobDQO,nFb:esp.filter(p=>p.fb).length};
   }
+  function formula(m){
+    if(!m.vars.length) return `consumo = ${nf(m.b[0],0)} kWh/d (media)`;
+    return 'kWh/d = '+nf(m.b[0],0)+m.vars.map((v,i)=>` ${m.b[i+1]<0?'−':'+'} ${nf(Math.abs(m.b[i+1]),3)}·${v==='q'?'Q':'DQO'}`).join('');
+  }
+  const refTxt=S=>S.baseTxt==='propio periodo'?'propio periodo':`${MES[+S.bIni.slice(5,7)-1]} ${S.bIni.slice(2,4)}–${MES[+S.bFin.slice(5,7)-1]} ${S.bFin.slice(2,4)}`;
 
+  /* ── Gráficos ── */
   function svgBarras(box,S){
     const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||180), PL=44, PR=10, PT=12, PB=20, gW=W-PL-PR, gH=H-PT-PB;
     const ymax=Math.max(...S.porMes.map(p=>p.v),S.epiB)*1.15, bw=gW/S.porMes.length;
     const Y=v=>PT+gH-v/ymax*gH;
-    const bars=S.porMes.map((p,i)=>{ const sel=p.m===S.mes, h=gH-(Y(p.v)-PT); return `<rect class="br-int" x="${(PL+i*bw+bw*.15).toFixed(1)}" y="${Y(p.v).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${sel?'var(--sg-s1)':'var(--sg-s4, #8a9bb0)'}" opacity="${sel?1:.55}" data-tip="${MES[+p.m.slice(5)-1]} ${p.m.slice(0,4)}|${nf(p.v,2)} kWh/m³|${p.n} días"/>
+    const bars=S.porMes.map((p,i)=>{ const sel=p.m===S.mes, enBase=S.bIni&&p.m>=S.bIni.slice(0,7)&&p.m<=S.bFin.slice(0,7), h=gH-(Y(p.v)-PT); return `<rect class="br-int" x="${(PL+i*bw+bw*.15).toFixed(1)}" y="${Y(p.v).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${sel?'var(--sg-s1)':'#8a9bb0'}" opacity="${sel?1:enBase?.6:.3}" data-tip="${MES[+p.m.slice(5)-1]} ${p.m.slice(0,4)}|${nf(p.v,2)} kWh/m³|${p.n} días${enBase?' · en la línea base':''}"/>
       ${sel?`<text class="sg-ax" x="${(PL+i*bw+bw/2).toFixed(1)}" y="${(Y(p.v)-4).toFixed(1)}" text-anchor="middle" style="fill:var(--sg-ink);font-weight:600">${nf(p.v,2)}</text>`:''}
       <text class="sg-ax" x="${(PL+i*bw+bw/2).toFixed(1)}" y="${H-5}" text-anchor="middle">${MES[+p.m.slice(5)-1]}${(i===0||p.m.slice(5)==='01')?' '+p.m.slice(2,4):''}</text>`; }).join('');
     const yb=Y(S.epiB).toFixed(1);
-    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="kWh por m³ en los últimos meses frente a la línea base ${nf(S.epiB,2)}">
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="kWh por m³ en los últimos meses frente a la referencia ${nf(S.epiB,2)}">
       <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT+gH}" y2="${PT+gH}"/>${bars}
       <line x1="${PL}" x2="${W-PR}" y1="${yb}" y2="${yb}" stroke="var(--sg-warn)" stroke-width="1.5" stroke-dasharray="6,4"/>
-      <text class="sg-ax" x="${W-PR}" y="${(+yb-5).toFixed(1)}" text-anchor="end" style="fill:var(--sg-warn)">línea base ${nf(S.epiB,2)}</text>
+      <text class="sg-ax" x="${PL+4}" y="${(+yb-5).toFixed(1)}" style="fill:var(--sg-warn)">referencia ${nf(S.epiB,2)} (${refTxt(S)})</text>
       <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(ymax,2)}</text><text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">0</text></svg>`;
   }
   function svgReg(box,S){
-    const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||180), PL=52, PR=10, PT=12, PB=20, gW=W-PL-PR, gH=H-PT-PB;
-    const all=S.base.concat(S.per), qs=all.map(p=>p.q), ks=all.map(p=>p.k);
-    const x0=Math.min(...qs)*.95, x1=Math.max(...qs)*1.05, y0=Math.min(...ks)*.9, y1=Math.max(...ks)*1.05;
-    const X=q=>PL+(q-x0)/(x1-x0||1)*gW, Y=k=>PT+gH-(k-y0)/(y1-y0||1)*gH;
-    const bpts=S.base.slice(-400).map(p=>`<circle cx="${X(p.q).toFixed(1)}" cy="${Y(p.k).toFixed(1)}" r="2" fill="var(--sg-subtle)" opacity=".45"/>`).join('');
-    const ppts=S.per.map(p=>`<circle class="pt-int" cx="${X(p.q).toFixed(1)}" cy="${Y(p.k).toFixed(1)}" r="3.5" fill="var(--sg-s1)" stroke="var(--sg-card)" stroke-width="1" data-tip="${p.f.slice(8)}/${p.f.slice(5,7)}|${nf(p.q,0)} m³ · ${nf(p.k,0)} kWh|esperado ${nf(S.m?S.m.a+S.m.b*p.q:0,0)} kWh"/>`).join('');
-    const line=S.m?`<line x1="${X(x0).toFixed(1)}" y1="${Y(S.m.a+S.m.b*x0).toFixed(1)}" x2="${X(x1).toFixed(1)}" y2="${Y(S.m.a+S.m.b*x1).toFixed(1)}" stroke="var(--sg-warn)" stroke-width="2"/>`:'';
-    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Consumo diario frente a caudal: línea base y días del periodo">
-      <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT+gH}" y2="${PT+gH}"/>${bpts}${line}${ppts}
-      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(y1,0)}</text><text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${nf(y0,0)}</text>
-      <text class="sg-ax" x="${PL}" y="${H-4}">${nf(x0,0)} m³/d</text><text class="sg-ax" x="${W-PR}" y="${H-4}" text-anchor="end">${nf(x1,0)} m³/d</text>
-      <text class="sg-ax" x="${PL+6}" y="${PT+10}"><tspan style="fill:var(--sg-subtle)">●</tspan> referencia  <tspan style="fill:var(--sg-s1)">●</tspan> periodo  <tspan style="fill:var(--sg-warn)">━</tspan> kWh/d = ${S.m?nf(S.m.a,0)+' + '+nf(S.m.b,3)+'·Q':'—'}</text></svg>`;
+    const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||180), PL=52, PR=12, PT=26, PB=22, gW=W-PL-PR, gH=H-PT-PB;
+    const pts=S.espBase.concat(S.esp), all=pts.flatMap(p=>[p.real,p.esp]);
+    const lo=Math.min(...all)*.95, hi=Math.max(...all)*1.03;
+    const X=v=>PL+(v-lo)/(hi-lo||1)*gW, Y=v=>PT+gH-(v-lo)/(hi-lo||1)*gH;
+    const cv=S.m.cv, band=`${X(lo)},${Y(lo*(1+cv))} ${X(hi)},${Y(hi*(1+cv))} ${X(hi)},${Y(hi*(1-cv))} ${X(lo)},${Y(lo*(1-cv))}`;
+    const bp=S.espBase.slice(-400).map(p=>`<circle cx="${X(p.esp).toFixed(1)}" cy="${Y(p.real).toFixed(1)}" r="2" fill="#8a9bb0" opacity=".45"/>`).join('');
+    const pp=S.esp.map(p=>`<circle class="pt-int" cx="${X(p.esp).toFixed(1)}" cy="${Y(p.real).toFixed(1)}" r="3.6" fill="${p.real>p.esp?'var(--sg-crit)':'var(--sg-ok)'}" stroke="var(--sg-card)" stroke-width="1" data-tip="${fDM(p.f)}|real ${nf(p.real,0)} kWh · esperado ${nf(p.esp,0)} kWh|Q ${nf(p.q,0)} m³${p.c!=null?' · DQO '+nf(p.c,0)+' kg':''}"/>`).join('');
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Consumo real frente al esperado por la línea base">
+      <polygon points="${band}" fill="var(--sg-warn)" opacity=".08"/>
+      <line x1="${X(lo)}" y1="${Y(lo)}" x2="${X(hi)}" y2="${Y(hi)}" stroke="var(--sg-warn)" stroke-width="2"/>
+      ${bp}${pp}
+      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(hi,0)}</text><text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${nf(lo,0)}</text>
+      <text class="sg-ax" x="${PL}" y="${H-5}">esperado ${nf(lo,0)} kWh/d</text><text class="sg-ax" x="${W-PR}" y="${H-5}" text-anchor="end">${nf(hi,0)} kWh/d</text>
+      <text class="sg-ax" x="${PL-44}" y="${PT-12}">real ↑</text>
+      <text class="sg-ax" x="${PL+6}" y="${PT+4}"><tspan style="fill:#8a9bb0">●</tspan> días de referencia  <tspan style="fill:var(--sg-crit)">●</tspan> periodo, por encima  <tspan style="fill:var(--sg-ok)">●</tspan> por debajo  <tspan style="fill:var(--sg-warn)">━</tspan> real = esperado</text>
+      <text class="sg-ax" x="${W-PR}" y="${PT+gH-6}" text-anchor="end" style="fill:var(--sg-warn)">${formula(S.m)}</text></svg>`;
   }
   function svgCusum(box,S){
-    const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||160), PL=56, PR=10, PT=12, PB=20, gW=W-PL-PR, gH=H-PT-PB;
+    const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||160), PL=56, PR=70, PT=14, PB=20, gW=W-PL-PR, gH=H-PT-PB;
     const v=S.cusum.map(p=>p.v).concat([0]), y0=Math.min(...v), y1=Math.max(...v), pad=(y1-y0||1)*.12, lo=y0-pad, hi=y1+pad;
     const X=i=>PL+(S.cusum.length>1?i/(S.cusum.length-1):0.5)*gW, Y=x=>PT+gH-(x-lo)/(hi-lo)*gH;
     const fin=S.cusum.length?S.cusum[S.cusum.length-1].v:0, col=fin>0?'var(--sg-crit)':'var(--sg-ok)';
     const pts=S.cusum.map((p,i)=>X(i).toFixed(1)+','+Y(p.v).toFixed(1)).join(' ');
     const area=S.cusum.length?`${X(0).toFixed(1)},${Y(0).toFixed(1)} ${pts} ${X(S.cusum.length-1).toFixed(1)},${Y(0).toFixed(1)}`:'';
+    const n=S.cusum.length;
     return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Desviación acumulada del consumo: ${nf(fin,0)} kWh">
       <polygon points="${area}" fill="${col}" opacity=".15"/>
       <line x1="${PL}" x2="${W-PR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="var(--sg-subtle)" stroke-width="1"/>
+      <text class="sg-ax" x="${W-PR+4}" y="${(Y(0)+4).toFixed(1)}">esperado</text>
       <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.2"/>
-      ${S.cusum.map((p,i)=>`<circle class="pt-int" cx="${X(i).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2.4" fill="${col}" data-tip="${p.f.slice(8)}/${p.f.slice(5,7)}|acumulado ${nf(p.v,0)} kWh"/>`).join('')}
+      ${S.cusum.map((p,i)=>`<circle class="pt-int" cx="${X(i).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2.6" fill="${col}" data-tip="${fDM(p.f)}|ese día: real ${nf(p.real,0)} − esperado ${nf(p.esp,0)} = ${p.d>0?'+':''}${nf(p.d,0)} kWh|acumulado ${p.v>0?'+':''}${nf(p.v,0)} kWh"/>`).join('')}
+      ${n?`<text x="${(X(n-1)+6).toFixed(1)}" y="${(Y(fin)+4).toFixed(1)}" style="font:600 13px var(--sg-num);fill:${col}">${fin>0?'+':''}${nf(fin,0)} kWh</text>`:''}
       <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(hi,0)}</text><text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${nf(lo,0)}</text>
-      <text class="sg-ax" x="${PL}" y="${H-4}">${S.cusum.length?S.cusum[0].f.slice(8)+'/'+S.cusum[0].f.slice(5,7):''}</text><text class="sg-ax" x="${W-PR}" y="${H-4}" text-anchor="end">${S.cusum.length?S.cusum[S.cusum.length-1].f.slice(8)+'/'+S.cusum[S.cusum.length-1].f.slice(5,7):''}</text></svg>`;
+      <text class="sg-ax" x="${PL}" y="${H-4}">${n?fDM(S.cusum[0].f):''}</text><text class="sg-ax" x="${W-PR}" y="${H-4}" text-anchor="end">${n?fDM(S.cusum[n-1].f):''}</text></svg>`;
   }
+
+  /* ── Conclusiones ── */
   function conclusiones(S){
-    const L=[], pre=+(document.getElementById('en-precio')||{}).value||0, dif=S.kP-S.eP, pl=enPlanta==='edari'?'EDARi':'EDARu';
-    const mesTxt=MES[+S.mes.slice(5)-1]+' '+S.mes.slice(0,4);
-    if(S.baseTxt!=='propio periodo'){
+    const L=[], pre=precio.v||0, dif=S.kP-S.eP, pl=enPlanta==='edari'?'EDARi':'EDARu', m=S.m;
+    const mesTxt=MES[+S.mes.slice(5)-1]+' '+S.mes.slice(0,4), hay=S.baseTxt!=='propio periodo';
+    if(hay){
       const d=S.desv*100;
-      L.push({l:d>5?'crit':d>2?'warn':'ok',t:`<b>${d>0?'Exceso':'Ahorro'} de ${nf(Math.abs(dif),0)} kWh (${d>0?'+':''}${nf(d,1)} %)</b> en ${mesTxt} frente a lo esperado por la línea base para el caudal tratado${pre?` · ${nf(Math.abs(dif)*pre,0)} €`:''}.`});
+      L.push({l:d>5?'crit':d>2?'warn':'ok',t:`<b>${d>0?'Exceso':'Ahorro'} de ${nf(Math.abs(dif),0)} kWh (${d>0?'+':''}${nf(d,1)} %)</b> en ${mesTxt} frente a lo esperado para ${m.vars.length?m.vars.map(v=>VARS[v].art).join(' y ')+' de cada día':'un mes normal (consumo medio de referencia)'}${pre?` · ${nf(Math.abs(dif)*pre,0)} € a ${nf(pre,3)} €/kWh`:''}.`});
       const dE=(S.epiP/S.epiB-1)*100;
-      L.push({l:dE>5?'warn':dE<-2?'ok':'info',t:`<b>kWh/m³: ${nf(S.epiP,2)}</b> frente a ${nf(S.epiB,2)} de referencia (${dE>0?'+':''}${nf(dE,1)} %).${S.m&&S.m.b>0?` <span class="mut">Parte fija ≈ ${nf(S.m.a,0)} kWh/d (equipos que consumen igual con cualquier caudal) y ${nf(S.m.b,3)} kWh por m³ adicional.</span>`:''}`});
+      L.push({l:dE>5?'warn':dE<-2?'ok':'info',t:`<b>kWh/m³: ${nf(S.epiP,2)}</b> frente a ${nf(S.epiB,2)} de referencia (${dE>0?'+':''}${nf(dE,1)} %; media de ${refTxt(S)}).`});
     }
-    if(S.dqoP) L.push({l:'info',t:`<b>kWh/kg DQO eliminada: ${nf(S.dqoP.v,2)}</b>${S.dqoB?` frente a ${nf(S.dqoB.v,2)} de referencia (${S.dqoP.v>S.dqoB.v?'+':''}${nf((S.dqoP.v/S.dqoB.v-1)*100,1)} %)`:''}. <span class="mut">${S.dqoP.n} días con analítica de DQO.</span>`});
-    else L.push({l:'info',t:`<b>kWh/kg DQO:</b> <span class="mut">sin días con DQO de entrada y salida en el periodo.</span>`});
-    if(S.m){ const val=S.m.r2>=0.5&&S.m.cv<=0.2; L.push({l:val?'ok':'warn',t:`<b>Línea base ${val?'válida':'poco explicativa'}:</b> R² = ${nf(S.m.r2,2)}, CV(RMSE) = ${nf(S.m.cv*100,1)} %, ${S.m.n} días (${S.baseTxt}). <span class="mut">${val?'El caudal explica bien el consumo.':'El caudal explica poco el consumo: conviene añadir otra variable (temperatura, carga de DQO) o usar kWh/m³ como indicador principal.'}</span>`}); }
+    if(S.dqoP) L.push({l:'info',t:`<b>kWh/kg DQO eliminada: ${nf(S.dqoP.v,2)}</b>${S.dqoB?` frente a ${nf(S.dqoB.v,2)} de referencia (${S.dqoP.v>S.dqoB.v?'+':''}${nf((S.dqoP.v/S.dqoB.v-1)*100,1)} %)`:''}. <span class="mut">${S.dqoP.n} días con DQO de entrada y salida.</span>`});
+    // Línea base: qué variables la explican y qué tal lo hace
+    const val=m.vars.length&&m.r2>=0.5&&m.cv<=0.2;
+    const cand=S.LB.cand, r=x=>x?nf(x.r2,2):'—';
+    let txt;
+    if(!m.vars.length) txt=`<b>Línea base = consumo medio (${nf(m.b[0],0)} kWh/d).</b> Ni el caudal (R² ${r(cand.q)}) ni la carga de DQO (R² ${r(cand.c)}) explican el consumo diario: la EDAR gasta casi lo mismo trate lo que trate. <span class="mut">Es normal si la aireación y el bombeo trabajan a régimen fijo. Para afinar, registra las horas de soplantes o el O₂ disuelto medio.</span>`;
+    else txt=`<b>Línea base ${val?'válida':'aceptable con reservas'}:</b> ${formula(m)} · R² ${nf(m.r2,2)}, CV(RMSE) ${nf(m.cv*100,1)} %, ${m.n} días. <span class="mut">Parte fija ≈ ${nf(m.b[0],0)} kWh/d${m.vars.map((v,i)=>`; ${nf(m.b[i+1],3)} kWh por cada ${v==='q'?'m³':'kg de DQO'} más`).join('')}. Probado: caudal R² ${r(cand.q)} · DQO R² ${r(cand.c)} · ambos R² ${r(cand.qc)}.</span>`;
+    L.push({l:val?'ok':'warn',t:txt});
+    if(m.vars.includes('c')) L.push({l:'info',t:`<b>Datos de DQO:</b> ${S.cobDQO.anPer} analíticas en el periodo; la carga de los días intermedios se interpola (hueco máx. 10 días).${S.nFb?` <span class="mut">${S.nFb} días sin DQO cercana se estiman solo con el caudal.</span>`:''}`});
     const cm=S.cusum.length>6?S.cusum[S.cusum.length-1].v-S.cusum[Math.max(0,S.cusum.length-8)].v:null;
-    if(cm!=null&&S.baseTxt!=='propio periodo') L.push({l:cm>0?'warn':'ok',t:`<b>Última semana:</b> ${cm>0?'el consumo va por encima de lo esperado':'el consumo va por debajo de lo esperado'} (${cm>0?'+':''}${nf(cm,0)} kWh en 7 días).`});
+    if(cm!=null&&hay) L.push({l:cm>0?'warn':'ok',t:`<b>Última semana:</b> ${cm>0?'por encima':'por debajo'} de lo esperado (${cm>0?'+':''}${nf(cm,0)} kWh en 7 días)${cm>0?' — la línea del CUSUM sigue subiendo':''}.`});
     if(S.aviso) L.push({l:'warn',t:S.aviso});
-    L.push({l:'info',t:`<span class="mut">${pl} · consumo total del periodo ${nf(S.kP,0)} kWh para ${nf(S.qP,0)} m³ (${S.per.length} días).</span>`});
     return L;
   }
+
+  /* ── Pintar ── */
   function render(){
     const p=document.getElementById('panel-energia'); if(!p||!p.classList.contains('active')) return;
-    const pr=document.getElementById('en-precio'); if(pr&&!pr.value){ try{ pr.value=localStorage.getItem('en-precio')||'0.15'; }catch(e){ pr.value='0.15'; } }
+    pintarPrecio();
     const S=estudio(), K=document.getElementById('en-kpis');
     if(!S){ K.innerHTML='<div class="sg-caption">Sin datos de consumo y caudal. Carga el SMS Diario (M-04).</div>'; ['en-c-mes','en-c-reg','en-c-cusum','en-concl'].forEach(i=>document.getElementById(i).innerHTML=''); return; }
     window._enUltimo=S;
-    const pre=+pr.value||0, dif=S.kP-S.eP, d=S.desv*100, dE=(S.epiP/S.epiB-1)*100;
+    const pre=precio.v||0, dif=S.kP-S.eP, d=S.desv*100, dE=(S.epiP/S.epiB-1)*100;
     const cls=x=>x>5?'crit':x>2?'warn':x<-2?'ok':'';
     const dd=x=>`<span class="en-d ${x>0?'up':'down'}">${x>0?'▲ +':'▼ '}${nf(x,1)} %</span>`;
-    const hayBase=S.baseTxt!=='propio periodo';
-    document.getElementById('en-note').textContent=`Línea base: ${S.baseTxt} (${S.base.length} días) · periodo ${S.per.length} días`+(S.aviso?' · '+S.aviso:'');
+    const hay=S.baseTxt!=='propio periodo', ref=refTxt(S);
+    document.getElementById('en-note').innerHTML=`Referencia: <b>${S.baseTxt}</b> → ${fDMY(S.bIni)} – ${fDMY(S.bFin)} (${S.base.length} días con datos) · periodo ${S.per.length} días`+(S.aviso?' · '+S.aviso:'');
     K.innerHTML=
-      `<div class="sg-card en-k ${hayBase?cls(d):''}"><span class="sg-label">Consumo del periodo</span><div><span class="en-k__v">${nf(S.kP,0)}</span><span class="sg-unit">kWh</span></div><div class="en-k__s">Esperado ${nf(S.eP,0)} kWh · ${hayBase?dd(d):'sin referencia'}</div></div>`+
-      `<div class="sg-card en-k ${cls(dE)}"><span class="sg-label">kWh / m³ tratado</span><div><span class="en-k__v">${nf(S.epiP,2)}</span><span class="sg-unit">kWh/m³</span></div><div class="en-k__s">Referencia ${nf(S.epiB,2)} · ${dd(dE)}</div></div>`+
-      `<div class="sg-card en-k ${S.dqoP&&S.dqoB?cls((S.dqoP.v/S.dqoB.v-1)*100):''}"><span class="sg-label">kWh / kg DQO eliminada</span><div><span class="en-k__v">${S.dqoP?nf(S.dqoP.v,2):'—'}</span><span class="sg-unit">kWh/kg</span></div><div class="en-k__s">${S.dqoB&&S.dqoP?'Referencia '+nf(S.dqoB.v,2)+' · '+dd((S.dqoP.v/S.dqoB.v-1)*100):'Sin analíticas suficientes'}</div></div>`+
-      `<div class="sg-card en-k ${hayBase?(dif>0?'warn':'ok'):''}"><span class="sg-label">${dif>0?'Exceso':'Ahorro'} frente a línea base</span><div><span class="en-k__v">${nf(Math.abs(dif),0)}</span><span class="sg-unit">kWh</span></div><div class="en-k__s">${pre?`<b>${nf(Math.abs(dif)*pre,0)} €</b> a ${nf(pre,2)} €/kWh`:'Indica el precio para verlo en €'}</div></div>`;
-    document.getElementById('en-m-sub').textContent=`Periodo resaltado · línea base ${nf(S.epiB,2)} kWh/m³`;
-    document.getElementById('en-r-sub').textContent=S.m?`R² ${nf(S.m.r2,2)} · CV(RMSE) ${nf(S.m.cv*100,1)} % · ${S.m.n} días`:'';
+      `<div class="sg-card en-k ${hay?cls(d):''}"><span class="sg-label">Consumo del periodo</span><div><span class="en-k__v">${nf(S.kP,0)}</span><span class="sg-unit">kWh</span></div><div class="en-k__s">Esperado ${nf(S.eP,0)} kWh (línea base) · ${hay?dd(d):'sin referencia'}</div></div>`+
+      `<div class="sg-card en-k ${cls(dE)}"><span class="sg-label">kWh / m³ tratado</span><div><span class="en-k__v">${nf(S.epiP,2)}</span><span class="sg-unit">kWh/m³</span></div><div class="en-k__s">Referencia ${nf(S.epiB,2)} (${ref}) · ${dd(dE)}</div></div>`+
+      `<div class="sg-card en-k ${S.dqoP&&S.dqoB?cls((S.dqoP.v/S.dqoB.v-1)*100):''}"><span class="sg-label">kWh / kg DQO eliminada</span><div><span class="en-k__v">${S.dqoP?nf(S.dqoP.v,2):'—'}</span><span class="sg-unit">kWh/kg</span></div><div class="en-k__s">${S.dqoB&&S.dqoP?`Referencia ${nf(S.dqoB.v,2)} (${ref}) · `+dd((S.dqoP.v/S.dqoB.v-1)*100):'Sin analíticas suficientes'}</div></div>`+
+      `<div class="sg-card en-k ${hay?(dif>0?'warn':'ok'):''}"><span class="sg-label">${dif>0?'Exceso':'Ahorro'} frente a línea base</span><div><span class="en-k__v">${nf(Math.abs(dif),0)}</span><span class="sg-unit">kWh</span></div><div class="en-k__s"><b>${nf(Math.abs(dif)*pre,0)} €</b> a ${nf(pre,3)} €/kWh · <button type="button" class="en-link" onclick="enPrecioPop(true)">${precio.guardado?'origen del precio':'<span style="color:var(--sg-warn)">precio por defecto</span>'}</button></div></div>`;
+    document.getElementById('en-m-sub').textContent=`Periodo resaltado · barras claras = meses de la referencia`;
+    const vtxt=S.m.vars.length?S.m.vars.map(v=>VARS[v].lbl).join(' + '):'consumo medio';
+    document.getElementById('en-r-sub').textContent=`${vtxt} · R² ${nf(S.m.r2,2)} · CV(RMSE) ${nf(S.m.cv*100,1)} %`;
     const c1=document.getElementById('en-c-mes'), c2=document.getElementById('en-c-reg'), c3=document.getElementById('en-c-cusum');
     c1.innerHTML=svgBarras(c1,S); c2.innerHTML=svgReg(c2,S); c3.innerHTML=svgCusum(c3,S);
     const L=conclusiones(S), IC={crit:'!',warn:'▲',ok:'✓',info:'i'}, el=document.getElementById('en-concl');
@@ -13388,7 +13550,10 @@ ${fotosHtml}
   }
   window.enRender=render;
   window.enSetPlanta=function(p){ enPlanta=p; document.querySelectorAll('#en-head [data-pl]').forEach(b=>b.classList.toggle('active',b.dataset.pl===p)); render(); };
-  // Resumen para el informe de dirección (mes en curso, 12 meses anteriores)
+  window.enAyuda=function(sec){ const m=document.getElementById('en-help'); if(!m) return; m.classList.add('open'); m.setAttribute('aria-hidden','false'); const t=document.getElementById('en-help-'+(sec||'iden')); if(t) t.scrollIntoView({block:'start'}); const c=m.querySelector('.en-help__x'); if(c) c.focus(); };
+  window.enAyudaCerrar=function(){ const m=document.getElementById('en-help'); if(m){ m.classList.remove('open'); m.setAttribute('aria-hidden','true'); } };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ enAyudaCerrar(); enPrecioPop(false); } });
+  // Resumen para el informe de dirección
   window.enResumen=function(planta){
     const bp=enPlanta; enPlanta=planta||'edari';
     try{ const S=estudio(); if(!S) return null; return {S,L:conclusiones(S)}; } finally{ enPlanta=bp; }
@@ -13397,6 +13562,7 @@ ${fotosHtml}
   window.sbNav=function(id){
     _prevNav(id);
     if(id==='energia'){
+      escucharPrecio();
       requestAnimationFrame(()=>requestAnimationFrame(render));
       if(!window._enResizeObs&&window.ResizeObserver){ let t; window._enResizeObs=new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(render,120); }); const b=document.getElementById('en-body'); if(b) window._enResizeObs.observe(b); }
     }
