@@ -2761,7 +2761,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #panel-calidad.cq-fit .sg-strip__icon{width:26px;height:26px;font-size:14px;}
             #panel-calidad.cq-fit .sg-strip__title{font-size:15px;line-height:20px;}
             #panel-calidad.cq-fit .sg-strip__value{font-size:30px;line-height:34px;}
-            #panel-calidad.cq-fit #cq-body{display:grid;grid-template-rows:auto minmax(200px,1.3fr) minmax(180px,1.1fr) minmax(120px,.8fr);gap:10px;padding:10px 0 12px;overflow-y:auto;min-height:0;}
+            #panel-calidad.cq-fit #cq-body{display:grid;grid-template-rows:auto minmax(220px,1.45fr) minmax(180px,1.05fr) minmax(120px,.8fr);gap:10px;padding:10px 0 12px;overflow-y:auto;min-height:0;}
             #panel-calidad.cq-fit .sg-block{padding:0 16px;display:flex;flex-direction:column;min-height:0;}
             #panel-calidad.cq-fit .sg-sec{margin-bottom:6px;}
             #panel-calidad.cq-fit .sg-card{padding:10px 14px;}
@@ -2772,10 +2772,14 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #panel-calidad.cq-fit #cq-lowrow{padding:0 16px;min-height:0;height:auto;}
             #panel-calidad.cq-fit #cq-alerts,#panel-calidad.cq-fit #cq-bioblock{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
             #panel-calidad.cq-fit #cq-alerts-list{flex:1;min-height:0;overflow-y:auto;padding-right:4px;}
-            #panel-calidad.cq-fit .sg-alert{padding:7px 0;}
+            #panel-calidad.cq-fit .sg-alert{padding:calc(var(--cq-al-fs,14px)*.5) 0;font-size:var(--cq-al-fs,14px);line-height:1.42;}
+            #panel-calidad.cq-fit .sg-alert__icon{width:calc(var(--cq-al-fs,14px)*1.6);height:calc(var(--cq-al-fs,14px)*1.6);}
+            #panel-calidad.cq-fit .sg-alert__when{font-size:calc(var(--cq-al-fs,14px)*.85);}
+            #panel-calidad.cq-fit #cq-alerts-list{display:flex;flex-direction:column;justify-content:space-evenly;}
+            #panel-calidad.cq-fit #cq-alerts-list.is-fitted{overflow:hidden;}
             #panel-calidad.cq-fit #cq-bioblock .sg-sec{margin-bottom:6px;}
             #panel-calidad.cq-fit .cq-bio-grid{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr);gap:8px;}
-            #panel-calidad.cq-fit .cq-bio-kpi{padding:6px 11px;display:flex;flex-direction:column;justify-content:flex-start;min-height:0;overflow:hidden;}
+            #panel-calidad.cq-fit .cq-bio-kpi{padding:6px 11px;display:flex;flex-direction:column;justify-content:safe center;gap:2px;min-height:0;overflow:hidden;}
             #panel-calidad.cq-fit .cq-bio-kpi-l{line-height:16px;}
             #panel-calidad.cq-fit .cq-bio-kpi-v{font-size:22px;line-height:26px;}
               /* Operación: las 4 tarjetas llenan el alto de su fila */
@@ -2796,7 +2800,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
             #panel-calidad.cq-fit-tight .sg-kpi__value{font-size:24px;line-height:28px;}
             #panel-calidad.cq-fit-tight .sg-kpi{gap:3px;}
-            #panel-calidad.cq-fit-tight .sg-alert{padding:5px 0;font-size:13px;line-height:18px;}
+            
 
           </style>
 
@@ -10150,6 +10154,8 @@ if(typeof waitForFirebase==='function'){
     // ── Franja de estado ──
     const stEl=document.getElementById('cq-status');
     if(stEl){
+      // Con no conformidad no se muestra la franja: las tarjetas en rojo y el panel de alertas ya lo indican
+      stEl.style.display=excedidos.length?'none':'';
       const strip=(cls,ic,tit,meta,extra)=>'<div class="sg-strip '+cls+'"'+(cls==='crit'?' role="alert"':'')+'><div class="sg-strip__icon" aria-hidden="true">'+ic+'</div><div class="sg-strip__body"><div class="sg-strip__title">'+tit+'</div>'+(meta?'<div class="sg-strip__meta">'+meta+'</div>':'')+'</div>'+(extra||'')+'</div>';
       if(nConDato===0) stEl.innerHTML=strip('','–','Sin datos de efluente ('+plantaLbl+')','Carga el SMS Diario (M-04) para evaluar el cumplimiento.');
       else if(excedidos.length){
@@ -10157,7 +10163,7 @@ if(typeof waitForFirebase==='function'){
         const tit=n+' no conformidad'+(n>1?'es':'')+' abierta'+(n>1?'s':'')+' · <b>'+excedidos.map(e=>e.lbl).join(', ')+' efluente '+plantaLbl+'</b>';
         const meta=excedidos.map(e=>(n>1?e.lbl+' ':'')+_nf(e.ratio,1)+'× el límite de '+e.lim+' mg/L · muestra '+_fmtDM(e.f)).join(' · ')+' · RD 509/1996';
         const extra=(n===1?'<div class="sg-strip__value">'+_n1(x0.val)+'<span class="sg-unit">mg/L</span></div>':'')+'<button class="sg-btn crit" onclick="cqIrAAlertas()">Ver acciones ↓</button>';
-        stEl.innerHTML=strip('crit','!',tit,meta,extra);
+        stEl.innerHTML='';
       }
       else if(ajustados.length) stEl.innerHTML=strip('warn','▲','Efluente conforme · vigilar <b>'+ajustados.map(a=>a.lbl).join(', ')+'</b>','Por encima del 85 % del límite RD 509/1996.');
       else stEl.innerHTML=strip('ok','✓','Efluente conforme · '+nConDato+' parámetro'+(nConDato>1?'s':'')+' dentro de límite', pin?('Día fijado '+_fmtDM(pin)):'Última muestra disponible de cada parámetro.');
@@ -10219,6 +10225,18 @@ if(typeof waitForFirebase==='function'){
     const pl=cqPlanta==='edari'?'EDARi':'EDARu';
     if(!list.length) list=[{lvl:dec.nConDato?'ok':'nd', what:dec.nConDato?'Sin acciones pendientes':'Sin datos suficientes', why:dec.nConDato?'· efluente conforme y proceso dentro de las bandas de referencia.':'para '+pl+'. Carga el SMS Diario (M-04).', do:null, when:null}];
     el.innerHTML=list.map(a=>'<div class="sg-alert '+a.lvl+'"><div class="sg-alert__icon" role="img" aria-label="'+LB[a.lvl]+'">'+IC[a.lvl]+'</div><div><span class="sg-alert__what">'+a.what+'</span> <span class="sg-alert__why">'+a.why+'</span>'+(a.do?'<div class="sg-alert__do">'+a.do+'</div>':'')+'</div><div class="sg-alert__when">'+(a.when?_fmtDM(a.when):'')+'</div></div>').join('');
+    _cqFitAlerts();
+  }
+  /* Ajusta el tamaño del texto de las alertas para que quepan enteras en su recuadro (útil para capturas) */
+  function _cqFitAlerts(){
+    const el=document.getElementById('cq-alerts-list'), p=document.getElementById('panel-calidad');
+    if(!el||!p) return;
+    el.style.removeProperty('--cq-al-fs');
+    if(!p.classList.contains('cq-fit')) return;
+    const fits=()=>el.scrollHeight<=el.clientHeight+1;
+    let fs=15; el.style.setProperty('--cq-al-fs',fs+'px');
+    while(!fits()&&fs>11){ fs-=0.5; el.style.setProperty('--cq-al-fs',fs+'px'); }
+    el.classList.toggle('is-fitted',fits());
   }
   window.cqIrAAlertas=function(){ const a=document.getElementById('cq-alerts'); if(a) a.scrollIntoView({behavior:'smooth',block:'start'}); };
 
