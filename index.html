@@ -652,7 +652,7 @@ body.theme-light .theme-opt-desc{color:#64748b;}
 
 /* ── CONTENT AREA ── */
 .p-content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:7px;}
-.p-content:has(#panel-calidad.active),.p-content:has(#panel-predictivo.active){padding:0;display:flex;flex-direction:column;overflow:hidden;}
+.p-content:has(#panel-calidad.active),.p-content:has(#panel-predictivo.active),.p-content:has(#panel-energia.active){padding:0;display:flex;flex-direction:column;overflow:hidden;}
 
 /* ── PANELS (process, analytics, reports, etc.) ── */
 .p-panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
@@ -1205,6 +1205,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <button class="sb-btn" id="sb-predictivo" onclick="sbNav('predictivo')" aria-label="Análisis predictivo">
           <i class="ti ti-chart-dots" aria-hidden="true"></i>
           <div class="sb-tip" data-i18n="sbPredictivo">PREDICTIVO</div>
+        </button>
+        <button class="sb-btn" id="sb-energia" onclick="sbNav('energia')" aria-label="Energía">
+          <i class="ti ti-bolt" aria-hidden="true"></i>
+          <div class="sb-tip" data-i18n="sbEnergia">ENERGÍA</div>
         </button>
       </div>
       <div class="sb-bottom">
@@ -2818,6 +2822,8 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
                 <button class="cq-plant-btn" data-plant="edaru" onclick="cqSetPlanta('edaru')">EDARu</button>
               </div>
               <span id="cq-plant-note">Línea biológica · reactor 2.167,9 m³ · 5 parámetros RD 509/1996</span>
+              <button class="cq-head-btn" id="cq-nc-open" onclick="ncAbrir()" title="Registro de no conformidades (ISO 9001/14001 · 10.2)">No conformidades <span class="n" id="cq-nc-count" style="display:none">0</span></button>
+              <button class="cq-head-btn" onclick="informeDireccion()" title="Informe PDF para dirección: estado, alertas, previsión, NC y energía">Informe dirección</button>
               <button id="cq-export-toggle" onclick="cqToggleExport(event)" title="Exportar informe PDF">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Informe PDF <span class="cq-caret">▼</span>
@@ -3051,6 +3057,39 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               #panel-predictivo .pd-op__chart{height:110px;flex:none;}
             }
 
+            /* Botón de informe en la cabecera */
+            #panel-predictivo .pd-headbtn{margin-left:auto;font:700 12px/16px var(--mono);letter-spacing:.04em;padding:6px 12px;border-radius:6px;border:1px solid var(--sg-line);background:var(--sg-card);color:var(--sg-ink);cursor:pointer;white-space:nowrap;}
+            #panel-predictivo .pd-headbtn:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
+            /* ¿Qué pasa si…? */
+            #pd-sim{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:10px 16px 12px;overflow-y:auto;}
+            #panel-predictivo .pd-sc{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden;}
+            #panel-predictivo .pd-in label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;}
+            #panel-predictivo .pd-in__v{display:inline-flex;align-items:center;gap:6px;font-weight:400;color:var(--sg-muted);font-size:13px;}
+            #panel-predictivo .pd-in input[type=number]{width:90px;background:var(--sg-raised);color:var(--sg-ink);border:1px solid var(--sg-line);border-radius:6px;padding:5px 8px;font:600 15px/20px var(--sg-num);text-align:right;}
+            #panel-predictivo .pd-in input[type=range]{width:100%;accent-color:var(--sg-brand);margin:6px 0 2px;}
+            #panel-predictivo .pd-in input:focus-visible{outline:2px solid var(--sg-brand);outline-offset:1px;}
+            #panel-predictivo .pd-quick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--sg-subtle);}
+            #panel-predictivo .pd-quick button{font:600 12px/16px var(--sg-sans);padding:3px 10px;border-radius:999px;border:1px solid var(--sg-line);background:var(--sg-raised);color:var(--sg-ink);cursor:pointer;}
+            #panel-predictivo .pd-quick button:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
+            #panel-predictivo .pd-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:4px;}
+            #panel-predictivo .pd-grid4 label{display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:12px;font-weight:400;color:var(--sg-muted);}
+            #panel-predictivo .pd-grid4 input{width:100%!important;box-sizing:border-box;font-size:14px!important;}
+            #panel-predictivo .pd-grid4 small{font-size:11px;color:var(--sg-subtle);}
+            #panel-predictivo .pd-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+            #panel-predictivo .pd-k{background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:8px;padding:7px 10px;min-width:0;}
+            #panel-predictivo .pd-k.crit{border-color:var(--sg-crit);background:var(--sg-crit-soft);}
+            #panel-predictivo .pd-k.warn{border-color:var(--sg-warn);}
+            #panel-predictivo .pd-k.ok{border-color:var(--sg-ok);}
+            #panel-predictivo .pd-k__l{font-size:12px;color:var(--sg-muted);}
+            #panel-predictivo .pd-k__v{font-family:var(--sg-num);font-size:22px;line-height:26px;font-weight:600;font-variant-numeric:tabular-nums;}
+            #panel-predictivo .pd-k__s{font-size:12px;color:var(--sg-subtle);}
+            #panel-predictivo .pd-sc__charts{flex:1;min-height:110px;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px;}
+            #panel-predictivo .pd-sc__chart{position:relative;min-height:0;}
+            #panel-predictivo .pd-sc__chart>svg{position:absolute;inset:0;width:100%;height:100%;}
+            #panel-predictivo .pd-sc__txt{font-size:13px;line-height:19px;color:var(--sg-muted);}
+            #panel-predictivo .pd-sc__txt b{color:var(--sg-ink);}
+            @media (max-width:1100px){ #pd-sim{grid-template-columns:1fr;} #panel-predictivo .pd-sc__charts{height:180px;flex:none;} #panel-predictivo .pd-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} }
+
           </style>
           <div id="pd-head">
             <div class="pd-seg" role="tablist" aria-label="Planta">
@@ -3061,7 +3100,12 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <button class="active" data-h="7" onclick="pdSetHorizonte(7)">7 días</button>
               <button data-h="30" onclick="pdSetHorizonte(30)">30 días</button>
             </div>
+            <div class="pd-seg" role="tablist" aria-label="Vista">
+              <button class="active" data-v="prev" onclick="pdSetVista('prev')">Previsión</button>
+              <button data-v="sim" onclick="pdSetVista('sim')">¿Qué pasa si…?</button>
+            </div>
             <span id="pd-note">Cargando histórico…</span>
+            <button class="pd-headbtn" onclick="informeDireccion()" title="Informe PDF de una página para dirección">Informe dirección</button>
           </div>
           <div id="pd-body">
             <!-- 1 · Riesgo de incumplimiento -->
@@ -3087,7 +3131,105 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div id="pd-ops"><div class="sg-caption">⟳ Calculando…</div></div>
             </div>
           </div>
+          <!-- Simulación de escenarios -->
+          <div id="pd-sim" style="display:none">
+            <div class="sg-card pd-sc" id="pd-sc-purga">
+              <div class="sg-sec"><span class="sg-label">Purga de fangos → edad de fango y bulking</span><span class="sg-caption" id="pd-sp-src"></span></div>
+              <div class="pd-in">
+                <label>Caudal de purga <span class="pd-in__v"><input type="number" id="pd-sp-q" step="0.5" min="0" oninput="pdSim()"> m³/d</span></label>
+                <input type="range" id="pd-sp-r" min="0" max="60" step="0.5" oninput="document.getElementById('pd-sp-q').value=this.value;pdSim()" aria-label="Caudal de purga">
+                <div class="pd-quick" id="pd-sp-quick"></div>
+              </div>
+              <div class="pd-kpis" id="pd-sp-kpis"></div>
+              <div class="pd-sc__charts"><div class="pd-sc__chart" id="pd-sp-c1"></div><div class="pd-sc__chart" id="pd-sp-c2"></div></div>
+              <div class="pd-sc__txt" id="pd-sp-txt"></div>
+            </div>
+            <div class="sg-card pd-sc" id="pd-sc-fe">
+              <div class="sg-sec"><span class="sg-label">Cloruro férrico → fósforo en el efluente</span><span class="sg-caption" id="pd-fe-src"></span></div>
+              <div class="pd-in">
+                <label>Dosis de FeCl₃ comercial <span class="pd-in__v"><input type="number" id="pd-fe-d" step="1" min="0" oninput="pdSim()"> L/d</span></label>
+                <input type="range" id="pd-fe-r" min="0" max="400" step="1" oninput="document.getElementById('pd-fe-d').value=this.value;pdSim()" aria-label="Dosis de cloruro férrico">
+                <div class="pd-grid4">
+                  <label>Dosis actual<input type="number" id="pd-fe-d0" step="1" min="0" oninput="pdSim()"><small>L/d</small></label>
+                  <label>Riqueza FeCl₃<input type="number" id="pd-fe-w" step="1" min="1" max="60" value="40" oninput="pdSim()"><small>%</small></label>
+                  <label>Densidad<input type="number" id="pd-fe-rho" step="0.01" min="1" max="2" value="1.42" oninput="pdSim()"><small>kg/L</small></label>
+                  <label>Relación molar Fe:P<input type="number" id="pd-fe-b" step="0.1" min="1" max="4" value="2" oninput="pdSim()"><small>β</small></label>
+                </div>
+              </div>
+              <div class="pd-kpis" id="pd-fe-kpis"></div>
+              <div class="pd-sc__charts"><div class="pd-sc__chart" id="pd-fe-c1"></div></div>
+              <div class="pd-sc__txt" id="pd-fe-txt"></div>
+            </div>
+          </div>
         </div><!-- /#panel-predictivo -->
+
+        <!-- ══ PANEL: ENERGÍA (ISO 50001) ═════════════════════════════════════ -->
+        <div class="p-panel" id="panel-energia">
+          <style>
+            #panel-energia{background:var(--sg-bg);color:var(--sg-ink);font-family:var(--sg-sans);display:none;flex-direction:column;min-height:0;position:relative;}
+            #panel-energia.active{display:flex;flex:1;overflow:hidden;min-height:0;}
+            #panel-energia .sg-label{font-family:var(--mono);font-size:12px;line-height:16px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--sg-muted);}
+            #panel-energia .sg-caption{font-size:12px;line-height:16px;color:var(--sg-subtle);}
+            #panel-energia .sg-unit{font-size:12px;color:var(--sg-muted);margin-left:4px;font-weight:400;}
+            #panel-energia .sg-card{background:var(--sg-card);border:1px solid var(--sg-line);border-radius:8px;padding:10px 14px;min-width:0;min-height:0;}
+            #panel-energia .sg-sec{display:flex;align-items:center;gap:8px;margin:0 0 6px;}
+            #panel-energia .sg-sec .sg-caption{margin-left:auto;}
+            #panel-energia .sg-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;font-size:12px;line-height:16px;font-weight:600;border:1px solid currentColor;white-space:nowrap;}
+            #panel-energia .sg-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+            #panel-energia .sg-badge.ok{color:var(--sg-ok);background:var(--sg-ok-soft);} #panel-energia .sg-badge.warn{color:var(--sg-warn);background:var(--sg-warn-soft);} #panel-energia .sg-badge.crit{color:var(--sg-crit);background:var(--sg-crit-soft);} #panel-energia .sg-badge.nd{color:var(--sg-subtle);background:var(--sg-raised);}
+            #panel-energia .sg-ax{font-family:var(--mono);font-size:11px;fill:var(--sg-subtle);}
+            #panel-energia .sg-grid{stroke:var(--sg-line);stroke-width:1;}
+            #en-head{display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--sg-line);flex-wrap:wrap;flex-shrink:0;}
+            #panel-energia .en-seg{display:inline-flex;background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:999px;padding:3px;gap:2px;}
+            #panel-energia .en-seg button{font-family:var(--mono);font-size:12px;font-weight:700;padding:4px 14px;border:none;border-radius:999px;cursor:pointer;background:transparent;color:var(--sg-muted);}
+            #panel-energia .en-seg button.active{background:var(--sg-brand);color:#04202e;}
+            body.theme-light #panel-energia .en-seg button.active{color:#fff;}
+            #panel-energia select,#panel-energia input{background:var(--sg-card);color:var(--sg-ink);border:1px solid var(--sg-line);border-radius:6px;padding:5px 8px;font:13px/18px var(--sg-sans);}
+            #panel-energia input{width:74px;text-align:right;}
+            #panel-energia .en-f{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sg-muted);}
+            #en-note{font-size:12px;color:var(--sg-subtle);flex:1;min-width:200px;}
+            #en-body{flex:1;min-height:0;display:grid;grid-template-rows:auto minmax(220px,1.3fr) minmax(180px,1fr);gap:10px;padding:10px 16px 12px;overflow-y:auto;}
+            #en-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+            #panel-energia .en-k{display:flex;flex-direction:column;gap:4px;}
+            #panel-energia .en-k.ok{border-color:var(--sg-ok);} #panel-energia .en-k.warn{border-color:var(--sg-warn);} #panel-energia .en-k.crit{border-color:var(--sg-crit);background:var(--sg-crit-soft);}
+            #panel-energia .en-k__v{font-family:var(--sg-num);font-size:28px;line-height:32px;font-weight:600;font-variant-numeric:tabular-nums;}
+            #panel-energia .en-k__s{font-size:12px;line-height:16px;color:var(--sg-muted);}
+            #panel-energia .en-k__s b{color:var(--sg-ink);}
+            #panel-energia .en-d.up{color:var(--sg-crit);font-weight:700;} #panel-energia .en-d.down{color:var(--sg-ok);font-weight:700;}
+            #panel-energia .en-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;min-height:0;}
+            #panel-energia .en-c{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+            #panel-energia .en-chart{flex:1;min-height:0;position:relative;}
+            #panel-energia .en-chart>svg{position:absolute;inset:0;width:100%;height:100%;}
+            #en-concl{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-evenly;font-size:var(--en-fs,14px);line-height:1.42;}
+            #en-concl.is-fitted{overflow:hidden;}
+            #panel-energia .en-cl{display:grid;grid-template-columns:calc(var(--en-fs,14px)*1.6) 1fr;gap:10px;padding:calc(var(--en-fs,14px)*.45) 0;border-top:1px solid var(--sg-line);}
+            #panel-energia .en-cl:first-child{border-top:none;}
+            #panel-energia .en-cl__ic{width:calc(var(--en-fs,14px)*1.6);height:calc(var(--en-fs,14px)*1.6);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:calc(var(--en-fs,14px)*.9);}
+            #panel-energia .en-cl.crit .en-cl__ic{background:var(--sg-crit);color:#fff;} #panel-energia .en-cl.warn .en-cl__ic{background:var(--sg-warn);color:#1d1400;} #panel-energia .en-cl.ok .en-cl__ic{background:var(--sg-ok-soft);color:var(--sg-ok);} #panel-energia .en-cl.info .en-cl__ic{background:var(--sg-brand-soft);color:var(--sg-brand);}
+            body.theme-light #panel-energia .en-cl.warn .en-cl__ic{color:#fff;}
+            #panel-energia .mut{color:var(--sg-muted);}
+            @media (max-width:1100px){ #en-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} #panel-energia .en-row{grid-template-columns:1fr;} #en-body{grid-template-rows:auto auto auto;} #panel-energia .en-chart{height:230px;flex:none;} }
+          </style>
+          <div id="en-head">
+            <div class="en-seg" aria-label="Planta"><button class="active" data-pl="edari" onclick="enSetPlanta('edari')">EDARi</button><button data-pl="edaru" onclick="enSetPlanta('edaru')">EDARu</button></div>
+            <label class="en-f">Periodo <select id="en-mes" onchange="enRender()"></select></label>
+            <label class="en-f">Línea base <select id="en-base" onchange="enRender()"><option value="prev12">12 meses anteriores</option><option value="prevYear">Año natural anterior</option><option value="all">Todo el histórico anterior</option></select></label>
+            <label class="en-f">Precio <input type="number" id="en-precio" step="0.01" min="0" onchange="enGuardarPrecio();enRender()"> €/kWh</label>
+            <span id="en-note"></span>
+          </div>
+          <div id="en-body">
+            <div><div class="sg-sec"><span class="sg-label" id="en-kpi-title">Indicadores de desempeño energético (IDEn)</span><span class="sg-caption">ISO 50001 · ISO 50006</span></div><div id="en-kpis"><div class="sg-caption">⟳ Calculando…</div></div></div>
+            <div class="en-row">
+              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">kWh/m³ por mes</span><span class="sg-caption" id="en-m-sub"></span></div><div class="en-chart" id="en-c-mes"></div></div>
+              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Línea de base energética</span><span class="sg-caption" id="en-r-sub"></span></div><div class="en-chart" id="en-c-reg"></div></div>
+            </div>
+            <div class="en-row">
+              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Desviación acumulada (CUSUM) del periodo</span><span class="sg-caption">Por debajo de 0 = ahorro frente a la línea base</span></div><div class="en-chart" id="en-c-cusum"></div></div>
+              <div class="sg-card en-c"><div class="sg-sec"><span class="sg-label">Conclusiones</span><span id="en-badges"></span></div><div id="en-concl"></div></div>
+            </div>
+          </div>
+        </div><!-- /#panel-energia -->
+
 
 
       </div><!-- /.p-content -->
@@ -3127,7 +3269,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 <div id="app-simulador" style="display:none;position:fixed;inset:0;z-index:9999;background:#0d1f1a;overflow:hidden;">
   <style id="sim-styles">
 
-:root{--bg:#0d1f1a;--bg2:#122319;--bg3:#0a1a14;--card:#152b20;--card2:#1a3328;--border:#2a4d38;--border2:#1e3d2c;--green:#2ecc71;--green2:#27ae60;--green3:#1e8449;--teal:#1abc9c;--yellow:#f39c12;--red:#e74c3c;--blue:#3498db;--text:#e8f5ec;--text2:#a8c9b0;--text3:#6a9878;--accent:#4ade80}
+#app-simulador{--bg:#0d1f1a;--bg2:#122319;--bg3:#0a1a14;--card:#152b20;--card2:#1a3328;--border:#2a4d38;--border2:#1e3d2c;--green:#2ecc71;--green2:#27ae60;--green3:#1e8449;--teal:#1abc9c;--yellow:#f39c12;--red:#e74c3c;--blue:#3498db;--text:#e8f5ec;--text2:#a8c9b0;--text3:#6a9878;--accent:#4ade80}
 *{box-sizing:border-box;margin:0;padding:0}
 #sim-app{height:100%;overflow:hidden;font-family:'Barlow',sans-serif;background:var(--bg3);color:var(--text)}
 
@@ -4268,7 +4410,7 @@ const I18N = {
     sbPortal:'Portal', sbSimulador:'Simulador', sbMacroMicro:'Macro/Micro', sbZonas:'Zonas Anóx.',
     sbInformes:'Informes', sbAlertas:'Alertas', sbDescargas:'Descargas', sbCargarDatos:'Cargar datos',
     sbObjetivos:'Objetivos', sbTendencias:'Tendencias', sbGestion:'Gestión Sup.', sbCuaderno:'Cuaderno',
-    sbCalidad:'Calidad', sbPredictivo:'Análisis predictivo', sbAjustes:'Ajustes', sbUsuario:'Usuario',
+    sbCalidad:'Calidad', sbPredictivo:'Análisis predictivo', sbEnergia:'Energía · ISO 50001', sbAjustes:'Ajustes', sbUsuario:'Usuario',
     themeBtnTitle:'Cambiar tema', themeDdTitle:'TEMA DEL PORTAL',
     themeDarkDesc:'Predeterminado · Azul profundo', themeLightDesc:'Claro · Alta legibilidad',
     themeForestDesc:'Oscuro · Verde industrial', themeMidnightDesc:'Negro · Acento ámbar',
@@ -4294,7 +4436,7 @@ const I18N = {
     sbPortal:'Portal', sbSimulador:'Simulator', sbMacroMicro:'Macro/Micro', sbZonas:'Anoxic Zones',
     sbInformes:'Reports', sbAlertas:'Alerts', sbDescargas:'Downloads', sbCargarDatos:'Load data',
     sbObjetivos:'Targets', sbTendencias:'Trends', sbGestion:'Supervisor', sbCuaderno:'Logbook',
-    sbCalidad:'Quality', sbPredictivo:'Predictive analysis', sbAjustes:'Settings', sbUsuario:'User',
+    sbCalidad:'Quality', sbPredictivo:'Predictive analysis', sbEnergia:'Energy · ISO 50001', sbAjustes:'Settings', sbUsuario:'User',
     themeBtnTitle:'Change theme', themeDdTitle:'PORTAL THEME',
     themeDarkDesc:'Default · Deep blue', themeLightDesc:'Light · High readability',
     themeForestDesc:'Dark · Industrial green', themeMidnightDesc:'Black · Amber accent',
@@ -4320,7 +4462,7 @@ const I18N = {
     sbPortal:'Portail', sbSimulador:'Simulateur', sbMacroMicro:'Macro/Micro', sbZonas:'Zones anoxiques',
     sbInformes:'Rapports', sbAlertas:'Alertes', sbDescargas:'Téléchargements', sbCargarDatos:'Charger données',
     sbObjetivos:'Objectifs', sbTendencias:'Tendances', sbGestion:'Superviseur', sbCuaderno:'Cahier',
-    sbCalidad:'Qualité', sbPredictivo:'Analyse prédictive', sbAjustes:'Réglages', sbUsuario:'Utilisateur',
+    sbCalidad:'Qualité', sbPredictivo:'Analyse prédictive', sbEnergia:'Énergie · ISO 50001', sbAjustes:'Réglages', sbUsuario:'Utilisateur',
     themeBtnTitle:'Changer de thème', themeDdTitle:'THÈME DU PORTAIL',
     themeDarkDesc:'Par défaut · Bleu profond', themeLightDesc:'Clair · Haute lisibilité',
     themeForestDesc:'Sombre · Vert industriel', themeMidnightDesc:'Noir · Accent ambré',
@@ -4374,7 +4516,7 @@ function applyLanguage(lang){
     const bc = document.getElementById('p-bc-section');
     const keyMap = {portal:'sbPortal',proceso:'sbSimulador',analitica:'sbMacroMicro',zonas:'sbZonas',
       informes:'sbInformes',alertas:'sbAlertas',ajustes:'sbAjustes',tendencias:'sbTendencias',
-      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad',predictivo:'sbPredictivo'};
+      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad',predictivo:'sbPredictivo',energia:'sbEnergia'};
     if(bc && keyMap[id] && dict[keyMap[id]]) bc.textContent = dict[keyMap[id]];
   }
   // Persistir
@@ -6186,7 +6328,7 @@ window.__SIM_PROCESO_SRC__ = "const { useState, useEffect, useCallback, useRef }
 
 <script>
 // ══ SIDEBAR NAVIGATION ════════════════════════════════════════════════════════
-const PANELS = ['portal','proceso','analitica','zonas','informes','alertas','ajustes','tendencias','gestion','cuaderno','calidad','predictivo'];
+const PANELS = ['portal','proceso','analitica','zonas','informes','alertas','ajustes','tendencias','gestion','cuaderno','calidad','predictivo','energia'];
 
 function sbNav(id) {
   // Hide all panels
@@ -6205,13 +6347,13 @@ function sbNav(id) {
   const labels = {portal:'Portal',proceso:'Simulador',analitica:'Macroscopía',zonas:'Zonas Anóxicas',
                   informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
                   tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario',
-                  calidad:'Control de Calidad',predictivo:'Análisis predictivo'};
+                  calidad:'Control de Calidad',predictivo:'Análisis predictivo',energia:'Energía · ISO 50001'};
   const bc = document.getElementById('p-bc-section');
   if(bc){
     const curLang = localStorage.getItem('ute-lang') || 'es';
     const keyMap = {portal:'sbPortal',proceso:'sbSimulador',analitica:'sbMacroMicro',zonas:'sbZonas',
       informes:'sbInformes',alertas:'sbAlertas',ajustes:'sbAjustes',tendencias:'sbTendencias',
-      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad',predictivo:'sbPredictivo'};
+      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad',predictivo:'sbPredictivo',energia:'sbEnergia'};
     const dict = (typeof I18N!=='undefined' && I18N[curLang]) ? I18N[curLang] : null;
     bc.textContent = (dict && keyMap[id] && dict[keyMap[id]]) ? dict[keyMap[id]] : (labels[id] || id);
   }
@@ -10067,6 +10209,7 @@ if(typeof waitForFirebase==='function'){
     }).join('');
     if(cont) cont.innerHTML=rows+'<div class="sg-caption" style="margin-top:4px">Marca: % mínimo de reducción (RD 509/1996)</div>';
     const conDato=params.filter(p=>p.res), nOk=conDato.filter(p=>p.res.rend>=p.min).length;
+    window._cqRend={dias:dias.length,items:params.map(p=>({lbl:p.lbl,min:p.min,rend:p.res?p.res.rend:null}))};
     if(rs) rs.textContent=dias.length>0?`${dias.length} días · ${nOk}/${conDato.length} cumplen el mínimo`:'Sin datos analíticos · carga SMS Diario';
   }
 
@@ -10269,7 +10412,7 @@ if(typeof waitForFirebase==='function'){
     cqDibujaTendencia5();
 
     const _n1=v=>_nf(v, v>=100?0:(v<10?1:0));
-    let excedidos=[], ajustados=[], antiguos=[], nConDato=0;
+    let excedidos=[], ajustados=[], antiguos=[], nConDato=0; const _efOut=[];
     slots.forEach(p=>{
       const card=document.getElementById('cq-c-'+p.id);
       const vEl=document.getElementById('cq-c-'+p.id+'-v');
@@ -10282,7 +10425,7 @@ if(typeof waitForFirebase==='function'){
       if(card) card.classList.remove('is-crit','is-warn','is-nd');
       if(bdEl) bdEl.innerHTML='';
       const vacio=(txtV,txtS)=>{ if(card) card.classList.add('is-nd'); vEl.textContent=txtV; if(sEl) sEl.textContent=txtS; if(bEl){ bEl.style.width='0%'; bEl.className='sg-meter__fill'; } if(tEl){ tEl.textContent=''; tEl.className='sg-delta'; } if(fEl){ fEl.textContent=''; fEl.className=''; } };
-      if(p.nd){ vacio('s/d','No se mide en EDARu'); return; }
+      if(p.nd){ vacio('s/d','No se mide en EDARu'); _efOut.push({id:p.id,lbl:p.lbl,lim:p.lim,nd:true}); return; }
       let val=null, fref=null, usoAyer=false;
       if(pin){ val=p.pinVal(); fref=pin; }
       else {
@@ -10290,7 +10433,7 @@ if(typeof waitForFirebase==='function'){
         if(vAyer!=null){ val=vAyer; fref=_ayerISO; usoAyer=true; }
         else { const u=p.get(); if(u){ val=u.v; fref=u.f; } }
       }
-      if(val==null){ vacio(pin?'s/d':'—', pin?('Sin dato el '+_fmtDM(pin)):('Límite '+p.lim+' mg/L · sin dato')); return; }
+      if(val==null){ _efOut.push({id:p.id,lbl:p.lbl,lim:p.lim,sin:true}); vacio(pin?'s/d':'—', pin?('Sin dato el '+_fmtDM(pin)):('Límite '+p.lim+' mg/L · sin dato')); return; }
       nConDato++;
       const ratio=val/p.lim, pct=ratio*100;
       const est=ratio>1?'crit':ratio>0.85?'warn':'ok';
@@ -10311,10 +10454,12 @@ if(typeof waitForFirebase==='function'){
         if(tr&&Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0; tEl.className='sg-delta '+(baja?'better':'worse'); tEl.textContent=(baja?'▼ ':'▲ ')+_nf(Math.abs(tr.delta),tr.last<10?1:0)+' mg/L'; }
         else { tEl.className='sg-delta'; tEl.textContent='sin cambio'; }
       }
+      _efOut.push({id:p.id,lbl:p.lbl,val,lim:p.lim,ratio,f:fref,est,stale});
       if(ratio>1) excedidos.push({lbl:p.lbl,val,lim:p.lim,ratio,f:fref});
       else if(ratio>0.85) ajustados.push({lbl:p.lbl,val,lim:p.lim,ratio,f:fref});
     });
 
+    window._cqEfluente={planta,plantaLbl,pin,items:_efOut};
     // ── Franja de estado ──
     const stEl=document.getElementById('cq-status');
     if(stEl){
@@ -10336,7 +10481,7 @@ if(typeof waitForFirebase==='function'){
     // ── Alertas estructuradas: qué · por qué · qué hacer ──
     const al=[];
     const ACC={pt:'Revisar la dosificación de coagulante (cloruro férrico) y registrar la no conformidad.', nt:'Revisar nitrificación/desnitrificación (O₂ disuelto, recirculación interna) y registrar la no conformidad.'};
-    excedidos.forEach(x=>{ const id=(slots.find(s=>s.lbl===x.lbl)||{}).id; al.push({lvl:'crit', what:x.lbl+' '+_n1(x.val)+' mg/L', why:'supera el límite de '+x.lim+' mg/L (RD 509/1996) · '+_nf(x.ratio,1)+'× límite.', do:ACC[id]||'Verificar el proceso y registrar la no conformidad.', when:x.f}); });
+    excedidos.forEach(x=>{ const id=(slots.find(s=>s.lbl===x.lbl)||{}).id; al.push({lvl:'crit', what:x.lbl+' '+_n1(x.val)+' mg/L', why:'supera el límite de '+x.lim+' mg/L (RD 509/1996) · '+_nf(x.ratio,1)+'× límite.', do:ACC[id]||'Verificar el proceso y registrar la no conformidad.', when:x.f, nc:{planta, param:id, lbl:x.lbl, val:+(+x.val).toFixed(2), lim:x.lim, f:x.f, unidad:'mg/L', accion:ACC[id]||''}}); });
     ajustados.forEach(x=>al.push({lvl:'warn', what:x.lbl+' al '+Math.round(x.ratio*100)+' % del límite', why:'· margen ajustado.', do:'Vigilar de cerca y adelantar la próxima analítica de '+x.lbl+'.', when:x.f}));
     antiguos.forEach(x=>al.push({lvl:'warn', what:x.lbl+' sin muestra desde '+_fmtDM(x.f), why:'· dato de hace '+x.d+' días.', do:'Programar analítica de '+x.lbl+'.', when:null}));
 
@@ -10383,14 +10528,23 @@ if(typeof waitForFirebase==='function'){
     }
     const orden={crit:0,warn:1};
     list.sort((a,c)=>(orden[a.lvl]-orden[c.lvl])||String(c.when||'').localeCompare(String(a.when||'')));
+    window._cqAlertasFinal=list.slice();
     const nC=list.filter(a=>a.lvl==='crit').length, nW=list.filter(a=>a.lvl==='warn').length;
     if(cnt) cnt.innerHTML=(nC?'<span class="sg-badge crit">'+nC+' crítica'+(nC>1?'s':'')+'</span> ':'')+(nW?'<span class="sg-badge warn">'+nW+' aviso'+(nW>1?'s':'')+'</span>':'')+(!nC&&!nW&&dec.nConDato?'<span class="sg-badge ok">Sin alertas</span>':'');
     const IC={crit:'!',warn:'▲',ok:'✓',nd:'–'}, LB={crit:'Crítica',warn:'Aviso',ok:'Correcto',nd:'Sin datos'};
     const pl=cqPlanta==='edari'?'EDARi':'EDARu';
     if(!list.length) list=[{lvl:dec.nConDato?'ok':'nd', what:dec.nConDato?'Sin acciones pendientes':'Sin datos suficientes', why:dec.nConDato?'· efluente conforme y proceso dentro de las bandas de referencia.':'para '+pl+'. Carga el SMS Diario (M-04).', do:null, when:null}];
-    el.innerHTML=list.map(a=>'<div class="sg-alert '+a.lvl+'"><div class="sg-alert__icon" role="img" aria-label="'+LB[a.lvl]+'">'+IC[a.lvl]+'</div><div><span class="sg-alert__what">'+a.what+'</span> <span class="sg-alert__why">'+a.why+'</span>'+(a.do?'<div class="sg-alert__do">'+a.do+'</div>':'')+'</div><div class="sg-alert__when">'+(a.when?_fmtDM(a.when):'')+'</div></div>').join('');
+    el.innerHTML=list.map(a=>'<div class="sg-alert '+a.lvl+'"><div class="sg-alert__icon" role="img" aria-label="'+LB[a.lvl]+'">'+IC[a.lvl]+'</div><div><span class="sg-alert__what">'+a.what+'</span> <span class="sg-alert__why">'+a.why+'</span>'+(a.do?'<div class="sg-alert__do">'+a.do+'</div>':'')+_ncBoton(a)+'</div><div class="sg-alert__when">'+(a.when?_fmtDM(a.when):'')+'</div></div>').join('');
     _cqFitAlerts();
   }
+  function _ncBoton(a){
+    if(!a.nc||typeof window.ncBuscarAbierta!=='function') return '';
+    const n=window.ncBuscarAbierta(a.nc.planta,a.nc.param);
+    if(n) return '<div><span class="sg-nc-chip" role="button" tabindex="0" onclick="ncAbrir(\''+n.id+'\')">'+n.codigo+' · '+({abierta:'abierta',en_tratamiento:'en tratamiento',pendiente_verificacion:'pendiente de verificar'}[n.estado]||n.estado)+'</span></div>';
+    window._ncPre=window._ncPre||{}; const k=a.nc.planta+'_'+a.nc.param; window._ncPre[k]=a.nc;
+    return '<div><button type="button" class="sg-nc-btn" onclick="ncNueva(window._ncPre[\''+k+'\'])">Registrar NC</button></div>';
+  }
+  window.cqRenderAlertas=function(){ cqRenderAlertas(); };
   /* Ajusta el tamaño del texto de las alertas para que quepan enteras en su recuadro (útil para capturas) */
   function _cqFitAlerts(){
     const el=document.getElementById('cq-alerts-list'), p=document.getElementById('panel-calidad');
@@ -10505,6 +10659,7 @@ if(typeof waitForFirebase==='function'){
       {l:'SST reactor', v:sstMg, u:'mg/L', band:'2.000–4.000', fuente:fechaFB, col: sstMg==null?'var(--muted)':(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD, dec:0, mil:true, avg:sstMedia},
       {l:'Purga sólidos', v:purga, u:'kgSS/d', band:'seguimiento', fuente:purgaFB, col:'var(--accent)', dec:0, mil:true, avg:purgaMedia},
     ];
+    window._cqReactor={fecha:fref,items:kpis.map(k=>({l:k.l,v:k.v,u:k.u,band:k.band,dec:k.dec,mil:k.mil,est:k.v==null?'':(k.col===BAD?'crit':k.col===WARN?'warn':k.col===OK?'ok':'')}))};
     grid.innerHTML=kpis.map(k=>{
       const fmt=n=>k.mil?Math.round(n).toLocaleString('es-ES'):_nf(n,k.dec);
       const est=k.v==null?'':(k.col===BAD?'crit':k.col===WARN?'warn':k.col===OK?'ok':'');
@@ -10862,6 +11017,7 @@ if(typeof waitForFirebase==='function'){
   // Reasignar cqRedibujarTodo
   const _cqOrigRedibujar=cqRedibujarTodo;
   cqRedibujarTodo=cqRedibujarConDatos;
+  window.cqRedibujarTodo=function(){ cqRedibujarTodo(); };
 
   /* ─── Escuchar mensajes del simulador ────────────────────────────────────── */
   /* ─── REACTIVOS EDITABLES ────────────────────────────────────────────────── */
@@ -12436,6 +12592,7 @@ ${fotosHtml}
   /* ── pintar ── */
   function render(){
     const panel=document.getElementById('panel-predictivo'); if(!panel||!panel.classList.contains('active')) return;
+    if(pdVista==='sim'){ pdSim(); return; }
     const E=estudio(), H=E.H, pl=pdPlanta==='edari'?'EDARi':'EDARu';
     // nota de cabecera
     const conDatos=E.ef.filter(r=>r.mod&&!r.mod.insuf);
@@ -12507,6 +12664,10 @@ ${fotosHtml}
 
   function conclusiones(E,pl){
     const el=document.getElementById('pd-concl'), bd=document.getElementById('pd-concl-badges'); if(!el) return;
+    const C=listaConclusiones(E,pl), conE=E.ef.filter(r=>r.e);
+    pintarConclusiones(el,bd,C,conE);
+  }
+  function listaConclusiones(E,pl){
     const H=E.H, C=[];
     const pTxt=p=>p>=0.995?'>99 %':p<0.005?'<1 %':Math.round(p*100)+' %';
     const conE=E.ef.filter(r=>r.e);
@@ -12533,6 +12694,9 @@ ${fotosHtml}
     }
     if(E.kT){ const esp=E.qT?E.kT.tot/E.qT.tot:null; C.push({l:'info',t:`<b>Energía:</b> consumo previsto <b>${nf(E.kT.tot,0)} kWh</b> en ${H} días${esp!=null?`, <b>${nf(esp,2)} kWh/m³</b>`:''}.${E.kM.sig?` <span class="mut">Tendencia ${E.kM.semana>0?'al alza':'a la baja'} (${E.kM.semana>0?'+':''}${nf(E.kM.semana,0)} kWh/d por semana).</span>`:''}`}); }
     C.push({l:'info',t:`<span class="mut">Previsión estadística sobre el histórico (${pl}). No contempla cambios de operación (purga, dosificación), lluvias ni averías: si se actúa sobre el proceso, el resultado cambiará.</span>`});
+    return C;
+  }
+  function pintarConclusiones(el,bd,C,conE){
     const IC={crit:'!',warn:'▲',ok:'✓',info:'i'};
     el.innerHTML=C.map(c=>`<div class="pd-c ${c.l}"><div class="pd-c__ic">${IC[c.l]}</div><div>${c.t}</div></div>`).join('');
     const nC=C.filter(c=>c.l==='crit').length, nW=C.filter(c=>c.l==='warn').length;
@@ -12544,11 +12708,162 @@ ${fotosHtml}
     el.classList.toggle('is-fitted',el.scrollHeight<=el.clientHeight+1);
   }
 
+
+  /* ══ ¿QUÉ PASA SI…? ════════════════════════════════════════════════════════
+     Purga: balance de sólidos en el reactor con purga constante Qp.
+       dM/dt = Px − SS_efluente − k·M,  k = Qp·r/V  (r = SS recirc./SS reactor)
+       Px (producción de fango, kgSS/d) sale del balance real de los últimos 30 días
+       (sólidos purgados + perdidos por el efluente + variación de masa en el reactor).
+       Edad de fango(t) = M(t) / (k·M(t) + SS_efluente) — misma fórmula que Calidad.
+     Cloruro férrico: estequiometría Fe:P (β mol Fe por mol P eliminado).
+       Fe añadido (mg/L) = dosis·ρ·riqueza·(55,85/162,2) / Q
+       P precipitado (mg/L) = Fe / (β·55,85/30,97)
+       Fango químico = FePO₄ + Fe(OH)₃ del hierro sobrante. */
+  let pdVista='prev', simInit=false;
+  function medianaDe(a){ if(!a.length) return null; const s=a.slice().sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; }
+  function baseSim(){
+    const ST=datos(), R=ST.reactor||{}, fs=Object.keys(R).sort(), C=ST.caudales||{};
+    const num=(r,k)=>valido(r&&r[k])?+r[k]:null;
+    let ult=null;
+    for(let i=fs.length-1;i>=0;i--){ const r=R[fs[i]]; if(num(r,'ss_reactor_gl')&&num(r,'q_purga')&&num(r,'ss_recirc_gl')){ ult={f:fs[i],r}; break; } }
+    const out={ult};
+    const Qdia=f=>num(R[f],'caudal_bio')||(C[f]&&valido(C[f].edari)?+C[f].edari:null);
+    if(ult){
+      const r=ult.r, V=num(r,'vol_reactor')||2167.9, SSr=+r.ss_reactor_gl, SSrc=+r.ss_recirc_gl, Qp=+r.q_purga, Qb=Qdia(ult.f)||0, SSef=+(r.ss_efluente||0);
+      const M0=SSr*V, efl=Qb*SSef/1000, ratio=SSrc/SSr;
+      // Producción de fango: balance de los últimos 30 días
+      const ven=fs.filter(f=>tOf(f)>tOf(ult.f)-30*DAY&&num(R[f],'ss_reactor_gl')&&num(R[f],'q_purga')&&num(R[f],'ss_recirc_gl'));
+      let Px=null;
+      if(ven.length>=5){
+        const sal=ven.map(f=>{ const x=R[f], q=Qdia(f)||0; return +x.q_purga*+x.ss_recirc_gl+q*(+(x.ss_efluente||0))/1000; });
+        const mIni=+R[ven[0]].ss_reactor_gl*V, mFin=+R[ven[ven.length-1]].ss_reactor_gl*V, dias=Math.max(1,(tOf(ven[ven.length-1])-tOf(ven[0]))/DAY);
+        Px=sal.reduce((a,b)=>a+b,0)/sal.length+(mFin-mIni)/dias;
+      }
+      if(!(Px>efl*1.05)) Px=Qp*SSrc+efl;
+      const dbo=ven.map(f=>{ const x=R[f]; const d=num(x,'dbo_ent')||num(x,'DBO5 ENTRADA')||num(x,'dbo_entrada'); const q=Qdia(f); return d&&q?d*q/1000:null; }).filter(v=>v!=null);
+      Object.assign(out,{V,SSr,SSrc,Qp,Qb,SSef,M0,efl,ratio,Px,dboLoad:medianaDe(dbo)});
+    }
+    // fósforo
+    const pt=serieEf(ST,'pt'), q30=Object.keys(C).sort().slice(-30).map(f=>C[f]&&valido(C[f].edari)?+C[f].edari:null).filter(v=>v!=null);
+    out.pt=pt.length?pt[pt.length-1]:null; out.ptEnt=entradaReciente(ST,'pt'); out.Q=q30.length?q30.reduce((a,b)=>a+b,0)/q30.length:null;
+    return out;
+  }
+  function trayectoria(b,Qp,dias){
+    const k=Qp*b.ratio/b.V, Ms=k>0?(b.Px-b.efl)/k:Infinity, out=[];
+    for(let t=0;t<=dias;t++){ const M=k>0?Ms+(b.M0-Ms)*Math.exp(-k*t):b.M0+(b.Px-b.efl)*t; out.push({t,M,srt:M/(k*M+b.efl),sst:M/b.V*1000,fm:b.dboLoad?b.dboLoad/M:null}); }
+    return {k,Ms,pts:out,srtEq:k>0?Ms/b.Px:Infinity,t90:k>0?Math.log(10)/k:Infinity};
+  }
+  function riesgoBulking(srt,fm){ const a=srt>20,aa=srt>25,b=fm!=null&&fm<0.12,bb=fm!=null&&fm<0.08; return (aa&&b)||(bb&&a)?'alto':(a||b)?'medio':'bajo'; }
+  function svgLineas(box,series,o){
+    const W=Math.max(200,box.clientWidth||300), H=Math.max(90,box.clientHeight||140), PL=44, PR=8, PT=18, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+    const xs=series.flatMap(s=>s.pts.map(p=>p[0])), ys=series.flatMap(s=>s.pts.map(p=>p[1])).filter(v=>isFinite(v));
+    const xmin=Math.min(...xs), xmax=Math.max(...xs);
+    let ymax=Math.max(...ys,o.band?o.band[1]:0,o.lim||0)*1.1, ymin=o.ymin!=null?o.ymin:0;
+    const X=x=>PL+(x-xmin)/(xmax-xmin||1)*gW, Y=v=>PT+gH-(Math.min(v,ymax)-ymin)/(ymax-ymin||1)*gH;
+    const band=o.band?`<rect x="${PL}" width="${gW}" y="${Y(o.band[1]).toFixed(1)}" height="${(Y(o.band[0])-Y(o.band[1])).toFixed(1)}" fill="var(--sg-ok-soft)"/>`:'';
+    const lim=o.lim?`<line x1="${PL}" x2="${W-PR}" y1="${Y(o.lim).toFixed(1)}" y2="${Y(o.lim).toFixed(1)}" stroke="var(--sg-crit)" stroke-width="1.5"/><text class="sg-ax" x="${W-PR}" y="${(Y(o.lim)-4).toFixed(1)}" text-anchor="end" style="fill:var(--sg-crit)">límite ${nfv(o.lim)}</text>`:'';
+    const lines=series.map(s=>`<polyline points="${s.pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="${s.col}" stroke-width="${s.w||2}" ${s.dash?'stroke-dasharray="5,4"':''} stroke-linejoin="round"/>`).join('');
+    const marks=(o.marks||[]).map(m=>`<circle class="pt-int" cx="${X(m[0]).toFixed(1)}" cy="${Y(m[1]).toFixed(1)}" r="5" fill="var(--sg-card)" stroke="${m[2]}" stroke-width="2.5" data-tip="${m[3]}"/>`).join('');
+    const leg=series.map((s,i)=>`<text class="sg-ax" x="${PL+i*150}" y="11"><tspan style="fill:${s.col}">━</tspan> ${s.name}</text>`).join('');
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria||''}">
+      ${band}<line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${Y(ymin).toFixed(1)}" y2="${Y(ymin).toFixed(1)}"/>${lim}${lines}${marks}${leg}
+      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(ymax,ymax<10?1:0)}</text>
+      <text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${nf(ymin,0)}</text>
+      <text class="sg-ax" x="${PL}" y="${H-3}">${o.x0||''}</text><text class="sg-ax" x="${W-PR}" y="${H-3}" text-anchor="end">${o.x1||''}</text>
+      ${o.band?`<text class="sg-ax" x="${W-PR}" y="${(Y(o.band[1])+12).toFixed(1)}" text-anchor="end">óptimo ${nf(o.band[0],0)}–${nf(o.band[1],0)}</text>`:''}
+    </svg>`;
+  }
+  function kpi(l,v,u,s,cls){ return `<div class="pd-k ${cls||''}"><div class="pd-k__l">${l}</div><div class="pd-k__v">${v}<span class="sg-unit">${u||''}</span></div><div class="pd-k__s">${s||''}</div></div>`; }
+  function leerFeDeposito(){ try{ const d=JSON.parse(localStorage.getItem('sgi-cq-reactivos')||'null'); return (d||[]).find(x=>/f[ée]rric/i.test(x.nombre||''))||null; }catch(e){ return null; } }
+
+  function pdSim(){
+    const b=baseSim(), DIAS=60;
+    // ── Purga ──
+    const qEl=document.getElementById('pd-sp-q'), rEl=document.getElementById('pd-sp-r');
+    const kp=document.getElementById('pd-sp-kpis'), tx=document.getElementById('pd-sp-txt');
+    if(!b.ult){ kp.innerHTML=''; tx.innerHTML='Sin datos del reactor (SST reactor, purga y SST recirculación). Carga el SMS Diario (M-04).'; document.getElementById('pd-sp-c1').innerHTML=''; document.getElementById('pd-sp-c2').innerHTML=''; }
+    else {
+      if(!simInit){ qEl.value=(+b.Qp).toFixed(1); rEl.max=Math.max(20,Math.ceil(b.Qp*4)); }
+      const Qp=Math.max(0,parseFloat(String(qEl.value).replace(',','.'))||0); rEl.value=Qp;
+      document.getElementById('pd-sp-src').textContent=`Datos del ${fmtDM(b.ult.f)} · purga actual ${nf(b.Qp,1)} m³/d`;
+      const req=T=>{ const k=(b.Px-b.efl)/(b.Px*T); return k*b.V/b.ratio; };
+      document.getElementById('pd-sp-quick').innerHTML='Purga para edad de fango de: '+[15,18,20].map(T=>`<button type="button" onclick="pdSimPurga(${req(T).toFixed(1)})">${T} d → ${nf(req(T),1)} m³/d</button>`).join('')+` <button type="button" onclick="pdSimPurga(${b.Qp})">Actual</button>`;
+      const act=trayectoria(b,b.Qp,DIAS), nue=trayectoria(b,Qp,DIAS);
+      const p0=nue.pts[0], pe=nue.pts[DIAS];
+      const srtEq=nue.srtEq, sstEq=nue.Ms/b.V*1000, fmEq=b.dboLoad?b.dboLoad/nue.Ms:null;
+      const enBanda=v=>v>=15&&v<=20, cSrt=enBanda(srtEq)?'ok':(srtEq>25||srtEq<12?'crit':'warn');
+      const cSst=sstEq>=2000&&sstEq<=4000?'ok':'warn', cFm=fmEq==null?'':(fmEq>=0.1&&fmEq<=0.4?'ok':'warn');
+      const bulk=riesgoBulking(srtEq,fmEq), cB=bulk==='alto'?'crit':bulk==='medio'?'warn':'ok';
+      let entra=null; for(const p of nue.pts){ if(p.t>0&&enBanda(p.srt)){ entra=p.t; break; } }
+      kp.innerHTML=kpi('Edad de fango al cambiar',nf(p0.srt,1),'d',`hoy ${nf(act.pts[0].srt,1)} d · a los ${DIAS} d: ${nf(pe.srt,1)} d`,enBanda(p0.srt)?'ok':'')+
+        kpi('Edad de fango en equilibrio',isFinite(srtEq)?nf(srtEq,1):'∞','d','óptimo 15–20 d',cSrt)+
+        kpi('SST reactor en equilibrio',isFinite(sstEq)?nf(sstEq,0):'—','mg/L','óptimo 2.000–4.000',cSst)+
+        kpi('Riesgo de bulking',bulk.toUpperCase(),'',fmEq!=null?`F/M equilibrio ${nf(fmEq,3)}`:'sin DBO de entrada',cB);
+      const c1=document.getElementById('pd-sp-c1'), c2=document.getElementById('pd-sp-c2');
+      c1.innerHTML=svgLineas(c1,[{name:'purga actual',col:'var(--sg-subtle)',dash:true,pts:act.pts.map(p=>[p.t,p.srt])},{name:'nueva purga',col:'var(--sg-s1)',w:2.5,pts:nue.pts.map(p=>[p.t,p.srt])}],
+        {band:[15,20],x0:'hoy',x1:`+${DIAS} d`,aria:`Edad de fango prevista con purga de ${nf(Qp,1)} m³/d`});
+      c2.innerHTML=svgLineas(c2,[{name:'purga actual',col:'var(--sg-subtle)',dash:true,pts:act.pts.map(p=>[p.t,p.sst])},{name:'nueva purga',col:'var(--sg-s1)',w:2.5,pts:nue.pts.map(p=>[p.t,p.sst])}],
+        {band:[2000,4000],x0:'hoy',x1:`+${DIAS} d`,aria:'SST del reactor previsto'});
+      tx.innerHTML=`Con <b>${nf(Qp,1)} m³/d</b> de purga (${nf(Qp*b.SSrc,0)} kgSS/d) la edad de fango ${enBanda(p0.srt)?'<b>queda en banda desde el primer día</b>':entra!=null?`entraría en la banda 15–20 d en <b>~${entra} día${entra>1?'s':''}</b>`:`<b>no entraría en banda</b> en ${DIAS} días`}; el reactor tarda ~${isFinite(nue.t90)?Math.round(nue.t90):'—'} días en completar el 90 % del cambio. `+
+        (isFinite(sstEq)&&sstEq<2000?`<b style="color:var(--sg-warn)">Ojo:</b> con la producción de fango actual la biomasa bajaría a ~${nf(sstEq,0)} mg/L de SST (por debajo de 2.000)${Qp>b.Qp*1.05?'; conviene un cambio más gradual':''}. `:'')+
+        (isFinite(sstEq)&&sstEq>4000?`<b style="color:var(--sg-warn)">Ojo:</b> la biomasa subiría a ~${nf(sstEq,0)} mg/L de SST (por encima de 4.000). `:'')+
+        `<span style="color:var(--sg-subtle)">Producción de fango estimada ${nf(b.Px,0)} kgSS/d (balance 30 d). Supone SST de recirculación proporcional al del reactor y la misma carga de entrada.</span>`;
+    }
+    // ── Cloruro férrico ──
+    const dEl=document.getElementById('pd-fe-d'), d0El=document.getElementById('pd-fe-d0'), frEl=document.getElementById('pd-fe-r');
+    const fk=document.getElementById('pd-fe-kpis'), ft=document.getElementById('pd-fe-txt'), fc=document.getElementById('pd-fe-c1');
+    if(!simInit){ let d0=0; try{ d0=+localStorage.getItem('pd-fe-d0')||0; }catch(e){} d0El.value=d0; dEl.value=d0; }
+    const d0=Math.max(0,+d0El.value||0); try{ localStorage.setItem('pd-fe-d0',String(d0)); }catch(e){}
+    const w=(+document.getElementById('pd-fe-w').value||40)/100, rho=+document.getElementById('pd-fe-rho').value||1.42, beta=+document.getElementById('pd-fe-b').value||2;
+    if(!b.pt||!b.Q){ fk.innerHTML=''; fc.innerHTML=''; ft.innerHTML='Faltan datos de PT efluente o de caudal EDARi.'; }
+    else {
+      const d=Math.max(0,+dEl.value||0); frEl.value=d; frEl.max=Math.max(100,Math.ceil(Math.max(d,d0)*2/50)*50);
+      const FE_L=rho*1e6*w*(55.845/162.2)/1000;          // g Fe por litro de producto comercial
+      const feMg=L=>L*FE_L/b.Q;                           // mg Fe/L en el agua tratada (g/m³)
+      const pRem=L=>feMg(L)/(beta*55.845/30.974);         // mg P/L precipitado
+      const ptEnt=b.ptEnt||Infinity, piso=0.3;
+      const ptEsp=L=>Math.min(ptEnt,Math.max(piso,b.pt.v-(pRem(L)-pRem(d0))));
+      const dosisPara=obj=>Math.max(0,d0+(b.pt.v-obj)*(beta*55.845/30.974)*b.Q/FE_L);
+      const pt=ptEsp(d), cls=pt>2?'crit':pt>1.7?'warn':'ok';
+      const feKg=d*FE_L/1000, pKg=pRem(d)*b.Q/1000, pKgMax=Math.min(pKg,feKg*30.974/55.845);
+      const lodo=pKgMax*150.8/30.974+Math.max(0,feKg-pKgMax*55.845/30.974)*106.87/55.845;
+      const dep=leerFeDeposito(), aut=dep&&d>0?dep.volumen_actual/d:null;
+      document.getElementById('pd-fe-src').textContent=`PT efluente ${nfv(b.pt.v)} mg/L (${fmtDM(b.pt.f)}) · Q medio ${nf(b.Q,0)} m³/d`+(d0?'':' · indica la dosis actual para afinar');
+      fk.innerHTML=kpi('PT efluente esperado',nfv(pt),'mg/L',`hoy ${nfv(b.pt.v)} · límite 2`,cls)+
+        kpi('Dosis para PT 1,5 mg/L',nf(dosisPara(1.5),0),'L/d',`para el límite (2): ${nf(dosisPara(2),0)} L/d`,'')+
+        kpi('Consumo mensual',nf(d*30,0),'L',aut!=null?`depósito actual: ~${nf(aut,0)} días`:`Fe añadido ${nf(feMg(d),1)} mg/L`,aut!=null&&aut<7?'warn':'')+
+        kpi('Fango químico extra',nf(lodo,0),'kgSS/d','FePO₄ + Fe(OH)₃','');
+      const maxD=+frEl.max, pts=[]; for(let L=0;L<=maxD;L+=maxD/60) pts.push([L,ptEsp(L)]);
+      fc.innerHTML=svgLineas(fc,[{name:'PT esperado según dosis (L/d)',col:'var(--sg-s1)',w:2.5,pts}],{lim:2,x0:'0 L/d',x1:nf(maxD,0)+' L/d',
+        marks:[[d0,ptEsp(d0),'var(--sg-subtle)',`Dosis actual|${nf(d0,0)} L/d|PT ${nfv(ptEsp(d0))} mg/L`],[d,pt,cls==='crit'?'var(--sg-crit)':cls==='warn'?'var(--sg-warn)':'var(--sg-ok)',`Nueva dosis|${nf(d,0)} L/d|PT ${nfv(pt)} mg/L`]],aria:'PT efluente esperado según la dosis de cloruro férrico'});
+      ft.innerHTML=`Con <b>${nf(d,0)} L/d</b> de FeCl₃ al ${nf(w*100,0)} % se añaden ${nf(feMg(d),1)} mg Fe/L y se esperan <b>${nfv(pt)} mg/L de PT</b>${pt>2?' — <b style="color:var(--sg-crit)">aún por encima del límite</b>':''}. `+
+        `<span style="color:var(--sg-subtle)">Estimación estequiométrica (β = ${nf(beta,1)} mol Fe/mol P). La eficacia real depende del punto de dosificación, pH y mezcla: ajusta β con las analíticas. Mínimo alcanzable asumido 0,3 mg/L.</span>`;
+    }
+    simInit=true;
+  }
+  window.pdSim=pdSim;
+  window.pdSimPurga=function(q){ const e=document.getElementById('pd-sp-q'); e.value=(+q).toFixed(1); pdSim(); };
+  window.pdSetVista=function(v){
+    pdVista=v; document.querySelectorAll('#pd-head [data-v]').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
+    document.getElementById('pd-body').style.display=v==='prev'?'':'none';
+    document.getElementById('pd-sim').style.display=v==='sim'?'':'none';
+    document.querySelectorAll('#pd-head [data-h],#pd-head [data-pl]').forEach(b=>b.parentElement.style.display=v==='prev'?'':'none');
+    if(v==='sim'&&pdPlanta!=='edari') pdSetPlanta('edari');
+    if(v==='sim') requestAnimationFrame(pdSim); else render();
+  };
+
   /* ── controles y ciclo de vida ── */
   window.pdSetPlanta=function(p){ pdPlanta=p; pdSel=null; document.querySelectorAll('#pd-head [data-pl]').forEach(b=>b.classList.toggle('active',b.dataset.pl===p)); render(); };
   window.pdSetHorizonte=function(h){ pdH=h; document.querySelectorAll('#pd-head [data-h]').forEach(b=>b.classList.toggle('active',+b.dataset.h===h)); render(); };
   window.pdSelParam=function(id){ pdSel=id; render(); };
   window.pdRender=render;
+  // Para el informe de dirección: estudio completo a un horizonte y planta dados
+  window.pdResumen=function(H,planta){
+    const bP=pdPlanta,bH=pdH; pdPlanta=planta||'edari'; pdH=H;
+    try{ const E=estudio(); const pl=pdPlanta==='edari'?'EDARi':'EDARu'; return {E,C:listaConclusiones(E,pl)}; }
+    finally{ pdPlanta=bP; pdH=bH; }
+  };
+  window.pdGrafico=function(box,r,H){ box.innerHTML=svgPrevision(box,r.serie,r.mod,H,{lim:r.lim,unit:'mg/L',name:r.lbl}); };
   function firma(){ const ST=datos(); return ['reactor','caudales','consumo','sms_datos'].map(k=>{ const o=ST[k]||{}, ks=Object.keys(o); return ks.length+':'+(ks.sort().slice(-1)[0]||''); }).join('|'); }
   const _prevNav=window.sbNav;
   window.sbNav=function(id){
@@ -12557,12 +12872,627 @@ ${fotosHtml}
       requestAnimationFrame(()=>requestAnimationFrame(()=>{ pdSig=firma(); render(); }));
       if(!window._pdResizeObs&&window.ResizeObserver){
         let t; window._pdResizeObs=new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(render,120); });
-        const b=document.getElementById('pd-body'); if(b) window._pdResizeObs.observe(b);
+        ['pd-body','pd-sim'].forEach(i=>{ const b=document.getElementById(i); if(b) window._pdResizeObs.observe(b); });
       }
     }
   };
   // Si llegan datos nuevos de Firebase mientras el panel está abierto, se recalcula
   setInterval(()=>{ const p=document.getElementById('panel-predictivo'); if(p&&p.classList.contains('active')){ const s=firma(); if(s!==pdSig){ pdSig=s; render(); } } },4000);
+})();
+</script>
+
+<style>
+            #nc-drawer{
+              --sg-bg:#0c1424; --sg-card:#111c2f; --sg-raised:#172739; --sg-line:#26384d;
+              --sg-ink:#e8eef5; --sg-muted:#a9b8c9; --sg-subtle:#8a9bb0;
+              --sg-brand:#4cc3f0; --sg-brand-soft:rgba(76,195,240,.14);
+              --sg-ok:#3ddc97;   --sg-ok-soft:rgba(61,220,151,.12);
+              --sg-warn:#f5b83d; --sg-warn-soft:rgba(245,184,61,.13);
+              --sg-crit:#ff7a7a; --sg-crit-soft:rgba(255,122,122,.13);
+              --sg-s1:#6ea8fe; --sg-s2:#b197fc;
+              --sg-num:'Barlow Semi Condensed','Barlow Condensed',sans-serif;
+              --sg-sans:'Barlow',system-ui,sans-serif;
+              
+            }
+            body.theme-forest #nc-drawer,body.theme-midnight #nc-drawer{--sg-bg:var(--surface); --sg-card:var(--panel); --sg-raised:var(--card); --sg-line:var(--border-l);}
+            body.theme-light #nc-drawer{
+              --sg-bg:#eef2f7; --sg-card:#ffffff; --sg-raised:#eef2f6; --sg-line:#d5dde6;
+              --sg-ink:#0f1b2a; --sg-muted:#46576b; --sg-subtle:#5b6b7e;
+              --sg-brand:#0a6f9c; --sg-brand-soft:#dcf0f9;
+              --sg-ok:#16794f;   --sg-ok-soft:#dff4ea;
+              --sg-warn:#8f5b00; --sg-warn-soft:#fdf1d8;
+              --sg-crit:#c0282d; --sg-crit-soft:#fde8e8;
+              --sg-s1:#2563c9; --sg-s2:#7048c8;
+            }
+            #panel-energia{
+              --sg-bg:#0c1424; --sg-card:#111c2f; --sg-raised:#172739; --sg-line:#26384d;
+              --sg-ink:#e8eef5; --sg-muted:#a9b8c9; --sg-subtle:#8a9bb0;
+              --sg-brand:#4cc3f0; --sg-brand-soft:rgba(76,195,240,.14);
+              --sg-ok:#3ddc97;   --sg-ok-soft:rgba(61,220,151,.12);
+              --sg-warn:#f5b83d; --sg-warn-soft:rgba(245,184,61,.13);
+              --sg-crit:#ff7a7a; --sg-crit-soft:rgba(255,122,122,.13);
+              --sg-s1:#6ea8fe; --sg-s2:#b197fc;
+              --sg-num:'Barlow Semi Condensed','Barlow Condensed',sans-serif;
+              --sg-sans:'Barlow',system-ui,sans-serif;
+              
+            }
+            body.theme-forest #panel-energia,body.theme-midnight #panel-energia{--sg-bg:var(--surface); --sg-card:var(--panel); --sg-raised:var(--card); --sg-line:var(--border-l);}
+            body.theme-light #panel-energia{
+              --sg-bg:#eef2f7; --sg-card:#ffffff; --sg-raised:#eef2f6; --sg-line:#d5dde6;
+              --sg-ink:#0f1b2a; --sg-muted:#46576b; --sg-subtle:#5b6b7e;
+              --sg-brand:#0a6f9c; --sg-brand-soft:#dcf0f9;
+              --sg-ok:#16794f;   --sg-ok-soft:#dff4ea;
+              --sg-warn:#8f5b00; --sg-warn-soft:#fdf1d8;
+              --sg-crit:#c0282d; --sg-crit-soft:#fde8e8;
+              --sg-s1:#2563c9; --sg-s2:#7048c8;
+            }
+</style>
+
+<!-- ═══════════════════ REGISTRO DE NO CONFORMIDADES (ISO 9001/14001 · 10.2) ═══════════════════ -->
+<style>
+  #nc-overlay{display:none;position:fixed;inset:0;z-index:9699;background:rgba(0,0,0,.5);}
+  #nc-overlay.open{display:block;}
+  #nc-drawer{position:fixed;top:0;right:0;width:560px;max-width:96vw;height:100vh;background:var(--sg-bg);color:var(--sg-ink);font-family:var(--sg-sans);
+    border-left:1px solid var(--sg-line);z-index:9700;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-6px 0 28px rgba(0,0,0,.5);}
+  #nc-drawer.open{transform:none;}
+  #nc-drawer .nc-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--sg-line);}
+  #nc-drawer .nc-h h3{margin:0;font-size:17px;font-weight:600;}
+  #nc-drawer .nc-h p{margin:2px 0 0;font-size:12px;color:var(--sg-subtle);}
+  #nc-drawer .nc-x{margin-left:auto;background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:6px;color:var(--sg-muted);cursor:pointer;padding:5px 10px;font-size:13px;}
+  #nc-drawer .nc-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--sg-line);}
+  #nc-drawer .nc-seg{display:inline-flex;background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:999px;padding:3px;gap:2px;}
+  #nc-drawer .nc-seg button{font:600 12px/16px var(--sg-sans);padding:4px 12px;border:none;border-radius:999px;background:transparent;color:var(--sg-muted);cursor:pointer;}
+  #nc-drawer .nc-seg button.active{background:var(--sg-brand);color:#04202e;}
+  body.theme-light #nc-drawer .nc-seg button.active{color:#fff;}
+  #nc-drawer .nc-btn{font:600 13px/18px var(--sg-sans);padding:7px 14px;border-radius:6px;border:1px solid var(--sg-line);background:var(--sg-card);color:var(--sg-ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  #nc-drawer .nc-btn:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
+  #nc-drawer .nc-btn.pri{background:var(--sg-brand);border-color:var(--sg-brand);color:#04202e;}
+  body.theme-light #nc-drawer .nc-btn.pri{color:#fff;}
+  #nc-drawer .nc-btn:focus-visible,#nc-drawer .nc-seg button:focus-visible{outline:2px solid var(--sg-brand);outline-offset:2px;}
+  #nc-body{flex:1;overflow-y:auto;padding:12px 16px 16px;}
+  #nc-drawer .nc-item{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--sg-card);border:1px solid var(--sg-line);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;}
+  #nc-drawer .nc-item:hover{border-color:var(--sg-brand);}
+  #nc-drawer .nc-item__top{display:flex;align-items:center;gap:8px;}
+  #nc-drawer .nc-code{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--sg-muted);letter-spacing:.04em;}
+  #nc-drawer .nc-item__t{font-size:14px;font-weight:600;margin:4px 0 2px;}
+  #nc-drawer .nc-item__m{font-size:12px;color:var(--sg-subtle);}
+  #nc-drawer .nc-late{color:var(--sg-crit);font-weight:600;}
+  #nc-drawer .sg-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;font-size:12px;line-height:16px;font-weight:600;border:1px solid currentColor;white-space:nowrap;margin-left:auto;}
+  #nc-drawer .sg-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+  #nc-drawer .sg-badge.ok{color:var(--sg-ok);background:var(--sg-ok-soft);}
+  #nc-drawer .sg-badge.warn{color:var(--sg-warn);background:var(--sg-warn-soft);}
+  #nc-drawer .sg-badge.crit{color:var(--sg-crit);background:var(--sg-crit-soft);}
+  #nc-drawer .sg-badge.info{color:var(--sg-brand);background:var(--sg-brand-soft);}
+  #nc-drawer .nc-empty{text-align:center;color:var(--sg-subtle);font-size:13px;padding:40px 10px;}
+  #nc-drawer fieldset{border:1px solid var(--sg-line);border-radius:8px;padding:10px 12px 12px;margin:0 0 12px;}
+  #nc-drawer legend{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--sg-muted);padding:0 6px;}
+  #nc-drawer label{display:block;font-size:12px;color:var(--sg-muted);margin:8px 0 3px;}
+  #nc-drawer label:first-of-type{margin-top:2px;}
+  #nc-drawer input,#nc-drawer select,#nc-drawer textarea{width:100%;box-sizing:border-box;background:var(--sg-card);color:var(--sg-ink);border:1px solid var(--sg-line);border-radius:6px;padding:7px 9px;font:14px/20px var(--sg-sans);}
+  #nc-drawer textarea{resize:vertical;min-height:58px;}
+  #nc-drawer input:focus,#nc-drawer select:focus,#nc-drawer textarea:focus{outline:2px solid var(--sg-brand);outline-offset:0;border-color:var(--sg-brand);}
+  #nc-drawer input[readonly]{background:var(--sg-raised);color:var(--sg-muted);}
+  #nc-drawer .nc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  #nc-drawer .nc-hint{font-size:12px;color:var(--sg-subtle);margin-top:4px;}
+  #nc-drawer .nc-chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sg-ink);margin:10px 0 0;}
+  #nc-drawer .nc-chk input{width:auto;}
+  #nc-drawer .nc-foot{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--sg-line);}
+  #nc-drawer #nc-st{font-size:12px;margin-left:auto;}
+  #nc-drawer .nc-hist{font-size:12px;color:var(--sg-subtle);line-height:18px;}
+  #nc-drawer .nc-hist div{padding:3px 0;border-top:1px solid var(--sg-line);}
+  #nc-drawer .nc-hist div:first-child{border-top:none;}
+  /* Botones que abre el módulo desde Calidad */
+  #panel-calidad .sg-nc-btn{font:600 12px/16px var(--sg-sans);padding:4px 10px;border-radius:6px;border:1px solid var(--sg-crit);background:var(--sg-crit);color:#fff;cursor:pointer;white-space:nowrap;margin-top:6px;}
+  #panel-calidad .sg-nc-btn:hover{filter:brightness(1.08);}
+  #panel-calidad .sg-nc-chip{font:600 12px/16px var(--sg-sans);padding:3px 10px;border-radius:999px;border:1px solid var(--sg-brand);background:var(--sg-brand-soft);color:var(--sg-brand);cursor:pointer;white-space:nowrap;margin-top:6px;display:inline-block;}
+  #panel-calidad .cq-head-btn{font:700 12px/16px var(--mono);letter-spacing:.04em;padding:6px 12px;border-radius:6px;border:1px solid var(--sg-line);background:var(--sg-card);color:var(--sg-ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  #panel-calidad .cq-head-btn:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
+  #panel-calidad .cq-head-btn .n{background:var(--sg-crit);color:#fff;border-radius:999px;padding:0 6px;font-size:11px;}
+  #panel-calidad #cq-nc-open{margin-left:auto;}
+  #panel-calidad #cq-export-toggle{margin-left:0;}
+</style>
+<div id="nc-overlay" onclick="ncCerrar()"></div>
+<aside id="nc-drawer" aria-label="Registro de no conformidades" aria-hidden="true">
+  <div class="nc-h">
+    <div><h3 id="nc-title">No conformidades</h3><p id="nc-sub">ISO 9001 / 14001 · apartado 10.2</p></div>
+    <button class="nc-x" onclick="ncCerrar()" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="nc-bar" id="nc-bar">
+    <div class="nc-seg"><button class="active" data-f="abiertas" onclick="ncFiltro('abiertas')">Abiertas</button><button data-f="todas" onclick="ncFiltro('todas')">Todas</button></div>
+    <button class="nc-btn" style="margin-left:auto" onclick="ncNueva({})">+ Nueva NC</button>
+  </div>
+  <div id="nc-body"><div class="nc-empty">Cargando…</div></div>
+  <div class="nc-foot" id="nc-foot" style="display:none">
+    <button class="nc-btn pri" onclick="ncGuardar()">Guardar</button>
+    <button class="nc-btn" onclick="ncLista()">Volver</button>
+    <span id="nc-st"></span>
+  </div>
+</aside>
+<script>
+(function(){
+  const NC={data:{}, filtro:'abiertas', escuchando:false, edit:null, usuarios:[]};
+  const EST={abierta:['Abierta','crit'],en_tratamiento:['En tratamiento','warn'],pendiente_verificacion:['Pendiente de verificar','info'],cerrada:['Cerrada','ok']};
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fDM=iso=>{ if(!iso) return '—'; const p=String(iso).slice(0,10).split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+  const hoy=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  const sesion=()=>{ try{ return JSON.parse(localStorage.getItem('ute-session'))||{}; }catch(e){ return {}; } };
+
+  function escuchar(){
+    if(NC.escuchando||!window._fb||!window._fb.onValue) return;
+    NC.escuchando=true;
+    try{ window._fb.onValue(window._fb.ref(window._fb.db,'no_conformidades'),snap=>{ NC.data=snap.val()||{}; pintarContador(); if(!NC.edit) ncLista(true); if(window.cqRenderAlertas) window.cqRenderAlertas(); }); }catch(e){ console.warn('NC listen',e); }
+  }
+  if(window._fb&&window._fb.onValue) escuchar(); else { window.addEventListener('firebase-ready',escuchar,{once:true}); setTimeout(escuchar,2500); }
+  async function cargarUsuarios(){
+    if(NC.usuarios.length||!window._fb) return;
+    try{ const s=await window._fb.get(window._fb.ref(window._fb.db,'usuarios')); NC.usuarios=Object.values(s.val()||{}).filter(u=>u&&u.username); }catch(e){}
+  }
+  const lista=()=>Object.entries(NC.data||{}).map(([id,n])=>({id,...n}));
+  const abiertas=()=>lista().filter(n=>n.estado!=='cerrada');
+  function pintarContador(){
+    const b=document.getElementById('cq-nc-count'); const n=abiertas().length;
+    if(b){ b.textContent=n; b.style.display=n?'':'none'; }
+  }
+
+  // API usada por Calidad e Informe
+  window.ncBuscarAbierta=(planta,param)=>abiertas().find(n=>n.planta===planta&&n.parametro_id===param)||null;
+  window.ncListar=()=>lista();
+  window.ncAbiertas=()=>abiertas();
+
+  window.ncAbrir=function(id){ abrirDrawer(); if(id) editar(id); else ncLista(); };
+  window.ncCerrar=function(){ document.getElementById('nc-drawer').classList.remove('open'); document.getElementById('nc-drawer').setAttribute('aria-hidden','true'); document.getElementById('nc-overlay').classList.remove('open'); NC.edit=null; };
+  function abrirDrawer(){ escuchar(); cargarUsuarios(); const d=document.getElementById('nc-drawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false'); document.getElementById('nc-overlay').classList.add('open'); }
+  window.ncFiltro=function(f){ NC.filtro=f; document.querySelectorAll('#nc-bar [data-f]').forEach(b=>b.classList.toggle('active',b.dataset.f===f)); ncLista(); };
+
+  window.ncLista=function(silent){
+    if(!silent) NC.edit=null;
+    const body=document.getElementById('nc-body'); if(!body) return;
+    document.getElementById('nc-bar').style.display=''; document.getElementById('nc-foot').style.display='none';
+    document.getElementById('nc-title').textContent='No conformidades';
+    const n=abiertas().length; document.getElementById('nc-sub').textContent=`${n} abierta${n!==1?'s':''} · ISO 9001 / 14001 · apartado 10.2`;
+    const items=(NC.filtro==='todas'?lista():abiertas()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    if(!items.length){ body.innerHTML='<div class="nc-empty">'+(NC.filtro==='todas'?'Sin no conformidades registradas.':'Sin no conformidades abiertas.')+'</div>'; return; }
+    const h=hoy();
+    body.innerHTML=items.map(x=>{
+      const [el,cl]=EST[x.estado]||EST.abierta;
+      const tarde=x.estado!=='cerrada'&&x.fecha_limite&&x.fecha_limite<h;
+      return `<button type="button" class="nc-item" onclick="ncEditar('${x.id}')">
+        <div class="nc-item__top"><span class="nc-code">${esc(x.codigo)}</span><span class="sg-badge ${cl}">${el}</span></div>
+        <div class="nc-item__t">${esc(x.titulo||x.parametro||'No conformidad')}</div>
+        <div class="nc-item__m">${esc((x.planta||'').toUpperCase().replace('EDARI','EDARi').replace('EDARU','EDARu'))} · detectada ${fDM(x.fecha_deteccion)} · responsable ${esc(x.responsable||'—')} · plazo <span class="${tarde?'nc-late':''}">${fDM(x.fecha_limite)}${tarde?' (vencido)':''}</span></div>
+      </button>`;
+    }).join('');
+  };
+
+  function siguienteCodigo(){
+    const y=new Date().getFullYear(), pre='NC-'+y+'-';
+    const n=lista().map(x=>x.codigo||'').filter(c=>c.startsWith(pre)).map(c=>+c.slice(pre.length)||0);
+    return pre+String((n.length?Math.max(...n):0)+1).padStart(3,'0');
+  }
+
+  // Nueva NC; si viene de Calidad, llega con los datos del incumplimiento
+  window.ncNueva=function(pre){
+    pre=pre||{};
+    abrirDrawer();
+    const plantaLbl=pre.planta==='edaru'?'EDARu':'EDARi';
+    NC.edit={id:null,codigo:siguienteCodigo(),estado:'abierta',fecha_deteccion:hoy(),planta:pre.planta||'edari',
+      parametro_id:pre.param||'',parametro:pre.lbl||'',valor:pre.val!=null?pre.val:'',limite:pre.lim!=null?pre.lim:'',unidad:pre.unidad||'mg/L',fecha_muestra:pre.f||'',
+      origen:pre.param?'Control de Calidad (automático)':'Manual',
+      titulo:pre.param?`${pre.lbl} efluente ${plantaLbl} por encima del límite RD 509/1996`:'',
+      descripcion:pre.param?`${pre.lbl} efluente ${plantaLbl}: ${String(pre.val).replace('.',',')} ${pre.unidad||'mg/L'} (muestra ${fDM(pre.f)}), límite ${pre.lim} ${pre.unidad||'mg/L'} (${(pre.val/pre.lim).toFixed(1).replace('.',',')}× límite).`:'',
+      clasificacion:'real',accion_inmediata:pre.accion||'',causa_raiz:'',accion_correctiva:'',responsable:'',fecha_limite:'',
+      verif_fecha:'',verif_resultado:'',verif_comentario:'',historial:[]};
+    formulario();
+  };
+  window.ncEditar=function(id){ editar(id); };
+  function editar(id){ const x=NC.data[id]; if(!x) return; NC.edit=Object.assign({id},JSON.parse(JSON.stringify(x))); formulario(); }
+
+  async function formulario(){
+    await cargarUsuarios();
+    const e=NC.edit, body=document.getElementById('nc-body');
+    document.getElementById('nc-bar').style.display='none'; document.getElementById('nc-foot').style.display='';
+    document.getElementById('nc-st').textContent='';
+    document.getElementById('nc-title').textContent=e.codigo+(e.id?'':' · nueva');
+    document.getElementById('nc-sub').textContent=e.origen||'';
+    const opt=(v,t,sel)=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(t)}</option>`;
+    const us=['<option value="">—</option>'].concat(NC.usuarios.map(u=>opt(u.username,u.username+(u.name?' · '+u.name:''),e.responsable))).join('');
+    const verif=e.estado==='pendiente_verificacion'||e.estado==='cerrada';
+    body.innerHTML=`
+      <fieldset><legend>Detección</legend>
+        <label for="nc-titulo">Título</label><input id="nc-titulo" value="${esc(e.titulo)}" maxlength="120">
+        <div class="nc-row">
+          <div><label for="nc-fdet">Fecha de detección</label><input id="nc-fdet" type="date" value="${esc(e.fecha_deteccion)}"></div>
+          <div><label for="nc-planta">Planta</label><select id="nc-planta">${opt('edari','EDARi',e.planta)}${opt('edaru','EDARu',e.planta)}${opt('general','General',e.planta)}</select></div>
+        </div>
+        ${e.parametro_id?`<div class="nc-row"><div><label>Valor detectado</label><input readonly value="${esc(String(e.valor).replace('.',','))} ${esc(e.unidad)} · muestra ${fDM(e.fecha_muestra)}"></div><div><label>Requisito</label><input readonly value="Límite ${esc(e.limite)} ${esc(e.unidad)} · RD 509/1996"></div></div>`:''}
+        <label for="nc-desc">Descripción</label><textarea id="nc-desc">${esc(e.descripcion)}</textarea>
+        <label for="nc-clas">Clasificación</label><select id="nc-clas">${opt('real','Real (requisito incumplido)',e.clasificacion)}${opt('potencial','Potencial (riesgo de incumplir)',e.clasificacion)}</select>
+      </fieldset>
+      <fieldset><legend>Tratamiento</legend>
+        <label for="nc-inm">Acción inmediata (corrección)</label><textarea id="nc-inm" placeholder="Qué se hace ya para contener el problema">${esc(e.accion_inmediata)}</textarea>
+        <label for="nc-causa">Análisis de causa raíz</label><textarea id="nc-causa" placeholder="5 porqués / Ishikawa: método, mano de obra, materiales, maquinaria, medición, medio">${esc(e.causa_raiz)}</textarea>
+        <label for="nc-corr">Acción correctiva (elimina la causa)</label><textarea id="nc-corr">${esc(e.accion_correctiva)}</textarea>
+        <div class="nc-row">
+          <div><label for="nc-resp">Responsable</label><select id="nc-resp">${us}</select></div>
+          <div><label for="nc-flim">Fecha límite</label><input id="nc-flim" type="date" value="${esc(e.fecha_limite)}"></div>
+        </div>
+        <label for="nc-estado">Estado</label><select id="nc-estado" onchange="ncEstadoCambio()">${Object.entries(EST).map(([k,v])=>opt(k,v[0],e.estado)).join('')}</select>
+        ${!e.id?`<label class="nc-chk"><input type="checkbox" id="nc-tarea" checked> Crear una tarea al responsable en Gestión Supervisor</label>`:(e.tarea_id?`<div class="nc-hint">Tarea vinculada en Gestión Supervisor.</div>`:'')}
+      </fieldset>
+      <fieldset id="nc-verif" style="${verif?'':'display:none'}"><legend>Verificación de eficacia</legend>
+        <div class="nc-row">
+          <div><label for="nc-vf">Fecha de verificación</label><input id="nc-vf" type="date" value="${esc(e.verif_fecha)}"></div>
+          <div><label for="nc-vr">Resultado</label><select id="nc-vr">${opt('','—',e.verif_resultado)}${opt('eficaz','Eficaz',e.verif_resultado)}${opt('no_eficaz','No eficaz',e.verif_resultado)}</select></div>
+        </div>
+        <label for="nc-vc">Evidencia / comentario</label><textarea id="nc-vc" placeholder="Ej.: 3 analíticas consecutivas de PT < 2 mg/L">${esc(e.verif_comentario)}</textarea>
+        <div class="nc-hint">Solo se puede cerrar si la verificación es eficaz.</div>
+      </fieldset>
+      ${(e.historial||[]).length?`<fieldset><legend>Historial</legend><div class="nc-hist">${e.historial.slice().reverse().map(h=>`<div>${new Date(h.ts).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'})} · ${esc(h.por)} · ${esc(h.cambio)}</div>`).join('')}</div></fieldset>`:''}`;
+  }
+  window.ncEstadoCambio=function(){ const v=document.getElementById('nc-estado').value; document.getElementById('nc-verif').style.display=(v==='pendiente_verificacion'||v==='cerrada')?'':'none'; };
+
+  window.ncGuardar=async function(){
+    const e=NC.edit, st=document.getElementById('nc-st'); if(!e) return;
+    const g=id=>{ const el=document.getElementById(id); return el?el.value.trim():''; };
+    const antes=e.estado;
+    Object.assign(e,{titulo:g('nc-titulo'),fecha_deteccion:g('nc-fdet'),planta:g('nc-planta'),descripcion:g('nc-desc'),clasificacion:g('nc-clas'),
+      accion_inmediata:g('nc-inm'),causa_raiz:g('nc-causa'),accion_correctiva:g('nc-corr'),responsable:g('nc-resp'),fecha_limite:g('nc-flim'),estado:g('nc-estado'),
+      verif_fecha:g('nc-vf'),verif_resultado:g('nc-vr'),verif_comentario:g('nc-vc')});
+    const err=m=>{ st.style.color='var(--sg-crit)'; st.textContent=m; };
+    if(!e.titulo) return err('Falta el título');
+    if(e.estado==='cerrada'&&e.verif_resultado!=='eficaz') return err('Para cerrar, la verificación debe ser eficaz');
+    if(e.estado!=='abierta'&&!e.causa_raiz) return err('Indica la causa raíz antes de avanzar');
+    if(!window._fb) return err('Firebase no disponible');
+    const s=sesion(), por=s.username||'—';
+    e.historial=e.historial||[];
+    e.historial.push({ts:Date.now(),por,cambio:!e.id?'Registrada':(antes!==e.estado?`Estado: ${EST[antes][0]} → ${EST[e.estado][0]}`:'Actualizada')});
+    if(e.estado==='cerrada'&&antes!=='cerrada') e.fecha_cierre=hoy();
+    st.style.color='var(--sg-warn)'; st.textContent='Guardando…';
+    try{
+      const nuevo=!e.id, crearTarea=nuevo&&document.getElementById('nc-tarea')&&document.getElementById('nc-tarea').checked;
+      const {id,...rec}=e;
+      if(nuevo){ rec.creado_por=por; rec.ts=Date.now(); }
+      rec.ts_mod=Date.now();
+      let key=id;
+      if(nuevo){ const r=window._fb.push(window._fb.ref(window._fb.db,'no_conformidades')); key=r.key; await window._fb.set(r,rec); }
+      else await window._fb.set(window._fb.ref(window._fb.db,'no_conformidades/'+key),rec);
+      if(crearTarea){
+        if(!rec.responsable){ st.style.color='var(--sg-warn)'; st.textContent='✓ NC guardada · sin responsable no se crea la tarea'; }
+        else {
+          const t={titulo:`${rec.codigo} · ${rec.accion_correctiva?'Acción correctiva':'Tratar no conformidad'}${rec.parametro?' '+rec.parametro:''}`.slice(0,90),
+            descripcion:[rec.titulo,rec.accion_inmediata&&('Inmediata: '+rec.accion_inmediata),rec.accion_correctiva&&('Correctiva: '+rec.accion_correctiva)].filter(Boolean).join(' · '),
+            asignado_a:rec.responsable,asignado_por:por,prioridad:'alta',fecha_limite:rec.fecha_limite||'',completada:false,ts:Date.now(),ts_completado:null,nc_id:key};
+          const tr=window._fb.push(window._fb.ref(window._fb.db,'tareas')); await window._fb.set(tr,t);
+          await window._fb.update(window._fb.ref(window._fb.db,'no_conformidades/'+key),{tarea_id:tr.key});
+        }
+      }
+      st.style.color='var(--sg-ok)'; if(!/sin responsable/.test(st.textContent)) st.textContent='✓ Guardada';
+      NC.edit=null; setTimeout(()=>ncLista(),700);
+    }catch(x){ err('Error: '+x.message); }
+  };
+  document.addEventListener('keydown',ev=>{ if(ev.key==='Escape'&&document.getElementById('nc-drawer').classList.contains('open')) ncCerrar(); });
+})();
+</script>
+
+
+<!-- ══ ENERGÍA (ISO 50001 / 50006): scripts ═════════════════════════════════ -->
+<script>
+(function(){
+  /* Indicadores de desempeño energético (IDEn):
+     · kWh/m³ tratado · kWh/kg DQO eliminada
+     · Línea de base energética (LBE) por regresión lineal kWh/d = a + b·Q (m³/d)
+       ajustada en el periodo de referencia (ISO 50006). Se valida con R² y CV(RMSE).
+     · Consumo esperado del periodo = Σ(a + b·Q_día); desviación y CUSUM = real − esperado. */
+  const DAY=864e5; let enPlanta='edari';
+  const nf=(n,d)=>(n==null||isNaN(n))?'—':(+n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const tOf=f=>Date.parse(f+'T12:00:00');
+  const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const ok=v=>v!=null&&v!==''&&!isNaN(+v)&&+v>0;
+  const datos=()=>(window._cqGetDatos?window._cqGetDatos():window._ST_dash)||{};
+  try{ const p=localStorage.getItem('en-precio'); document.addEventListener('DOMContentLoaded',()=>{ const e=document.getElementById('en-precio'); if(e) e.value=p||'0.15'; }); }catch(e){}
+  window.enGuardarPrecio=function(){ try{ localStorage.setItem('en-precio',document.getElementById('en-precio').value); }catch(e){} };
+
+  function dqoElim(ST,f,Q){
+    const R=(ST.reactor||{})[f]||{}, S=(ST.sms_datos||{})[f]||{};
+    const pick=(o,al)=>{ for(const a of al){ if(o&&ok(o[a])) return +o[a]; } return null; };
+    let e=null,s=null;
+    if(enPlanta==='edari'){ e=pick(R,['dqo_ent','DQO ENTRADA','dqo_entrada']); s=pick(R,['dqo_ef','DQO EFLUENTE','dqo_efluente']); const x=S.edari||R.edari; if(e==null) e=pick(x,['dqo_ent']); if(s==null) s=pick(x,['dqo_sal']); }
+    else { const x=S.edaru||R.edaru; e=pick(x,['dqo_ent']); s=pick(x,['dqo_sal']); }
+    return (e!=null&&s!=null&&e>s)?Q*(e-s)/1000:null;
+  }
+  function dias(){
+    const ST=datos(), C=ST.caudales||{}, E=ST.consumo||{};
+    return Object.keys(E).sort().map(f=>{ const k=E[f]&&E[f][enPlanta], q=C[f]&&C[f][enPlanta]; if(!ok(k)||!ok(q)) return null; return {f,k:+k,q:+q,dqo:dqoElim(ST,f,+q)}; }).filter(Boolean);
+  }
+  function ols(P){ const n=P.length; if(n<3) return null; const xm=P.reduce((s,p)=>s+p.q,0)/n, ym=P.reduce((s,p)=>s+p.k,0)/n; let sxx=0,sxy=0,syy=0; P.forEach(p=>{ sxx+=(p.q-xm)**2; sxy+=(p.q-xm)*(p.k-ym); syy+=(p.k-ym)**2; });
+    const b=sxx>0?sxy/sxx:0, a=ym-b*xm, sse=P.reduce((s,p)=>s+(p.k-a-b*p.q)**2,0), r2=syy>0?1-sse/syy:0, rmse=Math.sqrt(sse/Math.max(1,n-2));
+    return {a,b,r2,cv:rmse/ym,n,xm,ym}; }
+  const suma=(A,k)=>A.reduce((s,p)=>s+(p[k]||0),0);
+  const ratioDQO=A=>{ const B=A.filter(p=>p.dqo>0); const kg=suma(B,'dqo'); return kg>0?{v:suma(B,'k')/kg,n:B.length}:null; };
+
+  function estudio(){
+    const D=dias(); if(!D.length) return null;
+    const meses=[...new Set(D.map(p=>p.f.slice(0,7)))].sort();
+    const sel=document.getElementById('en-mes');
+    if(sel){ const cur=sel.value; sel.innerHTML=meses.slice().reverse().map(m=>{ const [y,mm]=m.split('-'); const hoy=new Date(); const enCurso=+y===hoy.getFullYear()&&+mm===hoy.getMonth()+1; return `<option value="${m}">${MES[+mm-1]} ${y}${enCurso?' (en curso)':''}</option>`; }).join(''); sel.value=meses.includes(cur)?cur:meses[meses.length-1]; }
+    const mes=sel?sel.value:meses[meses.length-1], modo=(document.getElementById('en-base')||{}).value||'prev12';
+    const per=D.filter(p=>p.f.startsWith(mes)), ini=mes+'-01';
+    let base, baseTxt;
+    if(modo==='prevYear'){ const y=+mes.slice(0,4)-1; base=D.filter(p=>p.f.startsWith(String(y))); baseTxt='año '+y; }
+    else if(modo==='all'){ base=D.filter(p=>p.f<ini); baseTxt='todo el histórico anterior'; }
+    else { const t0=tOf(ini); base=D.filter(p=>p.f<ini&&tOf(p.f)>=t0-365*DAY); baseTxt='12 meses anteriores'; }
+    let aviso='';
+    if(base.length<60){ const ant=D.filter(p=>p.f<ini); if(ant.length>base.length){ base=ant; baseTxt='todo el histórico anterior'; aviso='La referencia elegida tenía pocos días; se usa todo el histórico anterior.'; } }
+    if(base.length<14){ aviso='Histórico anterior insuficiente (<14 días): la línea base se calcula con el propio periodo y no mide ahorro.'; base=per; baseTxt='propio periodo'; }
+    const m=ols(base);
+    const esp=per.map(p=>({f:p.f,real:p.k,esp:m?m.a+m.b*p.q:p.q*(suma(base,'k')/suma(base,'q'))}));
+    let cus=0; const cusum=esp.map(p=>{ cus+=p.real-p.esp; return {f:p.f,v:cus}; });
+    const kP=suma(per,'k'), qP=suma(per,'q'), eP=suma(esp,'esp'), kB=suma(base,'k'), qB=suma(base,'q');
+    const porMes=meses.slice(-13).map(mm=>{ const A=D.filter(p=>p.f.startsWith(mm)); return {m:mm,v:suma(A,'k')/suma(A,'q'),n:A.length}; });
+    return {D,mes,per,base,baseTxt,aviso,m,esp,cusum,kP,qP,eP,kB,qB,epiP:kP/qP,epiB:kB/qB,dqoP:ratioDQO(per),dqoB:ratioDQO(base),porMes,desv:(kP-eP)/eP};
+  }
+
+  function svgBarras(box,S){
+    const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||180), PL=44, PR=10, PT=12, PB=20, gW=W-PL-PR, gH=H-PT-PB;
+    const ymax=Math.max(...S.porMes.map(p=>p.v),S.epiB)*1.15, bw=gW/S.porMes.length;
+    const Y=v=>PT+gH-v/ymax*gH;
+    const bars=S.porMes.map((p,i)=>{ const sel=p.m===S.mes, h=gH-(Y(p.v)-PT); return `<rect class="br-int" x="${(PL+i*bw+bw*.15).toFixed(1)}" y="${Y(p.v).toFixed(1)}" width="${(bw*.7).toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${sel?'var(--sg-s1)':'var(--sg-s4, #8a9bb0)'}" opacity="${sel?1:.55}" data-tip="${MES[+p.m.slice(5)-1]} ${p.m.slice(0,4)}|${nf(p.v,2)} kWh/m³|${p.n} días"/>
+      ${sel?`<text class="sg-ax" x="${(PL+i*bw+bw/2).toFixed(1)}" y="${(Y(p.v)-4).toFixed(1)}" text-anchor="middle" style="fill:var(--sg-ink);font-weight:600">${nf(p.v,2)}</text>`:''}
+      <text class="sg-ax" x="${(PL+i*bw+bw/2).toFixed(1)}" y="${H-5}" text-anchor="middle">${MES[+p.m.slice(5)-1]}${(i===0||p.m.slice(5)==='01')?' '+p.m.slice(2,4):''}</text>`; }).join('');
+    const yb=Y(S.epiB).toFixed(1);
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="kWh por m³ en los últimos meses frente a la línea base ${nf(S.epiB,2)}">
+      <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT+gH}" y2="${PT+gH}"/>${bars}
+      <line x1="${PL}" x2="${W-PR}" y1="${yb}" y2="${yb}" stroke="var(--sg-warn)" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text class="sg-ax" x="${W-PR}" y="${(+yb-5).toFixed(1)}" text-anchor="end" style="fill:var(--sg-warn)">línea base ${nf(S.epiB,2)}</text>
+      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(ymax,2)}</text><text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">0</text></svg>`;
+  }
+  function svgReg(box,S){
+    const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||180), PL=52, PR=10, PT=12, PB=20, gW=W-PL-PR, gH=H-PT-PB;
+    const all=S.base.concat(S.per), qs=all.map(p=>p.q), ks=all.map(p=>p.k);
+    const x0=Math.min(...qs)*.95, x1=Math.max(...qs)*1.05, y0=Math.min(...ks)*.9, y1=Math.max(...ks)*1.05;
+    const X=q=>PL+(q-x0)/(x1-x0||1)*gW, Y=k=>PT+gH-(k-y0)/(y1-y0||1)*gH;
+    const bpts=S.base.slice(-400).map(p=>`<circle cx="${X(p.q).toFixed(1)}" cy="${Y(p.k).toFixed(1)}" r="2" fill="var(--sg-subtle)" opacity=".45"/>`).join('');
+    const ppts=S.per.map(p=>`<circle class="pt-int" cx="${X(p.q).toFixed(1)}" cy="${Y(p.k).toFixed(1)}" r="3.5" fill="var(--sg-s1)" stroke="var(--sg-card)" stroke-width="1" data-tip="${p.f.slice(8)}/${p.f.slice(5,7)}|${nf(p.q,0)} m³ · ${nf(p.k,0)} kWh|esperado ${nf(S.m?S.m.a+S.m.b*p.q:0,0)} kWh"/>`).join('');
+    const line=S.m?`<line x1="${X(x0).toFixed(1)}" y1="${Y(S.m.a+S.m.b*x0).toFixed(1)}" x2="${X(x1).toFixed(1)}" y2="${Y(S.m.a+S.m.b*x1).toFixed(1)}" stroke="var(--sg-warn)" stroke-width="2"/>`:'';
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Consumo diario frente a caudal: línea base y días del periodo">
+      <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT+gH}" y2="${PT+gH}"/>${bpts}${line}${ppts}
+      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(y1,0)}</text><text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${nf(y0,0)}</text>
+      <text class="sg-ax" x="${PL}" y="${H-4}">${nf(x0,0)} m³/d</text><text class="sg-ax" x="${W-PR}" y="${H-4}" text-anchor="end">${nf(x1,0)} m³/d</text>
+      <text class="sg-ax" x="${PL+6}" y="${PT+10}"><tspan style="fill:var(--sg-subtle)">●</tspan> referencia  <tspan style="fill:var(--sg-s1)">●</tspan> periodo  <tspan style="fill:var(--sg-warn)">━</tspan> kWh/d = ${S.m?nf(S.m.a,0)+' + '+nf(S.m.b,3)+'·Q':'—'}</text></svg>`;
+  }
+  function svgCusum(box,S){
+    const W=Math.max(200,box.clientWidth||300), H=Math.max(100,box.clientHeight||160), PL=56, PR=10, PT=12, PB=20, gW=W-PL-PR, gH=H-PT-PB;
+    const v=S.cusum.map(p=>p.v).concat([0]), y0=Math.min(...v), y1=Math.max(...v), pad=(y1-y0||1)*.12, lo=y0-pad, hi=y1+pad;
+    const X=i=>PL+(S.cusum.length>1?i/(S.cusum.length-1):0.5)*gW, Y=x=>PT+gH-(x-lo)/(hi-lo)*gH;
+    const fin=S.cusum.length?S.cusum[S.cusum.length-1].v:0, col=fin>0?'var(--sg-crit)':'var(--sg-ok)';
+    const pts=S.cusum.map((p,i)=>X(i).toFixed(1)+','+Y(p.v).toFixed(1)).join(' ');
+    const area=S.cusum.length?`${X(0).toFixed(1)},${Y(0).toFixed(1)} ${pts} ${X(S.cusum.length-1).toFixed(1)},${Y(0).toFixed(1)}`:'';
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Desviación acumulada del consumo: ${nf(fin,0)} kWh">
+      <polygon points="${area}" fill="${col}" opacity=".15"/>
+      <line x1="${PL}" x2="${W-PR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="var(--sg-subtle)" stroke-width="1"/>
+      <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.2"/>
+      ${S.cusum.map((p,i)=>`<circle class="pt-int" cx="${X(i).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2.4" fill="${col}" data-tip="${p.f.slice(8)}/${p.f.slice(5,7)}|acumulado ${nf(p.v,0)} kWh"/>`).join('')}
+      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(hi,0)}</text><text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${nf(lo,0)}</text>
+      <text class="sg-ax" x="${PL}" y="${H-4}">${S.cusum.length?S.cusum[0].f.slice(8)+'/'+S.cusum[0].f.slice(5,7):''}</text><text class="sg-ax" x="${W-PR}" y="${H-4}" text-anchor="end">${S.cusum.length?S.cusum[S.cusum.length-1].f.slice(8)+'/'+S.cusum[S.cusum.length-1].f.slice(5,7):''}</text></svg>`;
+  }
+  function conclusiones(S){
+    const L=[], pre=+(document.getElementById('en-precio')||{}).value||0, dif=S.kP-S.eP, pl=enPlanta==='edari'?'EDARi':'EDARu';
+    const mesTxt=MES[+S.mes.slice(5)-1]+' '+S.mes.slice(0,4);
+    if(S.baseTxt!=='propio periodo'){
+      const d=S.desv*100;
+      L.push({l:d>5?'crit':d>2?'warn':'ok',t:`<b>${d>0?'Exceso':'Ahorro'} de ${nf(Math.abs(dif),0)} kWh (${d>0?'+':''}${nf(d,1)} %)</b> en ${mesTxt} frente a lo esperado por la línea base para el caudal tratado${pre?` · ${nf(Math.abs(dif)*pre,0)} €`:''}.`});
+      const dE=(S.epiP/S.epiB-1)*100;
+      L.push({l:dE>5?'warn':dE<-2?'ok':'info',t:`<b>kWh/m³: ${nf(S.epiP,2)}</b> frente a ${nf(S.epiB,2)} de referencia (${dE>0?'+':''}${nf(dE,1)} %).${S.m&&S.m.b>0?` <span class="mut">Parte fija ≈ ${nf(S.m.a,0)} kWh/d (equipos que consumen igual con cualquier caudal) y ${nf(S.m.b,3)} kWh por m³ adicional.</span>`:''}`});
+    }
+    if(S.dqoP) L.push({l:'info',t:`<b>kWh/kg DQO eliminada: ${nf(S.dqoP.v,2)}</b>${S.dqoB?` frente a ${nf(S.dqoB.v,2)} de referencia (${S.dqoP.v>S.dqoB.v?'+':''}${nf((S.dqoP.v/S.dqoB.v-1)*100,1)} %)`:''}. <span class="mut">${S.dqoP.n} días con analítica de DQO.</span>`});
+    else L.push({l:'info',t:`<b>kWh/kg DQO:</b> <span class="mut">sin días con DQO de entrada y salida en el periodo.</span>`});
+    if(S.m){ const val=S.m.r2>=0.5&&S.m.cv<=0.2; L.push({l:val?'ok':'warn',t:`<b>Línea base ${val?'válida':'poco explicativa'}:</b> R² = ${nf(S.m.r2,2)}, CV(RMSE) = ${nf(S.m.cv*100,1)} %, ${S.m.n} días (${S.baseTxt}). <span class="mut">${val?'El caudal explica bien el consumo.':'El caudal explica poco el consumo: conviene añadir otra variable (temperatura, carga de DQO) o usar kWh/m³ como indicador principal.'}</span>`}); }
+    const cm=S.cusum.length>6?S.cusum[S.cusum.length-1].v-S.cusum[Math.max(0,S.cusum.length-8)].v:null;
+    if(cm!=null&&S.baseTxt!=='propio periodo') L.push({l:cm>0?'warn':'ok',t:`<b>Última semana:</b> ${cm>0?'el consumo va por encima de lo esperado':'el consumo va por debajo de lo esperado'} (${cm>0?'+':''}${nf(cm,0)} kWh en 7 días).`});
+    if(S.aviso) L.push({l:'warn',t:S.aviso});
+    L.push({l:'info',t:`<span class="mut">${pl} · consumo total del periodo ${nf(S.kP,0)} kWh para ${nf(S.qP,0)} m³ (${S.per.length} días).</span>`});
+    return L;
+  }
+  function render(){
+    const p=document.getElementById('panel-energia'); if(!p||!p.classList.contains('active')) return;
+    const pr=document.getElementById('en-precio'); if(pr&&!pr.value){ try{ pr.value=localStorage.getItem('en-precio')||'0.15'; }catch(e){ pr.value='0.15'; } }
+    const S=estudio(), K=document.getElementById('en-kpis');
+    if(!S){ K.innerHTML='<div class="sg-caption">Sin datos de consumo y caudal. Carga el SMS Diario (M-04).</div>'; ['en-c-mes','en-c-reg','en-c-cusum','en-concl'].forEach(i=>document.getElementById(i).innerHTML=''); return; }
+    window._enUltimo=S;
+    const pre=+pr.value||0, dif=S.kP-S.eP, d=S.desv*100, dE=(S.epiP/S.epiB-1)*100;
+    const cls=x=>x>5?'crit':x>2?'warn':x<-2?'ok':'';
+    const dd=x=>`<span class="en-d ${x>0?'up':'down'}">${x>0?'▲ +':'▼ '}${nf(x,1)} %</span>`;
+    const hayBase=S.baseTxt!=='propio periodo';
+    document.getElementById('en-note').textContent=`Línea base: ${S.baseTxt} (${S.base.length} días) · periodo ${S.per.length} días`+(S.aviso?' · '+S.aviso:'');
+    K.innerHTML=
+      `<div class="sg-card en-k ${hayBase?cls(d):''}"><span class="sg-label">Consumo del periodo</span><div><span class="en-k__v">${nf(S.kP,0)}</span><span class="sg-unit">kWh</span></div><div class="en-k__s">Esperado ${nf(S.eP,0)} kWh · ${hayBase?dd(d):'sin referencia'}</div></div>`+
+      `<div class="sg-card en-k ${cls(dE)}"><span class="sg-label">kWh / m³ tratado</span><div><span class="en-k__v">${nf(S.epiP,2)}</span><span class="sg-unit">kWh/m³</span></div><div class="en-k__s">Referencia ${nf(S.epiB,2)} · ${dd(dE)}</div></div>`+
+      `<div class="sg-card en-k ${S.dqoP&&S.dqoB?cls((S.dqoP.v/S.dqoB.v-1)*100):''}"><span class="sg-label">kWh / kg DQO eliminada</span><div><span class="en-k__v">${S.dqoP?nf(S.dqoP.v,2):'—'}</span><span class="sg-unit">kWh/kg</span></div><div class="en-k__s">${S.dqoB&&S.dqoP?'Referencia '+nf(S.dqoB.v,2)+' · '+dd((S.dqoP.v/S.dqoB.v-1)*100):'Sin analíticas suficientes'}</div></div>`+
+      `<div class="sg-card en-k ${hayBase?(dif>0?'warn':'ok'):''}"><span class="sg-label">${dif>0?'Exceso':'Ahorro'} frente a línea base</span><div><span class="en-k__v">${nf(Math.abs(dif),0)}</span><span class="sg-unit">kWh</span></div><div class="en-k__s">${pre?`<b>${nf(Math.abs(dif)*pre,0)} €</b> a ${nf(pre,2)} €/kWh`:'Indica el precio para verlo en €'}</div></div>`;
+    document.getElementById('en-m-sub').textContent=`Periodo resaltado · línea base ${nf(S.epiB,2)} kWh/m³`;
+    document.getElementById('en-r-sub').textContent=S.m?`R² ${nf(S.m.r2,2)} · CV(RMSE) ${nf(S.m.cv*100,1)} % · ${S.m.n} días`:'';
+    const c1=document.getElementById('en-c-mes'), c2=document.getElementById('en-c-reg'), c3=document.getElementById('en-c-cusum');
+    c1.innerHTML=svgBarras(c1,S); c2.innerHTML=svgReg(c2,S); c3.innerHTML=svgCusum(c3,S);
+    const L=conclusiones(S), IC={crit:'!',warn:'▲',ok:'✓',info:'i'}, el=document.getElementById('en-concl');
+    el.innerHTML=L.map(x=>`<div class="en-cl ${x.l}"><div class="en-cl__ic">${IC[x.l]}</div><div>${x.t}</div></div>`).join('');
+    const nW=L.filter(x=>x.l==='crit'||x.l==='warn').length;
+    document.getElementById('en-badges').innerHTML=nW?`<span class="sg-badge warn">${nW} a revisar</span>`:'<span class="sg-badge ok">En línea</span>';
+    el.style.removeProperty('--en-fs'); let fs=15; el.style.setProperty('--en-fs',fs+'px');
+    while(el.scrollHeight>el.clientHeight+1&&fs>11){ fs-=0.5; el.style.setProperty('--en-fs',fs+'px'); }
+    el.classList.toggle('is-fitted',el.scrollHeight<=el.clientHeight+1);
+  }
+  window.enRender=render;
+  window.enSetPlanta=function(p){ enPlanta=p; document.querySelectorAll('#en-head [data-pl]').forEach(b=>b.classList.toggle('active',b.dataset.pl===p)); render(); };
+  // Resumen para el informe de dirección (mes en curso, 12 meses anteriores)
+  window.enResumen=function(planta){
+    const bp=enPlanta; enPlanta=planta||'edari';
+    try{ const S=estudio(); if(!S) return null; return {S,L:conclusiones(S)}; } finally{ enPlanta=bp; }
+  };
+  const _prevNav=window.sbNav;
+  window.sbNav=function(id){
+    _prevNav(id);
+    if(id==='energia'){
+      requestAnimationFrame(()=>requestAnimationFrame(render));
+      if(!window._enResizeObs&&window.ResizeObserver){ let t; window._enResizeObs=new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(render,120); }); const b=document.getElementById('en-body'); if(b) window._enResizeObs.observe(b); }
+    }
+  };
+})();
+</script>
+
+
+<!-- ══ INFORME PARA DIRECCIÓN (PDF) ═════════════════════════════════════════ -->
+<style>
+  #rp-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:99999;background:#0f1b2a;color:#e8eef5;border:1px solid #26384d;border-radius:8px;padding:10px 16px;font:600 14px/20px 'Barlow',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;}
+  #rp-root{--sg-ink:#0f1b2a;--sg-muted:#46576b;--sg-subtle:#5b6b7e;--sg-line:#d5dde6;--sg-card:#ffffff;--sg-raised:#eef2f6;--sg-bg:#ffffff;
+    --sg-ok:#16794f;--sg-ok-soft:#dff4ea;--sg-warn:#8f5b00;--sg-warn-soft:#fdf1d8;--sg-crit:#c0282d;--sg-crit-soft:#fde8e8;--sg-brand:#0a6f9c;--sg-brand-soft:#dcf0f9;--sg-s1:#2563c9;--sg-s2:#7048c8;
+    width:718px;background:#fff;color:#0f1b2a;font:12px/1.4 'Barlow',system-ui,sans-serif;padding:0;}
+  #rp-root *{box-sizing:border-box;}
+  #rp-root .rp-h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #0a6f9c;padding-bottom:10px;margin-bottom:14px;}
+  #rp-root .rp-h h1{margin:0;font:700 21px/1.2 'Barlow',sans-serif;color:#0f1b2a;}
+  #rp-root .rp-h p{margin:3px 0 0;color:#46576b;font-size:13px;}
+  #rp-root .rp-h .r{text-align:right;font-size:11.5px;color:#5b6b7e;line-height:1.5;}
+  #rp-root h2{font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:#46576b;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #d5dde6;}
+  #rp-root table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  #rp-root th{text-align:left;font-weight:600;color:#46576b;background:#eef2f6;padding:4px 6px;border-bottom:1px solid #d5dde6;}
+  #rp-root td{padding:3px 6px;border-bottom:1px solid #e8edf2;vertical-align:top;}
+  #rp-root td.n,#rp-root th.n{text-align:right;font-variant-numeric:tabular-nums;}
+  #rp-root .b{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid currentColor;white-space:nowrap;}
+  #rp-root .b.ok{color:#16794f;background:#dff4ea;} #rp-root .b.warn{color:#8f5b00;background:#fdf1d8;} #rp-root .b.crit{color:#c0282d;background:#fde8e8;} #rp-root .b.nd{color:#5b6b7e;background:#eef2f6;} #rp-root .b.info{color:#0a6f9c;background:#dcf0f9;}
+  #rp-root .res{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+  #rp-root .res div{border:1px solid #d5dde6;border-left-width:4px;border-radius:6px;padding:6px 9px;font-size:12px;}
+  #rp-root .two{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start;}
+  #rp-root .res .crit{border-left-color:#c0282d;} #rp-root .res .warn{border-left-color:#b07400;} #rp-root .res .ok{border-left-color:#16794f;} #rp-root .res .info{border-left-color:#0a6f9c;}
+  #rp-root .res .h{display:block;font-weight:700;font-size:11.5px;color:#46576b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+  #rp-root ul.al{list-style:none;margin:0;padding:0;}
+  #rp-root ul.al li{padding:3px 0 3px 20px;border-bottom:1px solid #e8edf2;position:relative;}
+  #rp-root ul.al li::before{content:"";position:absolute;left:4px;top:8px;width:10px;height:10px;border-radius:50%;background:#0a6f9c;}
+  #rp-root ul.al li.crit::before{background:#c0282d;} #rp-root ul.al li.warn::before{background:#b07400;} #rp-root ul.al li.ok::before{background:#16794f;}
+  #rp-root .mut,#rp-root .d{color:#5b6b7e;}
+  #rp-root .chart{width:100%;height:190px;position:relative;border:1px solid #d5dde6;border-radius:6px;margin-top:6px;}
+  #rp-root .chart svg{position:absolute;inset:0;width:100%;height:100%;}
+  #rp-root .sg-ax{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#5b6b7e;}
+  #rp-root .sg-grid{stroke:#d5dde6;stroke-width:1;}
+  #rp-root .foot{margin-top:18px;display:flex;justify-content:space-between;gap:20px;font-size:11.5px;color:#5b6b7e;}
+  #rp-root .firma{border-top:1px solid #5b6b7e;width:220px;padding-top:4px;margin-top:34px;}
+</style>
+<div id="rp-toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+  const nf=(n,d)=>(n==null||isNaN(n))?'—':(+n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const nfv=v=>nf(v,v>=100?0:1);
+  const fDM=iso=>{ if(!iso) return '—'; const p=String(iso).split('-'); return p[2]+'/'+p[1]; };
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pTxt=p=>p==null?'—':p>=0.995?'>99 %':p<0.005?'<1 %':Math.round(p*100)+' %';
+  const nivel=p=>p==null?'nd':p>=0.5?'crit':p>=0.15?'warn':'ok';
+  function toast(t,ms){ const e=document.getElementById('rp-toast'); e.textContent=t; e.style.display='block'; clearTimeout(e._t); if(ms) e._t=setTimeout(()=>e.style.display='none',ms); }
+
+  window.informeDireccion=async function(){
+    toast('Generando informe para dirección…');
+    try{
+      if(window.cqRedibujarTodo) window.cqRedibujarTodo();
+      await new Promise(r=>setTimeout(r,60));
+      const ef=window._cqEfluente||{items:[],planta:'edari',plantaLbl:'EDARi'}, planta=ef.planta||'edari', pl=planta==='edari'?'EDARi':'EDARu';
+      const rea=window._cqReactor, rend=window._cqRend, alertas=(window._cqAlertasFinal||[]);
+      const P7=window.pdResumen?window.pdResumen(7,planta):null, P30=window.pdResumen?window.pdResumen(30,planta):null;
+      const ncs=window.ncAbiertas?window.ncAbiertas():[], en=window.enResumen?window.enResumen(planta):null;
+      let ses={}; try{ ses=JSON.parse(localStorage.getItem('ute-session'))||{}; }catch(e){}
+      const hoy=new Date(), hoyISO=hoy.toISOString().slice(0,10);
+
+      // ── Resumen ejecutivo ──
+      const exc=ef.items.filter(x=>x.est==='crit'), aju=ef.items.filter(x=>x.est==='warn'), conD=ef.items.filter(x=>x.val!=null);
+      const R=[];
+      R.push(exc.length?{c:'crit',t:'Efluente',x:`<b>${exc.length} no conformidad${exc.length>1?'es':''}:</b> ${exc.map(x=>`${x.lbl} ${nfv(x.val)} mg/L (${nf(x.ratio,1)}× límite)`).join(', ')}.`}
+        :{c:aju.length?'warn':'ok',t:'Efluente',x:aju.length?`Conforme; vigilar ${aju.map(x=>x.lbl).join(', ')} (>85 % del límite).`:`Conforme en ${conD.length} parámetros del RD 509/1996.`});
+      const venc=ncs.filter(n=>n.fecha_limite&&n.fecha_limite<hoyISO);
+      R.push({c:ncs.length?(venc.length?'crit':'warn'):'ok',t:'No conformidades',x:ncs.length?`${ncs.length} abierta${ncs.length>1?'s':''}${venc.length?`, <b>${venc.length} con plazo vencido</b>`:''}.`:'Ninguna abierta.'});
+      if(P30){ const top=P30.E.ef.filter(r=>r.e).sort((a,b)=>b.p-a.p)[0];
+        R.push(top?{c:nivel(top.p),t:'Previsión 30 días',x:top.p>=0.15?`${top.lbl}: esperado ${nfv(top.e.med)} mg/L, probabilidad de superar el límite ${pTxt(top.p)}.`:'Sin riesgo de incumplimiento previsto en ningún parámetro.'}:{c:'nd',t:'Previsión 30 días',x:'Sin datos suficientes.'}); }
+      const proc=alertas.filter(a=>!a.nc&&a.lvl==='warn'&&/bulking|fango|SST|TRH/i.test(a.what));
+      R.push({c:proc.length?'warn':'ok',t:'Proceso biológico',x:proc.length?proc.map(a=>esc(a.what)).join(' · '):'Dentro de las bandas de referencia.'});
+      if(en&&en.S){ const S=en.S, d=S.desv*100, hay=S.baseTxt!=='propio periodo';
+        R.push({c:!hay?'info':d>5?'crit':d>2?'warn':'ok',t:'Energía',x:`${nf(S.epiP,2)} kWh/m³ (ref. ${nf(S.epiB,2)})${hay?` · ${d>0?'exceso':'ahorro'} ${nf(Math.abs(S.kP-S.eP),0)} kWh (${d>0?'+':''}${nf(d,1)} %)`:''}.`}); }
+
+      // ── Tablas ──
+      const estB=x=>x.nd?'<span class="b nd">No se mide</span>':x.sin?'<span class="b nd">Sin dato</span>':x.est==='crit'?'<span class="b crit">No conforme</span>':x.est==='warn'?'<span class="b warn">Vigilar</span>':'<span class="b ok">Conforme</span>';
+      const tEf=`<table><tr><th>Parámetro</th><th class="n">Valor</th><th class="n">Límite</th><th class="n">% límite</th><th>Muestra</th><th>Estado</th></tr>${ef.items.map(x=>`<tr><td>${x.lbl}</td><td class="n">${x.val!=null?nfv(x.val)+' mg/L':'—'}</td><td class="n">${x.lim} mg/L</td><td class="n">${x.val!=null?Math.round(x.ratio*100)+' %':'—'}</td><td>${x.f?fDM(x.f)+(x.stale?' <span class="d">(antigua)</span>':''):'—'}</td><td>${estB(x)}</td></tr>`).join('')}</table>`;
+      const tRe=rea&&planta==='edari'?`<table><tr><th>Indicador</th><th class="n">Valor</th><th>Óptimo</th><th>Estado</th></tr>${rea.items.map(k=>`<tr><td>${k.l}</td><td class="n">${k.v==null?'—':(k.mil?Math.round(k.v).toLocaleString('es-ES'):nf(k.v,k.dec))+' '+k.u}</td><td>${k.band}</td><td>${k.est==='ok'?'<span class="b ok">En banda</span>':k.est==='crit'||k.est==='warn'?`<span class="b ${k.est}">Fuera de banda</span>`:'<span class="b nd">Seguimiento</span>'}</td></tr>`).join('')}</table>`:'';
+      const tRend=rend?`<table><tr><th>Parámetro</th><th class="n">Eliminación</th><th class="n">Mínimo</th><th>Estado</th></tr>${rend.items.map(r=>`<tr><td>${r.lbl}</td><td class="n">${r.rend==null?'—':Math.round(r.rend)+' %'}</td><td class="n">${r.min} %</td><td>${r.rend==null?'<span class="b nd">Sin dato</span>':r.rend>=r.min?'<span class="b ok">Cumple</span>':'<span class="b crit">No cumple</span>'}</td></tr>`).join('')}</table>`:'';
+      const lAl=alertas.length?`<ul class="al">${alertas.map(a=>`<li class="${a.lvl}"><b>${esc(a.what)}</b> <span class="d">${esc(a.why)}</span>${a.do?`<br>→ ${esc(a.do)}`:''}</li>`).join('')}</ul>`:'<p class="d">Sin alertas.</p>';
+      const tPrev=(P7&&P30)?`<table><tr><th>Parámetro</th><th class="n">Hoy</th><th class="n">A 7 días (rango 80 %)</th><th class="n">P &gt; límite</th><th class="n">A 30 días (rango 80 %)</th><th class="n">P &gt; límite</th></tr>${P30.E.ef.map((r30,i)=>{ const r7=P7.E.ef[i];
+        if(!r30.e) return `<tr><td>${r30.lbl}</td><td colspan="5" class="d">Sin datos suficientes</td></tr>`;
+        return `<tr><td>${r30.lbl}</td><td class="n">${nfv(r30.ult.v)}</td><td class="n">${nfv(r7.e.med)} <span class="d">(${nfv(r7.e.lo)}–${nfv(r7.e.hi)})</span></td><td class="n"><span class="b ${nivel(r7.p)}">${pTxt(r7.p)}</span></td><td class="n">${nfv(r30.e.med)} <span class="d">(${nfv(r30.e.lo)}–${nfv(r30.e.hi)})</span></td><td class="n"><span class="b ${nivel(r30.p)}">${pTxt(r30.p)}</span></td></tr>`; }).join('')}</table>`:'';
+      const lCon=P30?`<ul class="al">${P30.C.filter(c=>!/Previsión estadística/.test(c.t)).map(c=>`<li class="${c.l}">${c.t}</li>`).join('')}</ul>`:'';
+      const tNC=ncs.length?`<table><tr><th>Código</th><th>No conformidad</th><th>Estado</th><th>Responsable</th><th>Plazo</th></tr>${ncs.map(n=>`<tr><td>${esc(n.codigo)}</td><td>${esc(n.titulo)}${n.accion_correctiva?`<br><span class="d">AC: ${esc(n.accion_correctiva)}</span>`:''}</td><td>${{abierta:'<span class="b crit">Abierta</span>',en_tratamiento:'<span class="b warn">En tratamiento</span>',pendiente_verificacion:'<span class="b info">Pdte. verificar</span>'}[n.estado]||esc(n.estado)}</td><td>${esc(n.responsable||'—')}</td><td>${n.fecha_limite?fDM(n.fecha_limite)+(n.fecha_limite<hoyISO?' <b style="color:#c0282d">vencido</b>':''):'—'}</td></tr>`).join('')}</table>`:'<p class="d">No hay no conformidades abiertas.</p>';
+      const lEn=en?`<ul class="al">${en.L.map(c=>`<li class="${c.l}">${c.t}</li>`).join('')}</ul>`:'<p class="d">Sin datos de energía.</p>';
+      const top=P30?P30.E.ef.filter(r=>r.e).sort((a,b)=>b.p-a.p)[0]:null;
+
+      const root=document.createElement('div'); root.id='rp-root';
+      root.innerHTML=`
+        <div class="rp-h"><div><h1>Informe de calidad y previsión</h1><p>EDAR UTE Valle de Güímar · ${pl} · RD 509/1996</p></div>
+          <div class="r">${hoy.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})}<br>Elaborado por: ${esc(ses.name||ses.username||'—')}<br>SGI · Control de Calidad</div></div>
+        <h2>Resumen</h2><div class="res">${R.map(r=>`<div class="${r.c}"><span class="h">${r.t}</span>${r.x}</div>`).join('')}</div>
+        <h2>Estado del efluente</h2>${tEf}
+        <div class="two"><div>${tRe?`<h2>Reactor biológico${rea.fecha?' · '+fDM(rea.fecha):''}</h2>${tRe}`:''}</div><div>${tRend?`<h2>Rendimientos (30 días)</h2>${tRend}`:''}</div></div>
+        <h2>Alertas y acciones</h2>${lAl}
+        <h2>Previsión (modelo estadístico sobre el histórico)</h2>${tPrev}
+        ${top?`<div class="chart" id="rp-chart"></div><p class="d" style="margin:4px 0 0">${top.lbl} efluente: histórico, previsión a 30 días y rango probable (80 %) frente al límite.</p>`:''}
+        <h2>Conclusiones del estudio a 30 días</h2>${lCon}
+        <h2>No conformidades abiertas (ISO 9001/14001 · 10.2)</h2>${tNC}
+        <h2>Energía (ISO 50001)${en&&en.S?' · '+en.S.mes:''}</h2>${lEn}
+        <div class="foot"><div>La previsión supone que la operación no cambia (purga, dosificación) y no contempla lluvias ni averías.<br>Rangos al 80 %. Fuente: carga diaria SMS (Firebase).</div><div><div class="firma">Firma y sello · Responsable de explotación</div></div></div>`;
+      const host=document.createElement('div'); host.style.cssText='position:fixed;left:-12000px;top:0;';
+      host.appendChild(root); document.body.appendChild(host);
+      if(top&&window.pdGrafico){ const box=root.querySelector('#rp-chart'); window.pdGrafico(box,top,30);
+        const cs=getComputedStyle(root); box.innerHTML=box.innerHTML.replace(/var\((--[a-z0-9-]+)[^)]*\)/g,(m,v)=>cs.getPropertyValue(v).trim()||'#5b6b7e');
+        box.querySelectorAll('.sg-ax').forEach(t=>{ t.setAttribute('fill','#5b6b7e'); t.setAttribute('font-size','10'); t.setAttribute('font-family','JetBrains Mono, monospace'); });
+        box.querySelectorAll('.sg-grid').forEach(t=>{ t.setAttribute('stroke','#d5dde6'); });
+        const sv=box.querySelector('svg'); if(sv){ const vb=sv.getAttribute('viewBox').split(' '); sv.setAttribute('width',vb[2]); sv.setAttribute('height',vb[3]); } }
+      const nombre=`Informe_direccion_${pl}_${hoyISO}.pdf`;
+      if(typeof html2pdf!=='undefined'){
+        await html2pdf().set({margin:[10,10,12,10],filename:nombre,image:{type:'jpeg',quality:0.95},html2canvas:{scale:2,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy'],avoid:['tr','li','.res div','.chart']}}).from(root).save();
+        toast('✓ Informe descargado: '+nombre,4000);
+      } else {
+        const w=window.open('','_blank'); w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+nombre+'</title><style>'+[...document.querySelectorAll('style')].map(s=>s.textContent).filter(t=>t.includes('#rp-root')).join('\n')+'</style></head><body>'+host.innerHTML+'</body></html>'); w.document.close(); setTimeout(()=>w.print(),500);
+        toast('Sin conexión a la librería PDF: se abre la vista de impresión',5000);
+      }
+      host.remove();
+    }catch(e){ console.error(e); toast('Error al generar el informe: '+e.message,6000); }
+  };
+})();
+</script>
+
+
+<style id="sg-armonizacion">
+/* ═══ Sistema de diseño SGI Güímar aplicado al resto del portal ═══
+   · Texto secundario con contraste ≥4.5:1 en los temas oscuros.
+   · Cabeceras de panel con la misma tipografía que Calidad/Predictivo/Energía.
+   · Tamaño mínimo de texto: 11 px (lo aplica un pequeño script al abrir cada panel). */
+body:not(.theme-light):not(.theme-forest):not(.theme-midnight) #portal-shell{--muted:#8a9bb0;--text-d:#a9b8c9;}
+body.theme-forest #portal-shell{--muted:#8fb89a;}
+body.theme-midnight #portal-shell{--muted:#a0906a;}
+#portal-shell .p-panel-header{font-family:'Barlow',system-ui,sans-serif;font-size:17px;font-weight:600;letter-spacing:0;color:var(--light);padding-bottom:8px;border-bottom:1px solid var(--border);}
+#portal-shell .p-panel-header i{color:var(--accent);}
+#portal-shell .sb-btn .sb-tip{font-size:11px;}
+#portal-shell button:focus-visible,#portal-shell input:focus-visible,#portal-shell select:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+</style>
+<script>
+(function(){
+  /* Legibilidad: ningún texto por debajo de 11 px en los paneles antiguos.
+     Los paneles nuevos (Calidad, Predictivo, Energía) ya cumplen el sistema y se excluyen. */
+  const EXCL=['panel-calidad','panel-predictivo','panel-energia'];
+  function subir(root){
+    if(!root||EXCL.includes(root.id)) return;
+    root.querySelectorAll('*').forEach(el=>{
+      if(el.closest('svg')||el.dataset.sgFs) return;
+      const fs=parseFloat(getComputedStyle(el).fontSize);
+      if(fs&&fs<11){ el.style.setProperty('font-size','11px','important'); el.dataset.sgFs='1'; }
+    });
+  }
+  function pasar(){ document.querySelectorAll('.p-panel.active').forEach(subir); const tb=document.querySelector('.p-topbar'); if(tb) subir(tb); }
+  const prev=window.sbNav;
+  window.sbNav=function(id){ prev(id); setTimeout(pasar,400); setTimeout(pasar,1500); };
+  const mo=new MutationObserver(()=>{ clearTimeout(mo._t); mo._t=setTimeout(pasar,250); });
+  document.addEventListener('DOMContentLoaded',()=>{ const c=document.querySelector('.p-content'); if(c) mo.observe(c,{childList:true,subtree:true}); setTimeout(pasar,800); });
 })();
 </script>
 
