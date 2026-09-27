@@ -652,7 +652,7 @@ body.theme-light .theme-opt-desc{color:#64748b;}
 
 /* ── CONTENT AREA ── */
 .p-content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:7px;}
-.p-content:has(#panel-calidad.active){padding:0;display:flex;flex-direction:column;overflow:hidden;}
+.p-content:has(#panel-calidad.active),.p-content:has(#panel-predictivo.active){padding:0;display:flex;flex-direction:column;overflow:hidden;}
 
 /* ── PANELS (process, analytics, reports, etc.) ── */
 .p-panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
@@ -1201,6 +1201,10 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
         <button class="sb-btn" id="sb-calidad" onclick="sbNav('calidad')" aria-label="Control de Calidad">
           <i class="ti ti-microscope" aria-hidden="true"></i>
           <div class="sb-tip" data-i18n="sbCalidad">CALIDAD</div>
+        </button>
+        <button class="sb-btn" id="sb-predictivo" onclick="sbNav('predictivo')" aria-label="Análisis predictivo">
+          <i class="ti ti-chart-dots" aria-hidden="true"></i>
+          <div class="sb-tip" data-i18n="sbPredictivo">PREDICTIVO</div>
         </button>
       </div>
       <div class="sb-bottom">
@@ -2926,6 +2930,166 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 
         </div><!-- /#panel-calidad -->
 
+        <!-- ══ PANEL: ANÁLISIS PREDICTIVO ═════════════════════════════════════ -->
+        <div class="p-panel" id="panel-predictivo">
+          <style>
+            #panel-predictivo{
+              --sg-bg:#0c1424; --sg-card:#111c2f; --sg-raised:#172739; --sg-line:#26384d;
+              --sg-ink:#e8eef5; --sg-muted:#a9b8c9; --sg-subtle:#8a9bb0;
+              --sg-brand:#4cc3f0; --sg-brand-soft:rgba(76,195,240,.14);
+              --sg-ok:#3ddc97;   --sg-ok-soft:rgba(61,220,151,.12);
+              --sg-warn:#f5b83d; --sg-warn-soft:rgba(245,184,61,.13);
+              --sg-crit:#ff7a7a; --sg-crit-soft:rgba(255,122,122,.13);
+              --sg-s1:#6ea8fe; --sg-s2:#b197fc;
+              --sg-num:'Barlow Semi Condensed','Barlow Condensed',sans-serif;
+              --sg-sans:'Barlow',system-ui,sans-serif;
+              
+            }
+            body.theme-forest #panel-predictivo,body.theme-midnight #panel-predictivo{--sg-bg:var(--surface); --sg-card:var(--panel); --sg-raised:var(--card); --sg-line:var(--border-l);}
+            body.theme-light #panel-predictivo{
+              --sg-bg:#eef2f7; --sg-card:#ffffff; --sg-raised:#eef2f6; --sg-line:#d5dde6;
+              --sg-ink:#0f1b2a; --sg-muted:#46576b; --sg-subtle:#5b6b7e;
+              --sg-brand:#0a6f9c; --sg-brand-soft:#dcf0f9;
+              --sg-ok:#16794f;   --sg-ok-soft:#dff4ea;
+              --sg-warn:#8f5b00; --sg-warn-soft:#fdf1d8;
+              --sg-crit:#c0282d; --sg-crit-soft:#fde8e8;
+              --sg-s1:#2563c9; --sg-s2:#7048c8;
+            }
+
+            /* ═══ ANÁLISIS PREDICTIVO — mismo sistema de diseño que Calidad ═══ */
+            #panel-predictivo{background:var(--sg-bg);color:var(--sg-ink);font-family:var(--sg-sans);display:none;flex-direction:column;min-height:0;position:relative;}
+            #panel-predictivo.active{display:flex;flex:1;overflow:hidden;min-height:0;}
+            #panel-predictivo .sg-num{font-family:var(--sg-num);font-variant-numeric:tabular-nums;font-weight:600;}
+            #panel-predictivo .sg-label{font-family:var(--mono);font-size:12px;line-height:16px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--sg-muted);}
+            #panel-predictivo .sg-caption{font-size:12px;line-height:16px;color:var(--sg-subtle);}
+            #panel-predictivo .sg-unit{font-size:12px;color:var(--sg-muted);margin-left:4px;font-family:var(--sg-sans);font-weight:400;}
+            #panel-predictivo .sg-card{background:var(--sg-card);border:1px solid var(--sg-line);border-radius:8px;padding:10px 14px;min-width:0;min-height:0;}
+            #panel-predictivo .sg-sec{display:flex;align-items:center;gap:8px;margin:0 0 6px;}
+            #panel-predictivo .sg-sec .sg-caption{margin-left:auto;}
+            #panel-predictivo .sg-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;font-size:12px;line-height:16px;font-weight:600;border:1px solid currentColor;white-space:nowrap;}
+            #panel-predictivo .sg-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+            #panel-predictivo .sg-badge.ok{color:var(--sg-ok);background:var(--sg-ok-soft);}
+            #panel-predictivo .sg-badge.warn{color:var(--sg-warn);background:var(--sg-warn-soft);}
+            #panel-predictivo .sg-badge.crit{color:var(--sg-crit);background:var(--sg-crit-soft);}
+            #panel-predictivo .sg-badge.nd{color:var(--sg-subtle);background:var(--sg-raised);}
+            #panel-predictivo .sg-ax{font-family:var(--mono);font-size:11px;fill:var(--sg-subtle);}
+            #panel-predictivo .sg-grid{stroke:var(--sg-line);stroke-width:1;}
+
+            /* Cabecera */
+            #pd-head{display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--sg-line);flex-wrap:wrap;flex-shrink:0;}
+            #panel-predictivo .pd-seg{display:inline-flex;background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:999px;padding:3px;gap:2px;}
+            #panel-predictivo .pd-seg button{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 14px;border:none;border-radius:999px;cursor:pointer;background:transparent;color:var(--sg-muted);}
+            #panel-predictivo .pd-seg button.active{background:var(--sg-brand);color:#04202e;}
+            body.theme-light #panel-predictivo .pd-seg button.active{color:#fff;}
+            #panel-predictivo .pd-seg button:focus-visible{outline:2px solid var(--sg-brand);outline-offset:2px;}
+            #pd-note{font-size:12px;color:var(--sg-subtle);}
+            #pd-note b{color:var(--sg-muted);font-weight:600;}
+
+            /* Cuerpo: se ajusta al alto disponible */
+            #pd-body{flex:1;min-height:0;display:grid;grid-template-rows:auto minmax(250px,1.5fr) minmax(170px,1fr);gap:10px;padding:10px 16px 12px;overflow-y:auto;}
+            #panel-predictivo .pd-block{display:flex;flex-direction:column;min-height:0;}
+
+            /* Riesgo por parámetro */
+            #pd-risk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;}
+            #panel-predictivo .pd-rk{display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;font:inherit;color:inherit;}
+            #panel-predictivo .pd-rk:hover{border-color:var(--sg-brand);}
+            #panel-predictivo .pd-rk.sel{border-color:var(--sg-brand);box-shadow:inset 0 0 0 1px var(--sg-brand);}
+            #panel-predictivo .pd-rk.is-crit{background:var(--sg-crit-soft);}
+            #panel-predictivo .pd-rk__head{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+            #panel-predictivo .pd-rk__val{font-family:var(--sg-num);font-size:26px;line-height:30px;font-weight:600;font-variant-numeric:tabular-nums;}
+            #panel-predictivo .pd-rk.is-crit .pd-rk__val{color:var(--sg-crit);}
+            #panel-predictivo .pd-rk.is-warn .pd-rk__val{color:var(--sg-warn);}
+            #panel-predictivo .pd-rk__sub{font-size:12px;line-height:16px;color:var(--sg-muted);}
+            #panel-predictivo .pd-rk__sub b{color:var(--sg-ink);font-weight:600;}
+            #panel-predictivo .pd-rk__foot{display:flex;justify-content:space-between;gap:6px;font-size:12px;line-height:16px;color:var(--sg-subtle);}
+            #panel-predictivo .pd-prob{font-weight:700;}
+            #panel-predictivo .pd-prob.crit{color:var(--sg-crit);} #panel-predictivo .pd-prob.warn{color:var(--sg-warn);} #panel-predictivo .pd-prob.ok{color:var(--sg-ok);}
+            /* barra 0–150 % del límite: hoy (marca fina) → previsión (relleno) */
+            #panel-predictivo .pd-meter{position:relative;height:8px;border-radius:4px;background:var(--sg-raised);margin:2px 0;}
+            #panel-predictivo .pd-meter__ci{position:absolute;top:0;bottom:0;border-radius:4px;opacity:.35;}
+            #panel-predictivo .pd-meter__med{position:absolute;top:-3px;bottom:-3px;width:4px;border-radius:2px;margin-left:-2px;}
+            #panel-predictivo .pd-meter__now{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--sg-subtle);}
+            #panel-predictivo .pd-meter__lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--sg-ink);left:66.667%;}
+
+            /* Gráfico principal + conclusiones */
+            #pd-mid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;min-height:0;}
+            #panel-predictivo #pd-chart-card,#panel-predictivo #pd-concl-card{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+            #pd-chart{flex:1;min-height:0;position:relative;}
+            #pd-chart>svg{position:absolute;inset:0;width:100%;height:100%;}
+            #pd-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--sg-muted);margin-top:4px;}
+            #pd-legend i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
+            #pd-concl{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-evenly;font-size:var(--pd-fs,14px);line-height:1.42;}
+            #pd-concl.is-fitted{overflow:hidden;}
+            #panel-predictivo .pd-c{display:grid;grid-template-columns:calc(var(--pd-fs,14px)*1.6) 1fr;gap:10px;padding:calc(var(--pd-fs,14px)*.45) 0;border-top:1px solid var(--sg-line);}
+            #panel-predictivo .pd-c:first-child{border-top:none;}
+            #panel-predictivo .pd-c__ic{width:calc(var(--pd-fs,14px)*1.6);height:calc(var(--pd-fs,14px)*1.6);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:calc(var(--pd-fs,14px)*.9);}
+            #panel-predictivo .pd-c.crit .pd-c__ic{background:var(--sg-crit);color:#fff;}
+            #panel-predictivo .pd-c.warn .pd-c__ic{background:var(--sg-warn);color:#1d1400;}
+            body.theme-light #panel-predictivo .pd-c.warn .pd-c__ic{color:#fff;}
+            #panel-predictivo .pd-c.ok .pd-c__ic{background:var(--sg-ok-soft);color:var(--sg-ok);}
+            #panel-predictivo .pd-c.info .pd-c__ic{background:var(--sg-brand-soft);color:var(--sg-brand);}
+            #panel-predictivo .pd-c b{font-weight:600;}
+            #panel-predictivo .pd-c .mut{color:var(--sg-muted);}
+
+            /* Operación prevista */
+            #pd-ops{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;flex:1;min-height:0;grid-auto-rows:minmax(0,1fr);}
+            #panel-predictivo .pd-op{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+            #panel-predictivo .pd-op__head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+            #panel-predictivo .pd-op__title{font-size:15px;font-weight:600;}
+            #panel-predictivo .pd-op__big{margin-left:auto;font-family:var(--sg-num);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;}
+            #panel-predictivo .pd-op__meta{font-size:12px;line-height:16px;color:var(--sg-subtle);}
+            #panel-predictivo .pd-op__meta b{color:var(--sg-ink);font-weight:600;}
+            #panel-predictivo .pd-op__chart{flex:1;min-height:40px;position:relative;margin-top:4px;}
+            #panel-predictivo .pd-op__chart>svg{position:absolute;inset:0;width:100%;height:100%;}
+
+            @media (max-width:1100px){
+              #pd-risk{grid-template-columns:repeat(2,minmax(0,1fr));}
+              #pd-mid{grid-template-columns:1fr;}
+              #pd-ops{grid-template-columns:repeat(2,minmax(0,1fr));}
+              #pd-body{grid-template-rows:auto auto auto;}
+              #pd-chart{height:260px;flex:none;}
+              #panel-predictivo .pd-op__chart{height:110px;flex:none;}
+            }
+
+          </style>
+          <div id="pd-head">
+            <div class="pd-seg" role="tablist" aria-label="Planta">
+              <button class="active" data-pl="edari" onclick="pdSetPlanta('edari')">EDARi</button>
+              <button data-pl="edaru" onclick="pdSetPlanta('edaru')">EDARu</button>
+            </div>
+            <div class="pd-seg" role="tablist" aria-label="Horizonte">
+              <button class="active" data-h="7" onclick="pdSetHorizonte(7)">7 días</button>
+              <button data-h="30" onclick="pdSetHorizonte(30)">30 días</button>
+            </div>
+            <span id="pd-note">Cargando histórico…</span>
+          </div>
+          <div id="pd-body">
+            <!-- 1 · Riesgo de incumplimiento -->
+            <div class="pd-block">
+              <div class="sg-sec"><span class="sg-label" id="pd-risk-title">Efluente previsto · RD 509/1996</span><span class="sg-caption">Barra 0–150 % del límite · marca negra = límite · fina = hoy · sombreado = rango 80 %</span></div>
+              <div id="pd-risk"><div class="sg-caption">⟳ Calculando…</div></div>
+            </div>
+            <!-- 2 · Gráfico del parámetro seleccionado + conclusiones -->
+            <div id="pd-mid">
+              <div class="sg-card" id="pd-chart-card">
+                <div class="sg-sec"><span class="sg-label" id="pd-chart-title">Previsión</span><span class="sg-caption" id="pd-chart-sub"></span></div>
+                <div id="pd-chart"></div>
+                <div id="pd-legend"><span><i style="background:var(--sg-s1)"></i>Histórico</span><span><i style="background:var(--sg-s1);opacity:.35"></i>Rango probable (80 %)</span><span><i style="background:none;border-top:2px dashed var(--sg-s1);height:0"></i>Previsión</span><span><i style="background:var(--sg-crit);height:2px"></i>Límite legal</span></div>
+              </div>
+              <div class="sg-card" id="pd-concl-card">
+                <div class="sg-sec"><span class="sg-label">Conclusiones del estudio</span><span id="pd-concl-badges"></span></div>
+                <div id="pd-concl"><div class="sg-caption">⟳ Calculando…</div></div>
+              </div>
+            </div>
+            <!-- 3 · Operación prevista -->
+            <div class="pd-block">
+              <div class="sg-sec"><span class="sg-label" id="pd-ops-title">Operación prevista</span></div>
+              <div id="pd-ops"><div class="sg-caption">⟳ Calculando…</div></div>
+            </div>
+          </div>
+        </div><!-- /#panel-predictivo -->
+
+
       </div><!-- /.p-content -->
     </div><!-- /.p-main -->
   </div><!-- /.p-layout -->
@@ -4104,7 +4268,7 @@ const I18N = {
     sbPortal:'Portal', sbSimulador:'Simulador', sbMacroMicro:'Macro/Micro', sbZonas:'Zonas Anóx.',
     sbInformes:'Informes', sbAlertas:'Alertas', sbDescargas:'Descargas', sbCargarDatos:'Cargar datos',
     sbObjetivos:'Objetivos', sbTendencias:'Tendencias', sbGestion:'Gestión Sup.', sbCuaderno:'Cuaderno',
-    sbCalidad:'Calidad', sbAjustes:'Ajustes', sbUsuario:'Usuario',
+    sbCalidad:'Calidad', sbPredictivo:'Análisis predictivo', sbAjustes:'Ajustes', sbUsuario:'Usuario',
     themeBtnTitle:'Cambiar tema', themeDdTitle:'TEMA DEL PORTAL',
     themeDarkDesc:'Predeterminado · Azul profundo', themeLightDesc:'Claro · Alta legibilidad',
     themeForestDesc:'Oscuro · Verde industrial', themeMidnightDesc:'Negro · Acento ámbar',
@@ -4130,7 +4294,7 @@ const I18N = {
     sbPortal:'Portal', sbSimulador:'Simulator', sbMacroMicro:'Macro/Micro', sbZonas:'Anoxic Zones',
     sbInformes:'Reports', sbAlertas:'Alerts', sbDescargas:'Downloads', sbCargarDatos:'Load data',
     sbObjetivos:'Targets', sbTendencias:'Trends', sbGestion:'Supervisor', sbCuaderno:'Logbook',
-    sbCalidad:'Quality', sbAjustes:'Settings', sbUsuario:'User',
+    sbCalidad:'Quality', sbPredictivo:'Predictive analysis', sbAjustes:'Settings', sbUsuario:'User',
     themeBtnTitle:'Change theme', themeDdTitle:'PORTAL THEME',
     themeDarkDesc:'Default · Deep blue', themeLightDesc:'Light · High readability',
     themeForestDesc:'Dark · Industrial green', themeMidnightDesc:'Black · Amber accent',
@@ -4156,7 +4320,7 @@ const I18N = {
     sbPortal:'Portail', sbSimulador:'Simulateur', sbMacroMicro:'Macro/Micro', sbZonas:'Zones anoxiques',
     sbInformes:'Rapports', sbAlertas:'Alertes', sbDescargas:'Téléchargements', sbCargarDatos:'Charger données',
     sbObjetivos:'Objectifs', sbTendencias:'Tendances', sbGestion:'Superviseur', sbCuaderno:'Cahier',
-    sbCalidad:'Qualité', sbAjustes:'Réglages', sbUsuario:'Utilisateur',
+    sbCalidad:'Qualité', sbPredictivo:'Analyse prédictive', sbAjustes:'Réglages', sbUsuario:'Utilisateur',
     themeBtnTitle:'Changer de thème', themeDdTitle:'THÈME DU PORTAIL',
     themeDarkDesc:'Par défaut · Bleu profond', themeLightDesc:'Clair · Haute lisibilité',
     themeForestDesc:'Sombre · Vert industriel', themeMidnightDesc:'Noir · Accent ambré',
@@ -4210,7 +4374,7 @@ function applyLanguage(lang){
     const bc = document.getElementById('p-bc-section');
     const keyMap = {portal:'sbPortal',proceso:'sbSimulador',analitica:'sbMacroMicro',zonas:'sbZonas',
       informes:'sbInformes',alertas:'sbAlertas',ajustes:'sbAjustes',tendencias:'sbTendencias',
-      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad'};
+      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad',predictivo:'sbPredictivo'};
     if(bc && keyMap[id] && dict[keyMap[id]]) bc.textContent = dict[keyMap[id]];
   }
   // Persistir
@@ -6022,7 +6186,7 @@ window.__SIM_PROCESO_SRC__ = "const { useState, useEffect, useCallback, useRef }
 
 <script>
 // ══ SIDEBAR NAVIGATION ════════════════════════════════════════════════════════
-const PANELS = ['portal','proceso','analitica','zonas','informes','alertas','ajustes','tendencias','gestion','cuaderno','calidad'];
+const PANELS = ['portal','proceso','analitica','zonas','informes','alertas','ajustes','tendencias','gestion','cuaderno','calidad','predictivo'];
 
 function sbNav(id) {
   // Hide all panels
@@ -6041,13 +6205,13 @@ function sbNav(id) {
   const labels = {portal:'Portal',proceso:'Simulador',analitica:'Macroscopía',zonas:'Zonas Anóxicas',
                   informes:'Informes SMS',alertas:'Alertas',ajustes:'Ajustes',
                   tendencias:'Tendencias',gestion:'Gestión Supervisor',cuaderno:'Cuaderno Diario',
-                  calidad:'Control de Calidad'};
+                  calidad:'Control de Calidad',predictivo:'Análisis predictivo'};
   const bc = document.getElementById('p-bc-section');
   if(bc){
     const curLang = localStorage.getItem('ute-lang') || 'es';
     const keyMap = {portal:'sbPortal',proceso:'sbSimulador',analitica:'sbMacroMicro',zonas:'sbZonas',
       informes:'sbInformes',alertas:'sbAlertas',ajustes:'sbAjustes',tendencias:'sbTendencias',
-      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad'};
+      gestion:'sbGestion',cuaderno:'sbCuaderno',calidad:'sbCalidad',predictivo:'sbPredictivo'};
     const dict = (typeof I18N!=='undefined' && I18N[curLang]) ? I18N[curLang] : null;
     bc.textContent = (dict && keyMap[id] && dict[keyMap[id]]) ? dict[keyMap[id]] : (labels[id] || id);
   }
@@ -12051,6 +12215,354 @@ ${fotosHtml}
   }
 
   window.zonasInit = zonasInit;
+})();
+</script>
+
+
+<!-- ══ ANÁLISIS PREDICTIVO: scripts ═════════════════════════════════════════ -->
+<script>
+(function(){
+  /* Previsión estadística a 7 / 30 días a partir del histórico de Firebase
+     (la misma carga diaria que usa Calidad: reactor, sms_datos, caudales, consumo).
+
+     Método (explicable y prudente):
+     · Ventana: últimos 60 días de datos válidos (>0).
+     · Tendencia lineal por mínimos cuadrados, tras descartar atípicos (>3,5 MAD).
+       La previsión de un efluente nunca supera la concentración de entrada
+       reciente (mediana 30 días): el tratamiento no puede añadir carga.
+     · La tendencia se AMORTIGUA (φ=0,95/día): a 30 días no se extrapola una recta
+       sin fin, se asume que el proceso tiende a estabilizarse.
+     · Caudal y energía añaden el patrón semanal (factor por día de la semana)
+       cuando hay ≥ 21 días.
+     · Rango probable = intervalo de predicción del 80 %; la probabilidad de superar
+       el límite sale de ese mismo modelo (distribución normal de los residuos).
+     No incluye cambios de operación (purga, dosificación), lluvia ni averías. */
+
+  const Z80=1.2816, DAY=864e5, PHI=0.95, WIN=60;
+  const LIM={dbo:25,dqo:125,sst:35,nt:15,pt:2};
+  const EF={
+    dbo:['dbo_ef','DBO EFLUENTE','dbo_efluente','dbo5_ef'],
+    dqo:['dqo_ef','DQO EFLUENTE','dqo_efluente'],
+    sst:['ss_efluente','SS EFLUENTE','sst_efluente','ss_ef'],
+    nt: ['nt_ef','NT EFLUENTE','nt_efluente'],
+    pt: ['pt_ef','PT EFLUENTE','pt_efluente'],
+  };
+  const LBL={dbo:'DBO₅',dqo:'DQO',sst:'SST',nt:'NT',pt:'PT'};
+  const ENT={
+    dbo:['dbo_ent','DBO5 ENTRADA','dbo_entrada','dbo5_ent'],
+    dqo:['dqo_ent','DQO ENTRADA','dqo_entrada'],
+    sst:['ss_entrada','sst_ent','SS ENTRADA','sst_entrada'],
+    nt: ['nt_ent','NT ENTRADA','nt_entrada'],
+    pt: ['pt_ent','PT ENTRADA','pt_entrada'],
+  };
+  function entradaReciente(ST,id){
+    const R=ST.reactor||{}, fs=Object.keys(R).sort().slice(-30), v=[];
+    fs.forEach(f=>{ const r=R[f]||{}; for(const a of ENT[id]){ if(valido(r[a])){ v.push(+r[a]); return; } } const s=r.edari; if(s&&valido(s[id+'_ent'])) v.push(+s[id+'_ent']); });
+    if(v.length<3) return null; v.sort((a,b)=>a-b); return v[Math.floor(v.length/2)];
+  }
+  let pdPlanta='edari', pdH=7, pdSel=null, pdSig='';
+
+  /* ── utilidades ── */
+  const nf=(n,d)=>(n==null||isNaN(n))?'—':(+n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const dec=v=>v>=100?0:(v>=10?1:(v>=1?1:2));
+  const nfv=v=>nf(v,dec(Math.abs(v)));
+  const fmtDM=iso=>{ if(!iso) return ''; const p=iso.split('-'); return p[2]+'/'+p[1]; };
+  const tOf=f=>Date.parse(f+'T12:00:00');
+  const isoOf=t=>{ const d=new Date(t); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  const valido=v=>v!=null&&v!==''&&!isNaN(+v)&&+v>0;
+  function Phi(z){ // CDF normal estándar (Abramowitz-Stegun 7.1.26)
+    const t=1/(1+0.3275911*Math.abs(z)/Math.SQRT2);
+    const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-z*z/2);
+    return z>=0?(1+y)/2:(1-y)/2;
+  }
+  function calcEdadFango(r){
+    if(!r) return null;
+    const SSr=+r.ss_reactor_gl, SSrc=+r.ss_recirc_gl, Qp=+r.q_purga, Qb=+r.caudal_bio, SSef=+r.ss_efluente;
+    const Vol=(+r.vol_reactor>0)?+r.vol_reactor:2167.9;
+    if(!(SSr>0&&Qp>0&&SSrc>0)) return null;
+    const sal=Qp*SSrc+((Qb>0&&SSef>=0)?Qb*SSef/1000:0);
+    return sal>0?SSr*Vol/sal:null;
+  }
+  function datos(){ return (window._cqGetDatos?window._cqGetDatos():window._ST_dash)||{reactor:{},caudales:{},consumo:{},sms_datos:{}}; }
+
+  /* ── series ── */
+  function serieEf(ST,id){
+    const R=ST.reactor||{}, S=ST.sms_datos||{};
+    const fs=[...new Set([...Object.keys(R),...Object.keys(S)])].sort(), out=[];
+    const smsF={dqo:'dqo_sal',sst:'sst_sal'}[id];
+    fs.forEach(f=>{
+      let v=null;
+      if(pdPlanta==='edari'){
+        for(const a of EF[id]){ const x=R[f]&&R[f][a]; if(valido(x)){ v=+x; break; } }
+        if(v==null&&smsF){ const s=(S[f]&&S[f].edari)||(R[f]&&R[f].edari); if(s&&valido(s[smsF])) v=+s[smsF]; }
+      } else if(smsF){
+        const s=(S[f]&&S[f].edaru)||(R[f]&&R[f].edaru); if(s&&valido(s[smsF])) v=+s[smsF];
+      }
+      if(v!=null) out.push({f,v});
+    });
+    return out;
+  }
+  function serieObj(obj,fn){ return Object.keys(obj||{}).sort().map(f=>({f,v:fn(obj[f])})).filter(p=>valido(p.v)).map(p=>({f:p.f,v:+p.v})); }
+  function sinAtipicos(s){
+    if(s.length<5) return {s,out:[]};
+    const o=s.map(p=>p.v).sort((a,b)=>a-b), med=o[Math.floor(o.length/2)];
+    const out=[]; const keep=s.filter(p=>{ const bad=p.v>Math.max(3*med,med+30); if(bad) out.push(p); return !bad; });
+    return {s:keep,out};
+  }
+
+  /* ── modelo: tendencia amortiguada (+ patrón semanal opcional) ── */
+  function modelo(serie,opt){
+    opt=opt||{};
+    if(!serie.length) return null;
+    const last=serie[serie.length-1], t0=tOf(last.f);
+    let pts=serie.map(p=>({x:(tOf(p.f)-t0)/DAY,v:p.v,f:p.f})).filter(p=>p.x>-WIN);
+    const tr=v=>opt.log?Math.log(v):v, inv=y=>opt.log?Math.exp(y):y;
+    pts.forEach(p=>p.y=tr(p.v));
+    if(pts.length<6) return {n:pts.length,insuf:true,last,pts};
+    function ols(P){ const n=P.length, xm=P.reduce((a,p)=>a+p.x,0)/n, ym=P.reduce((a,p)=>a+p.y,0)/n;
+      let sxx=0,sxy=0; P.forEach(p=>{ sxx+=(p.x-xm)**2; sxy+=(p.x-xm)*(p.y-ym); });
+      const b=sxx>0?sxy/sxx:0, a=ym-b*xm; return {n,xm,ym,sxx:sxx||1,b,a}; }
+    // La tendencia se estima con las últimas 4 semanas (si hay datos): responde a cambios recientes
+    const reciente=pts.filter(p=>p.x>-28);
+    const base=reciente.length>=8?reciente:pts;
+    let m=ols(base);
+    // descarte de atípicos por residuo (MAD)
+    const res=pts.map(p=>p.y-(m.a+m.b*p.x)), ar=res.map(Math.abs).sort((a,b)=>a-b), mad=ar[Math.floor(ar.length/2)]||0;
+    if(mad>0){ const P2=pts.filter((p,i)=>Math.abs(res[i])<=3.5*1.4826*mad); if(P2.length>=6&&P2.length<pts.length){ pts=P2; const r2=pts.filter(p=>p.x>-28); m=ols(r2.length>=8?r2:pts); } }
+    // patrón semanal (multiplicativo sobre la tendencia) para series diarias
+    let fac=null;
+    if(opt.semanal&&pts.length>=21){
+      const acc=Array.from({length:7},()=>[]);
+      pts.forEach(p=>{ const fit=m.a+m.b*p.x; if(fit>0) acc[new Date(tOf(p.f)).getDay()].push(p.y/fit); });
+      if(acc.every(a=>a.length>=2)){ fac=acc.map(a=>a.reduce((s,v)=>s+v,0)/a.length); const mf=fac.reduce((s,v)=>s+v,0)/7; fac=fac.map(v=>v/mf); }
+    }
+    const fitAt=p=>(m.a+m.b*p.x)*(fac?fac[new Date(tOf(p.f)).getDay()]:1);
+    // Anclaje del nivel: la previsión arranca desde lo que se mide ahora (media de residuos de las 5 últimas muestras)
+    { const ult=pts.slice(-5); const dr=ult.reduce((s,p)=>s+(p.y-fitAt(p)),0)/ult.length; m.a+=fac?dr/(fac.reduce((s,v)=>s+v,0)/7):dr; }
+    const sse=pts.reduce((s,p)=>s+(p.y-fitAt(p))**2,0), s=Math.sqrt(sse/Math.max(1,pts.length-2));
+    const seB=s/Math.sqrt(m.sxx), sig=Math.abs(m.b)>2*seB;
+    const D=h=>PHI*(1-Math.pow(PHI,h))/(1-PHI);
+    function at(h){
+      const f=isoOf(t0+h*DAY), dow=new Date(t0+h*DAY).getDay(), k=fac?fac[dow]:1;
+      const mu=(m.a+m.b*D(h))*(opt.log?1:k) + (opt.log&&fac?Math.log(k):0);
+      const sd=s*Math.sqrt(1+1/m.n+Math.pow(D(h)-m.xm,2)/m.sxx+h/60);
+      const cap=opt.max||Infinity;
+      const med=Math.min(cap,inv(mu)), lo=Math.min(cap,inv(mu-Z80*sd)), hi=Math.min(cap,inv(mu+Z80*sd));
+      const pOver=lim=>1-Phi(((opt.log?Math.log(lim):lim)-mu)/(sd||1e-9));
+      const pBetween=(a,b)=>Phi(((opt.log?Math.log(b):b)-mu)/sd)-Phi(((opt.log?Math.log(a):a)-mu)/sd);
+      return {h,f,mu,sd,med:Math.max(0,med),lo:Math.max(0,lo),hi:Math.max(0,hi),pOver,pBetween};
+    }
+    const hoy=at(0);
+    // pendiente semanal en unidades reales (sin amortiguar), solo si es significativa
+    const semana=inv(m.a+m.b*7)-inv(m.a);
+    return {n:pts.length,insuf:false,last,pts,m,s,sig,semana,at,hoy,desde:pts[0].f,log:!!opt.log};
+  }
+
+  /* ── dibujo: histórico + abanico de previsión ── */
+  function svgPrevision(box,serie,mod,H,o){
+    o=o||{};
+    const W=Math.max(200,box.clientWidth||300), Hh=Math.max(80,box.clientHeight||160);
+    const PL=o.pl||40, PR=10, PT=o.pt||12, PB=18, gW=W-PL-PR, gH=Hh-PT-PB;
+    const t0=tOf(mod.last.f), xmin=-Math.min(WIN,Math.max(21,H*2)), xmax=H;
+    const hist=serie.map(p=>({x:(tOf(p.f)-t0)/DAY,v:p.v,f:p.f})).filter(p=>p.x>=xmin);
+    const fut=[]; for(let h=0;h<=H;h++) fut.push(mod.at(h));
+    let ymax=Math.max(...hist.map(p=>p.v),...fut.map(p=>p.hi),o.lim?o.lim*1.15:0,o.band?o.band[1]*1.15:0)*1.08;
+    if(o.cap) ymax=Math.min(ymax,o.cap);
+    let ymin=o.ymin!=null?o.ymin:0;
+    if(o.autoMin){ const mn=Math.min(...hist.map(p=>p.v),...fut.map(p=>p.lo)); ymin=Math.max(0,Math.floor(mn*0.85/10)*10); }
+    const X=x=>PL+(x-xmin)/(xmax-xmin)*gW, Y=v=>PT+gH-(Math.min(v,ymax)-ymin)/(ymax-ymin||1)*gH;
+    const fan=fut.map(p=>X(p.h).toFixed(1)+','+Y(p.hi).toFixed(1)).join(' ')+' '+fut.slice().reverse().map(p=>X(p.h).toFixed(1)+','+Y(p.lo).toFixed(1)).join(' ');
+    const med=fut.map(p=>X(p.h).toFixed(1)+','+Y(p.med).toFixed(1)).join(' ');
+    const hl=hist.map(p=>X(p.x).toFixed(1)+','+Y(p.v).toFixed(1)).join(' ');
+    const u=o.unit||'';
+    const dots=o.dots===false?'':hist.map(p=>`<circle class="pt-int" cx="${X(p.x).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="${o.r||2.4}" fill="${o.lim&&p.v>o.lim?'var(--sg-crit)':'var(--sg-s1)'}" stroke="var(--sg-card)" stroke-width="1" data-tip="${o.name||''}|${fmtDM(p.f)}|${nfv(p.v)} ${u}"/>`).join('');
+    const end=fut[fut.length-1];
+    const tipEnd=`${o.name||''} · previsión|${fmtDM(end.f)}|${nfv(end.med)} ${u} (80 %: ${nfv(end.lo)}–${nfv(end.hi)})`;
+    const band=o.band?`<rect x="${PL}" width="${gW}" y="${Y(o.band[1]).toFixed(1)}" height="${(Y(o.band[0])-Y(o.band[1])).toFixed(1)}" fill="var(--sg-ok-soft)"/><text class="sg-ax" x="${W-PR}" y="${(Y(o.band[1])-3).toFixed(1)}" text-anchor="end">óptimo ${o.band[0]}–${o.band[1]}</text>`:'';
+    const lim=o.lim?`<line x1="${PL}" x2="${W-PR}" y1="${Y(o.lim).toFixed(1)}" y2="${Y(o.lim).toFixed(1)}" stroke="var(--sg-crit)" stroke-width="1.5"/><text class="sg-ax" x="${PL+4}" y="${(Y(o.lim)-4).toFixed(1)}" style="fill:var(--sg-crit)">límite ${nfv(o.lim)}</text>`:'';
+    const xh=X(0).toFixed(1);
+    return `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${o.name||''}: histórico y previsión a ${H} días; valor esperado ${nfv(end.med)} ${u}, rango 80 % ${nfv(end.lo)}–${nfv(end.hi)}">
+      <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${Y(ymin).toFixed(1)}" y2="${Y(ymin).toFixed(1)}"/>
+      ${band}
+      <rect x="${xh}" y="${PT}" width="${(X(xmax)-X(0)).toFixed(1)}" height="${gH}" fill="var(--sg-raised)" opacity=".45"/>
+      <polygon points="${fan}" fill="var(--sg-s1)" opacity=".22"/>
+      ${lim}
+      <polyline points="${hl}" fill="none" stroke="var(--sg-s1)" stroke-width="2" stroke-linejoin="round"/>
+      <polyline points="${med}" fill="none" stroke="var(--sg-s1)" stroke-width="2" stroke-dasharray="5,4"/>
+      ${dots}
+      <circle class="pt-int" cx="${X(end.h).toFixed(1)}" cy="${Y(end.med).toFixed(1)}" r="4" fill="var(--sg-card)" stroke="var(--sg-s1)" stroke-width="2" data-tip="${tipEnd}"/>
+      <line x1="${xh}" x2="${xh}" y1="${PT}" y2="${PT+gH}" stroke="var(--sg-subtle)" stroke-width="1" stroke-dasharray="2,3"/>
+      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(ymax,ymax<10?1:0)}</text>
+      <text class="sg-ax" x="${PL-5}" y="${(PT+gH).toFixed(1)}" text-anchor="end">${nf(ymin,0)}</text>
+      <text class="sg-ax" x="${X(xmin).toFixed(1)}" y="${Hh-3}">${fmtDM(isoOf(t0+xmin*DAY))}</text>
+      <text class="sg-ax" x="${xh}" y="${Hh-3}" text-anchor="middle">hoy</text>
+      <text class="sg-ax" x="${(W-PR).toFixed(1)}" y="${Hh-3}" text-anchor="end">${fmtDM(end.f)}</text>
+    </svg>`;
+  }
+
+  /* ── cálculo del estudio ── */
+  function estudio(){
+    const ST=datos(), H=pdH, hoyISO=isoOf(Date.now());
+    const ids=pdPlanta==='edari'?['dbo','dqo','sst','nt','pt']:['dqo','sst'];
+    const ef=ids.map(id=>{
+      const serie=serieEf(ST,id), ent=pdPlanta==='edari'?entradaReciente(ST,id):null, mod=modelo(serie,{max:ent||undefined});
+      const r={id,lbl:LBL[id],lim:LIM[id],serie,mod,ent};
+      if(mod&&!mod.insuf){
+        const e=mod.at(H); r.e=e; r.p=e.pOver(r.lim);
+        r.ult=mod.last; r.edad=Math.round((Date.now()-tOf(mod.last.f))/DAY);
+        // primer día en que la mediana cruza el límite
+        const now=mod.last.v>r.lim; r.cruce=null;
+        for(let h=1;h<=H;h++){ const m=mod.at(h).med; if(now?m<=r.lim:m>r.lim){ r.cruce=h; break; } }
+        r.nivel=r.p>=0.5?'crit':r.p>=0.15?'warn':'ok';
+      } else r.nivel='nd';
+      return r;
+    });
+    // operación
+    const key=pdPlanta;
+    const q=serieObj(ST.caudales,o=>o&&o[key]), k=serieObj(ST.consumo,o=>o&&o[key]);
+    const qM=modelo(q,{semanal:true}), kM=modelo(k,{semanal:true});
+    function total(mod){ if(!mod||mod.insuf) return null; let s=0,v=0; for(let h=1;h<=H;h++){ const a=mod.at(h); s+=a.med; v+=a.sd*a.sd; } const sd=Math.sqrt(v)*Math.sqrt(3); return {tot:s,lo:Math.max(0,s-Z80*sd),hi:s+Z80*sd,media:s/H}; }
+    const qT=total(qM), kT=total(kM);
+    let edad=null, sst=null;
+    if(pdPlanta==='edari'){
+      const eAll=serieObj(ST.reactor,calcEdadFango), ea=sinAtipicos(eAll);
+      edad={serie:ea.s,out:ea.out,mod:modelo(ea.s,{}),band:[15,20]};
+      const ss=serieObj(ST.reactor,r=>r&&+r.ss_reactor_gl>0?+r.ss_reactor_gl*1000:null);
+      sst={serie:ss,mod:modelo(ss,{}),band:[2000,4000]};
+    }
+    return {H,hoyISO,ef,q,qM,qT,k,kM,kT,edad,sst};
+  }
+
+  /* ── pintar ── */
+  function render(){
+    const panel=document.getElementById('panel-predictivo'); if(!panel||!panel.classList.contains('active')) return;
+    const E=estudio(), H=E.H, pl=pdPlanta==='edari'?'EDARi':'EDARu';
+    // nota de cabecera
+    const conDatos=E.ef.filter(r=>r.mod&&!r.mod.insuf);
+    const desde=conDatos.length?conDatos.map(r=>r.mod.desde).sort()[0]:null, hasta=conDatos.length?conDatos.map(r=>r.mod.last.f).sort().slice(-1)[0]:null;
+    const note=document.getElementById('pd-note');
+    if(note) note.innerHTML=desde?`Histórico usado <b>${fmtDM(desde)}–${fmtDM(hasta)}</b> (hasta ${WIN} días) · tendencia amortiguada + patrón semanal · rango 80 % · previsión a <b>${H} días</b> (${fmtDM(isoOf(Date.now()+H*DAY))})`:'Sin histórico suficiente. Carga el SMS Diario (M-04).';
+    const rt=document.getElementById('pd-risk-title'); if(rt) rt.textContent=`Efluente ${pl} previsto a ${H} días · RD 509/1996`;
+    const ot=document.getElementById('pd-ops-title'); if(ot) ot.textContent=`Operación prevista · próximos ${H} días`;
+
+    // 1 · tarjetas de riesgo
+    const rk=document.getElementById('pd-risk');
+    if(rk){
+      if(!pdSel||!E.ef.find(r=>r.id===pdSel&&r.e)){ const c=E.ef.filter(r=>r.e).sort((a,b)=>b.p-a.p)[0]; pdSel=c?c.id:null; }
+      rk.style.gridTemplateColumns=`repeat(${Math.max(E.ef.length,2)},minmax(0,1fr))`;
+      rk.innerHTML=E.ef.map(r=>{
+        if(!r.e) return `<div class="sg-card pd-rk"><div class="pd-rk__head"><span class="sg-label">${r.lbl}</span><span class="sg-badge nd">Sin datos</span></div><div class="pd-rk__val" style="color:var(--sg-subtle)">—</div><div class="pd-rk__sub">${r.mod?('Solo '+r.mod.n+' muestras en '+WIN+' días (mín. 6)'):'Sin muestras'}</div></div>`;
+        const pos=v=>Math.min(100,v/r.lim*100/150*100).toFixed(1)+'%';
+        const col=r.nivel==='crit'?'var(--sg-crit)':r.nivel==='warn'?'var(--sg-warn)':'var(--sg-ok)';
+        const badge=r.nivel==='crit'?'<span class="sg-badge crit">Riesgo alto</span>':r.nivel==='warn'?'<span class="sg-badge warn">Vigilar</span>':'<span class="sg-badge ok">Sin riesgo</span>';
+        const tend=r.mod.sig?((r.mod.semana>0?'▲ +':'▼ ')+nfv(r.mod.semana)+' mg/L/sem'):'estable';
+        const viejo=r.edad>7?` · <span style="color:var(--sg-warn)">◷ dato de hace ${r.edad} d</span>`:'';
+        const pTxt=r.p>=0.995?'>99 %':r.p<0.005?'<1 %':Math.round(r.p*100)+' %';
+        return `<button type="button" class="sg-card pd-rk ${r.nivel==='crit'?'is-crit':r.nivel==='warn'?'is-warn':''} ${r.id===pdSel?'sel':''}" onclick="pdSelParam('${r.id}')" aria-pressed="${r.id===pdSel}">
+          <div class="pd-rk__head"><span class="sg-label">${r.lbl} a ${H} d</span>${badge}</div>
+          <div><span class="pd-rk__val">${nfv(r.e.med)}</span><span class="sg-unit">mg/L</span></div>
+          <div class="pd-rk__sub">Hoy <b>${nfv(r.ult.v)}</b> (${fmtDM(r.ult.f)}) · rango ${nfv(r.e.lo)}–${nfv(r.e.hi)}${viejo}</div>
+          <div class="pd-meter" aria-hidden="true"><div class="pd-meter__ci" style="left:${pos(r.e.lo)};width:calc(${pos(r.e.hi)} - ${pos(r.e.lo)});background:${col}"></div><div class="pd-meter__now" style="left:${pos(r.ult.v)}"></div><div class="pd-meter__med" style="left:${pos(r.e.med)};background:${col}"></div><div class="pd-meter__lim"></div></div>
+          <div class="pd-rk__foot"><span>P. superar ${r.lim} mg/L: <span class="pd-prob ${r.nivel}">${pTxt}</span></span><span>${tend}</span></div>
+        </button>`;
+      }).join('');
+    }
+
+    // 2 · gráfico grande
+    const sel=E.ef.find(r=>r.id===pdSel);
+    const ch=document.getElementById('pd-chart'), cT=document.getElementById('pd-chart-title'), cS=document.getElementById('pd-chart-sub');
+    if(ch){
+      if(sel&&sel.e){
+        if(cT) cT.textContent=`${sel.lbl} efluente ${pl} · histórico y previsión a ${H} días`;
+        if(cS) cS.textContent=`${sel.mod.n} muestras · esperado ${nfv(sel.e.med)} mg/L el ${fmtDM(sel.e.f)}`;
+        ch.innerHTML=svgPrevision(ch,sel.serie,sel.mod,H,{lim:sel.lim,unit:'mg/L',name:sel.lbl});
+      } else { ch.innerHTML='<div class="sg-caption">Sin datos suficientes para la previsión.</div>'; if(cT) cT.textContent='Previsión'; if(cS) cS.textContent=''; }
+    }
+
+    // 3 · operación
+    const ops=document.getElementById('pd-ops');
+    const cards=[];
+    if(E.qT) cards.push({id:'q',t:'Caudal '+pl,big:nf(E.qT.tot,0),u:'m³',meta:`Media <b>${nf(E.qT.media,0)}</b> m³/d · rango ${nf(E.qT.lo,0)}–${nf(E.qT.hi,0)} m³`,serie:E.q,mod:E.qM,o:{unit:'m³/d',name:'Caudal',dots:false,autoMin:true}});
+    else cards.push({t:'Caudal '+pl,nd:true});
+    if(E.kT){ const esp=E.qT?E.kT.tot/E.qT.tot:null; cards.push({id:'k',t:'Energía '+pl,big:nf(E.kT.tot,0),u:'kWh',meta:`${esp!=null?'<b>'+nf(esp,2)+'</b> kWh/m³ · ':''}media ${nf(E.kT.media,0)} kWh/d · rango ${nf(E.kT.lo,0)}–${nf(E.kT.hi,0)}`,serie:E.k,mod:E.kM,o:{unit:'kWh',name:'Energía',dots:false,autoMin:true}}); }
+    else cards.push({t:'Energía '+pl,nd:true});
+    if(E.edad){
+      const m=E.edad.mod;
+      if(m&&!m.insuf){ const e=m.at(H), pb=e.pBetween(15,20); cards.push({id:'e',t:'Edad de fango',big:nf(e.med,1),u:'d',meta:`Rango ${nf(e.lo,1)}–${nf(e.hi,1)} d · P. en banda 15–20: <b>${Math.round(pb*100)} %</b>${E.edad.out.length?' · '+E.edad.out.length+' atípico excluido':''}`,serie:E.edad.serie,mod:m,o:{unit:'d',name:'Edad de fango',band:[15,20],dots:false}}); }
+      else cards.push({t:'Edad de fango',nd:true});
+      const s=E.sst.mod;
+      if(s&&!s.insuf){ const e=s.at(H), pb=e.pBetween(2000,4000); cards.push({id:'s',t:'SST reactor',big:nf(e.med,0),u:'mg/L',meta:`Rango ${nf(e.lo,0)}–${nf(e.hi,0)} · P. en banda 2.000–4.000: <b>${Math.round(pb*100)} %</b>`,serie:E.sst.serie,mod:s,o:{unit:'mg/L',name:'SST reactor',band:[2000,4000],dots:false,autoMin:true}}); }
+      else cards.push({t:'SST reactor',nd:true});
+    }
+    if(ops){
+      ops.style.gridTemplateColumns=`repeat(${cards.length},minmax(0,1fr))`;
+      ops.innerHTML=cards.map((c,i)=>c.nd?`<div class="sg-card pd-op"><div class="pd-op__head"><span class="pd-op__title">${c.t}</span></div><div class="sg-caption">Sin datos suficientes</div></div>`:
+        `<div class="sg-card pd-op"><div class="pd-op__head"><span class="pd-op__title">${c.t}</span><span class="pd-op__big">${c.big}<span class="sg-unit">${c.u}</span></span></div><div class="pd-op__meta">${c.meta}</div><div class="pd-op__chart" id="pd-op-${i}"></div></div>`).join('');
+      cards.forEach((c,i)=>{ if(c.nd) return; const b=document.getElementById('pd-op-'+i); if(b) b.innerHTML=svgPrevision(b,c.serie,c.mod,H,Object.assign({pl:44,pt:14},c.o)); });
+    }
+
+    // 4 · conclusiones
+    conclusiones(E,pl);
+  }
+
+  function conclusiones(E,pl){
+    const el=document.getElementById('pd-concl'), bd=document.getElementById('pd-concl-badges'); if(!el) return;
+    const H=E.H, C=[];
+    const pTxt=p=>p>=0.995?'>99 %':p<0.005?'<1 %':Math.round(p*100)+' %';
+    const conE=E.ef.filter(r=>r.e);
+    conE.filter(r=>r.nivel==='crit').sort((a,b)=>b.p-a.p).forEach(r=>{
+      const sigue=r.ult.v>r.lim;
+      C.push({l:'crit',t:`<b>${r.lbl}: ${sigue?'seguirá por encima del límite':'superará el límite'}</b> si no se actúa. Esperado a ${H} días <b>${nfv(r.e.med)} mg/L</b> (rango ${nfv(r.e.lo)}–${nfv(r.e.hi)}; límite ${r.lim}). Probabilidad de superarlo: <b>${pTxt(r.p)}</b>.${r.mod.sig?` <span class="mut">Tendencia ${r.mod.semana>0?'+':''}${nfv(r.mod.semana)} mg/L por semana.</span>`:''}${!sigue&&r.cruce?` <span class="mut">Cruce previsto hacia el ${fmtDM(isoOf(tOf(r.ult.f)+r.cruce*DAY))}.</span>`:''}${r.ent&&r.e.hi>=r.ent*0.999?` <span class="mut">Rango limitado por la entrada (${nfv(r.ent)} mg/L): sería un rendimiento casi nulo.</span>`:''}`});
+    });
+    conE.filter(r=>r.nivel==='warn').forEach(r=>C.push({l:'warn',t:`<b>${r.lbl}: vigilar.</b> Esperado ${nfv(r.e.med)} mg/L a ${H} días (rango hasta ${nfv(r.e.hi)}); probabilidad de superar ${r.lim} mg/L: <b>${pTxt(r.p)}</b>.`}));
+    const bien=conE.filter(r=>r.nivel==='ok');
+    if(bien.length) C.push({l:'ok',t:`<b>${bien.map(r=>r.lbl).join(', ')}: sin riesgo previsto</b> a ${H} días <span class="mut">(probabilidad de superar el límite &lt;15 %; ${bien.map(r=>r.lbl+' '+Math.round(r.e.med/r.lim*100)+' % del límite').join(' · ')}).</span>`});
+    const viejos=conE.filter(r=>r.edad>7);
+    if(viejos.length) C.push({l:'warn',t:`<b>Datos antiguos:</b> ${viejos.map(r=>r.lbl+' (última muestra '+fmtDM(r.ult.f)+')').join(', ')}. <span class="mut">La previsión parte de ese dato; una analítica nueva la ajustaría.</span>`});
+    E.ef.filter(r=>!r.e).forEach(r=>C.push({l:'info',t:`<b>${r.lbl}:</b> sin muestras suficientes para prever (${r.mod?r.mod.n:0} en ${WIN} días).`}));
+    if(E.edad&&E.edad.mod&&!E.edad.mod.insuf){
+      const m=E.edad.mod, e=m.at(H), hoyV=m.last.v, pb=e.pBetween(15,20);
+      let entra=null; for(let h=1;h<=H;h++){ const v=m.at(h).med; if(v>=15&&v<=20){ entra=h; break; } }
+      const fuera=hoyV>20||hoyV<15;
+      C.push({l:fuera&&pb<0.5?'warn':'ok',t:`<b>Edad de fango:</b> ${fuera?`con la purga actual seguiría en <b>~${nf(e.med,0)} d</b> (óptimo 15–20)`:`se mantendría en ~${nf(e.med,1)} d`}; probabilidad de estar en banda a ${H} días: <b>${Math.round(pb*100)} %</b>.${fuera&&hoyV>20?' <span class="mut">Mantiene el riesgo de bulking; hace falta aumentar la purga para acercarla a la banda.</span>':''}${entra&&fuera?` <span class="mut">Por tendencia entraría en banda en ~${entra} días.</span>`:''}`});
+    }
+    if(E.qT){
+      let pat='';
+      if(E.qM.pts&&E.qM.pts.length>=21){ const acc=Array.from({length:7},()=>[]); E.qM.pts.forEach(p=>acc[new Date(tOf(p.f)).getDay()].push(p.v)); const med=acc.map(a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null); const g=med.reduce((s,v)=>s+(v||0),0)/med.filter(v=>v!=null).length; const DN=['domingos','lunes','martes','miércoles','jueves','viernes','sábados']; const imax=med.indexOf(Math.max(...med.filter(v=>v!=null))), imin=med.indexOf(Math.min(...med.filter(v=>v!=null))); const amp=(med[imax]-med[imin])/g; if(amp>0.1) pat=` <span class="mut">Patrón semanal: los ${DN[imax]} entra ~${Math.round((med[imax]/g-1)*100)} % más y los ${DN[imin]} ~${Math.round((1-med[imin]/g)*100)} % menos.</span>`; }
+      C.push({l:'info',t:`<b>Caudal:</b> se esperan <b>${nf(E.qT.tot,0)} m³</b> en ${H} días (media ${nf(E.qT.media,0)} m³/d; rango ${nf(E.qT.lo,0)}–${nf(E.qT.hi,0)}).${E.qM.sig?` <span class="mut">Tendencia ${E.qM.semana>0?'al alza':'a la baja'} (${E.qM.semana>0?'+':''}${nf(E.qM.semana,0)} m³/d por semana).</span>`:''}${pat}`});
+    }
+    if(E.kT){ const esp=E.qT?E.kT.tot/E.qT.tot:null; C.push({l:'info',t:`<b>Energía:</b> consumo previsto <b>${nf(E.kT.tot,0)} kWh</b> en ${H} días${esp!=null?`, <b>${nf(esp,2)} kWh/m³</b>`:''}.${E.kM.sig?` <span class="mut">Tendencia ${E.kM.semana>0?'al alza':'a la baja'} (${E.kM.semana>0?'+':''}${nf(E.kM.semana,0)} kWh/d por semana).</span>`:''}`}); }
+    C.push({l:'info',t:`<span class="mut">Previsión estadística sobre el histórico (${pl}). No contempla cambios de operación (purga, dosificación), lluvias ni averías: si se actúa sobre el proceso, el resultado cambiará.</span>`});
+    const IC={crit:'!',warn:'▲',ok:'✓',info:'i'};
+    el.innerHTML=C.map(c=>`<div class="pd-c ${c.l}"><div class="pd-c__ic">${IC[c.l]}</div><div>${c.t}</div></div>`).join('');
+    const nC=C.filter(c=>c.l==='crit').length, nW=C.filter(c=>c.l==='warn').length;
+    if(bd) bd.innerHTML=(nC?`<span class="sg-badge crit">${nC} riesgo${nC>1?'s':''} alto${nC>1?'s':''}</span> `:'')+(nW?`<span class="sg-badge warn">${nW} a vigilar</span>`:'')+(!nC&&!nW?(conE.length?'<span class="sg-badge ok">Sin riesgos</span>':'<span class="sg-badge nd">Sin datos</span>'):'');
+    // encajar el texto en el recuadro (para capturas)
+    el.style.removeProperty('--pd-fs');
+    let fs=15; el.style.setProperty('--pd-fs',fs+'px');
+    while(el.scrollHeight>el.clientHeight+1&&fs>11){ fs-=0.5; el.style.setProperty('--pd-fs',fs+'px'); }
+    el.classList.toggle('is-fitted',el.scrollHeight<=el.clientHeight+1);
+  }
+
+  /* ── controles y ciclo de vida ── */
+  window.pdSetPlanta=function(p){ pdPlanta=p; pdSel=null; document.querySelectorAll('#pd-head [data-pl]').forEach(b=>b.classList.toggle('active',b.dataset.pl===p)); render(); };
+  window.pdSetHorizonte=function(h){ pdH=h; document.querySelectorAll('#pd-head [data-h]').forEach(b=>b.classList.toggle('active',+b.dataset.h===h)); render(); };
+  window.pdSelParam=function(id){ pdSel=id; render(); };
+  window.pdRender=render;
+  function firma(){ const ST=datos(); return ['reactor','caudales','consumo','sms_datos'].map(k=>{ const o=ST[k]||{}, ks=Object.keys(o); return ks.length+':'+(ks.sort().slice(-1)[0]||''); }).join('|'); }
+  const _prevNav=window.sbNav;
+  window.sbNav=function(id){
+    _prevNav(id);
+    if(id==='predictivo'){
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ pdSig=firma(); render(); }));
+      if(!window._pdResizeObs&&window.ResizeObserver){
+        let t; window._pdResizeObs=new ResizeObserver(()=>{ clearTimeout(t); t=setTimeout(render,120); });
+        const b=document.getElementById('pd-body'); if(b) window._pdResizeObs.observe(b);
+      }
+    }
+  };
+  // Si llegan datos nuevos de Firebase mientras el panel está abierto, se recalcula
+  setInterval(()=>{ const p=document.getElementById('panel-predictivo'); if(p&&p.classList.contains('active')){ const s=firma(); if(s!==pdSig){ pdSig=s; render(); } } },4000);
 })();
 </script>
 
