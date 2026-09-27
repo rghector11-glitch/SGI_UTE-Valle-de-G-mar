@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="SGI UTE">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -2574,266 +2574,268 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .cq-bio-kpi-u{font-size:8.5px;color:var(--muted);margin-left:2px;}
             .cq-bio-kpi-band{font-size:8px;color:var(--muted2);font-family:var(--mono);margin-top:3px;}
             .cq-bio-kpi-avg{font-size:8px;color:#7dd8c7;font-family:var(--mono);margin-top:2px;opacity:.85;}
-            /* En los temas Deep Blue (por defecto) y Midnight, los nombres de los KPI
-               (etiquetas de las tarjetas de cumplimiento, del reactor biológico y de
-               los gauges de rendimiento) apenas se distinguían en gris apagado sobre
-               fondo muy oscuro — se ponen en blanco para que se lean bien. */
-            #panel-calidad .cq-comp-lbl,
-            #panel-calidad .cq-bio-kpi-l,
-            #panel-calidad .cq-rend-lbl{color:#fff;fill:#fff;}
-            body.theme-forest #panel-calidad .cq-comp-lbl,
-            body.theme-forest #panel-calidad .cq-bio-kpi-l,
-            body.theme-forest #panel-calidad .cq-rend-lbl,
-            body.theme-light #panel-calidad .cq-comp-lbl,
-            body.theme-light #panel-calidad .cq-bio-kpi-l,
-            body.theme-light #panel-calidad .cq-rend-lbl{color:var(--muted);fill:var(--muted,#5d7390);}
             .cq-bio-bulk{border-radius:8px;padding:8px 10px;font-size:9.5px;line-height:1.35;border:1px solid var(--border);}
             .cq-bio-bulk-hd{font-size:8px;text-transform:uppercase;letter-spacing:.6px;font-family:var(--mono);margin-bottom:3px;font-weight:700;}
 
-            /* ═══ SUAVIZADO VISUAL — solo apartado Calidad ═══════════════════════
-               Tarjetas flotantes con esquinas redondeadas, sombra suave y un
-               ligero efecto "glass" (semitransparencia + desenfoque de fondo),
-               en vez de los bloques planos con bordes duros contiguos. */
-            #panel-calidad{--cq-radius:14px; --cq-radius-sm:10px;}
-            #panel-calidad .cq-glass{
-              background:rgba(255,255,255,.035);
-              -webkit-backdrop-filter:blur(14px) saturate(140%);
-              backdrop-filter:blur(14px) saturate(140%);
-              border:1px solid rgba(255,255,255,.08);
-              box-shadow:0 6px 20px -8px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
-              transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+
+            /* ═══ SISTEMA DE DISEÑO «SGI Güímar» — apartado Calidad ═══════════════
+               Reglas: el color de estado (ok/warn/crit) solo significa estado;
+               las series de datos van en --sg-s1/--sg-s2; texto mínimo 12px y
+               contraste ≥4.5:1 en todos los temas. */
+            #panel-calidad{
+              --sg-bg:#0c1424; --sg-card:#111c2f; --sg-raised:#172739; --sg-line:#26384d;
+              --sg-ink:#e8eef5; --sg-muted:#a9b8c9; --sg-subtle:#8a9bb0;
+              --sg-brand:#4cc3f0; --sg-brand-soft:rgba(76,195,240,.14);
+              --sg-ok:#3ddc97;   --sg-ok-soft:rgba(61,220,151,.12);
+              --sg-warn:#f5b83d; --sg-warn-soft:rgba(245,184,61,.13);
+              --sg-crit:#ff7a7a; --sg-crit-soft:rgba(255,122,122,.13);
+              --sg-s1:#6ea8fe; --sg-s2:#b197fc;
+              --sg-num:'Barlow Semi Condensed','Barlow Condensed',sans-serif;
+              --sg-sans:'Barlow',system-ui,sans-serif;
+              background:var(--sg-bg); color:var(--sg-ink); font-family:var(--sg-sans);
             }
-            #panel-calidad .cq-glass:hover{
-              border-color:rgba(255,255,255,.16);
-              box-shadow:0 10px 26px -8px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+            /* Forest y Midnight conservan sus superficies propias */
+            body.theme-forest #panel-calidad,body.theme-midnight #panel-calidad{--sg-bg:var(--surface); --sg-card:var(--panel); --sg-raised:var(--card); --sg-line:var(--border-l);}
+            body.theme-light #panel-calidad{
+              --sg-bg:#eef2f7; --sg-card:#ffffff; --sg-raised:#eef2f6; --sg-line:#d5dde6;
+              --sg-ink:#0f1b2a; --sg-muted:#46576b; --sg-subtle:#5b6b7e;
+              --sg-brand:#0a6f9c; --sg-brand-soft:#dcf0f9;
+              --sg-ok:#16794f;   --sg-ok-soft:#dff4ea;
+              --sg-warn:#8f5b00; --sg-warn-soft:#fdf1d8;
+              --sg-crit:#c0282d; --sg-crit-soft:#fde8e8;
+              --sg-s1:#2563c9; --sg-s2:#7048c8;
             }
-            /* Franja de cumplimiento: pasa de tiras pegadas a tarjetas sueltas */
-            #cq-compliance{gap:9px;padding:10px 12px;background:transparent;}
-            #panel-calidad .cq-comp-card{
-              border-right:none;border-radius:var(--cq-radius-sm);padding:10px 13px;
-            }
-            #panel-calidad .cq-head-actions{border-left:none;border-radius:var(--cq-radius-sm);padding:8px 12px;margin:10px 12px 10px 0;}
-            #panel-calidad #cq-comp-verdict{border-radius:999px;padding:6px 13px;}
-            /* Tarjetas del reactor biológico, gauges, TRH, cumplimiento, chips, clima */
-            #panel-calidad .cq-bio-kpi,
-            #panel-calidad .cq-gauge,
-            #panel-calidad .cq-trh-item,
-            #panel-calidad .cq-cumpl-stat,
-            #panel-calidad .cq-wx-meta-item,
-            #panel-calidad .cq-wx-day,
-            #panel-calidad .cq-sec-row{
-              border-radius:var(--cq-radius-sm);
-            }
-            #panel-calidad .cq-bio-bulk{border-radius:var(--cq-radius);}
-            #panel-calidad .cq-chip{border-radius:999px;padding:4px 10px;}
-            #panel-calidad .cq-tag{border-radius:999px;padding:2px 8px;}
-            #panel-calidad .cq-plant-seg{border-radius:999px;padding:3px;}
-            #panel-calidad .cq-plant-btn{border-radius:999px;}
-            #panel-calidad .cq-btn,#panel-calidad .cq-month-btn{border-radius:999px;}
-            #panel-calidad .cq-pdf-btn{border-radius:12px;}
-            #panel-calidad .cq-comp-bar,#panel-calidad .cq-gauge-bar,#panel-calidad .cq-stock-bar{border-radius:99px;}
-            #panel-calidad .cq-comp-fill,#panel-calidad .cq-gauge-fill,#panel-calidad .cq-stock-fill{border-radius:99px;}
-            #panel-calidad .cq-cumpl-cell{border-radius:5px;}
-            /* Bordes generales del panel más suaves (menos "duros") */
-            #panel-calidad #cq-head{border-bottom-color:rgba(255,255,255,.06);}
-            #panel-calidad #cq-decision{border-top-color:rgba(255,255,255,.06);}
-            #panel-calidad .cq-dec-col+.cq-dec-col{border-left-color:rgba(255,255,255,.06);}
-            #panel-calidad .cq-sec-hd{border-bottom-color:rgba(255,255,255,.06);}
+            #panel-calidad .sg-num{font-family:var(--sg-num);font-variant-numeric:tabular-nums;font-weight:600;}
+            #panel-calidad .sg-label{font-family:var(--mono);font-size:12px;line-height:16px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--sg-muted);}
+            #panel-calidad .sg-caption{font-size:12px;line-height:16px;color:var(--sg-subtle);}
+            #panel-calidad .sg-unit{font-size:12px;color:var(--sg-muted);margin-left:4px;font-family:var(--sg-sans);font-weight:400;}
+            #panel-calidad .sg-card{background:var(--sg-card);border:1px solid var(--sg-line);border-radius:8px;padding:14px 16px;min-width:0;}
+            #panel-calidad .sg-sec{display:flex;align-items:center;gap:8px;margin:0 0 8px;}
+            #panel-calidad .sg-sec .sg-caption{margin-left:auto;}
+            #panel-calidad .sg-block{padding:0 16px 16px;}
+            #panel-calidad .sg-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;font-size:12px;line-height:16px;font-weight:600;border:1px solid currentColor;white-space:nowrap;}
+            #panel-calidad .sg-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+            #panel-calidad .sg-badge.ok{color:var(--sg-ok);background:var(--sg-ok-soft);}
+            #panel-calidad .sg-badge.warn{color:var(--sg-warn);background:var(--sg-warn-soft);}
+            #panel-calidad .sg-badge.crit{color:var(--sg-crit);background:var(--sg-crit-soft);}
+            #panel-calidad .sg-btn{font:600 13px/18px var(--sg-sans);padding:7px 14px;border-radius:6px;border:1px solid var(--sg-line);background:var(--sg-card);color:var(--sg-ink);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+            #panel-calidad .sg-btn:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
+            #panel-calidad .sg-btn:focus-visible,#panel-calidad .cq-plant-btn:focus-visible{outline:2px solid var(--sg-brand);outline-offset:2px;}
+            #panel-calidad .sg-btn.crit{background:var(--sg-crit);border-color:var(--sg-crit);color:#fff;}
+            body.theme-light #panel-calidad .sg-btn.crit{color:#fff;}
+            #panel-calidad .sg-btn.crit:hover{filter:brightness(1.08);color:#fff;}
+
+            /* Cabecera: selector de planta con color de marca, no verde */
+            #panel-calidad #cq-plant-tabs{border-bottom:1px solid var(--sg-line);padding:8px 16px;gap:12px;}
+            #panel-calidad .cq-plant-seg{border-radius:999px;padding:3px;background:var(--sg-raised);border-color:var(--sg-line);}
+            #panel-calidad .cq-plant-btn{border-radius:999px;font-size:12px;color:var(--sg-muted);}
+            #panel-calidad .cq-plant-btn.active{background:var(--sg-brand);color:#04202e;}
+            body.theme-light #panel-calidad .cq-plant-btn.active{color:#fff;}
+            #panel-calidad #cq-plant-note{font-size:12px;color:var(--sg-subtle);}
+            #panel-calidad #cq-export-toggle{margin-left:auto;border:1px solid var(--sg-line);background:var(--sg-card);color:var(--sg-ink);font-size:12px;border-radius:6px;}
+            #panel-calidad #cq-export-toggle:hover{border-color:var(--sg-brand);color:var(--sg-brand);background:var(--sg-card);}
+            #panel-calidad #cq-daysel-banner{font-size:12px;}
+            #panel-calidad #cq-right{top:48px;}
+
+            /* StatusStrip */
+            #cq-status{padding:12px 16px;border-bottom:1px solid var(--sg-line);}
+            .sg-strip{display:flex;align-items:center;gap:16px;padding:10px 16px;border-radius:8px;border:1px solid var(--sg-line);background:var(--sg-card);}
+            .sg-strip.crit{border-color:var(--sg-crit);background:var(--sg-crit-soft);}
+            .sg-strip.warn{border-color:var(--sg-warn);background:var(--sg-warn-soft);}
+            .sg-strip.ok{border-color:var(--sg-ok);background:var(--sg-ok-soft);}
+            .sg-strip__icon{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;background:var(--sg-raised);color:var(--sg-muted);}
+            .sg-strip.crit .sg-strip__icon{background:var(--sg-crit);color:#fff;}
+            .sg-strip.warn .sg-strip__icon{background:var(--sg-warn);color:#1d1400;}
+            .sg-strip.ok .sg-strip__icon{background:var(--sg-ok);color:#05261a;}
+            body.theme-light .sg-strip.ok .sg-strip__icon,body.theme-light .sg-strip.warn .sg-strip__icon{color:#fff;}
+            .sg-strip__body{flex:1;min-width:0;}
+            .sg-strip__title{font-size:16px;line-height:22px;font-weight:600;color:var(--sg-ink);}
+            .sg-strip__title b{color:var(--sg-crit);}
+            .sg-strip.warn .sg-strip__title b{color:var(--sg-warn);}
+            .sg-strip__meta{font-size:13px;line-height:18px;color:var(--sg-muted);}
+            .sg-strip__value{font-family:var(--sg-num);font-size:40px;line-height:44px;font-weight:600;color:var(--sg-crit);font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+            /* Scroll del cuerpo */
+            #panel-calidad #cq-body{padding-top:14px;}
+
+            /* KpiCard (efluente) */
+            #cq-compliance{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;}
+            @media(max-width:1200px){#cq-compliance{grid-template-columns:repeat(3,minmax(0,1fr));}}
+            @media(max-width:700px){#cq-compliance{grid-template-columns:repeat(2,minmax(0,1fr));}}
+            #panel-calidad .sg-kpi{display:flex;flex-direction:column;gap:7px;}
+            #panel-calidad .sg-kpi.is-crit{background:var(--sg-crit-soft);border-color:var(--sg-crit);}
+            #panel-calidad .sg-kpi__head{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:20px;}
+            #panel-calidad .sg-kpi__value{font-family:var(--sg-num);font-size:32px;line-height:36px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sg-ink);}
+            #panel-calidad .sg-kpi.is-crit .sg-kpi__value{color:var(--sg-crit);}
+            #panel-calidad .sg-kpi.is-warn .sg-kpi__value{color:var(--sg-warn);}
+            #panel-calidad .sg-kpi.is-nd .sg-kpi__value{color:var(--sg-subtle);}
+            #panel-calidad .sg-kpi__ref{font-size:12px;line-height:16px;color:var(--sg-muted);}
+            #panel-calidad .sg-kpi__ref b{color:var(--sg-ink);font-weight:600;}
+            #panel-calidad .sg-kpi.is-crit .sg-kpi__ref b{color:var(--sg-crit);}
+            #panel-calidad .sg-kpi.is-warn .sg-kpi__ref b{color:var(--sg-warn);}
+            #panel-calidad .sg-kpi__foot{display:flex;justify-content:space-between;gap:6px;font-size:12px;line-height:16px;color:var(--sg-subtle);}
+            #panel-calidad .sg-delta.worse{color:var(--sg-crit);}
+            #panel-calidad .sg-delta.better{color:var(--sg-ok);}
+            #panel-calidad .sg-stale{color:var(--sg-warn);}
+            #panel-calidad .sg-meter{position:relative;height:6px;border-radius:4px;background:var(--sg-raised);}
+            #panel-calidad .sg-meter__fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--sg-ok);transition:width .5s ease;}
+            #panel-calidad .sg-meter__fill.warn{background:var(--sg-warn);}
+            #panel-calidad .sg-meter__fill.crit{background:var(--sg-crit);}
+            #panel-calidad .sg-meter__limit{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--sg-ink);left:66.667%;opacity:.85;}
+
+            /* Alertas + reactor */
+            #panel-calidad #cq-lowrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:12px;padding:0 16px 16px;flex:none;min-height:0;}
+            @media(max-width:1100px){#panel-calidad #cq-lowrow{grid-template-columns:1fr;}}
+            #panel-calidad .sg-alerts__head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+            #panel-calidad .sg-alert{display:grid;grid-template-columns:24px 1fr auto;gap:12px;padding:10px 0;border-top:1px solid var(--sg-line);font-size:14px;line-height:20px;color:var(--sg-ink);}
+            #panel-calidad .sg-alert__icon{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;}
+            #panel-calidad .sg-alert.crit .sg-alert__icon{background:var(--sg-crit);color:#fff;}
+            #panel-calidad .sg-alert.warn .sg-alert__icon{background:var(--sg-warn);color:#1d1400;}
+            body.theme-light #panel-calidad .sg-alert.warn .sg-alert__icon{color:#fff;}
+            #panel-calidad .sg-alert.ok .sg-alert__icon{background:var(--sg-ok-soft);color:var(--sg-ok);}
+            #panel-calidad .sg-alert.nd .sg-alert__icon{background:var(--sg-raised);color:var(--sg-muted);}
+            #panel-calidad .sg-alert__what{font-weight:600;}
+            #panel-calidad .sg-alert__why{color:var(--sg-muted);}
+            #panel-calidad .sg-alert__do{margin-top:3px;}
+            #panel-calidad .sg-alert__do::before{content:"→ ";color:var(--sg-brand);font-weight:700;}
+            #panel-calidad .sg-alert__when{font-size:12px;color:var(--sg-subtle);white-space:nowrap;}
+
+            /* Reactor biológico: tarjetas compactas con banda óptima */
+            #panel-calidad .cq-bio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0;}
+            @media(max-width:700px){#panel-calidad .cq-bio-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+            #panel-calidad .cq-bio-kpi{background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:8px;padding:10px 12px;}
+            #panel-calidad .cq-bio-kpi.is-crit{border-color:var(--sg-crit);background:var(--sg-crit-soft);}
+            #panel-calidad .cq-bio-kpi.is-warn{border-color:var(--sg-warn);}
+            #panel-calidad .cq-bio-kpi-l{font-size:12px;color:var(--sg-muted);letter-spacing:.04em;}
+            #panel-calidad .cq-bio-kpi-v{font-family:var(--sg-num);font-size:24px;line-height:30px;font-weight:600;font-variant-numeric:tabular-nums;}
+            #panel-calidad .cq-bio-kpi-u{font-size:12px;color:var(--sg-muted);margin-left:4px;}
+            #panel-calidad .cq-bio-kpi-band,#panel-calidad .cq-bio-kpi-avg{font-size:12px;line-height:16px;color:var(--sg-subtle);font-family:var(--sg-sans);margin-top:2px;opacity:1;}
+            #panel-calidad .cq-bio-kpi-band b{font-weight:600;}
+
+            /* Operación: 4 tarjetas */
+            #panel-calidad #cq-charts-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:0;}
+            @media(max-width:1200px){#panel-calidad #cq-charts-row{grid-template-columns:repeat(2,minmax(0,1fr));}}
+            #panel-calidad .cq-chart-block{background:var(--sg-card);border:1px solid var(--sg-line);border-radius:8px;padding:14px 16px;height:auto;min-height:190px;}
+            #panel-calidad .cq-chart-row{align-items:baseline;gap:8px;margin-bottom:2px;flex-wrap:wrap;}
+            #panel-calidad .cq-chart-title{font-size:15px;font-weight:600;color:var(--sg-ink);}
+            #panel-calidad .cq-chart-big{font-family:var(--sg-num);font-size:24px;font-weight:600;margin-left:auto;color:var(--sg-ink)!important;font-variant-numeric:tabular-nums;}
+            #panel-calidad .cq-chart-meta{font-size:12px;line-height:16px;color:var(--sg-subtle);margin-bottom:6px;}
+            #panel-calidad .cq-chart-meta b{color:var(--sg-ink);font-weight:600;}
+            #panel-calidad .cq-leg{display:none;}
+            #panel-calidad #cq-caudal-chart,#panel-calidad #cq-elec-chart,#panel-calidad #cq-fango-chart{height:110px;flex:none!important;min-height:0!important;}
+            #panel-calidad .sg-ax{font-family:var(--mono);font-size:11px;fill:var(--sg-subtle);}
+            #panel-calidad .sg-grid{stroke:var(--sg-line);stroke-width:1;}
+
+            /* BulletBar */
+            #panel-calidad .sg-bullet{display:grid;grid-template-columns:48px 1fr 52px;align-items:center;gap:10px;padding:5px 0;}
+            #panel-calidad .sg-bullet__name{font-size:13px;font-weight:600;color:var(--sg-ink);}
+            #panel-calidad .sg-bullet__track{position:relative;height:12px;border-radius:4px;background:var(--sg-raised);}
+            #panel-calidad .sg-bullet__fill{position:absolute;left:0;top:2px;bottom:2px;border-radius:3px;background:var(--sg-ok);transition:width .5s ease;}
+            #panel-calidad .sg-bullet__fill.warn{background:var(--sg-warn);}
+            #panel-calidad .sg-bullet__fill.crit{background:var(--sg-crit);}
+            #panel-calidad .sg-bullet__target{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--sg-ink);}
+            #panel-calidad .sg-bullet__value{font-family:var(--sg-num);font-size:17px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;color:var(--sg-ink);}
+            #panel-calidad .sg-bullet__value.crit{color:var(--sg-crit);}
+            #panel-calidad .sg-bullet__value.warn{color:var(--sg-warn);}
+
+            /* Tendencias: small multiples */
+            #cq-trends{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+            #panel-calidad .sg-trend__head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px;}
+            #panel-calidad .sg-trend__last{font-family:var(--sg-num);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sg-ink);}
+            #panel-calidad .sg-trend__last.crit{color:var(--sg-crit);}
+            #panel-calidad .sg-trend__last.warn{color:var(--sg-warn);}
+            #panel-calidad .sg-trend__svg{height:104px;}
+            #panel-calidad .sg-trend__svg svg{display:block;width:100%;height:100%;overflow:visible;}
+
           </style>
 
-          <script>
-            // Aplica la clase "glass" a las tarjetas del panel de Calidad tras insertarlas en el DOM
-            (function(){
-              function cqAplicarGlass(){
-                const sel=['#cq-compliance .cq-comp-card','.cq-head-actions','#cq-comp-verdict',
-                  '.cq-bio-kpi','.cq-gauge','.cq-trh-item','.cq-cumpl-stat','.cq-wx-meta-item','.cq-wx-day',
-                  '.cq-sec-row','.cq-bio-bulk','.cq-chip','.cq-trend-card','.cq-chart-block','#cq-bioblock','#cq-incidblock'];
-                document.querySelectorAll(sel.join(',')).forEach(function(el){
-                  if(el.closest('#panel-calidad')) el.classList.add('cq-glass');
-                });
-              }
-              document.addEventListener('DOMContentLoaded',cqAplicarGlass);
-              // Reaplicar cada vez que Calidad redibuja sus tarjetas dinámicamente
-              const _mo=new MutationObserver(function(muts){
-                for(const m of muts){ if(m.addedNodes && m.addedNodes.length){ cqAplicarGlass(); break; } }
-              });
-              document.addEventListener('DOMContentLoaded',function(){
-                const p=document.getElementById('panel-calidad');
-                if(p) _mo.observe(p,{childList:true,subtree:true});
-              });
-              // Por si el panel ya existe al ejecutarse este script
-              cqAplicarGlass();
-            })();
-          </script>
-
-          <!-- ══ CUADRO DE MANDO: cumplimiento RD 509/1996 + estado de proceso ══ -->
+          <!-- ══ CUADRO DE MANDO (sistema de diseño SGI Güímar) ══════════════════
+               Orden: estado → efluente → alertas + reactor → operación → tendencias -->
           <div id="cq-head">
-            <!-- Selector de planta -->
+            <!-- Selector de planta + exportar -->
             <div id="cq-plant-tabs">
-              <div class="cq-plant-seg">
+              <div class="cq-plant-seg" role="tablist" aria-label="Planta">
                 <button class="cq-plant-btn active" data-plant="edari" onclick="cqSetPlanta('edari')">EDARi</button>
                 <button class="cq-plant-btn" data-plant="edaru" onclick="cqSetPlanta('edaru')">EDARu</button>
               </div>
               <span id="cq-plant-note">Línea biológica · reactor 2.167,9 m³ · 5 parámetros RD 509/1996</span>
+              <button id="cq-export-toggle" onclick="cqToggleExport(event)" title="Exportar informe PDF">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Informe PDF <span class="cq-caret">▼</span>
+              </button>
             </div>
             <!-- Banner de día fijado (histórico) -->
             <div id="cq-daysel-banner"></div>
-            <!-- Gráfico fijo: % del límite de los 5 parámetros, últimos 30 días -->
-            <div id="cq-trend-wrap" class="cq-trend-card">
-              <div class="cq-trend-hd">
-                <div class="cq-trend-hd-l">
-                  <span class="cq-trend-dot"></span>
-                  <span class="cq-trend-title">Tendencia · % del límite RD 509/1996</span>
-                  <span class="cq-trend-sub">últimos 30 días</span>
-                </div>
-                <div class="cq-leg" id="cq-trend-legend"></div>
-              </div>
-              <div id="cq-trend-chart" class="cq-trend-svg"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Cargando…</div></div>
-            </div>
-            <!-- Fila 1: cumplimiento del efluente -->
-            <div id="cq-compliance">
-              <div class="cq-comp-card">
-                <div class="cq-comp-top"><span class="cq-comp-lbl">DBO₅ efluente</span><span class="cq-comp-trend" id="cq-c-dbo-tr"></span></div>
-                <div><span class="cq-comp-val" id="cq-c-dbo-v">—</span><span class="cq-comp-unit">mg/L</span></div>
-                <div class="cq-comp-sub" id="cq-c-dbo-s">Límite 25 mg/L</div>
-                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-dbo-b" style="width:0%"></div></div>
-              </div>
-              <div class="cq-comp-card">
-                <div class="cq-comp-top"><span class="cq-comp-lbl">DQO efluente</span><span class="cq-comp-trend" id="cq-c-dqo-tr"></span></div>
-                <div><span class="cq-comp-val" id="cq-c-dqo-v">—</span><span class="cq-comp-unit">mg/L</span></div>
-                <div class="cq-comp-sub" id="cq-c-dqo-s">Límite 125 mg/L</div>
-                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-dqo-b" style="width:0%"></div></div>
-              </div>
-              <div class="cq-comp-card">
-                <div class="cq-comp-top"><span class="cq-comp-lbl">SST efluente</span><span class="cq-comp-trend" id="cq-c-sst-tr"></span></div>
-                <div><span class="cq-comp-val" id="cq-c-sst-v">—</span><span class="cq-comp-unit">mg/L</span></div>
-                <div class="cq-comp-sub" id="cq-c-sst-s">Límite 35 mg/L</div>
-                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-sst-b" style="width:0%"></div></div>
-              </div>
-              <div class="cq-comp-card">
-                <div class="cq-comp-top"><span class="cq-comp-lbl">NT efluente</span><span class="cq-comp-trend" id="cq-c-nt-tr"></span></div>
-                <div><span class="cq-comp-val" id="cq-c-nt-v">—</span><span class="cq-comp-unit">mg/L</span></div>
-                <div class="cq-comp-sub" id="cq-c-nt-s">Límite 15 mg/L</div>
-                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-nt-b" style="width:0%"></div></div>
-              </div>
-              <div class="cq-comp-card">
-                <div class="cq-comp-top"><span class="cq-comp-lbl">PT efluente</span><span class="cq-comp-trend" id="cq-c-pt-tr"></span></div>
-                <div><span class="cq-comp-val" id="cq-c-pt-v">—</span><span class="cq-comp-unit">mg/L</span></div>
-                <div class="cq-comp-sub" id="cq-c-pt-s">Límite 2 mg/L</div>
-                <div class="cq-comp-bar"><div class="cq-comp-fill" id="cq-c-pt-b" style="width:0%"></div></div>
-              </div>
-              <div class="cq-head-actions">
-                <span id="cq-comp-verdict">—</span>
-                <button id="cq-export-toggle" onclick="cqToggleExport(event)" title="Exportar informe PDF">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Exportar informe <span class="cq-caret">▼</span>
-                </button>
-              </div>
-            </div>
-            <!-- Fila 2: riesgo de bulking + recomendaciones operativas -->
-            <div id="cq-decision">
-              <div class="cq-dec-col">
-                <div class="cq-dec-hd">▸ Riesgo de bulking filamentoso</div>
-                <div id="cq-bio-bulk" class="cq-bio-bulk" style="display:none;margin:0;"></div>
-              </div>
-              <div class="cq-dec-col">
-                <div class="cq-dec-hd">▸ Recomendaciones operativas</div>
-                <div class="cq-reco" id="cq-reco-list"><div class="cq-reco-item"><span class="cq-reco-tx cq-reco-ok">Esperando datos del proceso…</span></div></div>
-              </div>
+            <!-- Franja de estado: no conformidades abiertas -->
+            <div id="cq-status">
+              <div class="sg-strip"><div class="sg-strip__icon" aria-hidden="true">⟳</div><div class="sg-strip__body"><div class="sg-strip__title">Cargando estado del efluente…</div></div></div>
             </div>
           </div>
           <!-- Overlay para cerrar el desglose al pulsar fuera -->
           <div id="cq-export-overlay" onclick="cqToggleExport()"></div>
 
-          <!-- BODY grid -->
+          <!-- BODY -->
           <div id="cq-body">
 
-            <!-- Cabecera de la sección de análisis -->
-            <div class="cq-sec-hd" style="flex-shrink:0;">
-              <div class="cq-sec-dot" style="background:var(--accent)"></div>
-              <div class="cq-sec-title">Análisis Operacional</div>
-              <div class="cq-sec-right">
-                <button class="cq-btn cq-btn-accent" onclick="cqExportPDF()">↓ PDF Mes</button>
+            <!-- 1 · Efluente -->
+            <div class="sg-block">
+              <div class="sg-sec"><span class="sg-label">Efluente · RD 509/1996</span><span class="sg-caption">Barra: % del límite · marca = 100 %</span></div>
+              <div id="cq-compliance">
+                <div class="sg-card sg-kpi" id="cq-c-dbo"><div class="sg-kpi__head"><span class="sg-label">DBO₅ efluente</span><span id="cq-c-dbo-bd"></span></div><div><span class="sg-kpi__value" id="cq-c-dbo-v">—</span><span class="sg-unit">mg/L</span></div><div class="sg-kpi__ref" id="cq-c-dbo-s">Límite 25 mg/L</div><div class="sg-meter" aria-hidden="true"><div class="sg-meter__fill" id="cq-c-dbo-b" style="width:0%"></div><div class="sg-meter__limit"></div></div><div class="sg-kpi__foot"><span id="cq-c-dbo-f"></span><span id="cq-c-dbo-tr"></span></div></div>
+                <div class="sg-card sg-kpi" id="cq-c-dqo"><div class="sg-kpi__head"><span class="sg-label">DQO efluente</span><span id="cq-c-dqo-bd"></span></div><div><span class="sg-kpi__value" id="cq-c-dqo-v">—</span><span class="sg-unit">mg/L</span></div><div class="sg-kpi__ref" id="cq-c-dqo-s">Límite 125 mg/L</div><div class="sg-meter" aria-hidden="true"><div class="sg-meter__fill" id="cq-c-dqo-b" style="width:0%"></div><div class="sg-meter__limit"></div></div><div class="sg-kpi__foot"><span id="cq-c-dqo-f"></span><span id="cq-c-dqo-tr"></span></div></div>
+                <div class="sg-card sg-kpi" id="cq-c-sst"><div class="sg-kpi__head"><span class="sg-label">SST efluente</span><span id="cq-c-sst-bd"></span></div><div><span class="sg-kpi__value" id="cq-c-sst-v">—</span><span class="sg-unit">mg/L</span></div><div class="sg-kpi__ref" id="cq-c-sst-s">Límite 35 mg/L</div><div class="sg-meter" aria-hidden="true"><div class="sg-meter__fill" id="cq-c-sst-b" style="width:0%"></div><div class="sg-meter__limit"></div></div><div class="sg-kpi__foot"><span id="cq-c-sst-f"></span><span id="cq-c-sst-tr"></span></div></div>
+                <div class="sg-card sg-kpi" id="cq-c-nt"><div class="sg-kpi__head"><span class="sg-label">NT efluente</span><span id="cq-c-nt-bd"></span></div><div><span class="sg-kpi__value" id="cq-c-nt-v">—</span><span class="sg-unit">mg/L</span></div><div class="sg-kpi__ref" id="cq-c-nt-s">Límite 15 mg/L</div><div class="sg-meter" aria-hidden="true"><div class="sg-meter__fill" id="cq-c-nt-b" style="width:0%"></div><div class="sg-meter__limit"></div></div><div class="sg-kpi__foot"><span id="cq-c-nt-f"></span><span id="cq-c-nt-tr"></span></div></div>
+                <div class="sg-card sg-kpi" id="cq-c-pt"><div class="sg-kpi__head"><span class="sg-label">PT efluente</span><span id="cq-c-pt-bd"></span></div><div><span class="sg-kpi__value" id="cq-c-pt-v">—</span><span class="sg-unit">mg/L</span></div><div class="sg-kpi__ref" id="cq-c-pt-s">Límite 2 mg/L</div><div class="sg-meter" aria-hidden="true"><div class="sg-meter__fill" id="cq-c-pt-b" style="width:0%"></div><div class="sg-meter__limit"></div></div><div class="sg-kpi__foot"><span id="cq-c-pt-f"></span><span id="cq-c-pt-tr"></span></div></div>
               </div>
             </div>
 
-            <!-- FILA 1: los 4 gráficos operacionales, uno junto a otro -->
-            <div id="cq-charts-row">
-
-              <!-- Caudal chart -->
-              <div class="cq-chart-block">
-                <div class="cq-chart-row">
-                  <div class="cq-chart-title" id="cq-caudal-title">Caudal entrada</div>
-                  <div class="cq-chart-big" style="color:var(--accent)" id="cq-caudal-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span></div>
-                </div>
-                <div class="cq-chart-meta" id="cq-caudal-meta">Cargando…</div>
-                <div class="cq-leg" id="cq-caudal-leg">
-                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:var(--accent)"></div>EDARI</div>
-                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#8b5cf6"></div>EDARU</div>
-                </div>
-                <div id="cq-caudal-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
-              </div>
-
-              <!-- Eléctrico chart -->
-              <div class="cq-chart-block">
-                <div class="cq-chart-row">
-                  <div class="cq-chart-title" id="cq-elec-title">Consumo eléctrico</div>
-                  <div class="cq-chart-big" style="color:#b388ff" id="cq-elec-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span></div>
-                </div>
-                <div class="cq-chart-meta" id="cq-elec-meta">Cargando…</div>
-                <div class="cq-leg" id="cq-elec-leg">
-                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#10b981"></div>EDARI</div>
-                  <div class="cq-leg-item"><div class="cq-leg-dot" style="background:#a78bfa"></div>EDARU</div>
-                </div>
-                <div id="cq-elec-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
-              </div>
-
-              <!-- Rendimientos -->
-              <div class="cq-chart-block">
-                <div class="cq-chart-row">
-                  <div class="cq-chart-title">Rendimientos · <span id="cq-rend-sub">—</span></div>
-                </div>
-                <div id="cq-rend-chart" style="flex:1;display:flex;align-items:center;">
-                  <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Cargando…</div>
-                </div>
-              </div>
-
-              <!-- Edad fango -->
-              <div class="cq-chart-block">
-                <div class="cq-chart-row">
-                  <div class="cq-chart-title" id="cq-fango-title">Edad de fango</div>
-                  <div class="cq-chart-big" style="color:#f59e0b" id="cq-fango-val">— <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span></div>
-                </div>
-                <div class="cq-chart-meta" id="cq-fango-meta">Cargando…</div>
-                <div id="cq-fango-chart" style="flex:1;overflow:hidden;min-height:55px;"><div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">⟳ Esperando datos…</div></div>
-              </div>
-
-            </div><!-- /#cq-charts-row -->
-
-            <!-- FILA 2: Reactor biológico (ancho) + Últimas incidencias (estrecho) -->
+            <!-- 2 · Alertas y acciones (une recomendaciones, bulking e incidencias) + reactor -->
             <div id="cq-lowrow">
+              <div class="sg-card" id="cq-alerts">
+                <div class="sg-alerts__head"><span class="sg-label">Alertas y acciones</span><span id="cq-alerts-count"></span></div>
+                <div id="cq-alerts-list"><div class="sg-caption">⟳ Calculando…</div></div>
+              </div>
+              <div class="sg-card" id="cq-bioblock">
+                <div class="sg-sec"><span class="sg-label">Reactor biológico · <span id="cq-bio-sub">EDARi</span></span><span class="sg-caption">Óptimo = banda de referencia</span></div>
+                <div id="cq-bio-grid" class="cq-bio-grid"><div class="sg-caption" style="grid-column:1/-1">⟳ Calculando…</div></div>
+              </div>
+            </div>
 
-              <div id="cq-bioblock">
-                <div class="cq-sec-hd" style="position:relative">
-                  <div class="cq-sec-dot" style="background:#b388ff"></div>
-                  <div class="cq-sec-title">Reactor biológico · <span id="cq-bio-sub">EDARi</span></div>
+            <!-- 3 · Operación -->
+            <div class="sg-block">
+              <div class="sg-sec"><span class="sg-label">Operación · 30 días</span></div>
+              <div id="cq-charts-row">
+                <div class="cq-chart-block">
+                  <div class="cq-chart-row"><div class="cq-chart-title" id="cq-caudal-title">Caudal entrada</div><div class="cq-chart-big" id="cq-caudal-val">—<span class="sg-unit">m³/d</span></div></div>
+                  <div class="cq-chart-meta" id="cq-caudal-meta">Cargando…</div>
+                  <div class="cq-leg" id="cq-caudal-leg"></div>
+                  <div id="cq-caudal-chart"><div class="sg-caption">⟳ Esperando datos…</div></div>
                 </div>
-                <div id="cq-bio" style="padding:14px 16px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;justify-content:center;">
-                  <div id="cq-bio-grid" class="cq-bio-grid"><div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono)">⟳ Calculando…</div></div>
+                <div class="cq-chart-block">
+                  <div class="cq-chart-row"><div class="cq-chart-title" id="cq-elec-title">Consumo eléctrico</div><div class="cq-chart-big" id="cq-elec-val">—<span class="sg-unit">kWh/m³</span></div></div>
+                  <div class="cq-chart-meta" id="cq-elec-meta">Cargando…</div>
+                  <div class="cq-leg" id="cq-elec-leg"></div>
+                  <div id="cq-elec-chart"><div class="sg-caption">⟳ Esperando datos…</div></div>
+                </div>
+                <div class="cq-chart-block">
+                  <div class="cq-chart-row"><div class="cq-chart-title">Rendimientos</div></div>
+                  <div class="cq-chart-meta" id="cq-rend-sub">—</div>
+                  <div id="cq-rend-chart"><div class="sg-caption">⟳ Cargando…</div></div>
+                </div>
+                <div class="cq-chart-block">
+                  <div class="cq-chart-row"><div class="cq-chart-title" id="cq-fango-title">Edad de fango</div><div class="cq-chart-big" id="cq-fango-val">—<span class="sg-unit">d</span></div></div>
+                  <div class="cq-chart-meta" id="cq-fango-meta">Cargando…</div>
+                  <div id="cq-fango-chart"><div class="sg-caption">⟳ Esperando datos…</div></div>
                 </div>
               </div>
+            </div>
 
-              <div id="cq-incidblock">
-                <div class="cq-sec-hd">
-                  <div class="cq-sec-dot" style="background:#60a5fa"></div>
-                  <div class="cq-sec-title">Últimas incidencias</div>
-                </div>
-                <div id="cq-incid-list" style="padding:10px 14px;flex:1;overflow-y:auto;min-height:0;">
-                  <div style="color:var(--muted);font-size:9px;font-family:var(--mono)">⟳ Calculando…</div>
-                </div>
-              </div>
+            <!-- 4 · Tendencias: un mini-gráfico por parámetro -->
+            <div class="sg-block">
+              <div class="sg-sec"><span class="sg-label">Tendencia 30 días · % del límite</span><span class="sg-caption">Línea roja = límite legal · lo que pasa de 150 % se marca arriba</span></div>
+              <div id="cq-trends"><div class="sg-caption">⟳ Cargando…</div></div>
+            </div>
 
-            </div><!-- /#cq-lowrow -->
 
             <!-- RIGHT: PDF (panel flotante, se abre con el botón "Exportar informe") -->
             <div id="cq-right">
@@ -9646,60 +9648,51 @@ if(typeof waitForFirebase==='function'){
     return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>${pts}${yL}${xL}</svg>`;
   }
 
+  /* ─── Helpers del sistema de diseño (SGI Güímar) ───────────────────────── */
+  function _cqW(el){ return Math.max(160, Math.round((el&&el.clientWidth)||300)); }
+  function _cqH(el,def){ return Math.max(70, Math.round((el&&el.clientHeight)||def)); }
+  function _nf(n,d){ return (n==null||isNaN(n))?'—':(+n).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+  function _cqDaysAgo(iso){ if(!iso) return null; const t=new Date(iso+'T12:00:00'); if(isNaN(t)) return null; return Math.floor((Date.now()-t.getTime())/86400000); }
+  function _cqXLabels(fechas, x, H){
+    const idxs=[0,fechas.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+    return idxs.map((i,k)=>`<text class="sg-ax" x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="${k===0?'start':'end'}">${_fmtDM(fechas[i])}</text>`).join('');
+  }
+
   /* ─── Dibujar gráficos del módulo Calidad ───────────────────────────────── */
   function cqDibujaCaudal(){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
     const pl=(typeof cqPlanta!=='undefined')?cqPlanta:'edari';
     const key=pl==='edari'?'edari':'edaru';
-    const col=pl==='edari'?'var(--accent,#3aafe8)':'var(--purple,#9788e6)';
     const lbl=pl==='edari'?'EDARi':'EDARu';
     const ti=document.getElementById('cq-caudal-title'); if(ti) ti.textContent='Caudal entrada '+lbl;
-    const lg=document.getElementById('cq-caudal-leg'); if(lg) lg.innerHTML='<div class="cq-leg-item"><div class="cq-leg-dot" style="background:'+col+'"></div>'+lbl+'</div>';
     const dias=ultimosDias(ST.caudales,30,v=>v&&(+v[key]>0));
     const cont=document.getElementById('cq-caudal-chart');
+    const tv=document.getElementById('cq-caudal-val'), tm=document.getElementById('cq-caudal-meta');
     if(!cont) return;
-    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos de caudal ('+lbl+')</div>'; const tv=document.getElementById('cq-caudal-val'); if(tv) tv.innerHTML='— <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span>'; const tm=document.getElementById('cq-caudal-meta'); if(tm) tm.textContent=lbl+' · sin datos'; return; }
-    const datos=dias.map(f=>({f, v:(ST.caudales[f]||{})[key]}));
-    const contH=Math.max(60,cont.clientHeight||90);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
-    const vals=datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v));
-    if(!vals.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos</div>'; return; }
-    const minV=Math.min(...vals),maxV=Math.max(...vals),rng=maxV-minV||1;
-    const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
-    const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
-    const poly=datos.map((d,i)=>{const yy=y(d.v);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean).join(' ');
-    // Área de relleno bajo la curva, en un tono pastel suave (degradado hacia transparente)
-    const validPts=datos.map((d,i)=>({x:x(i),y:y(d.v)})).filter(p=>p.y!=null);
-    let areaPath='';
-    if(validPts.length){
-      areaPath='M'+validPts[0].x.toFixed(1)+','+(PT+gH).toFixed(1)+' '+
-        validPts.map(p=>'L'+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')+
-        ' L'+validPts[validPts.length-1].x.toFixed(1)+','+(PT+gH).toFixed(1)+' Z';
-    }
-    const fillId='cqCaudalFill_'+pl;
-    const pastel=pl==='edari'?'#7dd8c7':'#c3b8f2'; // menta pastel / lavanda pastel
-    const pts=datos.map((d,i)=>{const yy=y(d.v);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2" fill="${col}" stroke="var(--surface)" stroke-width="1" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d.v)} m³/d"/>`;}).join('');
-    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(minV)}</text>`;
-    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
-    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${pastel}" stop-opacity="0.45"/>
-          <stop offset="100%" stop-color="${pastel}" stop-opacity="0.03"/>
-        </linearGradient>
-      </defs>
-      <line x1="${PL}" y1="${PT+gH/2}" x2="${W-PR}" y2="${PT+gH/2}" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="2,2" opacity="0.5"/>
-      ${areaPath?`<path d="${areaPath}" fill="url(#${fillId})" stroke="none"/>`:''}
-      ${poly?`<polyline points="${poly}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/>`:''}
-      ${pts}${yL}${xL}
-    </svg>`;
-    const last=[...datos].reverse().find(d=>d.v!=null);
+    if(!dias.length){ cont.innerHTML='<div class="sg-caption">Sin datos de caudal ('+lbl+')</div>'; if(tv) tv.innerHTML='—<span class="sg-unit">m³/d</span>'; if(tm) tm.textContent=lbl+' · sin datos'; return; }
+    const datos=dias.map(f=>({f, v:+(ST.caudales[f]||{})[key]}));
+    const vals=datos.map(d=>d.v);
+    const W=_cqW(cont), H=_cqH(cont,110), PL=40, PR=4, PT=6, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+    const minV=Math.min(...vals), maxV=Math.max(...vals), rng=maxV-minV||1;
     const media=vals.reduce((a,v)=>a+v,0)/vals.length;
-    const tv=document.getElementById('cq-caudal-val');
-    if(tv) tv.innerHTML=_fmtK(last?last.v:null)+' <span style="font-size:12px;font-weight:400;color:var(--muted)">m³/d</span>';
-    const tm=document.getElementById('cq-caudal-meta');
-    if(tm) tm.textContent=`${lbl} · ${dias.length} días · media: ${_fmtK(media)} m³/d`;
+    const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
+    const y=v=>PT+gH-(v-minV)/rng*gH;
+    const poly=datos.map((d,i)=>x(i).toFixed(1)+','+y(d.v).toFixed(1)).join(' ');
+    const pts=datos.map((d,i)=>`<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="2.5" fill="var(--sg-s1)" stroke="var(--sg-card)" stroke-width="1" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d.v)} m³/d"/>`).join('');
+    const yM=y(media).toFixed(1);
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" role="img" aria-label="Caudal de entrada ${lbl}, ${dias.length} días, media ${_fmtK(media)} m³/d">
+      <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT}" y2="${PT}"/><line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT+gH}" y2="${PT+gH}"/>
+      <line x1="${PL}" x2="${W-PR}" y1="${yM}" y2="${yM}" stroke="var(--sg-subtle)" stroke-width="1" stroke-dasharray="4,3"/>
+      <polyline points="${poly}" fill="none" stroke="var(--sg-s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${pts}
+      <text class="sg-ax" x="${PL-5}" y="${PT+4}" text-anchor="end">${_fmtK(maxV)}</text>
+      <text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${_fmtK(minV)}</text>
+      ${_cqXLabels(dias,x,H)}
+    </svg>`;
+    const last=datos[datos.length-1];
+    if(tv) tv.innerHTML=_fmtK(last.v)+'<span class="sg-unit">m³/d</span>';
+    if(tm) tm.innerHTML=`Último ${_fmtDM(last.f)} · media <b>${_fmtK(media)}</b> m³/d (línea discontinua)`;
   }
 
   function cqDibujaConsumo(){
@@ -9707,32 +9700,37 @@ if(typeof waitForFirebase==='function'){
     if(!ST) return;
     const pl=(typeof cqPlanta!=='undefined')?cqPlanta:'edari';
     const key=pl==='edari'?'edari':'edaru';
-    const col=pl==='edari'?'var(--accent,#3aafe8)':'var(--purple,#9788e6)';
     const lbl=pl==='edari'?'EDARi':'EDARu';
-    const ti=document.getElementById('cq-elec-title'); if(ti) ti.textContent='Consumo eléctrico '+lbl;
-    const lg=document.getElementById('cq-elec-leg'); if(lg) lg.innerHTML='<div class="cq-leg-item"><div class="cq-leg-dot" style="background:'+col+'"></div>'+lbl+'</div>';
+    const ti=document.getElementById('cq-elec-title'); if(ti) ti.textContent='Energía '+lbl;
     const dias=ultimosDias(ST.consumo,30,v=>v&&(+v[key]>0));
     const cont=document.getElementById('cq-elec-chart');
+    const tv=document.getElementById('cq-elec-val'), tm=document.getElementById('cq-elec-meta');
     if(!cont) return;
-    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos ('+lbl+')</div>'; const tv=document.getElementById('cq-elec-val'); if(tv) tv.innerHTML='— <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span>'; const tm=document.getElementById('cq-elec-meta'); if(tm) tm.textContent=lbl+' · sin datos'; return; }
-    const datos=dias.map(f=>({f,v:(ST.consumo[f]||{})[key]||0}));
+    if(!dias.length){ cont.innerHTML='<div class="sg-caption">Sin datos ('+lbl+')</div>'; if(tv) tv.innerHTML='—<span class="sg-unit">kWh/m³</span>'; if(tm) tm.textContent=lbl+' · sin datos'; return; }
+    const datos=dias.map(f=>({f,v:+(ST.consumo[f]||{})[key]||0}));
     const maxT=Math.max(...datos.map(d=>d.v),1);
-    const contH=Math.max(60,cont.clientHeight||90);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const W=_cqW(cont), H=_cqH(cont,110), PL=40, PR=4, PT=6, PB=18, gW=W-PL-PR, gH=H-PT-PB;
     const bw=gW/datos.length;
     const barras=datos.map((d,k)=>{
-      const xx=(PL+k*bw+0.5).toFixed(1), w=Math.max(1,bw-1.2).toFixed(1);
+      const xx=(PL+k*bw+0.5).toFixed(1), w=Math.max(1,bw-1.5).toFixed(1);
       const h=((d.v/maxT)*gH).toFixed(1), yy=(PT+gH-+h).toFixed(1);
-      return `<rect class="br-int" x="${xx}" y="${yy}" width="${w}" height="${h}" fill="${col}" opacity="0.75" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d.v)} kWh"/>`;
+      return `<rect class="br-int" x="${xx}" y="${yy}" width="${w}" height="${h}" rx="1.5" fill="var(--sg-s2)" data-tip="${lbl}|${_fmtDM(d.f)}|${_fmtK(d.v)} kWh"/>`;
     }).join('');
-    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxT)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">0</text>`;
-    const xL=idxs.map(i=>`<text x="${(PL+i*bw+bw/2).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
-    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">${barras}${yL}${xL}</svg>`;
-    const totMes=datos.reduce((a,d)=>a+d.v,0), media=totMes/datos.length;
-    const tv=document.getElementById('cq-elec-val');
-    if(tv) tv.innerHTML=_fmtK(totMes)+' <span style="font-size:12px;font-weight:400;color:var(--muted)">kWh</span>';
-    const tm=document.getElementById('cq-elec-meta');
-    if(tm) tm.textContent=`${lbl} · ${dias.length} días · media: ${_fmtK(media)} kWh/d`;
+    const x=i=>PL+i*bw+bw/2;
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" role="img" aria-label="Consumo eléctrico diario ${lbl}, ${dias.length} días">
+      <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT+gH}" y2="${PT+gH}"/>
+      ${barras}
+      <text class="sg-ax" x="${PL-5}" y="${PT+4}" text-anchor="end">${_fmtK(maxT)}</text>
+      <text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">0</text>
+      ${_cqXLabels(dias,x,H)}
+    </svg>`;
+    const totK=datos.reduce((a,d)=>a+d.v,0), media=totK/datos.length;
+    // Consumo específico: kWh por m³ tratado, solo con días que tienen consumo Y caudal
+    let sK=0,sQ=0;
+    dias.forEach(f=>{ const q=+((ST.caudales||{})[f]||{})[key]||0, k=+(ST.consumo[f]||{})[key]||0; if(q>0&&k>0){ sK+=k; sQ+=q; } });
+    const esp=sQ>0?sK/sQ:null;
+    if(tv) tv.innerHTML=(esp!=null?_nf(esp,2):'—')+'<span class="sg-unit">kWh/m³</span>';
+    if(tm) tm.innerHTML=`Total 30 d <b>${_fmtK(totK)}</b> kWh · media ${_fmtK(media)} kWh/d`;
   }
 
   /* Tercer gráfico para EDARu: Turbidez (NTU) o, si no hay, DQO salida */
@@ -9747,15 +9745,15 @@ if(typeof waitForFirebase==='function'){
     const field=tieneNtu?'ntu':'dqo_sal';
     const titulo=tieneNtu?'Turbidez efluente':'DQO salida';
     const unidad=tieneNtu?'NTU':'mg/L';
-    const col='#a78bfa';
+    const col='var(--sg-s2)';
     const ti=document.getElementById('cq-fango-title'); if(ti) ti.textContent=titulo+' EDARu';
     const tvEl=document.getElementById('cq-fango-val');
     const tmEl=document.getElementById('cq-fango-meta');
     const dias=ks.filter(f=>{const s=subU(f);return s&&s[field]!=null&&s[field]!==''&&!isNaN(+s[field]);}).slice(-30);
-    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos EDARu</div>'; if(tvEl) tvEl.innerHTML='— <span style="font-size:12px;font-weight:400;color:var(--muted)">'+unidad+'</span>'; if(tmEl) tmEl.textContent='EDARu · sin datos'; return; }
+    if(!dias.length){ cont.innerHTML='<div class="sg-caption">Sin datos EDARu</div>'; if(tvEl) tvEl.innerHTML='— <span style="font-size:12px;font-weight:400;color:var(--muted)">'+unidad+'</span>'; if(tmEl) tmEl.textContent='EDARu · sin datos'; return; }
     const datos=dias.map(f=>({f,v:+subU(f)[field]}));
     const vals=datos.map(d=>d.v).filter(v=>!isNaN(v));
-    const contH=Math.max(60,cont.clientHeight||85);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    const contH=Math.max(60,cont.clientHeight||85);const W=_cqW(cont),H=_cqH(cont,110),PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
     const minV=Math.min(...vals),maxV=Math.max(...vals),rng=maxV-minV||1;
     const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
     const y=v=>PT+gH-(v-minV)/rng*gH;
@@ -9764,9 +9762,9 @@ if(typeof waitForFirebase==='function'){
     if(datos.length>=2){ const yB=(PT+gH).toFixed(1); areaPath=`<polygon points="${poly} ${x(datos.length-1).toFixed(1)},${yB} ${x(0).toFixed(1)},${yB}" fill="${col}" opacity="0.10"/>`; }
     const pts=datos.map((d,i)=>`<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="2.2" fill="${col}" stroke="var(--surface)" stroke-width="1" data-tip="${titulo}|${_fmtDM(d.f)}|${_fmtK(d.v)} ${unidad}"/>`).join('');
     const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtK(minV)}</text>`;
-    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
-    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
+    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="11" font-family="var(--mono)">${_fmtK(maxV)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="11" font-family="var(--mono)">${_fmtK(minV)}</text>`;
+    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" >
       ${areaPath}
       ${poly?`<polyline points="${poly}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`:''}
       ${pts}${yL}${xL}
@@ -9780,106 +9778,77 @@ if(typeof waitForFirebase==='function'){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
     const _pl=(typeof cqPlanta!=='undefined')?cqPlanta:'edari';
-    { const _tv=document.getElementById('cq-fango-val'); if(_tv) _tv.style.color=_pl==='edaru'?'#a78bfa':'#f59e0b'; }
     if(_pl==='edaru'){ cqDibujaChart3EDARu(ST); return; }
     { const _ti=document.getElementById('cq-fango-title'); if(_ti) _ti.textContent='Edad de fango'; }
-    const dias=ultimosDias(ST.reactor,30,v=>v&&(+v.ss_reactor_gl>0)&&(+v.q_purga>0)&&(+v.ss_recirc_gl>0)); // vol_reactor usa 2167.9 si está vacío
+    const dias=ultimosDias(ST.reactor,30,v=>v&&(+v.ss_reactor_gl>0)&&(+v.q_purga>0)&&(+v.ss_recirc_gl>0));
     const cont=document.getElementById('cq-fango-chart');
+    const tv=document.getElementById('cq-fango-val'), tm=document.getElementById('cq-fango-meta');
     if(!cont) return;
-    if(!dias.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Sin datos del reactor</div>'; return; }
-    const datos=dias.map(f=>({f,v:calcEdadFango(ST.reactor[f])}));
-    const vals=datos.map(d=>d.v).filter(v=>v!=null&&!isNaN(v)&&v>0);
-    if(!vals.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px">Datos incompletos</div>'; return; }
-    // Banda óptima 15-20 días
+    if(!dias.length){ cont.innerHTML='<div class="sg-caption">Sin datos del reactor</div>'; if(tm) tm.textContent='Reactor biológico · sin datos'; return; }
+    const datos=dias.map(f=>({f,v:calcEdadFango(ST.reactor[f])})).filter(d=>d.v!=null&&!isNaN(d.v)&&d.v>0);
+    if(!datos.length){ cont.innerHTML='<div class="sg-caption">Datos incompletos</div>'; return; }
     const BAND_LO=15, BAND_HI=20;
-    const minV=Math.min(...vals,BAND_LO-2), maxV=Math.max(...vals,BAND_HI+2), rng=maxV-minV||1;
-    const contH=Math.max(60,cont.clientHeight||85);const W=360,H=contH,PL=32,PR=8,PT=8,PB=18,gW=W-PL-PR,gH=H-PT-PB;
+    // Valores atípicos probables (p. ej. un error de carga): se marcan y no cuentan para la escala
+    const ord=datos.map(d=>d.v).sort((a,b)=>a-b), med=ord[Math.floor(ord.length/2)];
+    datos.forEach(d=>{ d.out = d.v>Math.max(3*med, med+30); });
+    const inl=datos.filter(d=>!d.out).map(d=>d.v);
+    const maxV=Math.max(25, ...(inl.length?inl:[25]))*1.15;
+    const W=_cqW(cont), H=_cqH(cont,110), PL=30, PR=40, PT=10, PB=18, gW=W-PL-PR, gH=H-PT-PB;
     const x=i=>PL+(datos.length>1?i/(datos.length-1)*gW:gW/2);
-    const y=v=>v==null||isNaN(v)?null:PT+gH-(v-minV)/rng*gH;
-    const yLo=y(BAND_LO), yHi=y(BAND_HI);
-    // Banda: rectángulo amarillo suave entre 15 y 20 d
-    const banda=yLo!=null&&yHi!=null?`
-      <rect x="${PL}" y="${Math.min(yLo,yHi).toFixed(1)}" width="${gW}" height="${Math.abs(yHi-yLo).toFixed(1)}" fill="#f59e0b" opacity="0.10"/>
-      <line x1="${PL}" y1="${yHi.toFixed(1)}" x2="${W-PR}" y2="${yHi.toFixed(1)}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.6"/>
-      <line x1="${PL}" y1="${yLo.toFixed(1)}" x2="${W-PR}" y2="${yLo.toFixed(1)}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.6"/>
-      <text x="${(W-PR-2).toFixed(1)}" y="${(Math.min(yLo,yHi)-2).toFixed(1)}" text-anchor="end" fill="#f59e0b" font-size="6" font-family="var(--mono)" opacity="0.8">${BAND_HI}d</text>
-      <text x="${(W-PR-2).toFixed(1)}" y="${(Math.max(yLo,yHi)+7).toFixed(1)}" text-anchor="end" fill="#f59e0b" font-size="6" font-family="var(--mono)" opacity="0.8">${BAND_LO}d</text>`:'' ;
-    // Área rellena amarilla suave bajo la línea
-    const polyPts=datos.map((d,i)=>{const yy=y(d.v);return yy==null?null:x(i).toFixed(1)+','+yy.toFixed(1);}).filter(Boolean);
-    const poly=polyPts.join(' ');
-    // Polygon: línea + cierre por el fondo del gráfico
-    let areaPath='';
-    if(polyPts.length>=2){
-      const firstX=polyPts[0].split(',')[0];
-      const lastX=polyPts[polyPts.length-1].split(',')[0];
-      const yBottom=(PT+gH).toFixed(1);
-      areaPath=`<polygon points="${poly} ${lastX},${yBottom} ${firstX},${yBottom}" fill="#f59e0b" opacity="0.10"/>`;
-    }
-    const pts=datos.map((d,i)=>{const yy=y(d.v);if(yy==null)return '';return `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${yy.toFixed(1)}" r="2.2" fill="#f59e0b" stroke="var(--surface)" stroke-width="1" data-tip="Edad fango|${_fmtDM(d.f)}|${d.v!=null?d.v.toFixed(1):'—'} d"/>`;}).join('');
-    const idxs=[0,Math.floor((datos.length-1)/2),datos.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-    const yL=`<text x="${PL-3}" y="${PT+4}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${maxV.toFixed(0)}</text><text x="${PL-3}" y="${PT+gH-1}" text-anchor="end" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${minV.toFixed(0)}</text>`;
-    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="var(--muted)" font-size="6.5" font-family="var(--mono)">${_fmtDM(datos[i].f)}</text>`).join('');
-    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
-      ${banda}
-      ${areaPath}
-      ${poly?`<polyline points="${poly}" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`:''} 
-      ${pts}${yL}${xL}
+    const y=v=>PT+gH-Math.min(v,maxV)/maxV*gH;
+    // Tramos de línea, cortados en los atípicos
+    const segs=[]; let cur=[];
+    datos.forEach((d,i)=>{ if(d.out){ if(cur.length) segs.push(cur); cur=[]; } else cur.push(x(i).toFixed(1)+','+y(d.v).toFixed(1)); });
+    if(cur.length) segs.push(cur);
+    const lines=segs.map(s=>s.length>1?`<polyline points="${s.join(' ')}" fill="none" stroke="var(--sg-s1)" stroke-width="2" stroke-linejoin="round"/>`:'').join('');
+    const pts=datos.map((d,i)=> d.out
+      ? `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${PT-2}" r="5" fill="none" stroke="var(--sg-warn)" stroke-width="2" data-tip="Edad fango (atípico)|${_fmtDM(d.f)}|${_nf(d.v,1)} d — revisar dato"/>`
+      : `<circle class="pt-int" cx="${x(i).toFixed(1)}" cy="${y(d.v).toFixed(1)}" r="2.5" fill="var(--sg-s1)" stroke="var(--sg-card)" stroke-width="1" data-tip="Edad fango|${_fmtDM(d.f)}|${_nf(d.v,1)} d"/>`).join('');
+    const outs=datos.filter(d=>d.out);
+    const yHi=y(BAND_HI), yLo=y(BAND_LO);
+    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" role="img" aria-label="Edad de fango, ${datos.length} días, frente a la banda óptima de 15 a 20 días${outs.length?'; '+outs.length+' valor atípico marcado':''}">
+      <rect x="${PL}" y="${yHi.toFixed(1)}" width="${gW}" height="${(yLo-yHi).toFixed(1)}" fill="var(--sg-ok-soft)"/>
+      <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${PT+gH}" y2="${PT+gH}"/>
+      <text class="sg-ax" x="${W-PR+4}" y="${((yHi+yLo)/2+4).toFixed(1)}">15–20</text>
+      ${lines}${pts}
+      <text class="sg-ax" x="${PL-5}" y="${PT+4}" text-anchor="end">${Math.round(maxV)}</text>
+      <text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">0</text>
+      ${_cqXLabels(datos.map(d=>d.f),x,H)}
     </svg>`;
-    const ult=[...datos].reverse().find(d=>d.v!=null);
-    const enBanda=ult&&ult.v>=BAND_LO&&ult.v<=BAND_HI;
-    const tv=document.getElementById('cq-fango-val');
-    if(tv) tv.innerHTML=(ult?ult.v.toFixed(1):'—')+' <span style="font-size:12px;font-weight:400;color:var(--muted)">días</span>';
-    const tm=document.getElementById('cq-fango-meta');
-    if(tm) tm.textContent=`Reactor biológico · ${dias.length} días · ${ult?_fmtDM(ult.f)+' · '+(enBanda?'en banda ✓ (15-20d)':'fuera de banda ⚠'):'—'}`;
+    const ult=datos[datos.length-1];
+    const enBanda=ult.v>=BAND_LO&&ult.v<=BAND_HI;
+    if(tv) tv.innerHTML=_nf(ult.v,1)+'<span class="sg-unit">d</span>';
+    if(tm) tm.innerHTML=`Último ${_fmtDM(ult.f)} · ${ult.out?'<span class="sg-badge warn">¿dato erróneo?</span>':enBanda?'<span class="sg-badge ok">en banda</span>':'<span class="sg-badge warn">fuera de banda</span>'}${outs.length&&!ult.out?' · '+outs.length+' atípico'+(outs.length>1?'s':'')+' excluido'+(outs.length>1?'s':'')+' de la escala':''}`;
   }
 
   function cqDibujaRendimientos(){
     const ST=window._cqGetDatos ? window._cqGetDatos() : (window._ST_dash||{caudales:{},consumo:{},reactor:{}});
     if(!ST) return;
     const cont=document.getElementById('cq-rend-chart');
+    const rs=document.getElementById('cq-rend-sub');
     const nReactor=Object.keys(ST.reactor||{}).length;
     if(!nReactor){
-      if(cont) cont.innerHTML='<div style="padding:12px;font-size:9px;color:var(--muted);font-family:var(--mono);text-align:center">Sin datos · Carga el SMS Diario (M-04) para calcular rendimientos</div>';
-      const rs=document.getElementById('cq-rend-sub'); if(rs) rs.textContent='Sin datos Firebase';
+      if(cont) cont.innerHTML='<div class="sg-caption">Sin datos · carga el SMS Diario (M-04) para calcular rendimientos</div>';
+      if(rs) rs.textContent='Sin datos Firebase';
       return;
     }
     const dias=ultimosDias(ST.reactor,30,v=>v&&((+v.dqo_ent>0&&v.dqo_ef!=null)||(+v.dbo_ent>0&&v.dbo_ef!=null)||(+v.nt_ent>0&&v.nt_ef!=null)||(+v.pt_ent>0&&v.pt_ef!=null)));
+    // % mínimo de reducción exigido (RD 509/1996, anexo I)
     const params=[
-      {lbl:'DQO',  res:calcRend(ST,'dqo_ent','dqo_ef',dias)},
-      {lbl:'DBO₅', res:calcRend(ST,'dbo_ent','dbo_ef',dias)},
-      {lbl:'NT',   res:calcRend(ST,'nt_ent', 'nt_ef', dias)},
-      {lbl:'PT',   res:calcRend(ST,'pt_ent', 'pt_ef', dias)},
+      {lbl:'DQO',  min:75, res:calcRend(ST,'dqo_ent','dqo_ef',dias)},
+      {lbl:'DBO₅', min:70, res:calcRend(ST,'dbo_ent','dbo_ef',dias)},
+      {lbl:'NT',   min:70, res:calcRend(ST,'nt_ent', 'nt_ef', dias)},
+      {lbl:'PT',   min:80, res:calcRend(ST,'pt_ent', 'pt_ef', dias)},
     ];
-    function colRend(v){return v>=85?'#22c995':v>=70?'#f0b033':'#e54a64';}
-    const W=440, H=100;
-    const cxAll=[55,165,275,385];
-    const rSemi=38, cySemi=58, swSemi=9;
-    const semiPerim=Math.PI*rSemi;
-    /* Los 4 parámetros (DQO, DBO₅, NT, PT) con el mismo formato de arco semicircular,
-       para que se lean como un mismo grupo de indicadores en vez de dos estilos distintos. */
-    const semis=params.map((p,i)=>{
-      const cx=cxAll[i];
-      const bgPath=`M ${cx-rSemi} ${cySemi} A ${rSemi} ${rSemi} 0 0 1 ${cx+rSemi} ${cySemi}`;
-      if(!p.res) return `<g>
-        <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
-        <text x="${cx}" y="${cySemi-10}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="20" font-family="var(--mono,monospace)">—</text>
-        <text x="${cx}" y="${cySemi+22}" text-anchor="middle" class="cq-rend-lbl" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
-      </g>`;
-      const v=p.res.rend, col=colRend(v), dash=(v/100)*semiPerim;
-      const tip=`${p.lbl} · ${p.res.n}d · ${v.toFixed(1)}%`;
-      return `<g title="${tip}" style="cursor:pointer">
-        <path d="${bgPath}" fill="none" stroke="var(--border,#1f3252)" stroke-width="${swSemi}" stroke-linecap="round"/>
-        <path d="${bgPath}" fill="none" stroke="${col}" stroke-width="${swSemi}" stroke-linecap="round"
-          stroke-dasharray="${dash} ${semiPerim}" style="transition:stroke-dasharray .6s ease"/>
-        <text x="${cx}" y="${cySemi-8}" text-anchor="middle" fill="${col}" font-size="22" font-weight="700" font-family="var(--mono,monospace)">${Math.round(v)}%</text>
-        <text x="${cx}" y="${cySemi+12}" text-anchor="middle" fill="var(--muted,#5d7390)" font-size="9" font-family="var(--mono,monospace)">${p.res.mE!=null?p.res.mE.toFixed(0)+'→'+p.res.mS.toFixed(0)+' mg/L':p.res.n+'d'}</text>
-        <text x="${cx}" y="${cySemi+24}" text-anchor="middle" class="cq-rend-lbl" fill="var(--muted,#5d7390)" font-size="14" font-family="var(--cond,sans-serif)" letter-spacing=".05em">${p.lbl}</text>
-      </g>`;
+    const rows=params.map(p=>{
+      if(!p.res) return `<div class="sg-bullet"><span class="sg-bullet__name">${p.lbl}</span><div class="sg-bullet__track"><div class="sg-bullet__target" style="left:${p.min}%"></div></div><span class="sg-bullet__value" style="color:var(--sg-subtle)">—</span></div>`;
+      const v=p.res.rend, est=v>=p.min?'':(v>=p.min-5?'warn':'crit');
+      const tip=`${p.lbl}: ${_nf(v,1)} % (mínimo ${p.min} %) · entrada ${_nf(p.res.mediaE,p.res.mediaE<10?1:0)} → salida ${_nf(p.res.mediaS,p.res.mediaS<10?1:0)} mg/L · ${p.res.n} días`;
+      return `<div class="sg-bullet" title="${tip}"><span class="sg-bullet__name">${p.lbl}</span><div class="sg-bullet__track"><div class="sg-bullet__fill ${est}" style="width:${v.toFixed(1)}%"></div><div class="sg-bullet__target" style="left:${p.min}%"></div></div><span class="sg-bullet__value ${est}">${Math.round(v)} %</span></div>`;
     }).join('');
-    if(cont) cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-height:110px" preserveAspectRatio="xMidYMid meet">${semis}</svg>`;
-    const nOk=params.filter(p=>p.res&&p.res.rend>=70).length;
-    const rs=document.getElementById('cq-rend-sub');
-    if(rs) rs.textContent=dias.length>0?`${dias.length} días · ${nOk}/${params.length} parámetros OK`:'Sin datos analíticos · carga SMS Diario';
+    if(cont) cont.innerHTML=rows+'<div class="sg-caption" style="margin-top:4px">Marca: % mínimo de reducción (RD 509/1996)</div>';
+    const conDato=params.filter(p=>p.res), nOk=conDato.filter(p=>p.res.rend>=p.min).length;
+    if(rs) rs.textContent=dias.length>0?`${dias.length} días · ${nOk}/${conDato.length} cumplen el mínimo`:'Sin datos analíticos · carga SMS Diario';
   }
 
   function cqActualizaKPIs(){
@@ -9937,7 +9906,7 @@ if(typeof waitForFirebase==='function'){
   }
 
   /* ─── Cuadro de mando: cumplimiento RD 509/1996 + decisión (por planta) ─── */
-  const _CQ_OK='#22c995', _CQ_WARN='#f0b033', _CQ_BAD='#e54a64';
+  const _CQ_OK='var(--sg-ok)', _CQ_WARN='var(--sg-warn)', _CQ_BAD='var(--sg-crit)';
   const _CQ_LIM={dbo:25,dqo:125,sst:35,nt:15,pt:2};
   const _CQ_EDARI_EF={
     dbo:['dbo_ef','DBO EFLUENTE','dbo_efluente','dbo5_ef'],
@@ -9962,58 +9931,52 @@ if(typeof waitForFirebase==='function'){
     return d;
   }
   function cqDibujaTendencia5(){
-    const cont=document.getElementById('cq-trend-chart');
+    const cont=document.getElementById('cq-trends');
     if(!cont) return;
     const slots=window._cqLastSlots||[];
-    const COLORS={dbo:'#fbbf24',dqo:'#38bdf8',sst:'#34d399',nt:'#c084fc',pt:'#f87171'};
     const activos=slots.filter(p=>!p.nd);
-    if(!activos.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">Sin parámetros disponibles ('+(cqPlanta==='edari'?'EDARi':'EDARu')+')</div>'; return; }
-    const series=activos.map(p=>({id:p.id,lbl:p.lbl,lim:p.lim,col:COLORS[p.id]||'#9ca3af',pts:p.serF().slice(-30)}));
+    const plLbl=cqPlanta==='edari'?'EDARi':'EDARu';
+    if(!activos.length){ cont.innerHTML='<div class="sg-caption">Sin parámetros disponibles ('+plLbl+')</div>'; return; }
+    const series=activos.map(p=>({id:p.id,lbl:p.lbl,lim:p.lim,pts:p.serF().slice(-30)}));
     const allFechas=[...new Set(series.flatMap(s=>s.pts.map(pt=>pt.f)))].sort().slice(-30);
-    if(!allFechas.length){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">Sin datos en los últimos 30 días</div>'; return; }
-    const W=980,H=200,PL=36,PR=14,PT_=14,PB=22,gW=W-PL-PR,gH=H-PT_-PB;
-    const maxY=140; // techo visual del eje, en % del límite
-    const x=i=>PL+(allFechas.length>1?i/(allFechas.length-1)*gW:gW/2);
-    const y=v=>PT_+gH-Math.min(v,maxY)/maxY*gH;
-    let anyLine=false, lastPts=[];
-    const gridY=[0,25,50,75,100,125].map(p=>{
-      const yy=y(p).toFixed(1);
-      return `<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`;
+    if(!allFechas.length){ cont.innerHTML='<div class="sg-caption">Sin datos en los últimos 30 días</div>'; return; }
+    const MAXP=150; // techo del eje, en % del límite
+    // 1) Esqueleto de tarjetas (para medir el ancho real antes de dibujar)
+    cont.innerHTML=series.map(s=>{
+      const last=s.pts.length?s.pts[s.pts.length-1]:null;
+      let lastTxt='—', cls='';
+      if(last){ const pct=last.v/s.lim*100; cls=pct>100?'crit':pct>85?'warn':''; lastTxt=pct>100?_nf(pct/100,1)+'× límite':Math.round(pct)+' %'; }
+      return `<div class="sg-card" id="cq-tr-${s.id}"><div class="sg-trend__head"><span class="sg-label">${s.lbl}</span><span class="sg-trend__last ${cls}" title="Última muestra${last?' '+_fmtDM(last.f)+' · '+_nf(last.v,last.v<10?1:0)+' mg/L':''}">${lastTxt}</span></div><div class="sg-trend__svg"></div></div>`;
     }).join('');
-    const areasLines=series.map((s,si)=>{
-      const byF={}; s.pts.forEach(pt=>byF[pt.f]=pt.v);
-      const coords=[];
-      allFechas.forEach((f,i)=>{ const v=byF[f]; if(v!=null) coords.push({x:x(i),y:y(v/s.lim*100)}); });
-      if(!coords.length) return '';
-      anyLine=true;
-      const gid='cqTrendGrad'+si;
-      const path=_cqSmoothPath(coords);
-      const area=path+` L${coords[coords.length-1].x.toFixed(1)},${(PT_+gH).toFixed(1)} L${coords[0].x.toFixed(1)},${(PT_+gH).toFixed(1)} Z`;
-      const last=coords[coords.length-1];
-      lastPts.push({...last,col:s.col});
-      const dots=coords.map(c=>`<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="2" fill="${s.col}" opacity="0"/>`).join('');
-      return `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${s.col}" stop-opacity="0.22"/>
-          <stop offset="100%" stop-color="${s.col}" stop-opacity="0"/>
-        </linearGradient></defs>
-        <path d="${area}" fill="url(#${gid})" stroke="none"/>
-        <path d="${path}" fill="none" stroke="${s.col}" stroke-width="2" stroke-linecap="round" opacity="0.95"/>
-        ${dots}
-        <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3" fill="${s.col}" stroke="var(--surface,#0c1424)" stroke-width="1.5"/>`;
-    }).join('');
-    if(!anyLine){ cont.innerHTML='<div style="color:var(--muted);font-size:10px;padding:8px;font-family:var(--mono)">Sin datos en los últimos 30 días</div>'; return; }
-    const limitY=y(100).toFixed(1);
-    const idxs=[0,Math.floor((allFechas.length-1)/2),allFechas.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-    const xL=idxs.map(i=>`<text x="${x(i).toFixed(1)}" y="${H-6}" text-anchor="middle" fill="var(--muted)" font-size="9" font-family="var(--mono)">${_fmtDM(allFechas[i])}</text>`).join('');
-    const yTicks=[0,50,100].map(p=>`<text x="${PL-8}" y="${(y(p)+3).toFixed(1)}" text-anchor="end" fill="var(--muted)" font-size="9" font-family="var(--mono)">${p}%</text>`).join('');
-    cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" preserveAspectRatio="none">
-      ${gridY}
-      <line x1="${PL}" y1="${limitY}" x2="${W-PR}" y2="${limitY}" stroke="#e54a64" stroke-width="1.1" stroke-dasharray="5,4" opacity="0.55"/>
-      <text x="${W-PR}" y="${(+limitY-6).toFixed(1)}" text-anchor="end" fill="#e54a64" font-size="9" font-weight="600" font-family="var(--mono)" opacity="0.8">límite legal · 100%</text>
-      ${areasLines}${xL}${yTicks}
-    </svg>`;
-    const leg=document.getElementById('cq-trend-legend');
-    if(leg) leg.innerHTML=series.map(s=>'<div class="cq-leg-item" style="color:'+s.col+'"><div class="cq-leg-dot" style="background:'+s.col+'"></div>'+s.lbl+'</div>').join('');
+    // 2) Un mini-gráfico por parámetro: 0–150 % del límite, límite continuo, lo que se sale se recorta
+    series.forEach(s=>{
+      const box=document.querySelector('#cq-tr-'+s.id+' .sg-trend__svg'); if(!box) return;
+      const W=_cqW(box), H=_cqH(box,96), PL=34, PR=6, PT=22, PB=18, gW=W-PL-PR, gH=H-PT-PB;
+      const idx={}; allFechas.forEach((f,i)=>idx[f]=i);
+      const x=i=>PL+(allFechas.length>1?i/(allFechas.length-1)*gW:gW/2);
+      const y=p=>PT+gH-Math.min(p,MAXP)/MAXP*gH;
+      const pts=s.pts.filter(pt=>idx[pt.f]!=null).map(pt=>({f:pt.f,v:pt.v,p:pt.v/s.lim*100,i:idx[pt.f]}));
+      if(!pts.length){ box.innerHTML='<div class="sg-caption">Sin datos</div>'; return; }
+      const poly=pts.map(q=>x(q.i).toFixed(1)+','+y(q.p).toFixed(1)).join(' ');
+      const dots=pts.map(q=>{
+        const tip=`${s.lbl}|${_fmtDM(q.f)}|${_nf(q.v,q.v<10?1:0)} mg/L · ${Math.round(q.p)} % del límite`;
+        if(q.p>MAXP) return `<rect class="pt-int" x="${(x(q.i)-2).toFixed(1)}" y="${PT-7}" width="4" height="6" rx="1" fill="var(--sg-crit)" data-tip="${tip}"/>`;
+        return `<circle class="pt-int" cx="${x(q.i).toFixed(1)}" cy="${y(q.p).toFixed(1)}" r="${q.p>100?3:2.2}" fill="${q.p>100?'var(--sg-crit)':'var(--sg-s1)'}" stroke="var(--sg-card)" stroke-width="1" data-tip="${tip}"/>`;
+      }).join('');
+      const maxP=Math.max(...pts.map(q=>q.p));
+      const nOver=pts.filter(q=>q.p>100).length;
+      const tag=maxP>MAXP?`<text class="sg-ax" x="${PL}" y="11" style="fill:var(--sg-crit);font-weight:600">máx. ${Math.round(maxP)} % ↑</text>`:'';
+      box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${s.lbl}: % del límite en 30 días; ${nOver?nOver+' muestras por encima del límite, máximo '+Math.round(maxP)+' %':'todas las muestras dentro de límite'}">
+        <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>
+        <line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${y(50).toFixed(1)}" y2="${y(50).toFixed(1)}"/>
+        <line x1="${PL}" x2="${W-PR}" y1="${y(100).toFixed(1)}" y2="${y(100).toFixed(1)}" stroke="var(--sg-crit)" stroke-width="1.5"/>
+        <polyline points="${poly}" fill="none" stroke="var(--sg-s1)" stroke-width="2" stroke-linejoin="round"/>
+        ${dots}${tag}
+        <text class="sg-ax" x="${PL-5}" y="${(y(100)+4).toFixed(1)}" text-anchor="end">100</text>
+        <text class="sg-ax" x="${PL-5}" y="${(y(0)).toFixed(1)}" text-anchor="end">0</text>
+        ${_cqXLabels(allFechas,x,H)}
+      </svg>`;
+    });
   }
   window.cqSelDia=function(f){ cqDiaSel=(cqDiaSel===f)?null:f; if(typeof cqRedibujarTodo==='function') cqRedibujarTodo(); };
   window.cqVerUltimo=function(){ cqDiaSel=null; if(typeof cqRedibujarTodo==='function') cqRedibujarTodo(); };
@@ -10086,14 +10049,21 @@ if(typeof waitForFirebase==='function'){
     window._cqLastSlots=slots;
     cqDibujaTendencia5();
 
-    let excedidos=[], ajustados=[], nConDato=0;
+    const _n1=v=>_nf(v, v>=100?0:(v<10?1:0));
+    let excedidos=[], ajustados=[], antiguos=[], nConDato=0;
     slots.forEach(p=>{
+      const card=document.getElementById('cq-c-'+p.id);
       const vEl=document.getElementById('cq-c-'+p.id+'-v');
       const sEl=document.getElementById('cq-c-'+p.id+'-s');
       const bEl=document.getElementById('cq-c-'+p.id+'-b');
       const tEl=document.getElementById('cq-c-'+p.id+'-tr');
+      const fEl=document.getElementById('cq-c-'+p.id+'-f');
+      const bdEl=document.getElementById('cq-c-'+p.id+'-bd');
       if(!vEl) return;
-      if(p.nd){ vEl.textContent='s/d'; vEl.style.color='var(--muted)'; if(sEl) sEl.textContent='No medido en EDARu'; if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
+      if(card) card.classList.remove('is-crit','is-warn','is-nd');
+      if(bdEl) bdEl.innerHTML='';
+      const vacio=(txtV,txtS)=>{ if(card) card.classList.add('is-nd'); vEl.textContent=txtV; if(sEl) sEl.textContent=txtS; if(bEl){ bEl.style.width='0%'; bEl.className='sg-meter__fill'; } if(tEl){ tEl.textContent=''; tEl.className='sg-delta'; } if(fEl){ fEl.textContent=''; fEl.className=''; } };
+      if(p.nd){ vacio('s/d','No se mide en EDARu'); return; }
       let val=null, fref=null, usoAyer=false;
       if(pin){ val=p.pinVal(); fref=pin; }
       else {
@@ -10101,102 +10071,106 @@ if(typeof waitForFirebase==='function'){
         if(vAyer!=null){ val=vAyer; fref=_ayerISO; usoAyer=true; }
         else { const u=p.get(); if(u){ val=u.v; fref=u.f; } }
       }
-      if(val==null){ vEl.textContent=pin?'s/d':'—'; vEl.style.color=pin?'var(--muted)':''; if(sEl) sEl.textContent=pin?('Sin dato el '+_fmtDM(pin)):('Sin dato de ayer ('+_fmtDM(_ayerISO)+')'); if(bEl) bEl.style.width='0%'; if(tEl) tEl.textContent=''; return; }
+      if(val==null){ vacio(pin?'s/d':'—', pin?('Sin dato el '+_fmtDM(pin)):('Límite '+p.lim+' mg/L · sin dato')); return; }
       nConDato++;
-      const ratio=val/p.lim, st=ratio>1?BAD:ratio>0.85?WARN:OK;
-      vEl.textContent=fmtVal(val); vEl.style.color=st;
-      const margen=(p.lim-val)/p.lim*100;
-      const _refTxt = pin ? '' : (usoAyer ? ' · ayer' : ' · '+_fmtDM(fref));
-      const _refSpan = _refTxt ? '<span style="color:#d4a373">'+_refTxt+'</span>' : '';
-      if(sEl) sEl.innerHTML='Límite '+p.lim+_refSpan+' · margen <b style="color:'+st+'">'+(margen>=0?margen.toFixed(0):'−'+Math.abs(margen).toFixed(0))+'%</b>';
-      if(bEl){ bEl.style.width=Math.min(100,ratio*100).toFixed(0)+'%'; bEl.style.background=st; }
+      const ratio=val/p.lim, pct=ratio*100;
+      const est=ratio>1?'crit':ratio>0.85?'warn':'ok';
+      if(card&&est!=='ok') card.classList.add(est==='crit'?'is-crit':'is-warn');
+      vEl.textContent=_n1(val); vEl.style.color='';
+      const pctTxt=ratio>1?(_nf(ratio,1)+'× límite'):(Math.round(pct)+' % del límite');
+      if(sEl) sEl.innerHTML='Límite '+p.lim+' mg/L · <b>'+pctTxt+'</b>';
+      if(bEl){ bEl.style.width=Math.min(100,pct/150*100).toFixed(1)+'%'; bEl.style.background=''; bEl.className='sg-meter__fill'+(est==='ok'?'':' '+est); }
+      if(bdEl&&est==='crit') bdEl.innerHTML='<span class="sg-badge crit">No conforme</span>';
+      // Fecha de la muestra; un dato de más de 7 días se marca como antiguo
+      const dAgo=pin?null:_cqDaysAgo(fref), stale=dAgo!=null&&dAgo>7;
+      if(fEl){ fEl.className=stale?'sg-stale':''; fEl.textContent=(stale?'◷ ':'')+'muestra '+(usoAyer?'ayer':_fmtDM(fref)); fEl.title=stale?('Dato de hace '+dAgo+' días'):''; }
+      if(stale) antiguos.push({lbl:p.lbl,f:fref,d:dAgo});
+      // Variación respecto a 7 muestras antes: verde si mejora (baja), rojo si empeora
       const tr=tendenciaF(p.serF(), fref);
-      if(tEl){ if(tr && Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0, col=baja?OK:BAD, ar=baja?'▼':'▲'; tEl.innerHTML='<span style="color:'+col+'">'+ar+' '+Math.abs(tr.delta).toFixed(tr.last<10?1:0)+'</span>'; } else tEl.innerHTML='<span style="color:'+MUT+'">▬</span>'; }
-      if(ratio>1) excedidos.push({lbl:p.lbl,val:fmtVal(val),lim:p.lim});
-      else if(ratio>0.85) ajustados.push(p.lbl);
+      if(tEl){
+        tEl.title='Respecto a 7 muestras antes';
+        if(tr&&Math.abs(tr.delta)>=0.05){ const baja=tr.delta<0; tEl.className='sg-delta '+(baja?'better':'worse'); tEl.textContent=(baja?'▼ ':'▲ ')+_nf(Math.abs(tr.delta),tr.last<10?1:0)+' mg/L'; }
+        else { tEl.className='sg-delta'; tEl.textContent='sin cambio'; }
+      }
+      if(ratio>1) excedidos.push({lbl:p.lbl,val,lim:p.lim,ratio,f:fref});
+      else if(ratio>0.85) ajustados.push({lbl:p.lbl,val,lim:p.lim,ratio,f:fref});
     });
 
-    // Veredicto global
-    const vb=document.getElementById('cq-comp-verdict');
-    if(vb){
-      if(nConDato===0){ vb.textContent='SIN DATOS'; vb.style.background='var(--surface2)'; vb.style.color='var(--muted)'; vb.style.borderColor='var(--border)'; }
-      else if(excedidos.length){ vb.textContent='⛔ NO CONFORME'; vb.style.background='rgba(229,74,100,.15)'; vb.style.color=BAD; vb.style.borderColor=BAD; }
-      else if(ajustados.length){ vb.textContent='⚠ VIGILAR'; vb.style.background='rgba(240,176,51,.15)'; vb.style.color=WARN; vb.style.borderColor=WARN; }
-      else { vb.textContent='✓ CONFORME'; vb.style.background='rgba(34,201,149,.15)'; vb.style.color=OK; vb.style.borderColor=OK; }
+    // ── Franja de estado ──
+    const stEl=document.getElementById('cq-status');
+    if(stEl){
+      const strip=(cls,ic,tit,meta,extra)=>'<div class="sg-strip '+cls+'"'+(cls==='crit'?' role="alert"':'')+'><div class="sg-strip__icon" aria-hidden="true">'+ic+'</div><div class="sg-strip__body"><div class="sg-strip__title">'+tit+'</div>'+(meta?'<div class="sg-strip__meta">'+meta+'</div>':'')+'</div>'+(extra||'')+'</div>';
+      if(nConDato===0) stEl.innerHTML=strip('','–','Sin datos de efluente ('+plantaLbl+')','Carga el SMS Diario (M-04) para evaluar el cumplimiento.');
+      else if(excedidos.length){
+        const n=excedidos.length, x0=excedidos[0];
+        const tit=n+' no conformidad'+(n>1?'es':'')+' abierta'+(n>1?'s':'')+' · <b>'+excedidos.map(e=>e.lbl).join(', ')+' efluente '+plantaLbl+'</b>';
+        const meta=excedidos.map(e=>(n>1?e.lbl+' ':'')+_nf(e.ratio,1)+'× el límite de '+e.lim+' mg/L · muestra '+_fmtDM(e.f)).join(' · ')+' · RD 509/1996';
+        const extra=(n===1?'<div class="sg-strip__value">'+_n1(x0.val)+'<span class="sg-unit">mg/L</span></div>':'')+'<button class="sg-btn crit" onclick="cqIrAAlertas()">Ver acciones ↓</button>';
+        stEl.innerHTML=strip('crit','!',tit,meta,extra);
+      }
+      else if(ajustados.length) stEl.innerHTML=strip('warn','▲','Efluente conforme · vigilar <b>'+ajustados.map(a=>a.lbl).join(', ')+'</b>','Por encima del 85 % del límite RD 509/1996.');
+      else stEl.innerHTML=strip('ok','✓','Efluente conforme · '+nConDato+' parámetro'+(nConDato>1?'s':'')+' dentro de límite', pin?('Día fijado '+_fmtDM(pin)):'Última muestra disponible de cada parámetro.');
     }
 
-    // Estado de proceso (chips) + recomendaciones, por planta y respetando día fijado
-    const chips=[], recos=[];
-    const chip=(k,v,col)=>'<span class="cq-chip"><span class="cq-chip-dot" style="background:'+col+'"></span><span class="cq-chip-k">'+k+'</span> <span class="cq-chip-v" style="color:'+col+'">'+v+'</span></span>';
-    excedidos.forEach(x=>recos.push({ic:'⛔',col:BAD,tx:'Incumplimiento de efluente ('+plantaLbl+'): '+x.lbl+' '+x.val+' mg/L supera el límite RD 509/1996 ('+x.lim+'). Verificar el proceso y registrar la no conformidad.'}));
+    // ── Alertas estructuradas: qué · por qué · qué hacer ──
+    const al=[];
+    const ACC={pt:'Revisar la dosificación de coagulante (cloruro férrico) y registrar la no conformidad.', nt:'Revisar nitrificación/desnitrificación (O₂ disuelto, recirculación interna) y registrar la no conformidad.'};
+    excedidos.forEach(x=>{ const id=(slots.find(s=>s.lbl===x.lbl)||{}).id; al.push({lvl:'crit', what:x.lbl+' '+_n1(x.val)+' mg/L', why:'supera el límite de '+x.lim+' mg/L (RD 509/1996) · '+_nf(x.ratio,1)+'× límite.', do:ACC[id]||'Verificar el proceso y registrar la no conformidad.', when:x.f}); });
+    ajustados.forEach(x=>al.push({lvl:'warn', what:x.lbl+' al '+Math.round(x.ratio*100)+' % del límite', why:'· margen ajustado.', do:'Vigilar de cerca y adelantar la próxima analítica de '+x.lbl+'.', when:x.f}));
+    antiguos.forEach(x=>al.push({lvl:'warn', what:x.lbl+' sin muestra desde '+_fmtDM(x.f), why:'· dato de hace '+x.d+' días.', do:'Programar analítica de '+x.lbl+'.', when:null}));
 
     if(planta==='edari'){
-      let edad=null;
-      if(pin){ const e=calcEdadFango(R[pin]); if(e!=null&&!isNaN(e)&&e>0) edad=e; }
-      else { for(let i=fechas.length-1;i>=0;i--){ const e=calcEdadFango(R[fechas[i]]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; break; } } }
-      if(edad!=null){ const col=(edad>=15&&edad<=20)?OK:(edad>=12&&edad<=25)?WARN:BAD; chips.push(chip('Edad fango',edad.toFixed(1)+' d',col)); }
-      let sstMg=null;
-      if(pin){ const v=_pick(R[pin]||{},['ss_reactor_gl']); if(v!=null) sstMg=Math.round(v*1000); }
-      else { const sstU=ultimoR(['ss_reactor_gl']); if(sstU) sstMg=Math.round(sstU.v*1000); }
-      if(sstMg!=null){ const col=(sstMg>=2000&&sstMg<=4000)?OK:(sstMg>=1500&&sstMg<=5000)?WARN:BAD; chips.push(chip('SST reactor',sstMg.toLocaleString('es-ES')+' mg/L',col)); }
+      let edad=null, edadF=null;
+      if(pin){ const e=calcEdadFango(R[pin]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; edadF=pin; } }
+      else { for(let i=fechas.length-1;i>=0;i--){ const e=calcEdadFango(R[fechas[i]]); if(e!=null&&!isNaN(e)&&e>0){ edad=e; edadF=fechas[i]; break; } } }
+      let sstMg=null, sstF=null;
+      if(pin){ const v=_pick(R[pin]||{},['ss_reactor_gl']); if(v!=null){ sstMg=Math.round(v*1000); sstF=pin; } }
+      else { const sstU=ultimoR(['ss_reactor_gl']); if(sstU){ sstMg=Math.round(sstU.v*1000); sstF=sstU.f; } }
       let trh=null;
       if(pin){ const qb=_pick(R[pin]||{},['caudal_bio']); const qi=(ST.caudales&&ST.caudales[pin]&&+ST.caudales[pin].edari)||0; const Q=qb||qi; if(Q>0) trh=2167.9/Q*24; }
       else trh=calcTRH(ST);
-      if(trh!=null){ const col=trh>=6?OK:(trh>=4?WARN:BAD); chips.push(chip('TRH',trh.toFixed(1)+' h',col)); }
-      let qEdari=null;
-      if(pin){ const q=ST.caudales&&ST.caudales[pin]; const v=q&&+q.edari; if(v>0) qEdari=v; }
-      else { const cf=Object.keys(ST.caudales||{}).sort(); for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const v=+(q&&q.edari)||0; if(v>0){ qEdari=v; break; } } }
-      if(qEdari!=null) chips.push(chip('Caudal EDARi','~'+_fmtK(qEdari)+' m³/d','var(--accent)'));
       if(edad!=null){
-        if(edad>22) recos.push({ic:'▲',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por encima de la banda óptima (15–20 d). Un SRT elevado favorece bacterias filamentosas (p. ej. Microthrix); valorar aumentar la purga.'});
-        else if(edad<12) recos.push({ic:'▼',col:WARN,tx:'Edad de fango '+edad.toFixed(1)+' d por debajo de 15 d: riesgo de nitrificación incompleta; valorar reducir la purga.'});
+        if(edad>22) al.push({lvl:'warn', key:'edad', what:'Edad de fango '+_nf(edad,1)+' d', why:'por encima de la banda óptima (15–20 d). Un SRT elevado favorece filamentosas (p. ej. Microthrix).', do:'Valorar aumentar la purga.', when:edadF});
+        else if(edad<12) al.push({lvl:'warn', key:'edad', what:'Edad de fango '+_nf(edad,1)+' d', why:'por debajo de 15 d: riesgo de nitrificación incompleta.', do:'Valorar reducir la purga.', when:edadF});
       }
       if(sstMg!=null){
-        if(sstMg>4500) recos.push({ic:'▲',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L elevado: revisar recirculación/purga y carga de sólidos al decantador.'});
-        else if(sstMg<1800) recos.push({ic:'▼',col:WARN,tx:'SST del reactor '+sstMg.toLocaleString('es-ES')+' mg/L bajo: biomasa posiblemente insuficiente para la carga.'});
+        if(sstMg>4500) al.push({lvl:'warn', what:'SST reactor '+sstMg.toLocaleString('es-ES')+' mg/L', why:'elevado (óptimo 2.000–4.000).', do:'Revisar recirculación/purga y carga de sólidos al decantador.', when:sstF});
+        else if(sstMg<1800) al.push({lvl:'warn', what:'SST reactor '+sstMg.toLocaleString('es-ES')+' mg/L', why:'bajo: biomasa posiblemente insuficiente para la carga.', do:'Reducir purga y revisar la carga de entrada.', when:sstF});
       }
-      if(trh!=null&&trh<6) recos.push({ic:'▲',col:WARN,tx:'TRH '+trh.toFixed(1)+' h por debajo de 6 h: posible sobrecarga hidráulica; vigilar la sedimentación.'});
+      if(trh!=null&&trh<6) al.push({lvl:'warn', what:'TRH '+_nf(trh,1)+' h', why:'por debajo de 6 h: posible sobrecarga hidráulica.', do:'Vigilar la sedimentación en el decantador.', when:null});
     } else {
       const getU=field=> pin ? (subUget(pin,field)!=null?{v:subUget(pin,field),f:pin}:null) : ultimoU(field);
-      let qE=null;
-      if(pin){ const q=ST.caudales&&ST.caudales[pin]; const v=q&&+q.edaru; if(v>0) qE=v; }
-      else { const cf=Object.keys(ST.caudales||{}).sort(); for(let i=cf.length-1;i>=0;i--){ const q=ST.caudales[cf[i]]; const v=+(q&&q.edaru)||0; if(v>0){ qE=v; break; } } }
-      if(qE!=null) chips.push(chip('Caudal EDARu','~'+_fmtK(qE)+' m³/d','var(--accent)'));
       const dqoE=getU('dqo_ent'), dqoS=getU('dqo_sal');
-      if(dqoE&&dqoS&&dqoE.v>0){ const rend=Math.max(0,(dqoE.v-dqoS.v)/dqoE.v*100); const col=rend>=75?OK:rend>=60?WARN:BAD; chips.push(chip('Rend. DQO',rend.toFixed(0)+' %',col)); if(rend<75) recos.push({ic:'▼',col:WARN,tx:'Rendimiento de DQO en EDARu '+rend.toFixed(0)+' % por debajo del 75 % de referencia: revisar la línea de tratamiento.'}); }
-      const sstE=getU('sst_ent'), sstS=getU('sst_sal');
-      if(sstE&&sstS&&sstE.v>0){ const rend=Math.max(0,(sstE.v-sstS.v)/sstE.v*100); const col=rend>=80?OK:rend>=60?WARN:BAD; chips.push(chip('Rend. SST',rend.toFixed(0)+' %',col)); }
+      if(dqoE&&dqoS&&dqoE.v>0){ const rend=Math.max(0,(dqoE.v-dqoS.v)/dqoE.v*100); if(rend<75) al.push({lvl:'warn', what:'Rendimiento DQO EDARu '+Math.round(rend)+' %', why:'por debajo del 75 % de referencia.', do:'Revisar la línea de tratamiento.', when:dqoS.f}); }
       const ntu=getU('ntu');
-      if(ntu){ const col=ntu.v<=20?OK:ntu.v<=40?WARN:BAD; chips.push(chip('Turbidez',ntu.v.toFixed(1)+' NTU',col)); if(ntu.v>40) recos.push({ic:'▲',col:WARN,tx:'Turbidez del efluente EDARu '+ntu.v.toFixed(1)+' NTU elevada: posible arrastre de sólidos.'}); }
-      const ce=getU('ce');
-      if(ce){ chips.push(chip('Conductividad',_fmtK(ce.v)+' µS/cm','var(--accent)')); }
+      if(ntu&&ntu.v>40) al.push({lvl:'warn', what:'Turbidez efluente EDARu '+_nf(ntu.v,1)+' NTU', why:'elevada: posible arrastre de sólidos.', do:'Revisar la decantación y el estado de los filtros.', when:ntu.f});
     }
-
-    const pc=document.getElementById('cq-proc-chips');
-    if(pc) pc.innerHTML=chips.length?chips.join(''):'<span class="cq-chip"><span class="cq-chip-k">Sin datos de proceso ('+plantaLbl+')</span></span>';
-
-    ajustados.forEach(p=>recos.push({ic:'⚠',col:WARN,tx:'Margen ajustado en '+p+' (por encima del 85 % del límite): parámetro a vigilar de cerca.'}));
-    if(!recos.length) recos.push({ic:'✓',col:OK,tx:nConDato?'Efluente conforme y proceso dentro de las bandas de referencia. Sin acciones requeridas.':'Sin datos suficientes para '+plantaLbl+'. Carga el SMS Diario (M-04) para evaluar el estado.'});
-    const rl=document.getElementById('cq-reco-list');
-    if(rl) rl.innerHTML=recos.map(r=>'<div class="cq-reco-item"><span class="cq-reco-ic" style="color:'+r.col+'">'+r.ic+'</span><span class="cq-reco-tx'+(r.col===OK?' cq-reco-ok':'')+'">'+r.tx+'</span></div>').join('');
-    // ── Últimas incidencias: resumen derivado de las mismas recomendaciones ──
-    const icEl=document.getElementById('cq-incid-list');
-    if(icEl){
-      const nCrit=recos.filter(r=>r.col===BAD).length;
-      const nWarn=recos.filter(r=>r.col===WARN).length;
-      let html='<div class="cq-inc-row"><span class="cq-inc-dot" style="background:'+(nCrit>0?BAD:OK)+'"></span>'+
-        (nCrit>0?(nCrit+' incidencia'+(nCrit>1?'s':'')+' crítica'+(nCrit>1?'s':'')):'Sin incidencias críticas')+'</div>';
-      html+='<div class="cq-inc-row"><span class="cq-inc-dot" style="background:'+(nWarn>0?WARN:OK)+'"></span>'+
-        (nWarn>0?(nWarn+' aviso'+(nWarn>1?'s':'')+' informativo'+(nWarn>1?'s':'')):'Sin avisos')+'</div>';
-      const detalladas=recos.filter(r=>r.col!==OK).slice(0,4);
-      if(detalladas.length){
-        html+='<div class="cq-inc-detail">'+detalladas.map(r=>'<div class="cq-inc-item" style="color:'+r.col+'">'+r.ic+' <span style="color:var(--text2)">'+r.tx+'</span></div>').join('')+'</div>';
-      }
-      icEl.innerHTML=html;
-    }
-
-    // (Histórico de cumplimiento 30 días eliminado a petición: ya no se calcula ni se pinta)
+    window._cqAlertsDecision={planta, nConDato, list:al};
+    cqRenderAlertas();
   }
+
+  /* ─── Panel único de alertas (une recomendaciones, bulking e incidencias) ── */
+  function cqRenderAlertas(){
+    const el=document.getElementById('cq-alerts-list'); if(!el) return;
+    const cnt=document.getElementById('cq-alerts-count');
+    const dec=window._cqAlertsDecision||{list:[],nConDato:0,planta:cqPlanta};
+    let list=dec.list.slice();
+    const b=window._cqBulk;
+    if(b&&cqPlanta==='edari'&&(b.nivel==='ALTO'||b.nivel==='MEDIO')){
+      list=list.filter(a=>a.key!=='edad'); // la edad de fango ya va dentro de la alerta de bulking
+      list.push({lvl:'warn', what:'Riesgo de bulking '+b.nivel.toLowerCase(), why:(b.motivos.length?'· '+b.motivos.join(' y ')+'. ':'')+'Favorece filamentosas tipo Microthrix parvicella.', do:'Aumentar la purga para bajar el SRT; confirmar con microscopía (índice de Jenkins), V30 e IVF. Si procede, cloración selectiva de la recirculación.', when:b.f});
+    }
+    const orden={crit:0,warn:1};
+    list.sort((a,c)=>(orden[a.lvl]-orden[c.lvl])||String(c.when||'').localeCompare(String(a.when||'')));
+    const nC=list.filter(a=>a.lvl==='crit').length, nW=list.filter(a=>a.lvl==='warn').length;
+    if(cnt) cnt.innerHTML=(nC?'<span class="sg-badge crit">'+nC+' crítica'+(nC>1?'s':'')+'</span> ':'')+(nW?'<span class="sg-badge warn">'+nW+' aviso'+(nW>1?'s':'')+'</span>':'')+(!nC&&!nW&&dec.nConDato?'<span class="sg-badge ok">Sin alertas</span>':'');
+    const IC={crit:'!',warn:'▲',ok:'✓',nd:'–'}, LB={crit:'Crítica',warn:'Aviso',ok:'Correcto',nd:'Sin datos'};
+    const pl=cqPlanta==='edari'?'EDARi':'EDARu';
+    if(!list.length) list=[{lvl:dec.nConDato?'ok':'nd', what:dec.nConDato?'Sin acciones pendientes':'Sin datos suficientes', why:dec.nConDato?'· efluente conforme y proceso dentro de las bandas de referencia.':'para '+pl+'. Carga el SMS Diario (M-04).', do:null, when:null}];
+    el.innerHTML=list.map(a=>'<div class="sg-alert '+a.lvl+'"><div class="sg-alert__icon" role="img" aria-label="'+LB[a.lvl]+'">'+IC[a.lvl]+'</div><div><span class="sg-alert__what">'+a.what+'</span> <span class="sg-alert__why">'+a.why+'</span>'+(a.do?'<div class="sg-alert__do">'+a.do+'</div>':'')+'</div><div class="sg-alert__when">'+(a.when?_fmtDM(a.when):'')+'</div></div>').join('');
+  }
+  window.cqIrAAlertas=function(){ const a=document.getElementById('cq-alerts'); if(a) a.scrollIntoView({behavior:'smooth',block:'start'}); };
+
 
   /* ─── Estudio del reactor biológico (EDARi) ──────────────────────────────── */
   function cqUpdateBioReactor(ST){
@@ -10205,9 +10179,10 @@ if(typeof waitForFirebase==='function'){
     const bulk=document.getElementById('cq-bio-bulk');
     const sub=document.getElementById('cq-bio-sub');
     const OK=_CQ_OK, WARN=_CQ_WARN, BAD=_CQ_BAD;
+    window._cqBulk=null; cqRenderAlertas();
     if(cqPlanta!=='edari'){
       if(sub) sub.textContent='no aplica a EDARu';
-      grid.innerHTML='<div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono);padding:6px 2px">EDARu no dispone de reactor biológico de fangos activos. Selecciona EDARi para el estudio del proceso biológico.</div>';
+      grid.innerHTML='<div class="sg-caption" style="grid-column:1/-1">EDARu no dispone de reactor biológico de fangos activos. Selecciona EDARi para el estudio del proceso biológico.</div>';
       if(bulk) bulk.style.display='none';
       return;
     }
@@ -10219,7 +10194,7 @@ if(typeof waitForFirebase==='function'){
     let fref=null;
     if(cqDiaSel && R[cqDiaSel]) fref=cqDiaSel;
     else { for(let i=fechas.length-1;i>=0;i--){ const r=R[fechas[i]]; if(r&&_pick(r,['ss_reactor_gl'])!=null){ fref=fechas[i]; break; } } }
-    if(!fref){ grid.innerHTML='<div style="grid-column:1/-1;font-size:9px;color:var(--muted);font-family:var(--mono);padding:6px 2px">Sin datos del reactor. Carga el SMS Diario (M-04).</div>'; if(sub) sub.textContent='EDARi · sin datos'; if(bulk) bulk.style.display='none'; return; }
+    if(!fref){ grid.innerHTML='<div class="sg-caption" style="grid-column:1/-1">Sin datos del reactor. Carga el SMS Diario (M-04).</div>'; if(sub) sub.textContent='EDARi · sin datos'; if(bulk) bulk.style.display='none'; return; }
     if(sub) sub.textContent='EDARi · '+_fmtDM(fref);
     const r=R[fref]||{};
     const volP=_pick(r,['vol_reactor']); const V=(volP&&volP>0)?volP:2167.9;
@@ -10298,35 +10273,35 @@ if(typeof waitForFirebase==='function'){
       {l:'Purga sólidos', v:purga, u:'kgSS/d', band:'seguimiento', fuente:purgaFB, col:'var(--accent)', dec:0, mil:true, avg:purgaMedia},
     ];
     grid.innerHTML=kpis.map(k=>{
-      const fmt=n=>k.mil?Math.round(n).toLocaleString('es-ES'):(k.dec===0?Math.round(n):(+n).toFixed(k.dec));
-      const val = k.v==null?'—':fmt(k.v);
-      const avgTxt = k.avg==null?'':('Media 30d '+fmt(k.avg)+' '+k.u);
-      return '<div class="cq-bio-kpi"><div class="cq-bio-kpi-top"><span class="cq-bio-kpi-l">'+k.l+'</span><span class="cq-bio-kpi-dot" style="background:'+k.col+'"></span></div>'+
-        '<div><span class="cq-bio-kpi-v" style="color:'+(k.v==null?'var(--muted)':k.col)+'">'+val+'</span><span class="cq-bio-kpi-u">'+k.u+'</span></div>'+
-        '<div class="cq-bio-kpi-band">Ópt. '+k.band+' <span style="color:#d4a373;opacity:.9">'+(k.v==null?'':k.fuente)+'</span></div>'+
-        (avgTxt?'<div class="cq-bio-kpi-avg">'+avgTxt+'</div>':'')+
+      const fmt=n=>k.mil?Math.round(n).toLocaleString('es-ES'):_nf(n,k.dec);
+      const est=k.v==null?'':(k.col===BAD?'crit':k.col===WARN?'warn':k.col===OK?'ok':'');
+      const val=k.v==null?'—':fmt(k.v);
+      const colV=k.v==null?'var(--sg-subtle)':(est==='crit'?'var(--sg-crit)':est==='warn'?'var(--sg-warn)':'var(--sg-ink)');
+      const estTxt=est==='ok'?' · <b style="color:var(--sg-ok)">en banda</b>':(est==='crit'||est==='warn')?' · <b style="color:'+colV+'">fuera de banda</b>':'';
+      const fuente=(k.v==null?'':String(k.fuente||'').replace(/^·\s*/,''));
+      const avgTxt=k.avg==null?'':('media 30 d '+fmt(k.avg));
+      const pie=[fuente,avgTxt].filter(Boolean).join(' · ');
+      return '<div class="cq-bio-kpi'+(est==='crit'?' is-crit':est==='warn'?' is-warn':'')+'"><div class="cq-bio-kpi-l">'+k.l+'</div>'+
+        '<div><span class="cq-bio-kpi-v" style="color:'+colV+'">'+val+'</span><span class="cq-bio-kpi-u">'+k.u+'</span></div>'+
+        '<div class="cq-bio-kpi-band">Óptimo '+k.band+estTxt+'</div>'+
+        (pie?'<div class="cq-bio-kpi-avg">'+pie+'</div>':'')+
         '</div>';
     }).join('');
 
-    if(bulk){
-      bulk.style.display='block';
+    // Riesgo de bulking: ya no tiene bloque propio; se suma al panel único de alertas
+    {
       const srtAlto=edad!=null&&edad>20, srtMuyAlto=edad!=null&&edad>25;
       const fmBajo=FM!=null&&FM<0.12, fmMuyBajo=FM!=null&&FM<0.08;
-      let nivel, col;
-      if((srtMuyAlto&&fmBajo)||(fmMuyBajo&&srtAlto)){ nivel='ALTO'; col=BAD; }
-      else if(srtAlto||fmBajo){ nivel='MEDIO'; col=WARN; }
-      else if(edad==null||FM==null){ nivel='SIN DATOS'; col='var(--muted)'; }
-      else { nivel='BAJO'; col=OK; }
+      let nivel;
+      if((srtMuyAlto&&fmBajo)||(fmMuyBajo&&srtAlto)) nivel='ALTO';
+      else if(srtAlto||fmBajo) nivel='MEDIO';
+      else if(edad==null||FM==null) nivel='SIN DATOS';
+      else nivel='BAJO';
       const motivos=[];
-      if(edad!=null&&edad>20) motivos.push('edad de fango elevada ('+edad.toFixed(1)+' d)');
-      if(FM!=null&&FM<0.12) motivos.push('F/M baja ('+FM.toFixed(3)+')');
-      let consejo='';
-      if(nivel==='ALTO'||nivel==='MEDIO') consejo=' Condiciones que favorecen filamentosas tipo Microthrix parvicella. Valorar aumentar la purga para bajar el SRT y, si procede, cloración selectiva de la recirculación. Confirmar con microscopía (índice de Jenkins) y seguimiento de V30/IVF.';
-      else if(nivel==='BAJO') consejo=' Parámetros dentro de rango; mantener microscopía periódica y seguimiento de V30/IVF.';
-      const txt=(motivos.length?('Motivos: '+motivos.join(', ')+'.'):'')+consejo;
-      bulk.style.borderColor=col;
-      bulk.style.background = nivel==='ALTO'?'rgba(229,74,100,.08)':nivel==='MEDIO'?'rgba(240,176,51,.08)':nivel==='BAJO'?'rgba(34,201,149,.06)':'var(--surface2)';
-      bulk.innerHTML='<div class="cq-bio-bulk-hd" style="color:'+col+'">Riesgo de bulking filamentoso: '+nivel+'</div><div style="color:var(--muted2)">'+(txt||'—')+'</div>';
+      if(edad!=null&&edad>20) motivos.push('edad de fango '+_nf(edad,1)+' d (óptimo 15–20)');
+      if(FM!=null&&FM<0.12) motivos.push('F/M baja '+_nf(FM,3));
+      window._cqBulk={nivel, motivos, f:edadFecha||fref};
+      cqRenderAlertas();
     }
   }
   function cqRedibujarTodo(){
@@ -10592,7 +10567,7 @@ if(typeof waitForFirebase==='function'){
             const p=document.getElementById('panel-calidad');
             if(p&&p.classList.contains('active')){ cqRQRenderTanks(); cqRedibujarTodo(); }
           });
-          ['cq-charts-row','cq-lowrow'].forEach(id=>{ const el=document.getElementById(id); if(el) window._cqResizeObs.observe(el); });
+          ['cq-charts-row','cq-lowrow','cq-trends'].forEach(id=>{ const el=document.getElementById(id); if(el) window._cqResizeObs.observe(el); });
         }
         let intentos=0;
         const retry=setInterval(()=>{
