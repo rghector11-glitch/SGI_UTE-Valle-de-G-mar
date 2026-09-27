@@ -3061,34 +3061,54 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             #panel-predictivo .pd-headbtn{margin-left:auto;font:700 12px/16px var(--mono);letter-spacing:.04em;padding:6px 12px;border-radius:6px;border:1px solid var(--sg-line);background:var(--sg-card);color:var(--sg-ink);cursor:pointer;white-space:nowrap;}
             #panel-predictivo .pd-headbtn:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
             /* ¿Qué pasa si…? */
-            #pd-sim{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:10px 16px 12px;overflow-y:auto;}
-            #panel-predictivo .pd-sc{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden;}
-            #panel-predictivo .pd-in label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;}
+            #pd-sim{flex:1;min-height:0;display:flex;flex-direction:column;padding:10px 16px 12px;overflow-y:auto;}
+            #panel-predictivo .pd-sc{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden;}
+            #panel-predictivo .pd-ctrl{display:grid;grid-template-columns:1.4fr 1.1fr auto;gap:22px;align-items:start;}
+            #panel-predictivo .pd-ctrl__c label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;}
+            #panel-predictivo .pd-ctrl__h{display:flex;flex-direction:column;gap:6px;}
+            #panel-predictivo .pd-ctrl__lbl{font-size:14px;font-weight:600;}
             #panel-predictivo .pd-in__v{display:inline-flex;align-items:center;gap:6px;font-weight:400;color:var(--sg-muted);font-size:13px;}
-            #panel-predictivo .pd-in input[type=number]{width:90px;background:var(--sg-raised);color:var(--sg-ink);border:1px solid var(--sg-line);border-radius:6px;padding:5px 8px;font:600 15px/20px var(--sg-num);text-align:right;}
-            #panel-predictivo .pd-in input[type=range]{width:100%;accent-color:var(--sg-brand);margin:6px 0 2px;}
-            #panel-predictivo .pd-in input:focus-visible{outline:2px solid var(--sg-brand);outline-offset:1px;}
+            #panel-predictivo .pd-ctrl input[type=number]{width:84px;background:var(--sg-raised);color:var(--sg-ink);border:1px solid var(--sg-line);border-radius:6px;padding:5px 8px;font:600 15px/20px var(--sg-num);text-align:right;}
+            #panel-predictivo .pd-ctrl input[type=range]{width:100%;accent-color:var(--sg-brand);margin:8px 0 4px;}
+            #panel-predictivo .pd-ctrl input:focus-visible{outline:2px solid var(--sg-brand);outline-offset:1px;}
             #panel-predictivo .pd-quick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--sg-subtle);}
             #panel-predictivo .pd-quick button{font:600 12px/16px var(--sg-sans);padding:3px 10px;border-radius:999px;border:1px solid var(--sg-line);background:var(--sg-raised);color:var(--sg-ink);cursor:pointer;}
             #panel-predictivo .pd-quick button:hover{border-color:var(--sg-brand);color:var(--sg-brand);}
-            #panel-predictivo .pd-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:4px;}
-            #panel-predictivo .pd-grid4 label{display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:12px;font-weight:400;color:var(--sg-muted);}
-            #panel-predictivo .pd-grid4 input{width:100%!important;box-sizing:border-box;font-size:14px!important;}
-            #panel-predictivo .pd-grid4 small{font-size:11px;color:var(--sg-subtle);}
-            #panel-predictivo .pd-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
-            #panel-predictivo .pd-k{background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:8px;padding:7px 10px;min-width:0;}
+            #panel-predictivo .pd-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;}
+            #panel-predictivo .pd-k{background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:8px;padding:8px 12px;min-width:0;}
             #panel-predictivo .pd-k.crit{border-color:var(--sg-crit);background:var(--sg-crit-soft);}
             #panel-predictivo .pd-k.warn{border-color:var(--sg-warn);}
             #panel-predictivo .pd-k.ok{border-color:var(--sg-ok);}
             #panel-predictivo .pd-k__l{font-size:12px;color:var(--sg-muted);}
-            #panel-predictivo .pd-k__v{font-family:var(--sg-num);font-size:22px;line-height:26px;font-weight:600;font-variant-numeric:tabular-nums;}
+            #panel-predictivo .pd-k__v{font-family:var(--sg-num);font-size:24px;line-height:28px;font-weight:600;font-variant-numeric:tabular-nums;}
             #panel-predictivo .pd-k__s{font-size:12px;color:var(--sg-subtle);}
-            #panel-predictivo .pd-sc__charts{flex:1;min-height:110px;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px;}
-            #panel-predictivo .pd-sc__chart{position:relative;min-height:0;}
-            #panel-predictivo .pd-sc__chart>svg{position:absolute;inset:0;width:100%;height:100%;}
+            #panel-predictivo .pd-sc__charts{flex:1;min-height:200px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+            #panel-predictivo .pd-sc__box{display:flex;flex-direction:column;min-height:0;background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:10px;padding:10px 12px 6px;}
+            #panel-predictivo .pd-sc__t{font-size:15px;font-weight:600;}
+            #panel-predictivo .pd-sc__t span{font-size:12px;font-weight:400;color:var(--sg-subtle);margin-left:4px;}
+            #panel-predictivo .pd-sc__chart{flex:1;position:relative;min-height:0;}
+            #panel-predictivo .pd-sc__chart>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
             #panel-predictivo .pd-sc__txt{font-size:13px;line-height:19px;color:var(--sg-muted);}
             #panel-predictivo .pd-sc__txt b{color:var(--sg-ink);}
-            @media (max-width:1100px){ #pd-sim{grid-template-columns:1fr;} #panel-predictivo .pd-sc__charts{height:180px;flex:none;} #panel-predictivo .pd-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} }
+            #panel-predictivo .pd-link{background:none;border:none;padding:0;color:var(--sg-brand);font:600 13px/19px var(--sg-sans);cursor:pointer;text-decoration:underline;}
+            #panel-predictivo .pd-helpbtn{margin-left:auto;}
+            #panel-predictivo .pd-helpbtn + .pd-headbtn{margin-left:0;}
+            /* Ayuda */
+            #pd-help{position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;}
+            #pd-help.open{display:flex;}
+            #panel-predictivo .pd-help__card{width:min(860px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--sg-card);border:1px solid var(--sg-line);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.5);}
+            #panel-predictivo .pd-help__h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--sg-line);}
+            #panel-predictivo .pd-help__h h3{margin:0;font-size:18px;font-weight:600;}
+            #panel-predictivo .pd-help__x{margin-left:auto;background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:6px;color:var(--sg-muted);cursor:pointer;padding:5px 10px;font-size:13px;}
+            #panel-predictivo .pd-help__x:focus-visible{outline:2px solid var(--sg-brand);outline-offset:2px;}
+            #panel-predictivo .pd-help__b{overflow-y:auto;padding:6px 18px 18px;font-size:14px;line-height:1.55;color:var(--sg-ink);}
+            #panel-predictivo .pd-help__b h4{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sg-brand);margin:16px 0 6px;}
+            #panel-predictivo .pd-help__b ol,#panel-predictivo .pd-help__b ul{margin:0;padding-left:20px;}
+            #panel-predictivo .pd-help__b li{margin:4px 0;}
+            #panel-predictivo .pd-help__b p{margin:6px 0;}
+            #panel-predictivo .pd-help__f{background:var(--sg-raised);border:1px solid var(--sg-line);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:13px;}
+            #panel-predictivo .pd-help__n{color:var(--sg-muted);font-size:13px;}
+            @media (max-width:1100px){ #panel-predictivo .pd-ctrl{grid-template-columns:1fr;} #panel-predictivo .pd-sc__charts{grid-template-columns:1fr;height:auto;} #panel-predictivo .pd-sc__chart{height:230px;flex:none;} #panel-predictivo .pd-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} }
 
           </style>
           <div id="pd-head">
@@ -3105,6 +3125,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <button data-v="sim" onclick="pdSetVista('sim')">¿Qué pasa si…?</button>
             </div>
             <span id="pd-note">Cargando histórico…</span>
+            <button class="pd-headbtn pd-helpbtn" onclick="pdAyuda()" title="Explicación del método de cálculo">¿Cómo se calcula?</button>
             <button class="pd-headbtn" onclick="informeDireccion()" title="Informe PDF de una página para dirección">Informe dirección</button>
           </div>
           <div id="pd-body">
@@ -3131,34 +3152,75 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               <div id="pd-ops"><div class="sg-caption">⟳ Calculando…</div></div>
             </div>
           </div>
-          <!-- Simulación de escenarios -->
+          <!-- Simulación de escenarios: purga de fangos -->
           <div id="pd-sim" style="display:none">
             <div class="sg-card pd-sc" id="pd-sc-purga">
-              <div class="sg-sec"><span class="sg-label">Purga de fangos → edad de fango y bulking</span><span class="sg-caption" id="pd-sp-src"></span></div>
-              <div class="pd-in">
-                <label>Caudal de purga <span class="pd-in__v"><input type="number" id="pd-sp-q" step="0.5" min="0" oninput="pdSim()"> m³/d</span></label>
-                <input type="range" id="pd-sp-r" min="0" max="60" step="0.5" oninput="document.getElementById('pd-sp-q').value=this.value;pdSim()" aria-label="Caudal de purga">
-                <div class="pd-quick" id="pd-sp-quick"></div>
-              </div>
-              <div class="pd-kpis" id="pd-sp-kpis"></div>
-              <div class="pd-sc__charts"><div class="pd-sc__chart" id="pd-sp-c1"></div><div class="pd-sc__chart" id="pd-sp-c2"></div></div>
-              <div class="pd-sc__txt" id="pd-sp-txt"></div>
-            </div>
-            <div class="sg-card pd-sc" id="pd-sc-fe">
-              <div class="sg-sec"><span class="sg-label">Cloruro férrico → fósforo en el efluente</span><span class="sg-caption" id="pd-fe-src"></span></div>
-              <div class="pd-in">
-                <label>Dosis de FeCl₃ comercial <span class="pd-in__v"><input type="number" id="pd-fe-d" step="1" min="0" oninput="pdSim()"> L/d</span></label>
-                <input type="range" id="pd-fe-r" min="0" max="400" step="1" oninput="document.getElementById('pd-fe-d').value=this.value;pdSim()" aria-label="Dosis de cloruro férrico">
-                <div class="pd-grid4">
-                  <label>Dosis actual<input type="number" id="pd-fe-d0" step="1" min="0" oninput="pdSim()"><small>L/d</small></label>
-                  <label>Riqueza FeCl₃<input type="number" id="pd-fe-w" step="1" min="1" max="60" value="40" oninput="pdSim()"><small>%</small></label>
-                  <label>Densidad<input type="number" id="pd-fe-rho" step="0.01" min="1" max="2" value="1.42" oninput="pdSim()"><small>kg/L</small></label>
-                  <label>Relación molar Fe:P<input type="number" id="pd-fe-b" step="0.1" min="1" max="4" value="2" oninput="pdSim()"><small>β</small></label>
+              <div class="sg-sec"><span class="sg-label">Purga de fangos → edad de fango, SST y bulking</span><span class="sg-caption" id="pd-sp-src"></span></div>
+              <div class="pd-ctrl">
+                <div class="pd-ctrl__c">
+                  <label for="pd-sp-q">Nueva purga <span class="pd-in__v"><input type="number" id="pd-sp-q" step="0.5" min="0" oninput="pdSim()"> m³/d</span></label>
+                  <input type="range" id="pd-sp-r" min="0" max="60" step="0.5" oninput="document.getElementById('pd-sp-q').value=this.value;pdSim()" aria-label="Caudal de purga">
+                  <div class="pd-quick" id="pd-sp-quick"></div>
+                </div>
+                <div class="pd-ctrl__c">
+                  <label for="pd-sp-n">Aplicar el cambio en <span class="pd-in__v"><input type="number" id="pd-sp-n" step="1" min="0" max="90" oninput="pdSim()"> días</span></label>
+                  <input type="range" id="pd-sp-nr" min="0" max="60" step="1" value="0" oninput="document.getElementById('pd-sp-n').value=this.value;pdSim()" aria-label="Días para aplicar el cambio">
+                  <div class="pd-quick"><span id="pd-sp-nlbl">de golpe (hoy)</span> · <button type="button" onclick="pdSimN(0)">Hoy</button><button type="button" onclick="pdSimN(7)">7 d</button><button type="button" onclick="pdSimN(14)">14 d</button><button type="button" onclick="pdSimN(21)">21 d</button></div>
+                </div>
+                <div class="pd-ctrl__c pd-ctrl__h">
+                  <span class="pd-ctrl__lbl">Ver resultado a</span>
+                  <div class="pd-seg"><button data-sh="30" onclick="pdSimH(30)">30 d</button><button class="active" data-sh="60" onclick="pdSimH(60)">60 d</button><button data-sh="90" onclick="pdSimH(90)">90 d</button></div>
                 </div>
               </div>
-              <div class="pd-kpis" id="pd-fe-kpis"></div>
-              <div class="pd-sc__charts"><div class="pd-sc__chart" id="pd-fe-c1"></div></div>
-              <div class="pd-sc__txt" id="pd-fe-txt"></div>
+              <div class="pd-kpis" id="pd-sp-kpis"></div>
+              <div class="pd-sc__charts">
+                <div class="pd-sc__box"><div class="pd-sc__t">Edad de fango <span>días</span></div><div class="pd-sc__chart" id="pd-sp-c1"></div></div>
+                <div class="pd-sc__box"><div class="pd-sc__t">SST en el reactor <span>mg/L</span></div><div class="pd-sc__chart" id="pd-sp-c2"></div></div>
+              </div>
+              <div class="pd-sc__txt" id="pd-sp-txt"></div>
+            </div>
+          </div>
+          <!-- Explicación del proceso predictivo -->
+          <div id="pd-help" aria-hidden="true" onclick="if(event.target===this)pdAyudaCerrar()">
+            <div class="pd-help__card" role="dialog" aria-modal="true" aria-labelledby="pd-help-t">
+              <div class="pd-help__h"><h3 id="pd-help-t">¿Cómo se calcula el análisis predictivo?</h3><button class="pd-help__x" onclick="pdAyudaCerrar()" aria-label="Cerrar">✕</button></div>
+              <div class="pd-help__b">
+                <section id="pd-help-prev">
+                  <h4>1 · Previsión del efluente y de la operación</h4>
+                  <ol>
+                    <li><b>Datos.</b> Se usan los últimos <b>60 días</b> de la carga diaria (SMS M-04 en Firebase): efluente (DBO₅, DQO, SST, NT, PT), caudal, energía, edad de fango y SST del reactor. Los ceros y huecos se descartan.</li>
+                    <li><b>Limpieza.</b> Se quitan los valores atípicos (a más de 3,5 desviaciones robustas de la tendencia) para que un error de carga no arrastre la previsión.</li>
+                    <li><b>Tendencia.</b> Se ajusta una recta por mínimos cuadrados con las <b>últimas 4 semanas</b> y se ancla al nivel de las 5 últimas muestras, para que la previsión arranque de lo que se mide hoy.</li>
+                    <li><b>Amortiguación.</b> La pendiente se va frenando día a día (φ = 0,95): a 30 días no se prolonga una recta sin fin, se asume que el proceso tiende a estabilizarse.</li>
+                    <li><b>Patrón semanal.</b> En caudal y energía, si hay 3 semanas de datos, se añade un factor por día de la semana (p. ej. los lunes entra más agua).</li>
+                    <li><b>Límite físico.</b> Un parámetro del efluente nunca se prevé por encima de su concentración de entrada (mediana de 30 días).</li>
+                    <li><b>Incertidumbre.</b> Con la dispersión de los datos alrededor de la tendencia se calcula el <b>rango probable del 80 %</b> (8 de cada 10 veces el valor real caerá dentro), que se abre cuanto más lejos se mira.</li>
+                    <li><b>Probabilidad de incumplir.</b> Es la parte de esa distribución que queda por encima del límite del RD 509/1996. <i>Riesgo alto</i> ≥ 50 %, <i>vigilar</i> ≥ 15 %.</li>
+                  </ol>
+                </section>
+                <section id="pd-help-sim">
+                  <h4>2 · ¿Qué pasa si cambio la purga?</h4>
+                  <p>Se resuelve el <b>balance de sólidos del reactor</b> día a día:</p>
+                  <p class="pd-help__f">variación de fango en el reactor = fango producido − fango purgado − fango perdido con el efluente</p>
+                  <ul>
+                    <li><b>Fango producido</b> (kgSS/d): sale del balance real de los últimos 30 días (lo purgado + lo perdido por el efluente + lo que ha variado la masa del reactor).</li>
+                    <li><b>Fango purgado</b> = purga (m³/d) × SST de recirculación. Se supone que el SST de recirculación sigue siendo proporcional al del reactor.</li>
+                    <li><b>Edad de fango</b> = masa en el reactor ÷ (fango purgado + fango del efluente): la misma fórmula que en Calidad.</li>
+                    <li><b>Rampa.</b> Con «Aplicar el cambio en N días» la purga sube o baja poco a poco hasta el valor nuevo; con 0 días se aplica de golpe.</li>
+                    <li><b>F/M</b> = carga de DBO₅ de entrada (mediana de 30 días) ÷ masa de fango. <b>Riesgo de bulking</b>: alto si edad &gt; 25 d y F/M &lt; 0,12 (o edad &gt; 20 d y F/M &lt; 0,08); medio si edad &gt; 20 d o F/M &lt; 0,12.</li>
+                    <li><b>Equilibrio</b>: el valor al que tiende el reactor si se mantiene la nueva purga indefinidamente.</li>
+                  </ul>
+                </section>
+                <section>
+                  <h4>3 · Qué no tiene en cuenta</h4>
+                  <ul>
+                    <li>Cambios de carga de entrada, lluvias, averías o cambios de dosificación que aún no han ocurrido.</li>
+                    <li>La producción de fango se supone constante (en realidad baja algo con edades de fango altas).</li>
+                    <li>Es una herramienta de apoyo: confirma siempre con analíticas, microscopía, V30 e IVF.</li>
+                  </ul>
+                  <p class="pd-help__n">Cuantos más días seguidos haya cargados en el SMS Diario, más estrecho y fiable será el rango.</p>
+                </section>
+              </div>
             </div>
           </div>
         </div><!-- /#panel-predictivo -->
@@ -12709,17 +12771,15 @@ ${fotosHtml}
   }
 
 
-  /* ══ ¿QUÉ PASA SI…? ════════════════════════════════════════════════════════
-     Purga: balance de sólidos en el reactor con purga constante Qp.
-       dM/dt = Px − SS_efluente − k·M,  k = Qp·r/V  (r = SS recirc./SS reactor)
-       Px (producción de fango, kgSS/d) sale del balance real de los últimos 30 días
+  /* ══ ¿QUÉ PASA SI…? · PURGA DE FANGOS ═════════════════════════════════════
+     Balance de sólidos en el reactor, resuelto día a día (paso de 0,1 d):
+       dM/dt = Px − SS_efluente − k(t)·M,   k(t) = Qp(t)·r / V   (r = SS recirc. / SS reactor)
+     · Px (producción de fango, kgSS/d) sale del balance real de los últimos 30 días
        (sólidos purgados + perdidos por el efluente + variación de masa en el reactor).
-       Edad de fango(t) = M(t) / (k·M(t) + SS_efluente) — misma fórmula que Calidad.
-     Cloruro férrico: estequiometría Fe:P (β mol Fe por mol P eliminado).
-       Fe añadido (mg/L) = dosis·ρ·riqueza·(55,85/162,2) / Q
-       P precipitado (mg/L) = Fe / (β·55,85/30,97)
-       Fango químico = FePO₄ + Fe(OH)₃ del hierro sobrante. */
-  let pdVista='prev', simInit=false;
+     · El cambio de purga puede aplicarse de golpe o en rampa lineal durante N días.
+     · Edad de fango(t) = M(t) / (k(t)·M(t) + SS_efluente) — misma fórmula que Calidad.
+     · F/M(t) = carga de DBO₅ (mediana 30 d) / M(t). */
+  let pdVista='prev', simInit=false, simH=60;
   function medianaDe(a){ if(!a.length) return null; const s=a.slice().sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; }
   function baseSim(){
     const ST=datos(), R=ST.reactor||{}, fs=Object.keys(R).sort(), C=ST.caudales||{};
@@ -12731,118 +12791,114 @@ ${fotosHtml}
     if(ult){
       const r=ult.r, V=num(r,'vol_reactor')||2167.9, SSr=+r.ss_reactor_gl, SSrc=+r.ss_recirc_gl, Qp=+r.q_purga, Qb=Qdia(ult.f)||0, SSef=+(r.ss_efluente||0);
       const M0=SSr*V, efl=Qb*SSef/1000, ratio=SSrc/SSr;
-      // Producción de fango: balance de los últimos 30 días
       const ven=fs.filter(f=>tOf(f)>tOf(ult.f)-30*DAY&&num(R[f],'ss_reactor_gl')&&num(R[f],'q_purga')&&num(R[f],'ss_recirc_gl'));
-      let Px=null;
+      let Px=null, pxFuente='balance de los últimos 30 días';
       if(ven.length>=5){
         const sal=ven.map(f=>{ const x=R[f], q=Qdia(f)||0; return +x.q_purga*+x.ss_recirc_gl+q*(+(x.ss_efluente||0))/1000; });
         const mIni=+R[ven[0]].ss_reactor_gl*V, mFin=+R[ven[ven.length-1]].ss_reactor_gl*V, dias=Math.max(1,(tOf(ven[ven.length-1])-tOf(ven[0]))/DAY);
         Px=sal.reduce((a,b)=>a+b,0)/sal.length+(mFin-mIni)/dias;
       }
-      if(!(Px>efl*1.05)) Px=Qp*SSrc+efl;
+      if(!(Px>efl*1.05)){ Px=Qp*SSrc+efl; pxFuente='purga actual (pocos datos para el balance)'; }
       const dbo=ven.map(f=>{ const x=R[f]; const d=num(x,'dbo_ent')||num(x,'DBO5 ENTRADA')||num(x,'dbo_entrada'); const q=Qdia(f); return d&&q?d*q/1000:null; }).filter(v=>v!=null);
-      Object.assign(out,{V,SSr,SSrc,Qp,Qb,SSef,M0,efl,ratio,Px,dboLoad:medianaDe(dbo)});
+      Object.assign(out,{V,SSr,SSrc,Qp,Qb,SSef,M0,efl,ratio,Px,pxFuente,nBal:ven.length,dboLoad:medianaDe(dbo)});
     }
-    // fósforo
-    const pt=serieEf(ST,'pt'), q30=Object.keys(C).sort().slice(-30).map(f=>C[f]&&valido(C[f].edari)?+C[f].edari:null).filter(v=>v!=null);
-    out.pt=pt.length?pt[pt.length-1]:null; out.ptEnt=entradaReciente(ST,'pt'); out.Q=q30.length?q30.reduce((a,b)=>a+b,0)/q30.length:null;
     return out;
   }
-  function trayectoria(b,Qp,dias){
-    const k=Qp*b.ratio/b.V, Ms=k>0?(b.Px-b.efl)/k:Infinity, out=[];
-    for(let t=0;t<=dias;t++){ const M=k>0?Ms+(b.M0-Ms)*Math.exp(-k*t):b.M0+(b.Px-b.efl)*t; out.push({t,M,srt:M/(k*M+b.efl),sst:M/b.V*1000,fm:b.dboLoad?b.dboLoad/M:null}); }
-    return {k,Ms,pts:out,srtEq:k>0?Ms/b.Px:Infinity,t90:k>0?Math.log(10)/k:Infinity};
+  // Integración día a día con rampa lineal de purga (N días; 0 = de golpe)
+  function trayectoria(b,Qp1,N,dias){
+    const dt=0.1, out=[]; let M=b.M0;
+    const Qp=t=>N>0?b.Qp+(Qp1-b.Qp)*Math.min(1,t/N):Qp1;
+    const k=t=>Qp(t)*b.ratio/b.V;
+    for(let s=0,t=0;t<=dias+1e-9;s++){
+      if(Math.abs(t-Math.round(t))<1e-6){ const kk=k(t); out.push({t:Math.round(t),M,qp:Qp(t),srt:M/(kk*M+b.efl),sst:M/b.V*1000,fm:b.dboLoad?b.dboLoad/M:null}); }
+      M+=dt*(b.Px-b.efl-k(t)*M); t=+(t+dt).toFixed(4);
+    }
+    const kf=Qp1*b.ratio/b.V, Ms=kf>0?(b.Px-b.efl)/kf:Infinity;
+    return {pts:out,Ms,srtEq:kf>0?Ms/b.Px:Infinity,t90:kf>0?(N/2+Math.log(10)/kf):Infinity};
   }
-  function riesgoBulking(srt,fm){ const a=srt>20,aa=srt>25,b=fm!=null&&fm<0.12,bb=fm!=null&&fm<0.08; return (aa&&b)||(bb&&a)?'alto':(a||b)?'medio':'bajo'; }
-  function svgLineas(box,series,o){
-    const W=Math.max(200,box.clientWidth||300), H=Math.max(90,box.clientHeight||140), PL=44, PR=8, PT=18, PB=18, gW=W-PL-PR, gH=H-PT-PB;
-    const xs=series.flatMap(s=>s.pts.map(p=>p[0])), ys=series.flatMap(s=>s.pts.map(p=>p[1])).filter(v=>isFinite(v));
-    const xmin=Math.min(...xs), xmax=Math.max(...xs);
-    let ymax=Math.max(...ys,o.band?o.band[1]:0,o.lim||0)*1.1, ymin=o.ymin!=null?o.ymin:0;
-    const X=x=>PL+(x-xmin)/(xmax-xmin||1)*gW, Y=v=>PT+gH-(Math.min(v,ymax)-ymin)/(ymax-ymin||1)*gH;
-    const band=o.band?`<rect x="${PL}" width="${gW}" y="${Y(o.band[1]).toFixed(1)}" height="${(Y(o.band[0])-Y(o.band[1])).toFixed(1)}" fill="var(--sg-ok-soft)"/>`:'';
-    const lim=o.lim?`<line x1="${PL}" x2="${W-PR}" y1="${Y(o.lim).toFixed(1)}" y2="${Y(o.lim).toFixed(1)}" stroke="var(--sg-crit)" stroke-width="1.5"/><text class="sg-ax" x="${W-PR}" y="${(Y(o.lim)-4).toFixed(1)}" text-anchor="end" style="fill:var(--sg-crit)">límite ${nfv(o.lim)}</text>`:'';
-    const lines=series.map(s=>`<polyline points="${s.pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="${s.col}" stroke-width="${s.w||2}" ${s.dash?'stroke-dasharray="5,4"':''} stroke-linejoin="round"/>`).join('');
-    const marks=(o.marks||[]).map(m=>`<circle class="pt-int" cx="${X(m[0]).toFixed(1)}" cy="${Y(m[1]).toFixed(1)}" r="5" fill="var(--sg-card)" stroke="${m[2]}" stroke-width="2.5" data-tip="${m[3]}"/>`).join('');
-    const leg=series.map((s,i)=>`<text class="sg-ax" x="${PL+i*150}" y="11"><tspan style="fill:${s.col}">━</tspan> ${s.name}</text>`).join('');
-    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria||''}">
-      ${band}<line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${Y(ymin).toFixed(1)}" y2="${Y(ymin).toFixed(1)}"/>${lim}${lines}${marks}${leg}
-      <text class="sg-ax" x="${PL-5}" y="${PT+8}" text-anchor="end">${nf(ymax,ymax<10?1:0)}</text>
-      <text class="sg-ax" x="${PL-5}" y="${PT+gH}" text-anchor="end">${nf(ymin,0)}</text>
-      <text class="sg-ax" x="${PL}" y="${H-3}">${o.x0||''}</text><text class="sg-ax" x="${W-PR}" y="${H-3}" text-anchor="end">${o.x1||''}</text>
-      ${o.band?`<text class="sg-ax" x="${W-PR}" y="${(Y(o.band[1])+12).toFixed(1)}" text-anchor="end">óptimo ${nf(o.band[0],0)}–${nf(o.band[1],0)}</text>`:''}
+  function riesgoBulking(srt,fm){ const a=srt>20,aa=srt>25,bb2=fm!=null&&fm<0.12,bb=fm!=null&&fm<0.08; return (aa&&bb2)||(bb&&a)?'alto':(a||bb2)?'medio':'bajo'; }
+  function ticks(lo,hi,n){ const raw=(hi-lo)/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p, st=(f<1.5?1:f<3?2:f<7?5:10)*p; const out=[]; for(let v=Math.ceil(lo/st)*st;v<=hi+1e-9;v+=st) out.push(+v.toFixed(6)); return out; }
+  let gradN=0;
+  function svgSim(box,o){
+    const W=Math.max(260,box.clientWidth||400), H=Math.max(140,box.clientHeight||220), PL=48, PR=64, PT=30, PB=26, gW=W-PL-PR, gH=H-PT-PB;
+    const A=o.actual, Nw=o.nueva, D=A.length-1;
+    const vals=A.concat(Nw).map(p=>p[1]).filter(isFinite);
+    let ymax=Math.max(...vals,o.band[1]*1.12), ymin=0;
+    const tk=ticks(ymin,ymax,4); ymax=Math.max(ymax,tk[tk.length-1]);
+    const X=t=>PL+t/D*gW, Y=v=>PT+gH-(Math.min(v,ymax)-ymin)/(ymax-ymin)*gH;
+    const path=P=>P.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join('');
+    const gid='pdg'+(++gradN);
+    const area=path(Nw)+`L${X(D).toFixed(1)},${Y(ymin).toFixed(1)}L${X(0).toFixed(1)},${Y(ymin).toFixed(1)}Z`;
+    const grid=tk.map(v=>`<line class="sg-grid" x1="${PL}" x2="${W-PR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" opacity=".6"/><text class="sg-ax" x="${PL-6}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end">${nf(v,v>=100?0:(v%1?1:0))}</text>`).join('');
+    const xt=ticks(0,D,6).map(t=>`<text class="sg-ax" x="${X(t).toFixed(1)}" y="${H-7}" text-anchor="middle">${t===0?'hoy':'+'+t+' d'}</text>`).join('');
+    const bY1=Y(o.band[1]), bY0=Y(o.band[0]);
+    const band=`<rect x="${PL}" y="${bY1.toFixed(1)}" width="${gW}" height="${(bY0-bY1).toFixed(1)}" fill="var(--sg-ok)" opacity=".10"/>
+      <line x1="${PL}" x2="${W-PR}" y1="${bY1.toFixed(1)}" y2="${bY1.toFixed(1)}" stroke="var(--sg-ok)" stroke-width="1" stroke-dasharray="3,3" opacity=".7"/>
+      <line x1="${PL}" x2="${W-PR}" y1="${bY0.toFixed(1)}" y2="${bY0.toFixed(1)}" stroke="var(--sg-ok)" stroke-width="1" stroke-dasharray="3,3" opacity=".7"/>
+      <text class="sg-ax" x="${PL+6}" y="${(bY1+13).toFixed(1)}" style="fill:var(--sg-ok)">óptimo ${nf(o.band[0],0)}–${nf(o.band[1],0)} ${o.u}</text>`;
+    const ramp=o.N>0&&o.N<D?`<rect x="${X(0).toFixed(1)}" y="${PT}" width="${(X(o.N)-X(0)).toFixed(1)}" height="${gH}" fill="var(--sg-brand)" opacity=".06"/>
+      <line x1="${X(o.N).toFixed(1)}" x2="${X(o.N).toFixed(1)}" y1="${PT}" y2="${PT+gH}" stroke="var(--sg-brand)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text class="sg-ax" x="${(X(o.N)+4).toFixed(1)}" y="${PT+11}" style="fill:var(--sg-brand)">fin del cambio · día ${o.N}</text>`:'';
+    const vD=o.vista!=null&&o.vista<=D?`<line x1="${X(o.vista).toFixed(1)}" x2="${X(o.vista).toFixed(1)}" y1="${PT}" y2="${PT+gH}" stroke="var(--sg-ink)" stroke-width="1" opacity=".35"/>`:'';
+    const ent=o.entra!=null?`<circle cx="${X(o.entra).toFixed(1)}" cy="${Y(Nw[o.entra][1]).toFixed(1)}" r="5" fill="var(--sg-ok)" stroke="var(--sg-card)" stroke-width="2"/>
+      <text class="sg-ax" x="${(X(o.entra)+8).toFixed(1)}" y="${(Y(Nw[o.entra][1])-8).toFixed(1)}" style="fill:var(--sg-ok);font-weight:600">en banda · día ${o.entra}</text>`:'';
+    const lastA=A[D][1], lastN=Nw[D][1];
+    let yA=Y(lastA), yN=Y(lastN); if(Math.abs(yA-yN)<14){ if(yA<yN) yA-=7,yN+=7; else yA+=7,yN-=7; }
+    const endLbl=`<text x="${(W-PR+6).toFixed(1)}" y="${(yN+4).toFixed(1)}" style="font:600 13px var(--sg-num);fill:var(--sg-s1)">${nf(lastN,o.dec)}</text>
+      <text x="${(W-PR+6).toFixed(1)}" y="${(yA+4).toFixed(1)}" style="font:500 12px var(--sg-num);fill:var(--sg-subtle)">${nf(lastA,o.dec)}</text>`;
+    const hov=Nw.map((p,i)=>`<rect class="br-int" x="${(X(i)-gW/D/2).toFixed(1)}" y="${PT}" width="${(gW/D).toFixed(1)}" height="${gH}" fill="transparent" data-tip="${i===0?'Hoy':'Día +'+i}|Nueva purga: ${nf(p[1],o.dec)} ${o.u}|Purga actual: ${nf(A[i][1],o.dec)} ${o.u}"/>`).join('');
+    const leg=`<g transform="translate(${PL},14)"><rect width="18" height="3" y="-4" fill="var(--sg-s1)" rx="1.5"/><text class="sg-ax" x="24" y="0" style="fill:var(--sg-ink)">con la nueva purga</text>
+      <line x1="170" x2="188" y1="-3" y2="-3" stroke="var(--sg-subtle)" stroke-width="2" stroke-dasharray="4,3"/><text class="sg-ax" x="194" y="0">si no se cambia</text></g>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.aria}">
+      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sg-s1)" stop-opacity=".35"/><stop offset="1" stop-color="var(--sg-s1)" stop-opacity="0"/></linearGradient></defs>
+      ${grid}${band}${ramp}${vD}
+      <path d="${area}" fill="url(#${gid})"/>
+      <path d="${path(A)}" fill="none" stroke="var(--sg-subtle)" stroke-width="2" stroke-dasharray="5,4"/>
+      <path d="${path(Nw)}" fill="none" stroke="var(--sg-s1)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${X(0).toFixed(1)}" cy="${Y(Nw[0][1]).toFixed(1)}" r="4" fill="var(--sg-card)" stroke="var(--sg-ink)" stroke-width="2"/>
+      <circle cx="${X(D).toFixed(1)}" cy="${Y(lastN).toFixed(1)}" r="4.5" fill="var(--sg-s1)" stroke="var(--sg-card)" stroke-width="2"/>
+      ${ent}${endLbl}${xt}${leg}${hov}
     </svg>`;
   }
   function kpi(l,v,u,s,cls){ return `<div class="pd-k ${cls||''}"><div class="pd-k__l">${l}</div><div class="pd-k__v">${v}<span class="sg-unit">${u||''}</span></div><div class="pd-k__s">${s||''}</div></div>`; }
-  function leerFeDeposito(){ try{ const d=JSON.parse(localStorage.getItem('sgi-cq-reactivos')||'null'); return (d||[]).find(x=>/f[ée]rric/i.test(x.nombre||''))||null; }catch(e){ return null; } }
 
   function pdSim(){
-    const b=baseSim(), DIAS=60;
-    // ── Purga ──
-    const qEl=document.getElementById('pd-sp-q'), rEl=document.getElementById('pd-sp-r');
-    const kp=document.getElementById('pd-sp-kpis'), tx=document.getElementById('pd-sp-txt');
-    if(!b.ult){ kp.innerHTML=''; tx.innerHTML='Sin datos del reactor (SST reactor, purga y SST recirculación). Carga el SMS Diario (M-04).'; document.getElementById('pd-sp-c1').innerHTML=''; document.getElementById('pd-sp-c2').innerHTML=''; }
-    else {
-      if(!simInit){ qEl.value=(+b.Qp).toFixed(1); rEl.max=Math.max(20,Math.ceil(b.Qp*4)); }
-      const Qp=Math.max(0,parseFloat(String(qEl.value).replace(',','.'))||0); rEl.value=Qp;
-      document.getElementById('pd-sp-src').textContent=`Datos del ${fmtDM(b.ult.f)} · purga actual ${nf(b.Qp,1)} m³/d`;
-      const req=T=>{ const k=(b.Px-b.efl)/(b.Px*T); return k*b.V/b.ratio; };
-      document.getElementById('pd-sp-quick').innerHTML='Purga para edad de fango de: '+[15,18,20].map(T=>`<button type="button" onclick="pdSimPurga(${req(T).toFixed(1)})">${T} d → ${nf(req(T),1)} m³/d</button>`).join('')+` <button type="button" onclick="pdSimPurga(${b.Qp})">Actual</button>`;
-      const act=trayectoria(b,b.Qp,DIAS), nue=trayectoria(b,Qp,DIAS);
-      const p0=nue.pts[0], pe=nue.pts[DIAS];
-      const srtEq=nue.srtEq, sstEq=nue.Ms/b.V*1000, fmEq=b.dboLoad?b.dboLoad/nue.Ms:null;
-      const enBanda=v=>v>=15&&v<=20, cSrt=enBanda(srtEq)?'ok':(srtEq>25||srtEq<12?'crit':'warn');
-      const cSst=sstEq>=2000&&sstEq<=4000?'ok':'warn', cFm=fmEq==null?'':(fmEq>=0.1&&fmEq<=0.4?'ok':'warn');
-      const bulk=riesgoBulking(srtEq,fmEq), cB=bulk==='alto'?'crit':bulk==='medio'?'warn':'ok';
-      let entra=null; for(const p of nue.pts){ if(p.t>0&&enBanda(p.srt)){ entra=p.t; break; } }
-      kp.innerHTML=kpi('Edad de fango al cambiar',nf(p0.srt,1),'d',`hoy ${nf(act.pts[0].srt,1)} d · a los ${DIAS} d: ${nf(pe.srt,1)} d`,enBanda(p0.srt)?'ok':'')+
-        kpi('Edad de fango en equilibrio',isFinite(srtEq)?nf(srtEq,1):'∞','d','óptimo 15–20 d',cSrt)+
-        kpi('SST reactor en equilibrio',isFinite(sstEq)?nf(sstEq,0):'—','mg/L','óptimo 2.000–4.000',cSst)+
-        kpi('Riesgo de bulking',bulk.toUpperCase(),'',fmEq!=null?`F/M equilibrio ${nf(fmEq,3)}`:'sin DBO de entrada',cB);
-      const c1=document.getElementById('pd-sp-c1'), c2=document.getElementById('pd-sp-c2');
-      c1.innerHTML=svgLineas(c1,[{name:'purga actual',col:'var(--sg-subtle)',dash:true,pts:act.pts.map(p=>[p.t,p.srt])},{name:'nueva purga',col:'var(--sg-s1)',w:2.5,pts:nue.pts.map(p=>[p.t,p.srt])}],
-        {band:[15,20],x0:'hoy',x1:`+${DIAS} d`,aria:`Edad de fango prevista con purga de ${nf(Qp,1)} m³/d`});
-      c2.innerHTML=svgLineas(c2,[{name:'purga actual',col:'var(--sg-subtle)',dash:true,pts:act.pts.map(p=>[p.t,p.sst])},{name:'nueva purga',col:'var(--sg-s1)',w:2.5,pts:nue.pts.map(p=>[p.t,p.sst])}],
-        {band:[2000,4000],x0:'hoy',x1:`+${DIAS} d`,aria:'SST del reactor previsto'});
-      tx.innerHTML=`Con <b>${nf(Qp,1)} m³/d</b> de purga (${nf(Qp*b.SSrc,0)} kgSS/d) la edad de fango ${enBanda(p0.srt)?'<b>queda en banda desde el primer día</b>':entra!=null?`entraría en la banda 15–20 d en <b>~${entra} día${entra>1?'s':''}</b>`:`<b>no entraría en banda</b> en ${DIAS} días`}; el reactor tarda ~${isFinite(nue.t90)?Math.round(nue.t90):'—'} días en completar el 90 % del cambio. `+
-        (isFinite(sstEq)&&sstEq<2000?`<b style="color:var(--sg-warn)">Ojo:</b> con la producción de fango actual la biomasa bajaría a ~${nf(sstEq,0)} mg/L de SST (por debajo de 2.000)${Qp>b.Qp*1.05?'; conviene un cambio más gradual':''}. `:'')+
-        (isFinite(sstEq)&&sstEq>4000?`<b style="color:var(--sg-warn)">Ojo:</b> la biomasa subiría a ~${nf(sstEq,0)} mg/L de SST (por encima de 4.000). `:'')+
-        `<span style="color:var(--sg-subtle)">Producción de fango estimada ${nf(b.Px,0)} kgSS/d (balance 30 d). Supone SST de recirculación proporcional al del reactor y la misma carga de entrada.</span>`;
-    }
-    // ── Cloruro férrico ──
-    const dEl=document.getElementById('pd-fe-d'), d0El=document.getElementById('pd-fe-d0'), frEl=document.getElementById('pd-fe-r');
-    const fk=document.getElementById('pd-fe-kpis'), ft=document.getElementById('pd-fe-txt'), fc=document.getElementById('pd-fe-c1');
-    if(!simInit){ let d0=0; try{ d0=+localStorage.getItem('pd-fe-d0')||0; }catch(e){} d0El.value=d0; dEl.value=d0; }
-    const d0=Math.max(0,+d0El.value||0); try{ localStorage.setItem('pd-fe-d0',String(d0)); }catch(e){}
-    const w=(+document.getElementById('pd-fe-w').value||40)/100, rho=+document.getElementById('pd-fe-rho').value||1.42, beta=+document.getElementById('pd-fe-b').value||2;
-    if(!b.pt||!b.Q){ fk.innerHTML=''; fc.innerHTML=''; ft.innerHTML='Faltan datos de PT efluente o de caudal EDARi.'; }
-    else {
-      const d=Math.max(0,+dEl.value||0); frEl.value=d; frEl.max=Math.max(100,Math.ceil(Math.max(d,d0)*2/50)*50);
-      const FE_L=rho*1e6*w*(55.845/162.2)/1000;          // g Fe por litro de producto comercial
-      const feMg=L=>L*FE_L/b.Q;                           // mg Fe/L en el agua tratada (g/m³)
-      const pRem=L=>feMg(L)/(beta*55.845/30.974);         // mg P/L precipitado
-      const ptEnt=b.ptEnt||Infinity, piso=0.3;
-      const ptEsp=L=>Math.min(ptEnt,Math.max(piso,b.pt.v-(pRem(L)-pRem(d0))));
-      const dosisPara=obj=>Math.max(0,d0+(b.pt.v-obj)*(beta*55.845/30.974)*b.Q/FE_L);
-      const pt=ptEsp(d), cls=pt>2?'crit':pt>1.7?'warn':'ok';
-      const feKg=d*FE_L/1000, pKg=pRem(d)*b.Q/1000, pKgMax=Math.min(pKg,feKg*30.974/55.845);
-      const lodo=pKgMax*150.8/30.974+Math.max(0,feKg-pKgMax*55.845/30.974)*106.87/55.845;
-      const dep=leerFeDeposito(), aut=dep&&d>0?dep.volumen_actual/d:null;
-      document.getElementById('pd-fe-src').textContent=`PT efluente ${nfv(b.pt.v)} mg/L (${fmtDM(b.pt.f)}) · Q medio ${nf(b.Q,0)} m³/d`+(d0?'':' · indica la dosis actual para afinar');
-      fk.innerHTML=kpi('PT efluente esperado',nfv(pt),'mg/L',`hoy ${nfv(b.pt.v)} · límite 2`,cls)+
-        kpi('Dosis para PT 1,5 mg/L',nf(dosisPara(1.5),0),'L/d',`para el límite (2): ${nf(dosisPara(2),0)} L/d`,'')+
-        kpi('Consumo mensual',nf(d*30,0),'L',aut!=null?`depósito actual: ~${nf(aut,0)} días`:`Fe añadido ${nf(feMg(d),1)} mg/L`,aut!=null&&aut<7?'warn':'')+
-        kpi('Fango químico extra',nf(lodo,0),'kgSS/d','FePO₄ + Fe(OH)₃','');
-      const maxD=+frEl.max, pts=[]; for(let L=0;L<=maxD;L+=maxD/60) pts.push([L,ptEsp(L)]);
-      fc.innerHTML=svgLineas(fc,[{name:'PT esperado según dosis (L/d)',col:'var(--sg-s1)',w:2.5,pts}],{lim:2,x0:'0 L/d',x1:nf(maxD,0)+' L/d',
-        marks:[[d0,ptEsp(d0),'var(--sg-subtle)',`Dosis actual|${nf(d0,0)} L/d|PT ${nfv(ptEsp(d0))} mg/L`],[d,pt,cls==='crit'?'var(--sg-crit)':cls==='warn'?'var(--sg-warn)':'var(--sg-ok)',`Nueva dosis|${nf(d,0)} L/d|PT ${nfv(pt)} mg/L`]],aria:'PT efluente esperado según la dosis de cloruro férrico'});
-      ft.innerHTML=`Con <b>${nf(d,0)} L/d</b> de FeCl₃ al ${nf(w*100,0)} % se añaden ${nf(feMg(d),1)} mg Fe/L y se esperan <b>${nfv(pt)} mg/L de PT</b>${pt>2?' — <b style="color:var(--sg-crit)">aún por encima del límite</b>':''}. `+
-        `<span style="color:var(--sg-subtle)">Estimación estequiométrica (β = ${nf(beta,1)} mol Fe/mol P). La eficacia real depende del punto de dosificación, pH y mezcla: ajusta β con las analíticas. Mínimo alcanzable asumido 0,3 mg/L.</span>`;
-    }
-    simInit=true;
+    const b=baseSim();
+    const qEl=document.getElementById('pd-sp-q'), rEl=document.getElementById('pd-sp-r'), nEl=document.getElementById('pd-sp-n'), nrEl=document.getElementById('pd-sp-nr');
+    const kp=document.getElementById('pd-sp-kpis'), tx=document.getElementById('pd-sp-txt'), c1=document.getElementById('pd-sp-c1'), c2=document.getElementById('pd-sp-c2');
+    if(!b.ult){ kp.innerHTML=''; c1.innerHTML=''; c2.innerHTML=''; tx.innerHTML='Sin datos del reactor (SST reactor, purga y SST recirculación). Carga el SMS Diario (M-04).'; return; }
+    if(!simInit){ qEl.value=(+b.Qp).toFixed(1); rEl.max=Math.max(20,Math.ceil(b.Qp*4)); nEl.value=0; simInit=true; }
+    const Qp=Math.max(0,parseFloat(String(qEl.value).replace(',','.'))||0); rEl.value=Qp;
+    const N=Math.max(0,Math.min(90,Math.round(+nEl.value||0))); nrEl.value=N;
+    const D=simH;
+    document.getElementById('pd-sp-src').textContent=`Datos del ${fmtDM(b.ult.f)} · purga actual ${nf(b.Qp,1)} m³/d · SST reactor ${nf(b.SSr*1000,0)} mg/L`;
+    const req=T=>{ const k=(b.Px-b.efl)/(b.Px*T); return k*b.V/b.ratio; };
+    document.getElementById('pd-sp-quick').innerHTML='Purga para una edad de fango de: '+[15,18,20].map(T=>`<button type="button" onclick="pdSimPurga(${req(T).toFixed(1)})">${T} d → ${nf(req(T),1)} m³/d</button>`).join('')+` <button type="button" onclick="pdSimPurga(${b.Qp})">Actual</button>`;
+    document.getElementById('pd-sp-nlbl').textContent=N===0?'de golpe (hoy)':`en rampa durante ${N} día${N>1?'s':''}`;
+    const act=trayectoria(b,b.Qp,0,D), nue=trayectoria(b,Qp,N,D);
+    const pe=nue.pts[D], pa=act.pts[D];
+    const enB=v=>v>=15&&v<=20, enS=v=>v>=2000&&v<=4000;
+    let entra=null; for(const p of nue.pts){ if(enB(p.srt)){ entra=p.t; break; } }
+    const cS=v=>enB(v)?'ok':(v>25||v<12?'crit':'warn');
+    const bulk=riesgoBulking(pe.srt,pe.fm), cB=bulk==='alto'?'crit':bulk==='medio'?'warn':'ok';
+    kp.innerHTML=
+      kpi(`Edad de fango a ${D} días`,nf(pe.srt,1),'d',`hoy ${nf(nue.pts[0].srt,1)} d · sin cambio ${nf(pa.srt,1)} d`,cS(pe.srt))+
+      kpi(`SST reactor a ${D} días`,nf(pe.sst,0),'mg/L',`hoy ${nf(nue.pts[0].sst,0)} · sin cambio ${nf(pa.sst,0)}`,enS(pe.sst)?'ok':'warn')+
+      kpi(`F/M a ${D} días`,pe.fm!=null?nf(pe.fm,3):'—','kgDBO/kgSS·d',pe.fm!=null?'óptimo 0,10–0,40':'sin DBO de entrada',pe.fm==null?'':(pe.fm>=0.1&&pe.fm<=0.4?'ok':'warn'))+
+      kpi('Equilibrio final',isFinite(nue.srtEq)?nf(nue.srtEq,1)+' d':'—','',isFinite(nue.Ms)?`SST ${nf(nue.Ms/b.V*1000,0)} mg/L · 90 % en ~${Math.round(nue.t90)} d`:'',enB(nue.srtEq)&&enS(nue.Ms/b.V*1000)?'ok':'warn')+
+      kpi(`Riesgo de bulking a ${D} días`,bulk.toUpperCase(),'',`hoy ${riesgoBulking(nue.pts[0].srt,nue.pts[0].fm)}`,cB);
+    c1.innerHTML=svgSim(c1,{actual:act.pts.map(p=>[p.t,p.srt]),nueva:nue.pts.map(p=>[p.t,p.srt]),band:[15,20],u:'d',dec:1,N,entra,aria:`Edad de fango prevista a ${D} días con purga de ${nf(Qp,1)} m³/d`});
+    c2.innerHTML=svgSim(c2,{actual:act.pts.map(p=>[p.t,p.sst]),nueva:nue.pts.map(p=>[p.t,p.sst]),band:[2000,4000],u:'mg/L',dec:0,N,entra:null,aria:`SST del reactor previsto a ${D} días`});
+    const sstMin=Math.min(...nue.pts.map(p=>p.sst));
+    tx.innerHTML=`Pasar de <b>${nf(b.Qp,1)}</b> a <b>${nf(Qp,1)} m³/d</b> de purga ${N?`de forma gradual en <b>${N} días</b>`:'de golpe'}: la edad de fango ${entra===0?'<b>queda en banda desde el primer día</b>':entra!=null?`entra en la banda 15–20 d el <b>día ${entra}</b>`:`<b>no entra en banda</b> en ${D} días`} y a los ${D} días estaría en <b>${nf(pe.srt,1)} d</b> con <b>${nf(pe.sst,0)} mg/L</b> de SST. `+
+      (sstMin<2000?`<b style="color:var(--sg-warn)">Ojo:</b> la biomasa bajaría hasta ~${nf(sstMin,0)} mg/L de SST (por debajo de 2.000)${Qp>b.Qp*1.05&&N<21?'; prueba a repartir el cambio en más días':''}. `:'')+
+      (Math.max(...nue.pts.map(p=>p.sst))>4000?`<b style="color:var(--sg-warn)">Ojo:</b> la biomasa superaría 4.000 mg/L de SST. `:'')+
+      `<span style="color:var(--sg-subtle)">Producción de fango ${nf(b.Px,0)} kgSS/d (${b.pxFuente}).</span> <button type="button" class="pd-link" onclick="pdAyuda('sim')">¿Cómo se calcula?</button>`;
   }
   window.pdSim=pdSim;
   window.pdSimPurga=function(q){ const e=document.getElementById('pd-sp-q'); e.value=(+q).toFixed(1); pdSim(); };
+  window.pdSimN=function(n){ document.getElementById('pd-sp-n').value=n; pdSim(); };
+  window.pdSimH=function(h){ simH=h; document.querySelectorAll('#pd-sim [data-sh]').forEach(b=>b.classList.toggle('active',+b.dataset.sh===h)); pdSim(); };
   window.pdSetVista=function(v){
     pdVista=v; document.querySelectorAll('#pd-head [data-v]').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
     document.getElementById('pd-body').style.display=v==='prev'?'':'none';
@@ -12851,6 +12907,15 @@ ${fotosHtml}
     if(v==='sim'&&pdPlanta!=='edari') pdSetPlanta('edari');
     if(v==='sim') requestAnimationFrame(pdSim); else render();
   };
+  /* ── Ayuda: cómo se calcula ── */
+  window.pdAyuda=function(sec){
+    const m=document.getElementById('pd-help'); if(!m) return;
+    m.classList.add('open'); m.setAttribute('aria-hidden','false');
+    const t=document.getElementById('pd-help-'+(sec||(pdVista==='sim'?'sim':'prev'))); if(t) t.scrollIntoView({block:'start'});
+    const c=m.querySelector('.pd-help__x'); if(c) c.focus();
+  };
+  window.pdAyudaCerrar=function(){ const m=document.getElementById('pd-help'); if(m){ m.classList.remove('open'); m.setAttribute('aria-hidden','true'); } };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') pdAyudaCerrar(); });
 
   /* ── controles y ciclo de vida ── */
   window.pdSetPlanta=function(p){ pdPlanta=p; pdSel=null; document.querySelectorAll('#pd-head [data-pl]').forEach(b=>b.classList.toggle('active',b.dataset.pl===p)); render(); };
