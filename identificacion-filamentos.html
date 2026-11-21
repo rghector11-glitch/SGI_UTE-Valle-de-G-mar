@@ -130,6 +130,51 @@ table.idf select.set,table.idf input.set{border-color:var(--acc);background:#0d2
 .reg .st{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--mut);margin:6px 0}
 .reg .st b{color:var(--txt)}
 .ib0,.ib1{background:#0f5a3e!important;border-color:#0f5a3e!important}.ib2,.ib3{background:#7a5a10!important;border-color:#7a5a10!important}.ib4,.ib5{background:#7a2233!important;border-color:#7a2233!important}
+
+/* ---- modo compacto ---- */
+html,body{font-size:13px;line-height:1.35}
+header.top{padding:8px 16px}header.top h1{font-size:15px}header.top .logo{width:30px;height:30px}
+nav.tabs{padding:4px 12px 0}nav.tabs button{padding:6px 11px;font-size:13px}
+main{padding:10px 14px 30px;max-width:1600px}
+h2{font-size:16px;margin:2px 0 2px}h3{font-size:13.5px;margin:10px 0 6px}
+p.lead{font-size:12px;margin:0 0 8px;max-width:1200px}
+.card{padding:10px 12px;border-radius:10px}
+.hdrin{grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:6px 8px;margin-bottom:8px}
+.hdrin label{font-size:11px}.hdrin input,.hdrin select{padding:4px 7px;font-size:12.5px;border-radius:6px}
+.idxg{gap:4px}.idxg button{padding:3px 2px;font-size:10.5px;border-radius:6px}.idxg button b{font-size:14px}.idxg button i{margin-top:2px}
+#t-identificar .card h3{margin:0 0 6px!important}
+table.idf{min-width:900px}
+table.idf th,table.idf td{padding:2px 5px}
+table.idf thead th{font-size:12px;padding:4px 5px}
+table.idf tbody th{font-size:12px;width:200px}
+table.idf select,table.idf input{padding:2px 6px;font-size:12.5px;border-radius:5px;height:25px}
+.res{font-size:12px}.res .cand{padding:2px 5px;gap:2px 6px}.res .bar{height:4px}
+.note{font-size:11.5px}
+details.otd{position:relative}
+details.otd summary{list-style:none;cursor:pointer;background:#0a1626;border:1px solid #2a4870;border-radius:5px;padding:3px 6px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:25px}
+details.otd summary::-webkit-details-marker{display:none}
+details.otd[open] summary{border-color:var(--acc)}
+details.otd .ots{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:3px;background:var(--panel2);border:1px solid var(--acc);border-radius:8px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:220px}
+.btn{padding:5px 11px;font-size:12.5px;border-radius:7px}
+.ta{font-size:12.5px;padding:6px}
+.drop-z{padding:9px}
+.fotos{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}
+#t-identificar .grid.g2{grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px}
+#t-identificar .grid.g2 .ta{min-height:54px}
+table.t{font-size:12.5px}table.t th,table.t td{padding:4px 7px}
+.alert{padding:5px 10px;font-size:12.5px;margin:4px 0}
+.titlebar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.titlebar h2{margin:0}.info{cursor:help;font-size:13px}
+table.idf th,table.idf td{padding:1px 4px}
+table.idf select,table.idf input{height:22px;padding:0 5px;font-size:12px}
+details.otd summary{min-height:22px;padding:2px 6px}
+table.idf tbody th{font-size:11.5px;line-height:1.15}
+.res .cand{padding:1px 5px}
+.hdrin{margin-bottom:4px}
+.obsrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.obsrow .ta{flex:1 1 380px;min-height:30px;height:30px}
+.obsrow .drop-z{padding:5px 12px;white-space:nowrap;font-size:12.5px}
+.obsrow .fotos{margin:0;display:flex;flex-wrap:wrap;gap:6px}.obsrow .fotos div{width:44px;height:44px}
 body.embed header.top{display:none}
 /* print */
 #printSheet{display:none}
@@ -166,19 +211,18 @@ body.embed header.top{display:none}
 
 <!-- ================= IDENTIFICAR ================= -->
 <section class="tab on" id="t-identificar">
-  <h2>Análisis biológico e identificación de filamentosos <span class="chip" id="editTag" style="display:none">Editando registro</span></h2>
-  <p class="lead">Rellena los datos del análisis y hasta 4 filamentos con las observaciones a 1.000x (contraste de fases, y campo claro para las tinciones). No hace falta completar todos los parámetros. A partir de 3 datos se calculan los candidatos más probables, y cuantos más datos diagnósticos metas (ramificación, motilidad, azufre, Neisser, diámetro), más fiable es el resultado.</p>
-  <div class="card" style="margin-bottom:14px">
-    <h3 style="margin-top:0">📅 Datos generales y parámetros operacionales</h3>
+  <div class="titlebar"><h2>Análisis biológico e identificación de filamentosos <span class="info" title="Rellena los datos del análisis y hasta 4 filamentos con las observaciones a 1.000x (contraste de fases, y campo claro para las tinciones). No hace falta completar todos los parámetros: a partir de 3 datos se calculan los candidatos más probables. Cuantos más datos diagnósticos (ramificación, motilidad, azufre, Neisser, diámetro), más fiable es el resultado.">ℹ️</span> <span class="chip" id="editTag" style="display:none">Editando registro</span></h2>
+  <div class="row"><span class="mut" id="saveMsg"></span><button class="btn ok" id="bSave">💾 Guardar registro</button><button class="btn pri" id="bPdf">📄 Informe PDF</button><button class="btn" id="bPrint">🖨️ Imprimir plantilla</button><button class="btn" id="bNew">➕ Nuevo análisis</button></div></div>
+  <div class="card" style="margin-bottom:8px">
     <div class="hdrin">
       <div><label>Fecha</label><input type="date" id="hFecha"></div>
       <div><label>Hora</label><input type="time" id="hHora"></div>
-      <div><label>Planta / punto de muestreo</label><select id="hPlanta"><option>EDARi – Reactor biológico</option><option>EDARu – Reactor biológico</option><option>Recirculación</option><option>Espumas superficie</option><option>Otro</option></select></div>
+      <div><label>Punto de muestreo</label><select id="hPlanta"><option>EDARi – Reactor biológico</option><option>EDARu – Reactor biológico</option><option>Recirculación</option><option>Espumas superficie</option><option>Otro</option></select></div>
       <div><label>Analista</label><input id="hOper"></div>
       <div><label>IVF (ml/g)</label><input id="hIVF" type="number" step="1" placeholder="120"></div>
       <div><label>SST reactor (mg/l)</label><input id="hSST" type="number" step="10" placeholder="3500"></div>
       <div><label>Edad de fango (d)</label><input id="hEdad" type="number" step="0.5" placeholder="15"></div>
-      <div><label>F/M (kgDBO/kgSS·d)</label><input id="hFM" type="number" step="0.01" placeholder="0,08"></div>
+      <div><label>F/M (kg/kg·d)</label><input id="hFM" type="number" step="0.01" placeholder="0,08"></div>
       <div><label>OD (mg/l)</label><input id="hOD" type="number" step="0.1" placeholder="2,1"></div>
       <div><label>Tª afluente (°C)</label><input id="hTemp" type="number" step="0.5" placeholder="18"></div>
     </div>
@@ -189,19 +233,12 @@ body.embed header.top{display:none}
     <div id="alertArea" style="margin-top:10px"></div>
   </div>
   <div class="card idwrap"><table class="idf" id="idTable"></table></div>
-  <div class="grid g2" style="margin-top:14px">
-    <div class="card"><h3 style="margin-top:0">📝 Observaciones</h3><textarea id="hObs" rows="4" class="ta" placeholder="Aspecto del licor mezcla, olor, espumas, protozoos, incidencias…"></textarea></div>
-    <div class="card"><h3 style="margin-top:0">📷 Fotografías microscópicas</h3>
-      <label class="drop-z"><input type="file" id="fotoIn" accept="image/*" multiple hidden>🔬 Pulsa para adjuntar fotos <span class="note">(40× o 100× · se comprimen automáticamente)</span></label>
-      <div class="fotos" id="fotoGrid"></div></div>
+  <div class="card obsrow" style="margin-top:8px">
+    <textarea id="hObs" rows="1" class="ta" placeholder="📝 Observaciones: aspecto del licor mezcla, olor, espumas, protozoos, incidencias…"></textarea>
+    <label class="drop-z"><input type="file" id="fotoIn" accept="image/*" multiple hidden>📷 Adjuntar fotos</label>
+    <div class="fotos" id="fotoGrid"></div>
   </div>
-  <div class="row" style="margin-top:14px">
-    <button class="btn ok" id="bSave">💾 Guardar registro</button>
-    <button class="btn pri" id="bPdf">📄 Informe PDF</button>
-    <button class="btn" id="bPrint">🖨️ Imprimir plantilla</button>
-    <button class="btn" id="bNew">➕ Nuevo análisis</button>
-    <span class="mut" id="saveMsg"></span>
-  </div>
+
 </section>
 
 <!-- ================= HISTORIAL ================= -->
@@ -676,7 +713,7 @@ function buildTable(){
     for(let c=0;c<NCOL;c++){
       if(f.num)h+=`<td><input data-c="${c}" data-k="${f.k}" type="text" inputmode="decimal" placeholder="µm"></td>`;
       else if(f.pair)h+=`<td><div class="pair"><input data-c="${c}" data-k="cs0" type="text" inputmode="decimal" placeholder="anch"><span>×</span><input data-c="${c}" data-k="cs1" type="text" inputmode="decimal" placeholder="long"></div></td>`;
-      else if(f.multi)h+=`<td><div class="ots">${Object.entries(LBL.ot).map(([k,v])=>`<label data-c="${c}" data-ot="${k}"><input type="checkbox">${v}</label>`).join('')}</div></td>`;
+      else if(f.multi)h+=`<td><details class="otd"><summary id="ots${c}">—</summary><div class="ots">${Object.entries(LBL.ot).map(([k,v])=>`<label data-c="${c}" data-ot="${k}"><input type="checkbox">${v}</label>`).join('')}</div></details></td>`;
       else h+=`<td><select data-c="${c}" data-k="${f.k}"><option value="">—</option>${f.opts.map(o=>`<option value="${o}">${LBL[f.k][o]}</option>`).join('')}</select></td>`;
     }h+='</tr>';}
   h+=`<tr><th style="background:#163252">FILAMENTOS:<div class="note" style="font-weight:400">Candidatos más probables</div></th>${Array.from({length:NCOL},(_,c)=>`<td style="vertical-align:top;background:#0f2238"><div class="res" id="res${c}"></div></td>`).join('')}</tr>`;
@@ -684,9 +721,11 @@ function buildTable(){
   h+=`<tr><th>Abundancia (índice 0–5)</th>${Array.from({length:NCOL},(_,c)=>`<td><select data-c="${c}" data-k="ab"><option value="">—</option>${IDX_DESC.map((t,i)=>`<option value="${i}">${i} · ${t}</option>`).join('')}</select></td>`).join('')}</tr>`;
   $('#idTable').innerHTML=h+'</tbody>';
   $('#idTable').addEventListener('input',onInput);$('#idTable').addEventListener('change',onInput);
-  $('#idTable').addEventListener('click',e=>{const lb=e.target.closest('label[data-ot]');if(lb){e.preventDefault();const c=+lb.dataset.c,k=lb.dataset.ot;const a=STATE.cols[c].obs.ot;const i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);lb.classList.toggle('on',i<0);update(c);persistDraft();}
+  $('#idTable').addEventListener('click',e=>{const lb=e.target.closest('label[data-ot]');if(lb){e.preventDefault();const c=+lb.dataset.c,k=lb.dataset.ot;const a=STATE.cols[c].obs.ot;const i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);lb.classList.toggle('on',i<0);otSum(c);update(c);persistDraft();}
     const cd=e.target.closest('.cand');if(cd){const c=+cd.dataset.c;const r=score(STATE.cols[c].obs).find(x=>x.id===cd.dataset.id);openFicha(cd.dataset.id,r.det);}});
 }
+function otSum(c){const a=STATE.cols[c].obs.ot||[];const e=$('#ots'+c);if(e)e.textContent=a.length?a.map(x=>LBL.ot[x]).join(', '):'—';}
+document.addEventListener('click',e=>{$$('details.otd[open]').forEach(d=>{if(!d.contains(e.target))d.open=false;});});
 function num(v){if(v==null||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?null:n;}
 function onInput(e){const el=e.target;if(!el.dataset||el.dataset.c==null)return;const c=+el.dataset.c,k=el.dataset.k;const col=STATE.cols[c];
   if(k==='final')col.final=el.value;else if(k==='ab')col.ab=el.value;
@@ -694,11 +733,11 @@ function onInput(e){const el=e.target;if(!el.dataset||el.dataset.c==null)return;
   else if(k==='d'||k==='l')col.obs[k]=num(el.value);else col.obs[k]=el.value;
   el.classList.toggle('set',!!el.value);update(c);persistDraft();}
 function confTag(p){return p>=85?['alta','#0f8f6f']:p>=70?['media','#b7791f']:['baja','#9b2c3c'];}
-function update(c){
+function update(c){clearTimeout(window._fitU);window._fitU=setTimeout(()=>typeof fitAnalisis==='function'&&fitAnalisis(),60);
   const col=STATE.cols[c],box=$('#res'+c);const n=nFilled(col.obs);
   if(n<3){box.innerHTML=`<span class="note">Introduce al menos 3 parámetros (${n}/3)</span>`;col.top=[];return;}
   const r=score(col.obs).slice(0,5);col.top=r.map(x=>({id:x.id,pct:+x.pct.toFixed(1)}));
-  box.innerHTML=r.map((x,i)=>{const o=OBYID[x.id];const [t,cc]=confTag(x.pct);const col2=x.pct>=85?'#22d3a6':x.pct>=70?'#f5b041':'#f0627a';
+  box.innerHTML=r.slice(0,3).map((x,i)=>{const o=OBYID[x.id];const [t,cc]=confTag(x.pct);const col2=x.pct>=85?'#22d3a6':x.pct>=70?'#f5b041':'#f0627a';
     return `<div class="cand ${i===0?'top':''}" data-c="${c}" data-id="${x.id}"><span>${i===0?'★ ':''}${o.n}</span><span class="pct" style="color:${col2}">${x.pct.toFixed(0)}%</span><div class="bar"><i style="width:${x.pct}%;background:${col2}"></i></div></div>`;}).join('')
    +`<div class="note" style="margin-top:4px">Confianza: <span class="conf" style="background:${confTag(r[0].pct)[1]}">${confTag(r[0].pct)[0]}</span> · ${n} parámetros${r[1]&&r[0].pct-r[1].pct<5?' · <b style="color:var(--warn)">⚠ empate cercano: revisa la ficha</b>':''}</div>`;
 }
@@ -707,7 +746,7 @@ function setInputs(){
     if(el.dataset.ot){el.classList.toggle('on',col.obs.ot.includes(el.dataset.ot));return;}
     let v='';if(k==='final')v=col.final;else if(k==='ab')v=col.ab;else if(k==='cs0')v=col.obs.cs?.[0]??'';else if(k==='cs1')v=col.obs.cs?.[1]??'';else v=col.obs[k]??'';
     el.value=String(v).replace('.',el.tagName==='INPUT'?',':'.');el.classList.toggle('set',v!==''&&v!=null);});
-  for(let c=0;c<NCOL;c++)update(c);
+  for(let c=0;c<NCOL;c++){update(c);otSum(c);}
 }
 /* ===================== REGISTROS M-BIO (compatibles con sgi-bio-fil) ===================== */
 const BIO_KEY='sgi-bio-fil',LS_DRAFT='sgi-filamentos-draft',FB_NODE='bio_filamentos';
@@ -867,12 +906,19 @@ function informePDF(rec){if(!rec){msg('No hay registro');return;}
   const w=window.open('','_blank');if(!w){msg('El navegador ha bloqueado la ventana del informe: permite las ventanas emergentes para el SGI');return;}
   w.document.write(html);w.document.close();setTimeout(()=>{try{w.print();}catch(e){}},500);}
 
-function showTab(t){$$('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));$$('section.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));}
+
+/* autoajuste: reduce la vista de Análisis para que quepa sin scroll en pantallas de escritorio */
+function fitAnalisis(){const sec=$('#t-identificar');if(!sec)return;sec.style.zoom='';
+  if(!sec.classList.contains('on')||innerWidth<1100)return;
+  const top=sec.getBoundingClientRect().top+scrollY,need=sec.scrollHeight+top+12,avail=innerHeight;
+  if(need>avail){const z=Math.max(0.78,(avail-top-12)/sec.scrollHeight);sec.style.zoom=z.toFixed(3);}}
+addEventListener('resize',()=>{clearTimeout(window._fitT);window._fitT=setTimeout(fitAnalisis,120);});
+function showTab(t){$$('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));$$('section.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));if(t==='identificar')setTimeout(fitAnalisis,0);}
 function initIdent(){
   buildTable();
   const d=lsGet(LS_DRAFT,null);if(d&&d.st&&d.st.cols){STATE={...newState(),...d.st};setHdr(d.h);}
   if(!$('#hFecha').value)$('#hFecha').value=todayISO();if(!$('#hHora').value)$('#hHora').value=nowHM();if(!$('#hOper').value)$('#hOper').value=sessionName();
-  setInputs();renderIdxFloc();renderFotos();markEdit();renderHist();fbSync();
+  setInputs();renderIdxFloc();renderFotos();markEdit();renderHist();fbSync();setTimeout(fitAnalisis,50);
   Object.values(HF).forEach(s=>$(s).addEventListener('change',()=>{persistDraft();chkAlert();}));$('#hIVF').addEventListener('input',chkAlert);
   $('#idxGrid').onclick=e=>{const b=e.target.closest('[data-idx]');if(!b)return;const i=+b.dataset.idx;STATE.indice=STATE.indice===i?null:i;renderIdxFloc();persistDraft();};
   $('#flocGrid').onclick=e=>{const b=e.target.closest('[data-floc]');if(!b)return;const f=b.dataset.floc;STATE.floculo=STATE.floculo===f?null:f;renderIdxFloc();persistDraft();};
