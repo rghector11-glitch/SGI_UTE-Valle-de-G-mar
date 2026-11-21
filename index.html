@@ -1828,7 +1828,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
               </div>
               <div class="mc-right"><div class="mc-body">
                 <div class="mc-title" data-i18n="mcBioT">Biología · Filamentosas</div>
-                <div class="mc-desc" data-i18n="mcBioD">Identificación · Jenkins · IVF</div>
+                <div class="mc-desc" data-i18n="mcBioD">Filamentosos · microfauna · IVF</div>
               </div>
               <div class="mc-foot">
                 <div class="mc-stat">Último: <b id="mc-bio-fecha">—</b></div>
@@ -4547,7 +4547,7 @@ const I18N = {
     mcSmsT:'SMS Diario', mcSmsD:'Parte diario · carga Excel',
     mcInvT:'Inventarios', mcInvD:'Almacenes · reactivos',
     mcSimT:'Simulador EDARi', mcSimD:'Reactor biológico · balance masa',
-    mcBioT:'Biología · Filamentosas', mcBioD:'Identificación · Jenkins · IVF',
+    mcBioT:'Biología · Filamentosas', mcBioD:'Filamentosos · microfauna · IVF',
     mcSugT:'Buzón de Sugerencias', mcSugD:'Consultas · propuestas mejora',
     phSimulador:'Simulador Proceso EDARi', phZonas:'Zonas Anóxicas — Control de Proceso',
     phSmsHist:'Historial SMS Diario', phAlertas:'Alertas activas', phAjustes:'Ajustes',
@@ -4573,7 +4573,7 @@ const I18N = {
     mcSmsT:'Daily Report', mcSmsD:'Daily log · Excel upload',
     mcInvT:'Inventory', mcInvD:'Warehouses · reagents',
     mcSimT:'EDARi Simulator', mcSimD:'Biological reactor · mass balance',
-    mcBioT:'Biology · Filamentous', mcBioD:'Identification · Jenkins · SVI',
+    mcBioT:'Biology · Filamentous', mcBioD:'Filaments · microfauna · SVI',
     mcSugT:'Suggestion Box', mcSugD:'Queries · improvement proposals',
     phSimulador:'EDARi Process Simulator', phZonas:'Anoxic Zones — Process Control',
     phSmsHist:'Daily Report History', phAlertas:'Active Alerts', phAjustes:'Settings',
@@ -4599,7 +4599,7 @@ const I18N = {
     mcSmsT:'Rapport journalier', mcSmsD:'Compte-rendu journalier · import Excel',
     mcInvT:'Inventaires', mcInvD:'Entrepôts · réactifs',
     mcSimT:'Simulateur EDARi', mcSimD:'Bassin biologique · bilan massique',
-    mcBioT:'Biologie · Filamenteuses', mcBioD:'Identification · Jenkins · IB',
+    mcBioT:'Biologie · Filamenteuses', mcBioD:'Filaments · microfaune · IB',
     mcSugT:'Boîte à suggestions', mcSugD:'Questions · propositions d\'amélioration',
     phSimulador:'Simulateur de procédé EDARi', phZonas:'Zones anoxiques — Contrôle du procédé',
     phSmsHist:'Historique rapports journaliers', phAlertas:'Alertes actives', phAjustes:'Réglages',
@@ -11380,7 +11380,7 @@ if(typeof waitForFirebase==='function'){
       bar.innerHTML =
         '<button onclick="closeBiologiaPanel()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:white;cursor:pointer;padding:5px 12px;font-size:.78rem;font-family:\'Barlow\',sans-serif;display:flex;align-items:center;gap:6px;">'+
         '<svg viewBox="0 0 16 16" fill="none" style="width:14px;height:14px;stroke:currentColor"><path d="M10 3L5 8l5 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Inicio</button>'+
-        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;color:white;font-size:1rem;">🔬 M-BIO · Biología e identificación de filamentosos</div>';
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;color:white;font-size:1rem;">🔬 M-BIO · Biología del fango: filamentosos y microfauna</div>';
       const frame = document.createElement('iframe');
       frame.id = 'bio-frame';
       frame.src = BIO_SRC;

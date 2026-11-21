@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Identificación de microorganismos filamentosos · M-BIO</title>
+<title>M-BIO · Biología del fango: filamentosos y microfauna</title>
 <style>
 :root{
   --bg:#0a1424;--panel:#101f35;--panel2:#152a46;--line:#24406a;--txt:#e6eef8;--mut:#8ea6c4;
@@ -175,6 +175,19 @@ table.idf tbody th{font-size:11.5px;line-height:1.15}
 .obsrow .ta{flex:1 1 380px;min-height:30px;height:30px}
 .obsrow .drop-z{padding:5px 12px;white-space:nowrap;font-size:12.5px}
 .obsrow .fotos{margin:0;display:flex;flex-wrap:wrap;gap:6px}.obsrow .fotos div{width:44px;height:44px}
+.seg{display:inline-flex;gap:2px;background:#0a1626;border:1px solid var(--line);border-radius:9px;padding:2px;margin:0 0 6px}
+.seg button{background:none;border:0;color:var(--mut);padding:4px 12px;border-radius:7px;font:inherit;font-weight:600;cursor:pointer;font-size:12.5px}
+.seg button.on{background:var(--panel2);color:var(--txt);box-shadow:inset 0 0 0 1px var(--acc)}
+.mfwrap{display:grid;grid-template-columns:minmax(0,3fr) minmax(280px,1fr);gap:8px;align-items:start}
+.mfcols{columns:4 230px;column-gap:10px}
+.mfg{break-inside:avoid;margin-bottom:8px;background:#0d1a2d;border:1px solid var(--line);border-radius:8px;padding:5px 6px}
+.mfh{display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:3px}.mfh svg{width:30px;height:20px}
+.mft{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:11.5px;padding:1px 2px;border-radius:4px}
+.mft.on{background:#12304e}.mft>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
+.abb{display:inline-flex;gap:2px;flex-shrink:0}.abb button{width:24px;height:19px;font-size:10px;padding:0;border-radius:4px;border:1px solid #2a4870;background:#0a1626;color:var(--mut);cursor:pointer;font-weight:700}
+.abb button.sel{background:var(--acc2);border-color:var(--acc2);color:#04261c}
+.alert.i{background:#0d2034;border-color:var(--acc)}
+@media (max-width:900px){.mfwrap{grid-template-columns:1fr}}
 body.embed header.top{display:none}
 /* print */
 #printSheet{display:none}
@@ -195,8 +208,8 @@ body.embed header.top{display:none}
 <body>
 <header class="top" id="topHdr">
   <div class="logo">µ</div>
-  <div><h1>Identificación de microorganismos filamentosos</h1>
-  <small>M-BIO · Guía de bioindicación microscópica y asistente de identificación (30 tipos morfológicos)</small></div>
+  <div><h1>Biología del fango activo · filamentosos y microfauna</h1>
+  <small>M-BIO · Identificación de filamentosos (30 tipos), protozoos y metazoos, y bioindicación</small></div>
 </header>
 <nav class="tabs" id="tabs">
   <button data-t="identificar" class="on">🔬 Análisis</button>
@@ -205,13 +218,14 @@ body.embed header.top{display:none}
   <button data-t="fichas">📇 Fichas</button>
   <button data-t="tinciones">🧪 Tinciones</button>
   <button data-t="morfologia">📐 Morfología</button>
+  <button data-t="protozoos">🦠 Protozoos y metazoos</button>
   <button data-t="diagnostico">📊 Diagnóstico y causas</button>
 </nav>
 <main>
 
 <!-- ================= IDENTIFICAR ================= -->
 <section class="tab on" id="t-identificar">
-  <div class="titlebar"><h2>Análisis biológico e identificación de filamentosos <span class="info" title="Rellena los datos del análisis y hasta 4 filamentos con las observaciones a 1.000x (contraste de fases, y campo claro para las tinciones). No hace falta completar todos los parámetros: a partir de 3 datos se calculan los candidatos más probables. Cuantos más datos diagnósticos (ramificación, motilidad, azufre, Neisser, diámetro), más fiable es el resultado.">ℹ️</span> <span class="chip" id="editTag" style="display:none">Editando registro</span></h2>
+  <div class="titlebar"><h2>Análisis biológico <span class="info" title="Rellena los datos del análisis y hasta 4 filamentos con las observaciones a 1.000x (contraste de fases, y campo claro para las tinciones). No hace falta completar todos los parámetros: a partir de 3 datos se calculan los candidatos más probables. Cuantos más datos diagnósticos (ramificación, motilidad, azufre, Neisser, diámetro), más fiable es el resultado.">ℹ️</span> <span class="chip" id="editTag" style="display:none">Editando registro</span></h2>
   <div class="row"><span class="mut" id="saveMsg"></span><button class="btn ok" id="bSave">💾 Guardar registro</button><button class="btn pri" id="bPdf">📄 Informe PDF</button><button class="btn" id="bPrint">🖨️ Imprimir plantilla</button><button class="btn" id="bNew">➕ Nuevo análisis</button></div></div>
   <div class="card" style="margin-bottom:8px">
     <div class="hdrin">
@@ -232,7 +246,15 @@ body.embed header.top{display:none}
     </div>
     <div id="alertArea" style="margin-top:10px"></div>
   </div>
-  <div class="card idwrap"><table class="idf" id="idTable"></table></div>
+  <div class="seg" id="subSeg"><button type="button" data-sub="fil" class="on">🧫 Filamentosos</button><button type="button" data-sub="mf">🦠 Protozoos y metazoos <span id="mfCount"></span></button></div>
+  <div id="subFil"><div class="card idwrap"><table class="idf" id="idTable"></table></div></div>
+  <div id="subMf" style="display:none"><div class="mfwrap">
+    <div class="card"><div class="mfcols" id="mfGrid"></div><div class="note" style="margin-top:4px">Abundancia: + escaso · ++ frecuente · +++ abundante · D dominante. Pulsa otra vez para quitarlo. Pasa el ratón por un nombre para ver las especies que incluye.</div></div>
+    <div class="card"><h3 style="margin-top:0">Recuento de ciliados</h3>
+      <div class="hdrin" style="grid-template-columns:1fr 1fr"><div><label>Ciliados contados</label><input id="mfN" type="number" min="0" step="1"></div><div><label>Gotas de 25 µl</label><input id="mfG" type="number" min="1" step="1"></div></div>
+      <div class="note">Densidad: <b id="mfInd" style="color:var(--txt);font-size:15px">—</b> ind/ml</div>
+      <h3>Diagnóstico de bioindicación</h3><div id="mfDiag"></div></div>
+  </div></div>
   <div class="card obsrow" style="margin-top:8px">
     <textarea id="hObs" rows="1" class="ta" placeholder="📝 Observaciones: aspecto del licor mezcla, olor, espumas, protozoos, incidencias…"></textarea>
     <label class="drop-z"><input type="file" id="fotoIn" accept="image/*" multiple hidden>📷 Adjuntar fotos</label>
@@ -288,6 +310,13 @@ body.embed header.top{display:none}
   <h2>Caracteres morfológicos: guía visual</h2>
   <p class="lead">Los mismos parámetros que aparecen en la plantilla, con un esquema de cada opción para unificar criterios entre operarios.</p>
   <div id="morph"></div>
+</section>
+
+<!-- ================= PROTOZOOS ================= -->
+<section class="tab" id="t-protozoos">
+  <h2>Protozoos y metazoos: bioindicación</h2>
+  <p class="lead">Grupos funcionales de la microfauna del fango activo y lo que indica cada uno, según el tema 4 del temario. Los esquemas son orientativos.</p>
+  <div id="protoGuide"></div>
 </section>
 
 <!-- ================= DIAGNÓSTICO ================= -->
@@ -705,7 +734,7 @@ function score(obs){
   return out.sort((a,b)=>b.pct-a.pct);
 }
 const NCOL=4;let STATE=newState();
-function newState(){return {cols:Array.from({length:NCOL},()=>({obs:{ot:[]},final:'',ab:''})),indice:null,floculo:null,fotos:[],editId:null};}
+function newState(){return {cols:Array.from({length:NCOL},()=>({obs:{ot:[]},final:'',ab:''})),indice:null,floculo:null,fotos:[],editId:null,mf:{items:{},cont:{n:null,gotas:2}}};}
 function nFilled(obs){return FIELDS.filter(f=>!f.multi&&obs[f.k]!=null&&obs[f.k]!==''&&!(Array.isArray(obs[f.k])&&obs[f.k][0]==null&&obs[f.k][1]==null)).length;}
 function buildTable(){
   let h=`<thead><tr><th style="text-align:left">Parámetro</th>${Array.from({length:NCOL},(_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr></thead><tbody>`;
@@ -807,22 +836,23 @@ function buildRecord(){const h=hdr();const fil=filamentosArr();
   const dom=fil.slice().sort((a,b)=>(b.abundancia??-1)-(a.abundancia??-1))[0];
   const tr=(v)=>v==='+'?'pos':v==='-'?'neg':'nd';
   return {id:STATE.editId||Date.now(),v:2,ts:Date.now(),fecha:h.fecha,hora:h.hora,operador:h.oper||'—',punto:h.planta,ivf:h.ivf,sst:h.sst,edad:h.edad,fm:h.fm,od:h.od,temp:h.temp,
-    indice,floculo:STATE.floculo,generos:[...new Set(fil.map(f=>f.nombre).filter(Boolean))],gram:dom?tr(dom.obs.g):'nd',neisser:dom?tr(dom.obs.nt):'nd',obs:h.obs||'',fotos:STATE.fotos.slice(),filamentos:fil};}
+    indice,floculo:STATE.floculo,generos:[...new Set(fil.map(f=>f.nombre).filter(Boolean))],gram:dom?tr(dom.obs.g):'nd',neisser:dom?tr(dom.obs.nt):'nd',obs:h.obs||'',fotos:STATE.fotos.slice(),filamentos:fil,microfauna:mfRecord(h)};}
+function mfRecord(h){const mf=mfState();if(!Object.keys(mf.items).length&&mf.cont.n==null)return null;return {items:{...mf.items},cont:{...mf.cont},diag:mfDiag(mf,{fm:h.fm})};}
 function guardar(){const r=buildRecord();
   if(!r.fecha){msg('Introduce la fecha del análisis');return;}
   if(r.indice==null){msg('Selecciona el índice de filamentosas (0–5) o la abundancia de algún filamento');$('#idxGrid').scrollIntoView({behavior:'smooth',block:'center'});return;}
   const a=loadRecs();const i=a.findIndex(x=>x.id===r.id);if(i>=0)a[i]=r;else a.unshift(r);
   if(!saveRecs(a))return;fbPush(r);STATE.editId=r.id;persistDraft();markEdit();renderHist();notifyParent();msg(i>=0?'Registro actualizado ✔':'Registro guardado ✔');}
 function markEdit(){$('#editTag').style.display=STATE.editId?'':'none';}
-function nuevo(force){const filled=STATE.cols.some(c=>nFilled(c.obs)>0)||STATE.indice!=null||STATE.fotos.length;
+function nuevo(force){const filled=STATE.cols.some(c=>nFilled(c.obs)>0)||STATE.indice!=null||STATE.fotos.length||Object.keys(mfState().items).length;
   if(!force&&filled&&!STATE.editId&&!confirmClear())return;
   const op=$('#hOper').value;STATE=newState();for(const s of Object.values(HF))if(s!=='#hPlanta')$(s).value='';$('#hOper').value=op||sessionName();$('#hFecha').value=todayISO();$('#hHora').value=nowHM();
-  setInputs();renderIdxFloc();renderFotos();markEdit();persistDraft();}
-function cargar(id){const r=loadRecs().find(x=>x.id===id);if(!r)return;STATE=newState();STATE.editId=r.id;STATE.indice=r.indice??null;STATE.floculo=r.floculo||null;STATE.fotos=(r.fotos||[]).slice();
+  setInputs();renderIdxFloc();renderFotos();renderMF();markEdit();persistDraft();}
+function cargar(id){const r=loadRecs().find(x=>x.id===id);if(!r)return;STATE=newState();STATE.editId=r.id;STATE.indice=r.indice??null;STATE.floculo=r.floculo||null;STATE.fotos=(r.fotos||[]).slice();STATE.mf=r.microfauna?{items:{...(r.microfauna.items||{})},cont:{n:null,gotas:2,...(r.microfauna.cont||{})}}:{items:{},cont:{n:null,gotas:2}};
   if(r.filamentos&&r.filamentos.length){r.filamentos.forEach((f,i)=>{if(i<NCOL){STATE.cols[i].obs={ot:[],...f.obs};STATE.cols[i].final=f.manual?f.identificacion:'';STATE.cols[i].ab=f.abundancia??'';}});}
   else (r.generos||[]).map(g=>OLD_GEN[g]).filter(Boolean).slice(0,NCOL).forEach((id,i)=>{STATE.cols[i].final=id;});
   setHdr({fecha:r.fecha,hora:r.hora,planta:r.punto,oper:r.operador==='—'?'':r.operador,ivf:r.ivf,sst:r.sst,edad:r.edad,fm:r.fm,od:r.od,temp:r.temp,obs:r.obs});
-  setInputs();renderIdxFloc();renderFotos();markEdit();persistDraft();showTab('identificar');window.scrollTo({top:0,behavior:'smooth'});}
+  setInputs();renderIdxFloc();renderFotos();renderMF();markEdit();persistDraft();showTab('identificar');window.scrollTo({top:0,behavior:'smooth'});}
 function eliminar(id,btn){if(btn.dataset.arm!=='1'){btn.dataset.arm='1';btn.textContent='¿Seguro? Pulsa otra vez';setTimeout(()=>{btn.dataset.arm='';btn.textContent='🗑 Eliminar';},3000);return;}
   const a=loadRecs().filter(r=>r.id!==id);saveRecs(a);fbDel(id);if(STATE.editId===id){STATE.editId=null;markEdit();}renderHist();notifyParent();}
 
@@ -834,7 +864,7 @@ function renderHist(){const R=loadRecs();
     ${r.indice!=null?`<span class="chip ib${r.indice}">Índice ${r.indice} · ${IDX_DESC[r.indice]}</span>`:''}${r.ivf?`<span class="chip">IVF ${r.ivf} ml/g</span>`:''}${r.punto?`<span class="mut" style="font-size:12.5px">${esc(r.punto)}</span>`:''}
     <span class="row" style="margin-left:auto"><button class="btn" data-open="${r.id}">✏️ Abrir</button><button class="btn" data-pdf="${r.id}">📄 PDF</button><button class="btn dan" data-del="${r.id}">🗑 Eliminar</button></span></div>
     <div class="st"><span>SST <b>${r.sst??'—'}</b></span><span>Edad <b>${r.edad??'—'}</b> d</span><span>F/M <b>${r.fm??'—'}</b></span><span>OD <b>${r.od??'—'}</b></span><span>Flóculo <b>${r.floculo||'—'}</b></span><span>Analista <b>${esc(r.operador||'—')}</b></span>${!r.v?'<span class="chip">registro antiguo</span>':''}</div>
-    <div class="row" style="gap:5px">${recGenTags(r)}</div>${r.obs?`<div class="note" style="margin-top:6px;font-style:italic">“${esc(r.obs)}”</div>`:''}
+    <div class="row" style="gap:5px">${recGenTags(r)}${mfResumen(r)}</div>${r.obs?`<div class="note" style="margin-top:6px;font-style:italic">“${esc(r.obs)}”</div>`:''}
     ${r.fotos&&r.fotos.length?`<div class="fotos" style="grid-template-columns:repeat(auto-fill,64px)">${r.fotos.map(f=>`<div><img src="${f}"></div>`).join('')}</div>`:(r.nFotos?`<div class="note">${r.nFotos} foto(s) en otro dispositivo</div>`:'')}</div>`).join('')
    :'<span class="mut">Sin registros todavía. Guarda el primer análisis desde la pestaña Análisis.</span>';
   renderTrend(R);renderAlerts(R);renderFreq(R);}
@@ -852,6 +882,7 @@ function renderTrend(R){const data=R.filter(r=>r.indice!=null).slice(0,20).rever
 function renderAlerts(R){let a='';const u=R[0];
   if(u){if(u.indice>=4)a+=`<div class="alert r">🚨 Índice ${u.indice} en el último análisis (${u.fecha}). Acción urgente.</div>`;
     if(u.ivf>200)a+=`<div class="alert r">🚨 IVF ${u.ivf} ml/g: bulking filamentoso probable.</div>`;else if(u.ivf>150)a+=`<div class="alert a">⚠️ IVF ${u.ivf} ml/g, por encima del umbral.</div>`;
+    const md=u.microfauna&&u.microfauna.diag;if(md){if(md.cal)a+=`<div class="alert ${md.calLvl==='g'?'g':md.calLvl==='a'?'a':'r'}">🦠 Microfauna: calidad estimada <b>${md.cal.toLowerCase()}</b> · ${md.riq} taxones de ciliados.</div>`;(md.msgs||[]).filter(m=>m[0]==='r').forEach(m=>a+=`<div class="alert r">🦠 ${m[1]}</div>`);}
     const c=[...new Set((u.filamentos||[]).flatMap(f=>f.causas||[]))];if(c.length)a+=`<div class="alert a">🔎 Causas probables según los filamentos identificados: <b>${c.join(', ')}</b>.</div>`;
     if(R.length>=3){const h=new Date();h.setDate(h.getDate()-7);const l7=R.filter(r=>new Date(r.fecha)>=h&&r.indice!=null);if(l7.length>=3&&l7[0].indice>l7[l7.length-1].indice+1)a+=`<div class="alert a">⚠️ Tendencia creciente de filamentosas en los últimos 7 días.</div>`;}
     const d=Math.round((new Date()-new Date(u.fecha))/864e5);if(d>=5)a+=`<div class="alert a">⚠️ El último análisis es de hace ${d} días. Se recomiendan 1 o 2 por semana.</div>`;}
@@ -860,8 +891,8 @@ function renderFreq(R){const c={};R.forEach(r=>(r.generos||[]).forEach(g0=>{cons
   $('#freq').innerHTML=s.length?`<table class="t">${s.map(([g,n])=>`<tr><th style="width:55%"><i>${g}</i></th><td style="width:40px">${n}</td><td><div class="bar" style="height:6px;background:#1c3352;border-radius:4px"><i style="display:block;height:100%;border-radius:4px;background:var(--acc2);width:${Math.round(n/s[0][1]*100)}%"></i></div></td></tr>`).join('')}</table>`:'<span class="mut">Aún no hay filamentos registrados.</span>';}
 function exportCSV(){const R=loadRecs();if(!R.length){msg('Sin registros');return;}
   const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
-  const h=['Fecha','Hora','Punto','Analista','Indice','IVF','SST','Edad_d','FM','OD','Temp','Floculo','Gram','Neisser','Filamentos','Abundancias','Causas','Obs'];
-  const rows=R.map(r=>[r.fecha,r.hora,r.punto,r.operador,r.indice,r.ivf,r.sst,r.edad,r.fm,r.od,r.temp,r.floculo,r.gram,r.neisser,(r.generos||[]).join('; '),(r.filamentos||[]).map(f=>f.abundancia??'').join('; '),[...new Set((r.filamentos||[]).flatMap(f=>f.causas||[]))].join('; '),r.obs].map(q).join(';'));
+  const h=['Fecha','Hora','Punto','Analista','Indice','IVF','SST','Edad_d','FM','OD','Temp','Floculo','Gram','Neisser','Filamentos','Abundancias','Causas','Microfauna','Calidad_microfauna','Ciliados_ind_ml','Obs'];
+  const rows=R.map(r=>[r.fecha,r.hora,r.punto,r.operador,r.indice,r.ivf,r.sst,r.edad,r.fm,r.od,r.temp,r.floculo,r.gram,r.neisser,(r.generos||[]).join('; '),(r.filamentos||[]).map(f=>f.abundancia??'').join('; '),[...new Set((r.filamentos||[]).flatMap(f=>f.causas||[]))].join('; '),r.microfauna?Object.entries(r.microfauna.items||{}).map(([k,v])=>(MFBY[k]?MFBY[k].n:k)+' '+AB_LBL[v]).join('; '):'',r.microfauna&&r.microfauna.diag?r.microfauna.diag.cal:'',r.microfauna&&r.microfauna.diag?r.microfauna.diag.indml:'',r.obs].map(q).join(';'));
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+[h.join(';'),...rows].join('\n')],{type:'text/csv'}));a.download=`sgi-bio-filamentosas-${todayISO()}.csv`;document.body.appendChild(a);a.click();a.remove();}
 
 /* informe PDF (ventana imprimible) */
@@ -888,7 +919,7 @@ function informePDF(rec){if(!rec){msg('No hay registro');return;}
   .box{border-radius:6px;padding:7px 11px;margin:6px 0;border-left:3px solid;-webkit-print-color-adjust:exact;print-color-adjust:exact}.r{background:#fff0f0;border-color:#cc2200}.a{background:#fff8e0;border-color:#cc7700}.g{background:#f0fff6;border-color:#008855}
   .ok{color:#008855;font-weight:700}.bad{color:#cc2200;font-weight:700}.warn{color:#cc7700;font-weight:700}
   .footer{margin-top:20px;font-size:8.5px;color:#7a8fa8;border-top:1px solid #d0dce8;padding-top:8px;display:flex;justify-content:space-between}</style></head><body>
-  <div class="header"><h1>🔬 Informe Biología · Bacterias Filamentosas</h1><div class="sub">UTE VALLE DE GÜÍMAR · EDAR · ${esc(rec.punto||'REACTOR BIOLÓGICO')}</div>
+  <div class="header"><h1>🔬 Informe de biología del fango activo</h1><div class="sub">UTE VALLE DE GÜÍMAR · EDAR · ${esc(rec.punto||'REACTOR BIOLÓGICO')}</div>
   <div class="meta">Fecha del análisis: <span class="amber">${rec.fecha}${rec.hora?' · '+rec.hora:''}</span> | Analista: <span class="amber">${esc(rec.operador||'—')}</span> | Impreso: ${ahora}</div></div>
   <div class="section">Índice de filamentosas (escala Jenkins)</div>
   <div style="display:flex;align-items:center;gap:16px">${rec.indice!=null?`<span class="badge" style="background:${bC(rec.indice)};color:${bT(rec.indice)}">${rec.indice} / 5 · ${IDX_DESC[rec.indice]}</span>`:''}
@@ -898,14 +929,202 @@ function informePDF(rec){if(!rec){msg('No hay registro');return;}
   <tr><td>F/M</td><td>${rec.fm??'—'}</td><td>kgDBO/kgSS·d</td></tr><tr><td>OD reactor</td><td class="${rec.od!=null&&rec.od<1.5?'warn':'ok'}">${rec.od??'—'}</td><td>mg/l</td></tr><tr><td>Temperatura afluente</td><td>${rec.temp??'—'}</td><td>°C</td></tr><tr><td>Morfología del flóculo</td><td colspan="2">${rec.floculo||'—'}</td></tr></table>
   ${rec.ivf>200?'<div class="box r">🚨 IVF superior a 200 ml/g: bulking filamentoso probable.</div>':rec.ivf>150?'<div class="box a">⚠️ IVF por encima de 150 ml/g. Vigilar la decantación.</div>':''}
   ${filTab}${causas.length?`<div class="box a"><b>Causas probables de proliferación:</b> ${causas.join(', ')}.</div>`:''}
+  ${mfPdf(rec)}
   ${!fil.length&&rec.generos&&rec.generos.length?`<div class="section">Géneros identificados</div><p>${rec.generos.map(g=>`<i>${g}</i>`).join(', ')}</p>`:''}
   ${rec.obs?`<div class="section">Observaciones</div><p style="font-style:italic">“${esc(rec.obs)}”</p>`:''}
   <div class="section">Fotografías microscópicas</div>${fotos}
   <div class="section">Referencia de actuación</div><table><tr><th>Índice</th><th>Descripción</th><th>Acción</th></tr><tr><td>0–1</td><td>Ausentes / muy escasas</td><td class="ok">Sin intervención</td></tr><tr><td>2</td><td>Escasas</td><td class="ok">Vigilar tendencia</td></tr><tr><td>3</td><td>Moderadas</td><td class="warn">Intervención operacional</td></tr><tr><td>4</td><td>Abundantes</td><td class="bad">Acción correctora urgente</td></tr><tr><td>5</td><td>Muy abundantes (bulking)</td><td class="bad">Cloración selectiva y revisión del proceso</td></tr></table>
-  <div class="footer"><span>SGI UTE Valle de Güímar · M-BIO Biología Filamentosas</span><span><strong>Héctor Hernández Hernández</strong></span></div></body></html>`;
+  <div class="footer"><span>SGI UTE Valle de Güímar · M-BIO Biología · Filamentosos y microfauna</span><span><strong>Héctor Hernández Hernández</strong></span></div></body></html>`;
   const w=window.open('','_blank');if(!w){msg('El navegador ha bloqueado la ventana del informe: permite las ventanas emergentes para el SGI');return;}
   w.document.write(html);w.document.close();setTimeout(()=>{try{w.print();}catch(e){}},500);}
 
+
+/* =====================================================================
+   MICROFAUNA — protozoos y metazoos (tema 4 del temario)
+   q = posición en la sucesión de calidad (1 peor … 5 mejor); fm = carga másica que indica (a/m/b)
+   od: 'bajo' | 'medio' (1–1,5 mg/l suficiente) | 'alto'
+   ===================================================================== */
+const MF_GROUPS=[
+ {id:'flag',n:'Flagelados',ic:'flag',d:'Protozoos con uno o varios flagelos. Los pequeños (<20 µm) se cuentan a 400x.',bio:'Los pequeños dominan en el arranque, con falta de oxígeno, carga másica muy alta o choque orgánico. Los grandes (>20 µm) aparecen con carga baja y edad de fango alta.'},
+ {id:'ameb',n:'Amebas',ic:'ameba',d:'Gimnamebas (desnudas, con pseudópodos) y tecamebas (con concha o teca).',bio:'Gimnamebas pequeñas: carga másica alta o poco biodegradable. Tecamebas: carga baja, tiempo de residencia celular alto y posible nitrificación.'},
+ {id:'nad',n:'Ciliados nadadores',ic:'swim',d:'Ciliados bacteriófagos libre-nadadores, sobre todo himenostomados y escuticociliados.',bio:'Indican calidad moderada o mala: hay muchas bacterias dispersas. Aparecen con poca oxigenación, edad baja o carga alta. Los reptantes y sésiles los desplazan.'},
+ {id:'rep',n:'Ciliados reptantes',ic:'crawl',d:'Ciliados bacteriófagos que se desplazan sobre el flóculo sin fijarse a él (hipotricos y cirtofóridos).',bio:'Es el grupo con mayor capacidad indicadora: su aumento indica mejor calidad del efluente. Proceso con buen rendimiento y flóculos bien formados.'},
+ {id:'dep',n:'Ciliados depredadores',ic:'suct',d:'Se alimentan de otros ciliados (suctores y pleurostomados).',bio:'Poca capacidad indicadora: su alimentación no contribuye directamente a clarificar el efluente.'},
+ {id:'ses',n:'Ciliados sésiles (peritricos)',ic:'vort',d:'Ciliados fijados al flóculo por un pedúnculo; solitarios o coloniales.',bio:'Suelen ser el grupo más numeroso en efluentes de buena calidad. Vorticelas y Opercularias grandes indican mejor calidad que las pequeñas. Carchesium y Zoothamnium indican las DBO₅ más bajas.'},
+ {id:'met',n:'Metazoos',ic:'rot',d:'Organismos pluricelulares: rotíferos, nematodos, oligoquetos, gastrotricos y tardígrados.',bio:'Indican edad de fango alta y carga másica baja. Si dominan, la edad puede ser excesiva: la respiración endógena consume mucho oxígeno.'},
+ {id:'otr',n:'Otros indicadores',ic:'cyst',d:'Señales de estrés o toxicidad en la comunidad.',bio:'Un enquistamiento masivo o rotíferos muertos (loricas vacías) indican la entrada de un tóxico.'}
+];
+const MF=[
+ {id:'flp',g:'flag',n:'Flagelados pequeños (<20 µm)',s:'Bodo, Rhynchomonas, Trepomonas',q:1,fm:'a',od:'bajo',edad:'baja'},
+ {id:'flg',g:'flag',n:'Flagelados grandes (>20 µm)',s:'Entosiphon, Peranema',q:4,fm:'b',edad:'alta'},
+ {id:'amp',g:'ameb',n:'Gimnamebas pequeñas (<20 µm)',q:1,fm:'a',od:'bajo',edad:'baja'},
+ {id:'amg',g:'ameb',n:'Gimnamebas grandes (>50 µm)',s:'Thecamoeba, Mayorella',q:4,fm:'b'},
+ {id:'arc',g:'ameb',n:'Arcella',q:4,fm:'m',edad:'alta'},
+ {id:'egl',g:'ameb',n:'Euglypha',q:4.5,fm:'b',edad:'alta'},
+ {id:'cen',g:'ameb',n:'Centropyxis',q:4.5,fm:'b',edad:'alta'},
+ {id:'tep',g:'ameb',n:'Otras tecamebas',s:'Trinema, Cryptodifflugia',q:4,edad:'alta'},
+ {id:'col',g:'nad',n:'Colpidium',q:2,fm:'a'},
+ {id:'tet',g:'nad',n:'Tetrahymena',q:2,fm:'a'},
+ {id:'dex',g:'nad',n:'Dexiostoma / Glaucoma',q:2,fm:'a'},
+ {id:'par',g:'nad',n:'Paramecium',q:2.5,fm:'m'},
+ {id:'uro',g:'nad',n:'Uronema nigricans',q:1.5},
+ {id:'cyc',g:'nad',n:'Cyclidium glaucoma',q:2},
+ {id:'cin',g:'nad',n:'Cinetochilum margaritaceum',q:2.5},
+ {id:'cle',g:'nad',n:'Coleps hirtus',q:4,fm:'b'},
+ {id:'spi',g:'nad',n:'Spirostomum / Stentor / Metopus'},
+ {id:'asc',g:'rep',n:'Aspidisca cicada',q:3,fm:'m',od:'medio'},
+ {id:'asl',g:'rep',n:'Aspidisca (lynceus, turrita)',q:3.5,od:'medio'},
+ {id:'eup',g:'rep',n:'Euplotes',q:4,fm:'m',od:'medio'},
+ {id:'oxy',g:'rep',n:'Oxytricha / Gastrostyla',q:3.5,fm:'m'},
+ {id:'aci',g:'rep',n:'Acineria uncinata',q:3.5,fm:'m',od:'alto'},
+ {id:'chi',g:'rep',n:'Chilodonella / Trithigmostoma',q:3.5},
+ {id:'tro',g:'rep',n:'Trochilia minuta',q:4},
+ {id:'nas',g:'rep',n:'Drepanomonas / Leptopharynx',q:3.5},
+ {id:'lit',g:'dep',n:'Litonotus',fm:'m'},
+ {id:'amh',g:'dep',n:'Amphileptus'},
+ {id:'spa',g:'dep',n:'Spathidium / Trachelophyllum'},
+ {id:'suc',g:'dep',n:'Podophrya / Tokophrya',fm:'m'},
+ {id:'act',g:'dep',n:'Acineta',fm:'b'},
+ {id:'vcv',g:'ses',n:'Vorticella convallaria',q:4,fm:'m',od:'alto'},
+ {id:'vca',g:'ses',n:'Vorticella campanula',q:5,fm:'b'},
+ {id:'vmi',g:'ses',n:'Vorticelas pequeñas',s:'V. microstoma, infusionum, octava, aquadulcis',q:2.5,od:'medio'},
+ {id:'ops',g:'ses',n:'Opercularia pequeñas',s:'O. coarctata, O. asymetrica',q:2,fm:'a',od:'medio',tox:1},
+ {id:'opa',g:'ses',n:'Opercularia articulata',q:4.5},
+ {id:'epi',g:'ses',n:'Epistylis',q:3.5,od:'medio'},
+ {id:'car',g:'ses',n:'Carchesium polypinum',q:5,fm:'b'},
+ {id:'zoo',g:'ses',n:'Zoothamnium',q:5,fm:'b',od:'alto'},
+ {id:'thu',g:'ses',n:'Thuricola / Vaginicola',q:5,fm:'b'},
+ {id:'rot',g:'met',n:'Rotíferos',s:'lecánidos, filodínidos',q:4,fm:'m',edad:'alta'},
+ {id:'nem',g:'met',n:'Nematodos',edad:'alta'},
+ {id:'oli',g:'met',n:'Oligoquetos',s:'Aeolosoma…',fm:'b',edad:'alta'},
+ {id:'gas',g:'met',n:'Gastrotricos',fm:'b',edad:'alta'},
+ {id:'tar',g:'met',n:'Tardígrados',fm:'b',edad:'alta'},
+ {id:'qui',g:'otr',n:'Quistes de protozoos (enquistamiento)',tox:1},
+ {id:'rmu',g:'otr',n:'Rotíferos muertos / loricas vacías',tox:1},
+ {id:'bli',g:'otr',n:'Bacterias libres dispersas'}
+];
+const MFBY=Object.fromEntries(MF.map(t=>[t.id,t]));
+const AB_LBL=['—','+','++','+++','D'];const AB_TXT=['Ausente','Escaso','Frecuente','Abundante','Dominante'];
+
+/* esquemas de grupo (diseños propios, genéricos) */
+function mfIcon(k,size=56){const st='stroke="#2c3e50" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"';let g='';
+ const cil=(cx,cy,rx,ry,n)=>{let s='';for(let i=0;i<n;i++){const a=i/n*6.283;const x=cx+Math.cos(a)*rx,y=cy+Math.sin(a)*ry;s+=`<line x1="${x}" y1="${y}" x2="${x+Math.cos(a)*4}" y2="${y+Math.sin(a)*4}"/>`;}return s;};
+ if(k==='flag')g=`<ellipse cx="44" cy="44" rx="14" ry="9" fill="#cfe6d8"/><ellipse cx="44" cy="44" rx="14" ry="9" ${st}/><path d="M57 41 Q72 30 84 38 Q94 45 104 34" ${st}/><path d="M31 47 Q22 56 14 52" ${st}/><circle cx="46" cy="44" r="3" fill="#2c3e50"/>`;
+ else if(k==='ameba')g=`<path d="M30 40 Q28 24 44 26 Q52 14 62 26 Q80 22 78 38 Q92 46 76 54 Q70 66 54 58 Q40 68 34 56 Q18 52 30 40Z" fill="#e4dcf3"/><path d="M30 40 Q28 24 44 26 Q52 14 62 26 Q80 22 78 38 Q92 46 76 54 Q70 66 54 58 Q40 68 34 56 Q18 52 30 40Z" ${st}/><circle cx="54" cy="42" r="5" fill="#9b8ac4"/><circle cx="66" cy="48" r="2.5" ${st}/>`;
+ else if(k==='teca')g=`<path d="M28 50 Q28 18 60 18 Q92 18 92 50Z" fill="#f2dcae"/><path d="M28 50 Q28 18 60 18 Q92 18 92 50Z" ${st}/><path d="M50 50 Q46 62 40 66 M60 50 L60 68 M70 50 Q76 62 82 64" ${st}/>`;
+ else if(k==='swim')g=`<ellipse cx="60" cy="40" rx="30" ry="15" fill="#d6e7f6"/><g ${st}>${cil(60,40,30,15,28)}</g><ellipse cx="60" cy="40" rx="30" ry="15" ${st}/><path d="M38 36 Q46 44 40 50" ${st}/><ellipse cx="66" cy="40" rx="6" ry="4" fill="#7fa3c8"/>`;
+ else if(k==='crawl')g=`<ellipse cx="60" cy="38" rx="28" ry="16" fill="#f6e3cf"/><ellipse cx="60" cy="38" rx="28" ry="16" ${st}/><path d="M40 52 L36 62 M50 54 L48 64 M60 54 L60 65 M70 54 L72 64 M80 51 L85 60" ${st}/><path d="M38 32 Q50 24 62 30" ${st}/>`;
+ else if(k==='suct')g=`<circle cx="60" cy="30" r="14" fill="#f3d6dc"/><circle cx="60" cy="30" r="14" ${st}/>${[-70,-40,-10,20,200,230,250].map(a=>{const r=a*Math.PI/180;const x1=60+Math.cos(r)*14,y1=30+Math.sin(r)*14,x2=60+Math.cos(r)*26,y2=30+Math.sin(r)*26;return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${st}/><circle cx="${x2}" cy="${y2}" r="2" fill="#2c3e50"/>`;}).join('')}<line x1="60" y1="44" x2="60" y2="72" ${st}/>`;
+ else if(k==='vort')g=`<path d="M44 18 L76 18 Q72 40 60 44 Q48 40 44 18Z" fill="#dff0ee"/><path d="M44 18 L76 18 Q72 40 60 44 Q48 40 44 18Z" ${st}/><g ${st}>${[46,51,56,61,66,71,75].map(x=>`<line x1="${x}" y1="18" x2="${x-1}" y2="12"/>`).join('')}</g><path d="M60 44 Q66 50 60 54 Q54 58 60 62 Q66 66 60 70 L60 74" ${st}/>`;
+ else if(k==='colon')g=`<path d="M60 74 L60 52 L42 36 M60 52 L78 36 M42 36 L34 26 M42 36 L50 26 M78 36 L70 26 M78 36 L86 26" ${st}/>${[[34,26],[50,26],[70,26],[86,26]].map(([x,y])=>`<path d="M${x-6} ${y-10} L${x+6} ${y-10} Q${x+5} ${y-1} ${x} ${y} Q${x-5} ${y-1} ${x-6} ${y-10}Z" fill="#dff0ee" ${st}/>`).join('')}`;
+ else if(k==='rot')g=`<path d="M48 22 Q60 30 72 22 L70 50 Q66 60 62 66 L58 66 Q54 60 50 50Z" fill="#f7efc9"/><path d="M48 22 Q60 30 72 22 L70 50 Q66 60 62 66 L58 66 Q54 60 50 50Z" ${st}/><circle cx="50" cy="18" r="6" ${st}/><circle cx="70" cy="18" r="6" ${st}/><g ${st}>${cil(50,18,6,6,10)}${cil(70,18,6,6,10)}</g><path d="M58 66 L55 74 M62 66 L65 74" ${st}/>`;
+ else if(k==='nem')g=`<path d="M14 50 Q30 20 50 40 T86 34 Q98 30 106 40" stroke="#2c3e50" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M14 50 Q30 20 50 40 T86 34 Q98 30 106 40" stroke="#efe3d3" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
+ else if(k==='oli')g=`<path d="M14 44 Q40 30 64 42 T108 40" stroke="#2c3e50" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M14 44 Q40 30 64 42 T108 40" stroke="#f1d0c4" stroke-width="9" fill="none" stroke-linecap="round"/><g ${st}>${[24,34,44,54,64,74,84,94].map(x=>`<line x1="${x}" y1="${x<64?38-((64-x)*0.12):40}" x2="${x-2}" y2="${x<64?30-((64-x)*0.12):32}"/>`).join('')}</g>`;
+ else if(k==='cyst')g=`<circle cx="60" cy="40" r="18" fill="#e7e2d8"/><circle cx="60" cy="40" r="18" stroke="#2c3e50" stroke-width="4" fill="none"/><circle cx="60" cy="40" r="10" fill="#bfb59f"/>`;
+ return `<svg viewBox="0 0 120 80" width="${size*1.5}" height="${size}" style="background:#eef2f5;border-radius:8px;flex-shrink:0">${g}</svg>`;}
+
+/* ---------- diagnóstico de bioindicación ---------- */
+function mfDiag(mf,ctx={}){
+ const it=(mf&&mf.items)||{};const pres=Object.entries(it).filter(([k,v])=>v>0&&MFBY[k]);
+ if(!pres.length)return null;
+ const sum=g=>pres.filter(([k])=>MFBY[k].g===g).reduce((a,[,v])=>a+v,0);
+ const S={};MF_GROUPS.forEach(g=>S[g.id]=sum(g.id));
+ const small=(it.flp||0)+(it.amp||0);
+ const cil=pres.filter(([k])=>['nad','rep','dep','ses'].includes(MFBY[k].g));
+ const riq=cil.length;
+ // índice de calidad (sucesión)
+ let qs=0,qw=0;pres.forEach(([k,v])=>{const q=MFBY[k].q;if(q){qs+=q*v;qw+=v;}});
+ const qi=qw?qs/qw:null;
+ const cal=qi==null?null:qi<2?['Mala','r']:qi<3?['Moderada','a']:qi<4?['Buena','g']:['Muy buena','g'];
+ const M=[];
+ // dominancia
+ const pp=(it.vmi||0)+(it.ops||0);const cand=[['small',small],['nad',S.nad],['perpeq',pp],['rep+ses',S.rep+S.ses-pp],['met',S.met]];cand.sort((a,b)=>b[1]-a[1]);
+ const dom=cand[0][1]>0?cand[0][0]:null;
+ if(dom==='small')M.push(['r','Dominan los pequeños protozoos (flagelados y gimnamebas): calidad mala. Causas probables: poca oxigenación, edad de fango baja, carga excesiva, arranque o choque orgánico.']);
+ else if(dom==='nad')M.push(['a','Dominan los ciliados nadadores: calidad moderada. Hay exceso de bacterias dispersas; revisa oxigenación, edad de fango y carga.']);
+ else if(dom==='perpeq')M.push(['a','Dominan los peritricos pequeños (vorticelas y opercularias pequeñas): calidad moderada. Toleran OD moderado y carga másica alta.']);
+ else if(dom==='rep+ses')M.push(['g','Dominan peritricos y ciliados reptantes: buena calidad del efluente y buena oxigenación.']);
+ else if(dom==='met')M.push(['a','Dominan los metazoos: edad de fango posiblemente excesiva; la respiración endógena consume oxígeno y puede faltar OD.']);
+ // carga másica
+ const fmW={a:0,m:0,b:0};pres.forEach(([k,v])=>{const f=MFBY[k].fm;if(f)fmW[f]+=v;});
+ const fmT=fmW.a+fmW.m+fmW.b;let fmInd=null;
+ if(fmT){fmInd=Object.entries(fmW).sort((a,b)=>b[1]-a[1])[0][0];
+  const L={a:'ALTA (> 0,5 kgDBO₅/kgMLSS·d)',m:'MEDIA (0,1–0,5)',b:'BAJA (< 0,1)'};let t=`La microfauna apunta a carga másica ${L[fmInd]}.`;
+  if(ctx.fm!=null){const real=ctx.fm>0.5?'a':ctx.fm>=0.1?'m':'b';if(real!==fmInd)t+=` No coincide con la F/M anotada (${String(ctx.fm).replace('.',',')}): la microfauna refleja la carga de los días anteriores, no la del día del análisis.`;}
+  M.push(['i',t]);}
+ // oxígeno
+ const hi=['vcv','zoo','aci'].filter(k=>(it[k]||0)>=3);
+ const med=['asc','asl','eup','ops','vmi','epi'].reduce((a,k)=>a+(it[k]||0),0);
+ if(dom==='small')M.push(['a','Oxígeno: el predominio de pequeños protozoos sugiere un fango mal oxigenado.']);
+ else if(hi.length)M.push(['g',`Oxígeno: la abundancia de ${hi.map(k=>MFBY[k].n).join(', ')} indica OD elevado.`]);
+ else if(med>=4)M.push(['i','Oxígeno: Aspidisca, Euplotes, Opercularia, Epistylis y las vorticelas pequeñas toleran OD moderado (1–1,5 mg/l), que puede ser suficiente.']);
+ // edad de fango
+ const alta=pres.filter(([k,v])=>MFBY[k].edad==='alta'&&v>=2).map(([k])=>MFBY[k].n);
+ if(alta.length)M.push(['i',`Edad de fango: ${alta.join(', ')} ${alta.length>1?'son propios':'es propio'} de edades de fango altas (tiempo de residencia celular alto; las tecamebas apuntan a posible nitrificación).`]);
+ else if(dom==='small'||dom==='nad')M.push(['i','Edad de fango: la comunidad es típica de fango joven (primeras fases de colonización).']);
+ // toxicidad
+ if((it.qui||0)>=2)M.push(['r','Toxicidad: hay enquistamiento de protozoos. Posible vertido tóxico (metales pesados u orgánicos).']);
+ if((it.rmu||0)>0)M.push(['r','Toxicidad: hay rotíferos muertos o loricas vacías. Posible entrada de un tóxico.']);
+ if((it.ops||0)>=3&&(it.ops||0)>=Math.max(...pres.filter(([k])=>k!=='ops').map(([,v])=>v),0))M.push(['r','Domina Opercularia pequeña (O. coarctata / O. asymetrica): se asocia a tóxicos en la planta.']);
+ if((it.bli||0)>=3)M.push(['a','Abundantes bacterias libres dispersas: efluente con turbidez; favorece a los ciliados nadadores.']);
+ // recuento
+ let indml=null;const c=(mf&&mf.cont)||{};if(c.n!=null&&c.gotas>0)indml=Math.round(c.n/(c.gotas*0.025));
+ if(indml!=null){const ok=indml>1000&&riq>=5;M.push([ok?'g':'a',`Ciliados: ${indml.toLocaleString('es-ES')} ind/ml y ${riq} ${riq===1?'taxón':'taxones'}. ${ok?'Cumple el criterio de buena calidad (>1.000 ind/ml y ≥5 especies).':'No llega al criterio de buena calidad (>1.000 ind/ml y ≥5 especies).'}`]);}
+ else if(riq)M.push([riq>=5?'g':'a',`${riq} ${riq===1?'taxón':'taxones'} de ciliados. El criterio de buena calidad pide al menos 5 especies y más de 1.000 ind/ml.`]);
+ let C=cal;const tox=M.some(m=>m[0]==='r'&&m[1].startsWith('Toxicidad')||m[1].startsWith('Domina Opercularia'));
+ if(C&&dom==='met'&&qi>=3)C=['Moderada','a'];if(C&&dom==='small')C=['Mala','r'];if(C&&tox)C=['Mala (posible tóxico)','r'];
+ return {cal:C?C[0]:null,calLvl:C?C[1]:null,qi:qi!=null?+qi.toFixed(2):null,riq,indml,fmInd,dom,msgs:M,n:pres.length};
+}
+
+/* ---------- UI del subpanel ---------- */
+function mfState(){if(!STATE.mf)STATE.mf={items:{},cont:{n:null,gotas:2}};return STATE.mf;}
+function renderMF(){const mf=mfState();
+ $('#mfGrid').innerHTML=MF_GROUPS.map(G=>`<div class="mfg"><div class="mfh">${mfIcon(G.ic==='rot'?'rot':G.ic,22)}<b>${G.n}</b></div>${MF.filter(t=>t.g===G.id).map(t=>{const v=mf.items[t.id]||0;return `<div class="mft${v?' on':''}"><span title="${t.s||''}">${t.n}</span><span class="abb">${[1,2,3,4].map(i=>`<button type="button" data-mf="${t.id}" data-v="${i}" class="${v===i?'sel':''}" title="${AB_TXT[i]}">${AB_LBL[i]}</button>`).join('')}</span></div>`;}).join('')}</div>`).join('');
+ $('#mfN').value=mf.cont.n??'';$('#mfG').value=mf.cont.gotas??'';
+ renderMFDiag();}
+function renderMFDiag(){const mf=mfState();const d=mfDiag(mf,{fm:num($('#hFM').value)});
+ $('#mfCount').textContent=d?`(${d.n})`:'';
+ const c=mf.cont;const indml=(c.n!=null&&c.gotas>0)?Math.round(c.n/(c.gotas*0.025)):null;$('#mfInd').textContent=indml!=null?indml.toLocaleString('es-ES'):'—';
+ if(!d){$('#mfDiag').innerHTML='<span class="mut">Marca la abundancia de los organismos observados para obtener el diagnóstico.</span>';return;}
+ $('#mfDiag').innerHTML=`<div class="row" style="gap:6px;margin-bottom:4px">${d.cal?`<span class="chip ${d.calLvl==='g'?'ib1':d.calLvl==='a'?'ib2':'ib4'}">Calidad estimada: ${d.cal}</span>`:''}<span class="chip">${d.riq} ${d.riq===1?'taxón':'taxones'} de ciliados</span>${d.fmInd?`<span class="chip">F/M ${({a:'alta',m:'media',b:'baja'})[d.fmInd]}</span>`:''}</div>`+d.msgs.map(([l,t])=>`<div class="alert ${l==='i'?'i':l}">${t}</div>`).join('');
+}
+function initMF(){
+ $('#mfGrid').onclick=e=>{const b=e.target.closest('[data-mf]');if(!b)return;const mf=mfState();const k=b.dataset.mf,v=+b.dataset.v;mf.items[k]=mf.items[k]===v?0:v;if(!mf.items[k])delete mf.items[k];renderMF();persistDraft();};
+ $('#mfN').oninput=()=>{mfState().cont.n=num($('#mfN').value);renderMFDiag();persistDraft();};
+ $('#mfG').oninput=()=>{mfState().cont.gotas=num($('#mfG').value);renderMFDiag();persistDraft();};
+ $('#hFM').addEventListener('input',renderMFDiag);
+ $('#subSeg').onclick=e=>{const b=e.target.closest('[data-sub]');if(!b)return;$$('#subSeg button').forEach(x=>x.classList.toggle('on',x===b));$('#subFil').style.display=b.dataset.sub==='fil'?'':'none';$('#subMf').style.display=b.dataset.sub==='mf'?'':'none';setTimeout(fitAnalisis,0);};
+ renderMF();
+}
+function mfResumen(r){const d=r.microfauna&&r.microfauna.diag;if(!d)return '';return `<span class="chip">🦠 ${d.n} taxones${d.cal?` · calidad ${d.cal.toLowerCase()}`:''}${d.indml!=null?` · ${d.indml.toLocaleString('es-ES')} cil/ml`:''}</span>`;}
+
+/* ---------- guía de protozoos ---------- */
+function renderProtoGuide(){
+ const sucesion=['Flagelados pequeños (<20 µm)','Gimnamebas pequeñas (<20 µm)','Vorticella microstoma','Uronema nigricans','Opercularia coarctata','Aspidisca cicada','Acineria uncinata','Vorticella convallaria','Epistylis plicatilis','Gimnamebas grandes (>50 µm)','Trochilia minuta','Euplotes aediculatus','Tecamebas grandes (>50 µm)','Carchesium polypinum','Zoothamnium / Opercularia articulata','Thuricola kellicottiana','Vorticella campanula'];
+ const icons={flag:'flag',ameb:'ameba',nad:'swim',rep:'crawl',dep:'suct',ses:'vort',met:'rot',otr:'cyst'};
+ let h=`<div class="grid g3">${MF_GROUPS.map(G=>`<div class="card"><div class="row" style="flex-wrap:nowrap;align-items:flex-start">${mfIcon(icons[G.id],60)}<div><b>${G.n}</b><div class="note">${G.d}</div></div></div>
+  ${G.id==='ameb'?`<div class="row" style="margin-top:6px">${mfIcon('teca',40)}<span class="note">Tecameba: concha con abertura por la que salen los pseudópodos.</span></div>`:''}
+  ${G.id==='ses'?`<div class="row" style="margin-top:6px">${mfIcon('colon',40)}<span class="note">Colonial (Carchesium, Zoothamnium, Epistylis, Opercularia).</span></div>`:''}
+  ${G.id==='met'?`<div class="row" style="margin-top:6px">${mfIcon('nem',36)}${mfIcon('oli',36)}<span class="note">Nematodo · oligoqueto</span></div>`:''}
+  <p style="margin:8px 0 6px;font-size:12.5px">${G.bio}</p><div class="row" style="gap:4px">${MF.filter(t=>t.g===G.id).map(t=>`<span class="chip" title="${t.s||''}">${t.n}</span>`).join('')}</div></div>`).join('')}</div>`;
+ h+=`<div class="grid g2" style="margin-top:12px">
+ <div class="card"><h3 style="margin-top:0">Sucesión de calidad del efluente</h3><p class="note" style="margin-top:0">Cuantas más especies y más abundantes sean las últimas de la lista, mejor es la calidad. Son todas bacteriófagas; los depredadores no se incluyen.</p><ol style="margin:0;padding-left:22px;columns:2;font-size:12.5px">${sucesion.map(x=>`<li>${x}</li>`).join('')}</ol>
+ <h3>Criterio de buena calidad</h3><p style="margin:0;font-size:12.5px">Más de 1.000 ciliados/ml, diversidad mayor de 1 bit/individuo y al menos 5 especies de ciliados.</p></div>
+ <div class="card"><h3 style="margin-top:0">Carga másica (F/M) y microfauna</h3><table class="t"><tr><th>Alta (&gt; 0,5)</th><td>Flagelados pequeños (Trepomonas), gimnamebas pequeñas, Opercularia pequeñas, Colpidium, Tetrahymena, Dexiostoma, Glaucoma</td></tr><tr><th>Media (0,1–0,5)</th><td>Buena diversidad: Arcella, V. convallaria, Aspidisca cicada, Oxytricha, Litonotus, Acineria uncinata, Podophrya, Paramecium, Euplotes, rotíferos lecánidos y filodínidos</td></tr><tr><th>Baja (&lt; 0,1)</th><td>Centropyxis, Euglypha, Peranema, Thecamoeba, Mayorella, Carchesium, Zoothamnium, Thuricola, Vaginicola, V. campanula, Coleps hirtus, Acineta, Euplotes aediculatus, oligoquetos, gastrotricos, tardígrados</td></tr></table>
+ <p class="note">La microfauna responde a la carga de los días anteriores (más el tiempo de pretratamiento y primario). No la compares solo con la F/M del día del análisis.</p></div>
+ <div class="card"><h3 style="margin-top:0">Oxígeno disuelto y toxicidad</h3><table class="t"><tr><th>OD bajo</th><td>Predominio de flagelados y gimnamebas pequeñas; baja diversidad y efluente turbio</td></tr><tr><th>OD 1–1,5 mg/l</th><td>Aspidisca, Euplotes, Opercularia, V. microstoma y Epistylis pueden ser muy abundantes</td></tr><tr><th>OD elevado</th><td>Abundancia de V. convallaria, Zoothamnium y Acineria uncinata</td></tr><tr><th>Tóxicos</th><td>Enquistamiento masivo, rotíferos muertos con la lorica intacta, dominancia de O. coarctata u O. asymetrica. Una subida repentina del OD sin cambio de aireación puede delatar un tóxico.</td></tr></table></div>
+ <div class="card"><h3 style="margin-top:0">Recuento de ciliados y metazoos (&gt; 20 µm)</h3><ol style="margin:0;padding-left:20px;font-size:12.5px"><li>Toma 200–300 ml en un frasco de 1 l y observa antes de 3 h (máximo 5 h, con aire si hace falta).</li><li>Homogeneiza y pon 25 µl bajo un cubre de 20 × 20 mm.</li><li>Recorre todo el cubre a 100x, en bandas sin solapar, anotando todos los ciliados y metazoos.</li><li>Cuenta 2 gotas; si salen menos de 50 individuos por gota, amplía hasta 4.</li><li>ind/ml = individuos contados / (nº de gotas × 0,025 ml).</li></ol><p class="note">Los organismos de menos de 20 µm (nanoflagelados, amebas pequeñas) se cuentan a 400x en 15 campos por muestra, con 2 muestras como mínimo.</p></div></div>`;
+ $('#protoGuide').innerHTML=h;
+}
+
+function mfPdf(rec){const m=rec.microfauna;if(!m||!m.items||!Object.keys(m.items).length)return '';const d=m.diag||mfDiag(m,{fm:rec.fm});
+ const rows=MF_GROUPS.map(G=>{const t=MF.filter(x=>x.g===G.id&&m.items[x.id]>0);if(!t.length)return '';return `<tr><td><b>${G.n}</b></td><td>${t.map(x=>`${x.n} <b>${AB_LBL[m.items[x.id]]}</b>`).join(' · ')}</td></tr>`;}).join('');
+ const col={r:'r',a:'a',g:'g',i:'g'};
+ return `<div class="section">Protozoos y metazoos (bioindicación)</div>
+ <div style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0">${d&&d.cal?`<span class="badge" style="font-size:12px;background:${d.calLvl==='g'?'#ccf0dc':d.calLvl==='a'?'#fff3cc':'#ffcccc'};color:${d.calLvl==='g'?'#005533':d.calLvl==='a'?'#7a5000':'#7a0000'}">Calidad estimada por la microfauna: ${d.cal}</span>`:''}
+ <span>Taxones de ciliados: <b>${d?d.riq:'—'}</b></span>${d&&d.indml!=null?`<span>Ciliados: <b>${d.indml.toLocaleString('es-ES')} ind/ml</b></span>`:''}</div>
+ <table><tr><th style="width:25%">Grupo</th><th>Organismos observados (abundancia: + escaso, ++ frecuente, +++ abundante, D dominante)</th></tr>${rows}</table>
+ ${d?d.msgs.map(([l,t])=>`<div class="box ${col[l]}">${t}</div>`).join(''):''}`;}
 
 /* autoajuste: reduce la vista de Análisis para que quepa sin scroll en pantallas de escritorio */
 function fitAnalisis(){const sec=$('#t-identificar');if(!sec)return;sec.style.zoom='';
@@ -918,7 +1137,7 @@ function initIdent(){
   buildTable();
   const d=lsGet(LS_DRAFT,null);if(d&&d.st&&d.st.cols){STATE={...newState(),...d.st};setHdr(d.h);}
   if(!$('#hFecha').value)$('#hFecha').value=todayISO();if(!$('#hHora').value)$('#hHora').value=nowHM();if(!$('#hOper').value)$('#hOper').value=sessionName();
-  setInputs();renderIdxFloc();renderFotos();markEdit();renderHist();fbSync();setTimeout(fitAnalisis,50);
+  if(!STATE.mf)STATE.mf={items:{},cont:{n:null,gotas:2}};initMF();renderProtoGuide();setInputs();renderIdxFloc();renderFotos();markEdit();renderHist();fbSync();setTimeout(fitAnalisis,50);
   Object.values(HF).forEach(s=>$(s).addEventListener('change',()=>{persistDraft();chkAlert();}));$('#hIVF').addEventListener('input',chkAlert);
   $('#idxGrid').onclick=e=>{const b=e.target.closest('[data-idx]');if(!b)return;const i=+b.dataset.idx;STATE.indice=STATE.indice===i?null:i;renderIdxFloc();persistDraft();};
   $('#flocGrid').onclick=e=>{const b=e.target.closest('[data-floc]');if(!b)return;const f=b.dataset.floc;STATE.floculo=STATE.floculo===f?null:f;renderIdxFloc();persistDraft();};
@@ -941,7 +1160,7 @@ function buildPrint(){
   let rows=FIELDS.map(f=>`<tr><td class="l">${f.lab}</td>${cols.map(c=>`<td>${esc(String(val(c,f)))}</td>`).join('')}</tr>`).join('');
   rows+=`<tr class="fil"><td class="l">FILAMENTOS:</td>${cols.map(c=>{const id=c.final||(c.top&&c.top[0]?.id);return `<td>${id?OBYID[id].n:''}${c.top&&c.top[0]&&!c.final?`<br><small>(${c.top[0].pct.toFixed(0)}%)</small>`:''}</td>`;}).join('')}</tr>`;
   rows+=`<tr><td class="l">Abundancia (0–5)</td>${cols.map(c=>`<td>${c.ab}</td>`).join('')}</tr>`;
-  $('#printSheet').innerHTML=`<h1>Identificación de microorganismos filamentosos</h1><p>Fecha: <b>${r.fecha||''} ${r.hora||''}</b> · Punto: <b>${esc(r.punto)}</b> · Índice: <b>${r.indice??'—'}</b> · IVF: <b>${r.ivf??'—'}</b> ml/g · Analista: <b>${esc(r.operador)}</b></p><table><tr><th class="l"></th>${cols.map((_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr>${rows}</table><p style="font-size:9pt;margin-top:10px">Causas asociadas: ${[...new Set(r.filamentos.flatMap(f=>f.causas))].join(', ')||'—'}</p><p style="font-size:9pt">Firma: ______________________</p>`;
+  $('#printSheet').innerHTML=`<h1>Identificación de microorganismos filamentosos</h1><p>Fecha: <b>${r.fecha||''} ${r.hora||''}</b> · Punto: <b>${esc(r.punto)}</b> · Índice: <b>${r.indice??'—'}</b> · IVF: <b>${r.ivf??'—'}</b> ml/g · Analista: <b>${esc(r.operador)}</b></p><table><tr><th class="l"></th>${cols.map((_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr>${rows}</table><p style="font-size:9pt;margin-top:10px">Causas asociadas: ${[...new Set(r.filamentos.flatMap(f=>f.causas))].join(', ')||'—'}</p>${(()=>{const m=r.microfauna;if(!m||!Object.keys(m.items||{}).length)return '';return `<p style="font-size:9.5pt;margin-top:8px"><b>Protozoos y metazoos:</b> ${Object.entries(m.items).map(([k,v])=>`${MFBY[k].n} ${AB_LBL[v]}`).join(' · ')}${m.diag&&m.diag.cal?` — calidad estimada: <b>${m.diag.cal}</b>`:''}${m.diag&&m.diag.indml!=null?` · ${m.diag.indml} ciliados/ml`:''}</p>`;})()}<p style="font-size:9pt">Firma: ______________________</p>`;
 }
 
 /* =====================================================================
