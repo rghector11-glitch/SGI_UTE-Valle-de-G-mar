@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Identificación de microorganismos filamentosos · M-BIO</title>
+<style>
+:root{
+  --bg:#0a1424;--panel:#101f35;--panel2:#152a46;--line:#24406a;--txt:#e6eef8;--mut:#8ea6c4;
+  --acc:#38bdf8;--acc2:#22d3a6;--warn:#f5b041;--bad:#f0627a;--slide:#e9eef3;--slideTxt:#22313f;
+  --gpos:#6b2fa3;--gneg:#e0566f;--npos:#2f3f9e;--nneg:#c9a24f;
+  --r:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+a{color:var(--acc)}
+header.top{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#0d1b30,#0f2440)}
+header.top .logo{width:38px;height:38px;border-radius:10px;background:radial-gradient(circle at 30% 30%,#5fd4ff,#1170b8);display:grid;place-items:center;font-weight:700;color:#04192e}
+header.top h1{font-size:18px;margin:0;font-weight:650;letter-spacing:.2px}
+header.top small{color:var(--mut);display:block;font-size:12.5px}
+nav.tabs{display:flex;gap:4px;padding:8px 16px 0;border-bottom:1px solid var(--line);overflow-x:auto;background:#0c1a2e;position:sticky;top:0;z-index:20}
+nav.tabs button{background:none;border:0;color:var(--mut);padding:10px 14px;font:inherit;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav.tabs button.on{color:var(--txt);border-bottom-color:var(--acc)}
+main{padding:20px 22px 60px;max-width:1400px;margin:0 auto}
+section.tab{display:none}section.tab.on{display:block}
+h2{font-size:20px;margin:6px 0 4px}h3{font-size:16px;margin:18px 0 8px}
+p.lead{color:var(--mut);margin:0 0 16px;max-width:900px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.g4{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--panel2);border:1px solid var(--line);color:var(--txt);white-space:nowrap}
+.chip.gp{background:var(--gpos);border-color:var(--gpos)}.chip.gn{background:var(--gneg);border-color:var(--gneg)}
+.chip.np{background:var(--npos);border-color:var(--npos)}.chip.nn{background:#7b6430;border-color:#7b6430}
+.chip.s{background:#a88a12;border-color:#a88a12}
+.chip.cause{cursor:default}
+.btn{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:#0e7bb8;border-color:#0e7bb8}.btn.ok{background:#0f8f6f;border-color:#0f8f6f}.btn.dan{background:#7a2233;border-color:#7a2233}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mut{color:var(--mut)}
+.slide{background:var(--slide);border-radius:10px;display:block;width:100%}
+/* fichas */
+.ficha{cursor:pointer;transition:transform .12s,border-color .12s}
+.ficha:hover{transform:translateY(-2px);border-color:var(--acc)}
+.ficha h4{margin:10px 0 6px;font-size:15.5px}
+.ficha .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.ficha .dim{font-size:12.5px;color:var(--mut)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filters input,.filters select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 10px;font:inherit}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(3,9,18,.72);display:none;align-items:flex-start;justify-content:center;z-index:100;overflow:auto;padding:30px 12px}
+.modal.on{display:flex}
+.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:980px;width:100%;padding:20px;position:relative}
+.modal .x{position:absolute;right:12px;top:10px;font-size:22px;background:none;border:0;color:var(--mut);cursor:pointer}
+table.t{border-collapse:collapse;width:100%;font-size:13.5px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.t th{color:var(--mut);font-weight:600;width:38%}
+.ok-c{color:var(--acc2)}.part-c{color:var(--warn)}.bad-c{color:var(--bad)}
+/* identificar */
+.idwrap{overflow-x:auto}
+table.idf{border-collapse:separate;border-spacing:0;width:100%;min-width:980px}
+table.idf th,table.idf td{border-bottom:1px solid var(--line);padding:5px 6px}
+table.idf thead th{position:sticky;top:0;background:var(--panel2);font-size:13px;text-align:center}
+table.idf tbody th{text-align:left;font-size:13.5px;width:220px;color:#cfe0f3;font-weight:600;background:var(--panel)}
+table.idf td{background:#0d1a2d}
+table.idf select,table.idf input{width:100%;background:#0a1626;color:var(--txt);border:1px solid #2a4870;border-radius:7px;padding:6px 7px;font:inherit;font-size:13.5px}
+table.idf select.set,table.idf input.set{border-color:var(--acc);background:#0d2338}
+.pair{display:flex;gap:4px;align-items:center}.pair span{color:var(--mut)}
+.ots{display:flex;flex-wrap:wrap;gap:4px}
+.ots label{font-size:11.5px;background:#0a1626;border:1px solid #2a4870;border-radius:6px;padding:2px 6px;cursor:pointer;user-select:none}
+.ots label.on{background:#0d3350;border-color:var(--acc)}
+.ots input{display:none}
+.res{font-size:13px}
+.res .cand{display:grid;grid-template-columns:1fr 48px;gap:4px 8px;align-items:center;padding:5px 6px;border-radius:7px;cursor:pointer}
+.res .cand:hover{background:#12304e}
+.res .bar{grid-column:1/3;height:5px;border-radius:4px;background:#1c3352;overflow:hidden}
+.res .bar i{display:block;height:100%}
+.res .pct{text-align:right;font-weight:700}
+.res .top{border:1px solid #1e5b46;background:#0d2a24}
+.conf{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px}
+.hdrin{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px}
+.hdrin label{font-size:12.5px;color:var(--mut);display:block}
+.hdrin input,.hdrin select{width:100%;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit}
+.hist .it{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:8px 0;align-items:center}
+/* tinciones */
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.steps li::before{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-weight:700;font-size:13px}
+.drop{display:inline-block;width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);margin-right:6px;vertical-align:-2px;border:1px solid rgba(255,255,255,.3)}
+.tm{font-size:12px;font-weight:700;background:#0d3350;border:1px solid #1a5f8f;border-radius:7px;padding:2px 8px;cursor:pointer;white-space:nowrap}
+.tm.run{background:#7a5a10;border-color:#f5b041}
+.reag{font-size:13.5px}.reag td,.reag th{padding:4px 8px}
+/* clave */
+.keybox{max-width:860px}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.crumbs span{font-size:12px;background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:6px}
+.kq{font-size:18px;font-weight:650;margin:4px 0 12px}
+.kopts{display:grid;gap:10px}
+.kopt{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--txt);font:inherit;cursor:pointer;display:flex;gap:12px;align-items:center}
+.kopt:hover{border-color:var(--acc)}
+.kopt b{display:block}
+.kopt .arrow{margin-left:auto;color:var(--acc);font-weight:700}
+.tree ul{list-style:none;margin:0;padding-left:18px;border-left:1px dashed #2f5180}
+.tree li{margin:4px 0}
+.tree .q{font-weight:650;color:#cfe0f3}
+.tree .o{color:var(--mut)}
+.tree .leaf{color:var(--acc2);font-weight:650;cursor:pointer}
+/* calc */
+.calc label{display:block;font-size:12.5px;color:var(--mut);margin-top:6px}
+.calc input{width:100%;background:#0a1626;color:var(--txt);border:1px solid #2a4870;border-radius:7px;padding:6px 8px;font:inherit}
+.big{font-size:26px;font-weight:700}
+.note{font-size:12.5px;color:var(--mut)}
+.callout{border-left:3px solid var(--warn);background:#2a2412;padding:10px 12px;border-radius:6px;font-size:13.5px}
+.idxg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:4px}.idxg.c4{grid-template-columns:repeat(4,1fr)}
+.idxg button{background:#0a1626;border:1px solid #2a4870;border-radius:8px;color:var(--mut);padding:7px 4px;font:inherit;font-size:12px;cursor:pointer;line-height:1.2}
+.idxg button b{display:block;font-size:18px;color:var(--txt)}.idxg button i{display:block;height:3px;border-radius:2px;margin-top:4px}
+.idxg button.sel{border-color:var(--warn);background:#2a2412;color:var(--txt)}
+.ta{width:100%;background:#0a1626;color:var(--txt);border:1px solid #2a4870;border-radius:8px;padding:8px;font:inherit;resize:vertical}
+.drop-z{display:block;border:1.5px dashed #2a4870;border-radius:10px;padding:16px;text-align:center;cursor:pointer;color:var(--mut)}
+.drop-z:hover{border-color:var(--acc)}
+.fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:10px}
+.fotos div{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.fotos img{width:100%;height:100%;object-fit:cover}.fotos button{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);border:0;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer}
+.alert{border-radius:8px;padding:8px 12px;margin:6px 0;font-size:13.5px;border-left:3px solid}
+.alert.r{background:#2c1219;border-color:var(--bad)}.alert.a{background:#2a2412;border-color:var(--warn)}.alert.g{background:#0d2a24;border-color:var(--acc2)}
+.reg{border-bottom:1px solid var(--line);padding:12px 0}.reg:last-child{border:0}
+.reg .h{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.reg .st{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--mut);margin:6px 0}
+.reg .st b{color:var(--txt)}
+.ib0,.ib1{background:#0f5a3e!important;border-color:#0f5a3e!important}.ib2,.ib3{background:#7a5a10!important;border-color:#7a5a10!important}.ib4,.ib5{background:#7a2233!important;border-color:#7a2233!important}
+body.embed header.top{display:none}
+/* print */
+#printSheet{display:none}
+@media print{
+  body{background:#fff;color:#000}
+  header.top,nav.tabs,main,.modal{display:none!important}
+  #printSheet{display:block;color:#000;font:11pt Arial,sans-serif;padding:0 6mm}
+  #printSheet h1{font-size:15pt;margin:0 0 4px}
+  #printSheet table{border-collapse:collapse;width:100%}
+  #printSheet td,#printSheet th{border:1px solid #000;padding:4px 6px;font-size:10pt;text-align:center}
+  #printSheet th.l,#printSheet td.l{text-align:left;font-weight:700;width:30%}
+  #printSheet .fil td{background:#ddd;font-weight:700}
+  @page{size:A4;margin:12mm}
+}
+@media (max-width:640px){main{padding:14px 10px}.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top" id="topHdr">
+  <div class="logo">µ</div>
+  <div><h1>Identificación de microorganismos filamentosos</h1>
+  <small>M-BIO · Guía de bioindicación microscópica y asistente de identificación (30 tipos morfológicos)</small></div>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-t="identificar" class="on">🔬 Análisis</button>
+  <button data-t="historial">📋 Historial</button>
+  <button data-t="clave">🧭 Clave dicotómica</button>
+  <button data-t="fichas">📇 Fichas</button>
+  <button data-t="tinciones">🧪 Tinciones</button>
+  <button data-t="morfologia">📐 Morfología</button>
+  <button data-t="diagnostico">📊 Diagnóstico y causas</button>
+</nav>
+<main>
+
+<!-- ================= IDENTIFICAR ================= -->
+<section class="tab on" id="t-identificar">
+  <h2>Análisis biológico e identificación de filamentosos <span class="chip" id="editTag" style="display:none">Editando registro</span></h2>
+  <p class="lead">Rellena los datos del análisis y hasta 4 filamentos con las observaciones a 1.000x (contraste de fases, y campo claro para las tinciones). No hace falta completar todos los parámetros. A partir de 3 datos se calculan los candidatos más probables, y cuantos más datos diagnósticos metas (ramificación, motilidad, azufre, Neisser, diámetro), más fiable es el resultado.</p>
+  <div class="card" style="margin-bottom:14px">
+    <h3 style="margin-top:0">📅 Datos generales y parámetros operacionales</h3>
+    <div class="hdrin">
+      <div><label>Fecha</label><input type="date" id="hFecha"></div>
+      <div><label>Hora</label><input type="time" id="hHora"></div>
+      <div><label>Planta / punto de muestreo</label><select id="hPlanta"><option>EDARi – Reactor biológico</option><option>EDARu – Reactor biológico</option><option>Recirculación</option><option>Espumas superficie</option><option>Otro</option></select></div>
+      <div><label>Analista</label><input id="hOper"></div>
+      <div><label>IVF (ml/g)</label><input id="hIVF" type="number" step="1" placeholder="120"></div>
+      <div><label>SST reactor (mg/l)</label><input id="hSST" type="number" step="10" placeholder="3500"></div>
+      <div><label>Edad de fango (d)</label><input id="hEdad" type="number" step="0.5" placeholder="15"></div>
+      <div><label>F/M (kgDBO/kgSS·d)</label><input id="hFM" type="number" step="0.01" placeholder="0,08"></div>
+      <div><label>OD (mg/l)</label><input id="hOD" type="number" step="0.1" placeholder="2,1"></div>
+      <div><label>Tª afluente (°C)</label><input id="hTemp" type="number" step="0.5" placeholder="18"></div>
+    </div>
+    <div class="grid" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px">
+      <div><label class="note">Índice de filamentosas (Jenkins 0–5) · global de la muestra</label><div class="idxg" id="idxGrid"></div></div>
+      <div><label class="note">Morfología del flóculo</label><div class="idxg c4" id="flocGrid"></div></div>
+    </div>
+    <div id="alertArea" style="margin-top:10px"></div>
+  </div>
+  <div class="card idwrap"><table class="idf" id="idTable"></table></div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3 style="margin-top:0">📝 Observaciones</h3><textarea id="hObs" rows="4" class="ta" placeholder="Aspecto del licor mezcla, olor, espumas, protozoos, incidencias…"></textarea></div>
+    <div class="card"><h3 style="margin-top:0">📷 Fotografías microscópicas</h3>
+      <label class="drop-z"><input type="file" id="fotoIn" accept="image/*" multiple hidden>🔬 Pulsa para adjuntar fotos <span class="note">(40× o 100× · se comprimen automáticamente)</span></label>
+      <div class="fotos" id="fotoGrid"></div></div>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn ok" id="bSave">💾 Guardar registro</button>
+    <button class="btn pri" id="bPdf">📄 Informe PDF</button>
+    <button class="btn" id="bPrint">🖨️ Imprimir plantilla</button>
+    <button class="btn" id="bNew">➕ Nuevo análisis</button>
+    <span class="mut" id="saveMsg"></span>
+  </div>
+</section>
+
+<!-- ================= HISTORIAL ================= -->
+<section class="tab" id="t-historial">
+  <h2>Historial y tendencia</h2>
+  <p class="lead">Registros del M-BIO, incluidos los anteriores a este módulo. <span id="syncInfo"></span></p>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0">📊 Evolución índice vs IVF</h3><div id="trend"></div></div>
+    <div class="card"><h3 style="margin-top:0">⚠️ Alertas automáticas</h3><div id="alerts"></div><h3>🔗 Filamentosos más frecuentes</h3><div id="freq"></div></div>
+  </div>
+  <div class="row" style="margin:14px 0"><button class="btn" id="bCsv">⬇ Exportar CSV</button></div>
+  <div class="card hist" id="hist"></div>
+</section>
+
+<!-- ================= CLAVE ================= -->
+<section class="tab" id="t-clave">
+  <h2>Clave dicotómica de identificación</h2>
+  <p class="lead">Recorre la clave paso a paso. Va de los caracteres más diagnósticos (ramificación, motilidad, azufre) a los más finos (Neisser, Gram, vaina, septos y diámetro). Cuando llegues a un resultado, compruébalo siempre con la ficha completa.</p>
+  <div class="grid g2">
+    <div class="card keybox"><div class="crumbs" id="kCrumbs"></div><div id="kBody"></div></div>
+    <div class="card"><h3 style="margin-top:0">Vista completa de la clave</h3><div class="tree" id="kTree"></div></div>
+  </div>
+</section>
+
+<!-- ================= FICHAS ================= -->
+<section class="tab" id="t-fichas">
+  <h2>Fichas de los microorganismos filamentosos</h2>
+  <p class="lead">Los esquemas se generan a partir de los rasgos morfológicos de cada tipo: forma del tricoma, septos, constricciones, vaina, ramificación, epifitos, gránulos de azufre y relación con el flóculo. Son esquemas orientativos y no están a escala. Pulsa una ficha para ver todos sus datos.</p>
+  <div class="filters">
+    <input id="fq" placeholder="Buscar…">
+    <select id="fg"><option value="">Gram: todos</option><option value="+">Gram +</option><option value="-">Gram −</option></select>
+    <select id="fc"><option value="">Causa: todas</option></select>
+    <select id="fp"><option value="">Problema: todos</option><option value="bulking">Bulking</option><option value="espumas">Espumas</option><option value="turbidez">Turbidez / disperso</option></select>
+  </div>
+  <div class="grid g3" id="fichas"></div>
+</section>
+
+<!-- ================= TINCIONES ================= -->
+<section class="tab" id="t-tinciones">
+  <h2>Procedimientos de tinción y pruebas</h2>
+  <p class="lead">Según el Anexo I del temario. Gram y Neisser se hacen sobre frotis secado al aire y se observan en campo claro a 1.000x. Úsalas solo para leer la reacción (+/−): el secado altera las dimensiones, así que mide en fresco con contraste de fases. Pulsa un tiempo para lanzar el cronómetro.</p>
+  <div class="grid g2" id="stains"></div>
+</section>
+
+<!-- ================= MORFOLOGÍA ================= -->
+<section class="tab" id="t-morfologia">
+  <h2>Caracteres morfológicos: guía visual</h2>
+  <p class="lead">Los mismos parámetros que aparecen en la plantilla, con un esquema de cada opción para unificar criterios entre operarios.</p>
+  <div id="morph"></div>
+</section>
+
+<!-- ================= DIAGNÓSTICO ================= -->
+<section class="tab" id="t-diagnostico">
+  <h2>Diagnóstico: bulking, espumas y causas</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="margin-top:0">Causas del crecimiento masivo</h3>
+      <table class="t" id="causeTable"></table>
+      <p class="note">* N. limicola II prolifera por septicidad cuando el sistema trabaja con carga másica baja. Referencias: OD alto ≥ 2 mg/l, OD bajo ≤ 0,3 mg/l. Nutrientes: DBO₅:N:P = 100:5:1. pH óptimo entre 6,5 y 8,5. Con edades de fango de 4 a 20 días siempre hay algún filamentoso que encuentra su nicho.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Umbrales de diagnóstico</h3>
+      <table class="t">
+        <tr><th>Riesgo de bulking (IVF)</th><td>IVF &gt; 150–200 ml/g</td></tr>
+        <tr><th>Susceptibilidad de bulking (microscopía)</th><td>&gt; 200 m de filamento/ml</td></tr>
+        <tr><th>Riesgo de espumas por nocardioformes</th><td>≈ 50 m/ml</td></tr>
+        <tr><th>Espumas biológicas</th><td>M. parvicella y nocardioformes (episodios graves). Tipo 1863 (leves).</td></tr>
+        <tr><th>Mayor gravedad</th><td>Los filamentos más largos y robustos. Ejemplos: 021N (IVF &gt; 500), S. natans (&gt; 300) y M. parvicella (200–400).</td></tr>
+        <tr><th>Filamentos de “turbidez”</th><td>0211, 0411, 1852 y 1863. Apenas afectan a la decantación, pero dan crecimiento disperso y efluente turbio.</td></tr>
+      </table>
+      <h3>Recuento de filamentos (método de Salvadó, 1990)</h3>
+      <div class="calc grid" style="grid-template-columns:1fr 1fr;gap:8px">
+        <div><label>Nº total de intersecciones</label><input id="cI" type="number" value="120"></div>
+        <div><label>Nº de campos observados (≥30)</label><input id="cN" type="number" value="30"></div>
+        <div><label>Cubreobjetos: lado (mm)</label><input id="cA" type="number" value="22" step="0.1"></div>
+        <div><label>Volumen de muestra (µl)</label><input id="cV" type="number" value="10"></div>
+        <div><label>Diámetro del campo de visión (µm)</label><input id="cD" type="number" value="450"></div>
+        <div style="align-self:end"><div class="big" id="cOut">–</div><div class="note">m de filamento / ml</div></div>
+      </div>
+      <p class="note">L = (Ni · A) / (H · Vm), donde Ni = intersecciones/campo, A = área del cubre (m²), H = perímetro del campo × 2/π (m) y Vm = volumen (ml). Cuenta a 400–600x, en 30 campos o más, y cambia de preparación cada 15 campos. Si salen más de 600 m/ml, diluye la muestra.</p>
+      <div id="cDiag"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="modal" id="modal"><div class="box"><button class="x" id="mx">×</button><div id="mBody"></div></div></div>
+<div id="printSheet"></div>
+
+<script>
+/* =====================================================================
+   DATOS — Temario "Microbiología de los sistemas de depuración:
+   Bioindicación microscópica" (tema 3 y Anexo I) + Láminas identificativas
+   Formato de cada rasgo: "típicos|posibles"
+   ===================================================================== */
+const LBL={
+ g:{'+':'Gram +','-':'Gram −','v':'Variable'},
+ nt:{'+':'Neisser +','-':'Neisser −'},
+ ng:{'+':'Gránulos Neisser +','-':'Gránulos Neisser −'},
+ si:{si:'Sí (esféricos)',sq:'Sí (cuadrados/rectang.)',no:'No'},
+ st:{pos:'Positivo',neg:'Negativo'},
+ inc:{phb:'PHB',pig:'Pigmentos (verde-azulado)',sub:'Gránulos/orgánulos subcelulares',none:'Ninguna'},
+ fo:{rec:'Recto',cur:'Ligeramente curvo',tor:'Torcido',irr:'Irregular (cadena de células)',enr:'Enrollado',mic:'Micelial'},
+ lo:{int:'Intraflocular',ext:'Se extiende desde el flóculo',lib:'Libre'},
+ se:{si:'Sí',no:'No'},co:{si:'Sí',no:'No'},va:{si:'Sí',no:'No'},
+ ra:{no:'No',ver:'Verdaderas',fal:'Falsas'},
+ ep:{aus:'Ausente',inc:'Incidental',abu:'Abundante'},
+ cf:{cua:'Cuadradas',rec:'Rectangulares',dis:'Discoidales',ova:'Ovales',coc:'Cocos (redondas)',ton:'En tonel',bac:'Bacilares (extr. redondeados)'},
+ mo:{no:'No',des:'Sí, deslizamiento',fle:'Sí, flexión'},
+ ot:{ros:'Rosetas',gon:'Gonidios apicales',hac:'Haces / madejas',tra:'Transparente (contraste fases)',api:'Base gruesa → ápice fino',pue:'Puentes interfloculares',par:'Unido a partículas',bul:'Bucles/marañas',osc:'Gránulos oscuros en septos'}
+};
+const CAUSES={od:'OD bajo',sep:'Septicidad (sulfuros)',nut:'Déficit nutrientes (N, P)',fm:'Carga másica (F/M) baja',gra:'Aceites y grasas',ph:'pH bajo (<6,5)'};
+
+const ORG=[
+{id:'noc',n:'Actinomicetos nocardioformes',a:'Nocardia, Gordonia',g:'+',nt:'-',ng:'+|-',si:'no',st:'neg',inc:'phb',d:[0.8,1.2],l:[10,100],fo:'mic',lo:'int,lib',se:'no',ra:'ver',co:'no',va:'no',ep:'aus',cw:[1,1],cl:[1,2],cf:'|bac,rec',mo:'no',ot:[],
+ c:['od','fm','gra'],p:['espumas'],ivf:'100–200 ml/g',
+ nota:'Filamentos cortos (10–30 µm, siempre <100 µm) con ramificaciones verdaderas y aspecto micelial. Sin septos visibles al óptico. Tienen una cubierta cérea que atrapa burbujas y forma gruesas capas de espuma marrón y grasienta. En alta densidad disgregan el flóculo.',
+ conf:'Hongos (mucho más gruesos, 3–8 µm, Gram −).'},
+{id:'bac',n:'Bacillus spp.',g:'+,-',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.8,1.0],l:[20,50],fo:'irr',lo:'lib',se:'si',ra:'no',co:'si',va:'no',ep:'aus',cw:[0.8,1],cl:[2,4],cf:'bac',mo:'no',ot:[],
+ c:[],p:['turbidez'],
+ nota:'Cadenas irregulares de células bacilares o cocobacilares con extremos redondeados. Suelen estar libres, cerca del contorno de los flóculos. Hay descripciones tanto Gram + como Gram −.',
+ conf:'Tipo 1863 (Gram −, gránulos Neisser +) y Streptococcus (células cocoides, Gram +).'},
+{id:'beg',n:'Beggiatoa spp.',g:'-|+',nt:'-',ng:'-|+',si:'si',st:'pos',inc:'none',d:[1,3],l:[100,500],fo:'rec,cur',lo:'lib',se:'si',ra:'no',co:'no',va:'no',ep:'aus',cw:[1,3],cl:[4,8],cf:'rec',mo:'des|fle',ot:[],
+ c:['sep'],p:['bulking'],
+ nota:'Filamentos largos y libres. Su rasgo más llamativo es que se mueven, sobre todo por deslizamiento. Acumulan abundantes gránulos de azufre esféricos in situ, que pueden tapar los septos. Con mucho azufre pueden aparecer como Gram +.',
+ conf:'Cianobacterias (también móviles, pero con pigmento y sin azufre).'},
+{id:'cya',n:'Cyanophyceae',a:'Cianobacterias',g:'-|+',nt:'-',ng:'-',si:'no',st:'neg',inc:'pig',d:[2,5],l:[100,1000],fo:'rec',lo:'lib',se:'si',ra:'no',co:'si',va:'no',ep:'aus',cw:[2,5],cl:[5,15],cf:'cua,rec,ton',mo:'des|no',ot:[],
+ c:[],p:[],
+ nota:'Algas azules, poco frecuentes en fangos activos. Filamentos largos y gruesos, con septos y constricciones. En campo claro se ve un ligero tono verde-azulado. A menudo son móviles por deslizamiento.',
+ conf:'Beggiatoa (con gránulos de azufre y sin pigmento).'},
+{id:'fle',n:'Flexibacter spp.',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'phb',d:[0.8,1.2],l:[20,100],fo:'rec,cur',lo:'lib',se:'no',ra:'no',co:'no|si',va:'no',ep:'aus',mo:'fle',ot:[],
+ c:[],p:[],
+ nota:'Filamentos cortos y libres que se mueven por flexión. Normalmente no se ven septos, pero suele haber una única constricción en la mitad del filamento.',
+ conf:'Filamentos cortos inmóviles. No confundir con el movimiento que provoca la evaporación de la preparación.'},
+{id:'hal',n:'Haliscomenobacter hydrossis',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.3,0.5],l:[20,100],fo:'rec,tor',lo:'ext,lib',se:'no',ra:'no',co:'no',va:'si',ep:'aus,inc|abu',mo:'no',ot:['hac','pue'],
+ c:['od','nut','fm'],p:['bulking'],
+ nota:'Filamentos muy finos (0,3–0,5 µm) que salen radiando del flóculo o están libres, a veces en haces. Tienen vaina y huecos sin células. Pueden formar puentes interfloculares. Obsérvalos a 1.000x: a menos aumento pasan desapercibidos.',
+ conf:'Tipo 1702 (0,6–0,8 µm) y Tipo 0211 (con septos y constricciones, sin vaina).'},
+{id:'hon',n:'Hongos filamentosos',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'sub',d:[3,8],l:[300,1000],fo:'mic',lo:'int,ext,lib',se:'si',ra:'ver',co:'si',va:'no',ep:'aus',cw:[3,8],cl:[5,15],cf:'rec',mo:'no',ot:['pue'],
+ c:['ph'],p:['bulking'],
+ nota:'Filamentos muy largos y gruesos (3–8 µm) con ramificaciones verdaderas y pared celular gruesa. Tienen orgánulos, y a veces se ven corrientes citoplasmáticas. Forman mallas densas entre flóculos. Son indicadores de pH bajo.',
+ conf:'Nocardioformes (≈1 µm, Gram +).'},
+{id:'mic',n:'Microthrix parvicella',g:'+',nt:'-',ng:'+',si:'no',st:'neg',inc:'phb',d:[0.6,0.8],l:[100,400],fo:'enr',lo:'int,lib',se:'no',ra:'no',co:'no',va:'no',ep:'aus',mo:'no',ot:['bul'],
+ c:['od','fm','gra'],p:['bulking','espumas'],ivf:'200–400 ml/g (o más)',
+ nota:'Filamentos finos enrollados de forma irregular, que en alta densidad forman marañas con bucles característicos. Sin septos visibles. Con Neisser se ven abundantes gránulos de polifosfato marrón oscuro sobre un tricoma amarillento. Dan fango marrón claro y ligero, con decantación lenta.',
+ conf:'Tipo 0581 (Gram −, algo más fino) y N. limicola I (Neisser + en todo el tricoma, sin PHB).'},
+{id:'nl1',n:'Nostocoida limicola I',g:'+',nt:'+',ng:'-',si:'no',st:'neg',inc:'none',d:[0.6,0.8],l:[100,300],fo:'tor,enr|cur',lo:'int|ext,lib',se:'no|si',ra:'no',co:'no',va:'no',ep:'aus',cf:'ova',mo:'no',ot:[],
+ c:['od','nut','fm'],p:['bulking'],
+ nota:'Curvado y enrollado de forma irregular, normalmente dentro del flóculo. Los septos cuestan de ver y, cuando se ven, las células son ovales. Es Gram + y Neisser + en todo el tricoma.',
+ conf:'Microthrix parvicella (Neisser − con gránulos +).'},
+{id:'nl2',n:'Nostocoida limicola II',g:'-|+',nt:'+|-',ng:'-',si:'no',st:'neg',inc:'phb',d:[1.0,1.4],l:[100,200],fo:'tor,enr',lo:'int',se:'si',ra:'no|ver',co:'si',va:'no',ep:'aus',cw:[1,1.4],cl:[1,1],cf:'ova,dis',mo:'no',ot:[],
+ c:['od','sep','nut','fm'],p:['bulking'],
+ nota:'Parecido a N. limicola I pero más grueso (1,0–1,4 µm), con septos claros, constricciones y células ovales o discoidales. Muy de vez en cuando se ven ramificaciones verdaderas. La reacción a Gram y Neisser puede variar.',
+ conf:'N. limicola I y III (por el diámetro).'},
+{id:'nl3',n:'Nostocoida limicola III',g:'+|-',nt:'+|-',ng:'-',si:'no',st:'neg',inc:'phb',d:[1.6,2.0],l:[200,300],fo:'tor,enr',lo:'int,ext',se:'si',ra:'no',co:'si',va:'no',ep:'aus',cf:'coc,ova,dis',mo:'no',ot:[],
+ c:['od','nut','fm'],p:['bulking'],
+ nota:'El más grueso de las Nostocoida (1,6–2,0 µm). Tiene septos muy marcados con constricciones pronunciadas y células esféricas, ovales o discoidales. Suele ser Gram + y Neisser +.',
+ conf:'N. limicola II (más fino).'},
+{id:'sph',n:'Sphaerotilus natans',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'phb',d:[1.0,1.8],l:[100,1000],fo:'rec,cur',lo:'ext',se:'si',ra:'fal',co:'si',va:'si',ep:'aus|inc',cw:[1,1.8],cl:[1.5,3],cf:'bac|rec',mo:'no',ot:['pue'],
+ c:['od'],p:['bulking'],ivf:'> 300 ml/g (clarificado muy limpio)',
+ nota:'Filamento largo que sale del flóculo y forma puentes. Tiene falsas ramificaciones con aspecto de “ramas de árbol”, y es el único en fango activo que las presenta. La vaina se ve clara donde faltan células, y las células son bacilares. Si aparece crecimiento epifítico, el filamento está en regresión.',
+ conf:'Tipo 1701 (más fino, enrollado en el flóculo; la falsa ramificación es rarísima).'},
+{id:'str',n:'Streptococcus',g:'+',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.7,0.8],l:[5,100],fo:'irr',lo:'lib',se:'si',ra:'no',co:'si',va:'no',ep:'aus',cw:[0.7,0.8],cl:[0.7,0.8],cf:'coc',mo:'no',ot:[],
+ c:[],p:['turbidez'],
+ nota:'Cadenas cortas e irregulares de cocos de 0,7–0,8 µm, libres en el licor mezcla. Son Gram + y sin gránulos.',
+ conf:'Tipo 1863 (Gram −, gránulos Neisser +).'},
+{id:'th1',n:'Thiothrix I',g:'-|+',nt:'-',ng:'-|+',si:'si|no',st:'pos',inc:'phb',d:[1.4,2.5],l:[100,500],fo:'rec,cur',lo:'ext',se:'si',ra:'no',co:'no',va:'si',ep:'aus',cw:[1.4,2.5],cl:[3,5],cf:'rec',mo:'no',ot:['ros','gon','pue'],
+ c:['sep','nut'],p:['bulking'],
+ nota:'Grueso (1,4–2,5 µm), recto, sale del flóculo. Tiene septos sin constricción, células rectangulares y una vaina difícil de ver. Puede formar rosetas y gonidios apicales. Acumula azufre, y la prueba de azufre da positiva. Por la vaina gruesa puede no decolorarse y salir Gram +.',
+ conf:'Thiothrix II (0,8–1,4 µm) y Tipo 021N (sin vaina, células en tonel).'},
+{id:'th2',n:'Thiothrix II',g:'-',nt:'-',ng:'-|+',si:'si|no',st:'pos',inc:'phb',d:[0.8,1.4],l:[50,800],fo:'rec,cur',lo:'ext',se:'si',ra:'no',co:'no',va:'si',ep:'aus|inc',cw:[0.8,1.4],cl:[1,2],cf:'rec',mo:'no',ot:['ros','gon'],
+ c:['sep','nut'],p:['bulking'],
+ nota:'Más fino que Thiothrix I y puede ser más largo. Forma gonidios y rosetas con frecuencia. Después de la prueba de azufre siempre aparecen gránulos.',
+ conf:'Thiothrix I (más grueso) y Tipo 021N.'},
+{id:'041',n:'Tipo 0041',g:'+,-',nt:'-',ng:'-|+',si:'no',st:'neg',inc:'none',d:[1.2,1.6],l:[100,500],fo:'rec,cur',lo:'int,ext|lib',se:'si',ra:'no',co:'no',va:'si',ep:'abu,inc|aus',cw:[1.2,1.6],cl:[1.5,2.5],cf:'cua,rec',mo:'no',ot:[],
+ c:['nut','fm'],p:['bulking'],
+ nota:'En agua urbana suele estar dentro del flóculo, cubierto de abundante crecimiento epifítico y Gram +. En agua industrial aparece libre o saliendo del flóculo, sin epifitos y Gram −. Tiene una vaina difícil de ver, más clara en el ápice o donde faltan células.',
+ conf:'Tipo 0675 (idéntico pero más pequeño: 0,5–1,0 µm).'},
+{id:'092',n:'Tipo 0092',g:'-',nt:'+',ng:'-',si:'no',st:'neg',inc:'none',d:[0.8,1.0],l:[10,100],fo:'rec,tor,cur',lo:'int|lib',se:'no|si',ra:'no',co:'no',va:'no',ep:'aus',cw:[0.8,0.8],cl:[1.5,1.5],cf:'rec',mo:'no',ot:[],
+ c:['fm'],p:['bulking'],
+ nota:'Corto y dentro del flóculo, donde pasa desapercibido. Solo se ve bien con la tinción de Neisser: el tricoma sale Neisser + y destaca en violeta. Su abundancia disgrega el flóculo.',
+ conf:'N. limicola I (Gram +, más largo y enrollado).'},
+{id:'211',n:'Tipo 0211',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.3,0.5],l:[10,100],fo:'tor,enr',lo:'lib',se:'si',ra:'no',co:'si',va:'no',ep:'aus',cw:[0.3,0.5],cl:[0.5,0.7],cf:'bac',mo:'no',ot:[],
+ c:[],p:['turbidez'],
+ nota:'Corto, muy fino y libre, con septos y constricciones claras. No suele afectar a la decantación, pero da crecimiento disperso y efluente turbio, sobre todo con agua industrial.',
+ conf:'H. hydrossis (con vaina, sin septos visibles).'},
+{id:'21N',n:'Tipo 021N',g:'-|+',nt:'-',ng:'-|+',si:'no|si',st:'pos',inc:'phb',d:[1.0,2.0],l:[100,1000],fo:'rec,cur|enr',lo:'ext',se:'si',ra:'no',co:'si|no',va:'no',ep:'aus',cw:[0.6,2.0],cl:[0.4,3.0],cf:'ton,dis,ova|cua,rec',mo:'no',ot:['gon','api','pue','ros'],
+ c:['sep','nut','fm'],p:['bulking'],ivf:'> 500 ml/g',
+ nota:'Largo y robusto. Crece desde una base gruesa unida al flóculo hasta un ápice más fino con gonidios. Predominan las células en tonel, aunque la forma varía incluso dentro del mismo filamento. No tiene vaina: la pared gruesa que queda tras la lisis conserva las marcas de los septos. La prueba de azufre suele dar positiva. Provoca bulking severo en pocos días.',
+ conf:'Thiothrix I/II (con vaina verdadera y células rectangulares).'},
+{id:'411',n:'Tipo 0411',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.7,0.9],l:[50,150],fo:'rec,cur,tor',lo:'ext|lib',se:'si',ra:'no',co:'si',va:'no',ep:'aus',cw:[0.8,0.8],cl:[2,4],cf:'bac',mo:'no',ot:[],
+ c:[],p:['turbidez'],
+ nota:'Aspecto de “cadena de células”: células bacilares alargadas con septos y constricciones, en el borde de los flóculos. Contribuye a la turbidez del efluente.',
+ conf:'Bacillus spp. (cadena irregular, libre).'},
+{id:'581',n:'Tipo 0581',g:'-',nt:'-|+',ng:'-',si:'no',st:'neg',inc:'none',d:[0.4,0.7],l:[100,300],fo:'cur,tor,enr',lo:'lib',se:'no',ra:'no',co:'no',va:'no',ep:'aus',mo:'no',ot:['hac'],
+ c:[],p:['bulking'],
+ nota:'Fino, curvado o enrollado, libre y solo o en haces. Sin septos visibles. A veces da una ligera reacción Neisser +.',
+ conf:'Microthrix parvicella (Gram +, gránulos Neisser +, algo más grueso).'},
+{id:'675',n:'Tipo 0675',g:'+,-',nt:'-',ng:'-|+',si:'no',st:'neg',inc:'none',d:[0.5,1.0],l:[50,150],fo:'rec,cur',lo:'int|ext,lib',se:'si',ra:'no',co:'no',va:'si',ep:'abu|inc,aus',cw:[0.5,1],cl:[0.5,1],cf:'cua',mo:'no',ot:[],
+ c:['nut','fm'],p:['bulking'],
+ nota:'Prácticamente idéntico al Tipo 0041, pero más corto y fino, con células cuadradas. Muy común en agua urbana, dentro del flóculo y cubierto de epifitos.',
+ conf:'Tipo 0041 (1,2–1,6 µm, 100–500 µm).'},
+{id:'803',n:'Tipo 0803',g:'-',nt:'-',ng:'-|+',si:'no',st:'neg',inc:'none',d:[0.7,0.9],l:[50,300],fo:'rec,tor,cur',lo:'lib|ext',se:'si',ra:'no',co:'no',va:'no',ep:'aus',cw:[0.8,0.8],cl:[1.5,2],cf:'cua,rec',mo:'no',ot:['par','osc'],
+ c:['fm'],p:['bulking'],
+ nota:'Libre en la fase acuosa, sobre todo con agua industrial. A veces se unen 3 o 4 filamentos a una partícula inorgánica refringente. Unos gránulos oscuros pequeños (probablemente polifosfatos) enmascaran los septos.',
+ conf:'Tipo 0961 (transparente, saliendo del flóculo) y 0914 (con azufre cuadrado).'},
+{id:'914',n:'Tipo 0914',g:'-|+',nt:'-',ng:'-|+',si:'sq|no',st:'neg',inc:'phb',d:[0.7,1.0],l:[50,200],fo:'rec,cur',lo:'lib|ext',se:'si',ra:'no',co:'no',va:'no',ep:'aus|inc',cw:[0.7,1],cl:[0.7,1],cf:'cua',mo:'no',ot:[],
+ c:['sep'],p:['bulking'],
+ nota:'Lo que lo define son los gránulos de azufre cuadrados o rectangulares, siempre in situ. La prueba de azufre no cambia su aspecto, así que se considera negativa. Las células son cuadradas.',
+ conf:'Tipo 0803 (sin azufre) y Thiothrix (azufre esférico).'},
+{id:'961',n:'Tipo 0961',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.8,1.4],l:[40,500],fo:'rec',lo:'ext',se:'si',ra:'no',co:'no',va:'no',ep:'aus',cw:[0.8,1.4],cl:[1.5,4],cf:'rec',mo:'no',ot:['tra','hac','pue'],
+ c:['fm'],p:['bulking'],
+ nota:'Recto y casi transparente en contraste de fases, sin estructuras internas. Tiene septos claros sin constricción. Sale del flóculo y a veces forma madejas, lo que dificulta la compactación.',
+ conf:'Tipo 1852 (también transparente, pero más corto y fino).'},
+{id:'1701',n:'Tipo 1701',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'phb',d:[0.7,1.0],l:[10,200],fo:'tor,cur',lo:'int|ext',se:'si',ra:'no|fal',co:'si',va:'si',ep:'abu,inc,aus',cw:[0.7,1],cl:[1,3.5],cf:'bac',mo:'no',ot:[],
+ c:['od'],p:['bulking'],
+ nota:'Enrollado dentro del flóculo, con una porción que sobresale. Tiene vaina, células bacilares y constricciones que se ven más claras en el ápice. El crecimiento epifítico varía de nulo a muy abundante; si no hay epifitos, el filamento está creciendo rápido. Es indicador de OD bajo.',
+ conf:'Sphaerotilus natans (más grueso y largo, con falsas ramificaciones frecuentes).'},
+{id:'1702',n:'Tipo 1702',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.6,0.8],l:[20,150],fo:'rec,tor',lo:'ext',se:'no',ra:'no',co:'no',va:'si',ep:'aus|inc',cf:'rec',mo:'no',ot:[],
+ c:[],p:['bulking'],
+ nota:'Corto y fino, sale del flóculo. Tiene vaina y casi nunca se ven ni septos ni células.',
+ conf:'H. hydrossis (más fino, 0,3–0,5 µm).'},
+{id:'1851',n:'Tipo 1851',g:'-|+',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.5,0.8],l:[200,400],fo:'rec,cur',lo:'ext',se:'si|no',ra:'no',co:'no',va:'si',ep:'inc,aus',cw:[0.8,0.8],cl:[1.5,2.5],cf:'rec',mo:'no',ot:['hac','pue'],
+ c:['fm'],p:['bulking'],
+ nota:'Largo y fino, a menudo en haces de filamentos entrelazados que salen del flóculo. Tiene vaina, y el poco crecimiento epifítico que tiene es claramente perpendicular. A veces da Gram ligeramente +.',
+ conf:'Tipo 0961 (más grueso, transparente, sin vaina).'},
+{id:'1852',n:'Tipo 1852',g:'-',nt:'-',ng:'-',si:'no',st:'neg',inc:'none',d:[0.6,0.8],l:[20,80],fo:'rec,tor',lo:'ext',se:'si',ra:'no',co:'no',va:'no',ep:'aus',cw:[0.6,0.8],cl:[1,2],cf:'rec',mo:'no',ot:['tra'],
+ c:[],p:['turbidez'],
+ nota:'Corto, fino y transparente, con septos sin constricción. Parece un Tipo 0961 pequeño y poco robusto.',
+ conf:'Tipo 0961 (más robusto, con células más largas).'},
+{id:'1863',n:'Tipo 1863',g:'-',nt:'-',ng:'+|-',si:'no',st:'neg',inc:'none',d:[0.8,1.5],l:[10,150],fo:'irr',lo:'lib',se:'si',ra:'no',co:'si',va:'no',ep:'aus',cw:[0.8,1.5],cl:[0.8,1.5],cf:'coc,bac',mo:'no',ot:[],
+ c:['od','gra'],p:['turbidez','espumas'],
+ nota:'Cadena irregular de células esféricas o cocobacilares, sin tricoma rígido. El eje de las células cambia a lo largo del filamento. Está libre y no afecta a la decantación, pero en masa da clarificados turbios y espumas leves.',
+ conf:'Streptococcus (Gram +) y Bacillus.'}
+];
+ORG.forEach(o=>o.byId=null);
+const OBYID=Object.fromEntries(ORG.map(o=>[o.id,o]));
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function spec(v){if(v==null||v==='')return null;const [t,p]=String(v).split('|');return {t:t?t.split(','):[],p:p?p.split(','):[]};}
+function rng(seed){let s=0;for(const c of seed)s=(s*31+c.charCodeAt(0))>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function fmtR(r){return r?(r[0]===r[1]?`${r[0]}`:`${r[0]}–${r[1]}`).replace(/\./g,','):'—';}
+function specTxt(k,v){const s=spec(v);if(!s)return '—';const f=a=>a.map(x=>LBL[k]?.[x]||x).join(' / ');return f(s.t)+(s.p.length?` <span class="mut">(a veces: ${f(s.p)})</span>`:'');}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* =====================================================================
+   MOTOR DE DIBUJO DE ESQUEMAS
+   ===================================================================== */
+const W=380,H=180;
+function densify(pts,step=1.5){const out=[pts[0]];for(let i=1;i<pts.length;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i];const d=Math.hypot(x1-x0,y1-y0);const n=Math.max(1,Math.ceil(d/step));for(let j=1;j<=n;j++)out.push([x0+(x1-x0)*j/n,y0+(y1-y0)*j/n]);}return out;}
+function pathFor(forma,R,x0=70,y0=95,len=290){
+  const P=[];
+  if(forma==='rec'){P.push([x0,y0],[x0+len,y0-22]);}
+  else if(forma==='cur'){for(let t=0;t<=1.0001;t+=0.02){const x=x0+len*t;const y=y0+10-60*Math.sin(Math.PI*t*0.9);P.push([x,y]);}}
+  else if(forma==='tor'){const k=[[0,0],[0.3,-45],[0.55,20],[0.8,-35],[1,-5]];k.forEach(([a,b])=>P.push([x0+len*a,y0+b]));}
+  else if(forma==='enr'){for(let t=0;t<=1.0001;t+=0.004){const x=x0+len*0.85*t-24*Math.sin(2*Math.PI*3.2*t);const y=y0-10+30*Math.cos(2*Math.PI*3.2*t)*(0.7+0.3*Math.sin(5*t));P.push([x,y]);}}
+  else {P.push([x0,y0],[x0+len,y0]);}
+  return densify(P);
+}
+function arcLen(P){const L=[0];for(let i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));return L;}
+function at(P,L,s){let i=1;while(i<L.length-1&&L[i]<s)i++;const t=(s-L[i-1])/((L[i]-L[i-1])||1);const x=P[i-1][0]+(P[i][0]-P[i-1][0])*t,y=P[i-1][1]+(P[i][1]-P[i-1][1])*t;const a=Math.atan2(P[i][1]-P[i-1][1],P[i][0]-P[i-1][0]);return [x,y,a];}
+function polyD(P){return 'M'+P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L');}
+
+function floc(cx,cy,r,R,id){let d='';const n=22;for(let i=0;i<=n;i++){const a=i/n*Math.PI*2;const rr=r*(0.78+0.35*R());const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr*0.8;d+=(i?'L':'M')+x.toFixed(1)+','+y.toFixed(1);}
+  let dots='';for(let i=0;i<Math.round(r*1.4);i++){const a=R()*6.28,rr=R()*r*0.8;dots+=`<circle cx="${(cx+Math.cos(a)*rr).toFixed(1)}" cy="${(cy+Math.sin(a)*rr*0.75).toFixed(1)}" r="${(0.8+R()*1.6).toFixed(1)}" fill="#8a6a3a" opacity=".5"/>`;}
+  return `<path d="${d}Z" fill="url(#fl${id})" stroke="#a78550" stroke-width="1" opacity=".9"/>${dots}`;}
+
+function cellShape(cx,cy,ang,len,w,shape,fill,stroke){
+  const deg=ang*180/Math.PI;let el;
+  if(shape==='coc'){el=`<circle cx="0" cy="0" r="${(w/2).toFixed(2)}"/>`;}
+  else if(shape==='ova'){el=`<ellipse cx="0" cy="0" rx="${(len/2).toFixed(2)}" ry="${(w/2).toFixed(2)}"/>`;}
+  else if(shape==='ton'){const l=len/2,h=w/2;el=`<path d="M${-l},${-h*0.75} Q0,${-h*1.25} ${l},${-h*0.75} L${l},${h*0.75} Q0,${h*1.25} ${-l},${h*0.75}Z"/>`;}
+  else {const rx=shape==='bac'?Math.min(w/2,len/2):shape==='dis'?w*0.12:Math.min(1.3,w*0.15);el=`<rect x="${(-len/2).toFixed(2)}" y="${(-w/2).toFixed(2)}" width="${len.toFixed(2)}" height="${w.toFixed(2)}" rx="${rx.toFixed(2)}"/>`;}
+  return `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${deg.toFixed(1)})" fill="${fill}" stroke="${stroke}" stroke-width=".8">${el}</g>`;
+}
+
+/* dibuja un tricoma sobre la trayectoria P */
+function trichome(P,o,R,opt={}){
+  const L=arcLen(P),tot=L[L.length-1];
+  const d=(o.d[0]+o.d[1])/2;const w=Math.max(3.6,Math.min(26,d*6.2));
+  const cs=spec(o.cf);const shape=cs?(cs.t[0]||cs.p[0]):'rec';
+  let cl=o.cl?((o.cl[0]+o.cl[1])/2)*6.2:w*1.8;if(shape==='coc')cl=w;if(shape==='dis')cl=Math.max(2.5,w*0.55);
+  cl=Math.max(cl,3);
+  const sep=spec(o.se).t[0]==='si',con=spec(o.co).t[0]==='si',va=spec(o.va).t[0]==='si';
+  const tra=(o.ot||[]).includes('tra');
+  const fill=tra?'#f4f8fb':(d>=2.5?'#55606c':'#6c7a88'),stroke=tra?'#7e95a8':'#3a4652';
+  let g='';
+  // vaina
+  if(va){g+=`<path d="${polyD(P)}" fill="none" stroke="#bcd7e6" stroke-width="${(w+5).toFixed(1)}" stroke-linecap="round" opacity=".9"/><path d="${polyD(P)}" fill="none" stroke="#e9eef3" stroke-width="${(w+2).toFixed(1)}" stroke-linecap="round"/>`;}
+  const gap0=va?tot*0.62:-1,gap1=va?tot*0.62+Math.max(18,cl*2.2):-1;
+  const taper=(o.ot||[]).includes('api');
+  if(!sep){
+    // tricoma continuo
+    const P2=va?P.filter((p,i)=>L[i]<gap0||L[i]>gap1):P;
+    if(va){const a=P.filter((p,i)=>L[i]<gap0),b=P.filter((p,i)=>L[i]>gap1);[a,b].forEach(seg=>{if(seg.length>1)g+=`<path d="${polyD(seg)}" fill="none" stroke="${stroke}" stroke-width="${(w+1.4).toFixed(1)}" stroke-linecap="round"/><path d="${polyD(seg)}" fill="none" stroke="${fill}" stroke-width="${w.toFixed(1)}" stroke-linecap="round"/>`;});}
+    else{g+=`<path d="${polyD(P)}" fill="none" stroke="${stroke}" stroke-width="${(w+1.4).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/><path d="${polyD(P)}" fill="none" stroke="${fill}" stroke-width="${w.toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/>`;}
+    if(spec(o.co).p.includes('si')||(o.id==='fle')){const [x,y,a]=at(P,L,tot/2);g+=`<g transform="translate(${x},${y}) rotate(${a*57.3})"><path d="M-1.5,${-w/2-1} L0,${-w/2+1.5} L1.5,${-w/2-1}Z M-1.5,${w/2+1} L0,${w/2-1.5} L1.5,${w/2+1}Z" fill="#e9eef3"/></g>`;}
+    if(o.id==='mic'){for(let s=8;s<tot;s+=14+R()*10){const [x,y]=at(P,L,s);g+=`<circle cx="${x}" cy="${y}" r="${(w*0.62).toFixed(1)}" fill="${fill}" stroke="${stroke}" stroke-width=".6"/>`;}}
+  } else {
+    const gapC=con?Math.max(0.8,cl*0.12):0;
+    for(let s=0;s+cl<=tot+0.1;s+=cl){
+      const mid=s+cl/2;if(va&&mid>gap0&&mid<gap1)continue;
+      const [x,y,a]=at(P,L,mid);
+      let ww=w;if(taper)ww=w*(1.25-0.6*mid/tot);
+      g+=cellShape(x,y,a,cl-gapC,ww,shape==='ton'&&taper&&mid>tot*0.6?'rec':shape,fill,tra?stroke:'#d3dce4');
+      if(!con&&shape!=='coc'&&shape!=='ova')g+='';
+    }
+  }
+  // gránulos de azufre
+  const sI=spec(o.si),sq=(sI&&sI.t[0]==='sq')||(o.id==='914');
+  if((sI&&(sI.t.includes('si')||sI.t.includes('sq')))||opt.sulfur){
+    for(let s=cl*0.5;s<tot;s+=cl*(o.id==='beg'?0.55:1.3)){if(va&&s>gap0&&s<gap1)continue;if(R()<0.25)continue;const [x,y,a]=at(P,L,s);const off=(R()-0.5)*w*0.4;const xx=x-Math.sin(a)*off,yy=y+Math.cos(a)*off;
+      g+=sq?`<rect x="${(xx-w*0.22).toFixed(1)}" y="${(yy-w*0.22).toFixed(1)}" width="${(w*0.44).toFixed(1)}" height="${(w*0.44).toFixed(1)}" fill="#ffe14d" stroke="#b89300" stroke-width=".6" transform="rotate(${a*57.3} ${xx} ${yy})"/>`:`<circle cx="${xx.toFixed(1)}" cy="${yy.toFixed(1)}" r="${Math.max(1.2,w*0.2).toFixed(1)}" fill="#ffe14d" stroke="#b89300" stroke-width=".6"/><circle cx="${(xx-0.5).toFixed(1)}" cy="${(yy-0.5).toFixed(1)}" r="${Math.max(.4,w*0.07).toFixed(1)}" fill="#fff"/>`;}
+  }
+  // gránulos oscuros 0803
+  if((o.ot||[]).includes('osc')){for(let s=cl;s<tot;s+=cl){const [x,y]=at(P,L,s);g+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.1" fill="#1d2630"/>`;}}
+  // epifitos
+  const ep=spec(o.ep);const lvl=ep?ep.t[0]:'aus';const nE=opt.epi!=null?opt.epi:(lvl==='abu'?Math.round(tot/6):lvl==='inc'?7:0);
+  for(let i=0;i<nE;i++){const s=R()*tot;const [x,y,a]=at(P,L,s);const side=R()<0.5?-1:1;const perp=a+side*Math.PI/2+(o.id==='1851'?0:(R()-0.5)*0.6);const r0=(w/2+(va?2.5:0)+3);const cx=x+Math.cos(perp)*r0,cy=y+Math.sin(perp)*r0;
+    g+=`<rect x="-3.2" y="-1.4" width="6.4" height="2.8" rx="1.4" fill="#9aa8b5" stroke="#4a5866" stroke-width=".5" transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${(perp*57.3).toFixed(0)})"/>`;}
+  // gonidios
+  if((o.ot||[]).includes('gon')&&!opt.noGon){const [x,y,a]=at(P,L,tot);for(let i=1;i<=3;i++){const xx=x+Math.cos(a)*(i*w*1.1+3),yy=y+Math.sin(a)*(i*w*1.1+3)+(R()-0.5)*4;g+=`<ellipse cx="${xx.toFixed(1)}" cy="${yy.toFixed(1)}" rx="${(w*0.45).toFixed(1)}" ry="${(w*0.32).toFixed(1)}" fill="${fill}" stroke="${stroke}" stroke-width=".6"/>`;}}
+  return g;
+}
+
+function chain(o,R,x0,y0,n){
+  const d=(o.d[0]+o.d[1])/2,w=Math.max(3.5,d*5.2);const cs=spec(o.cf);const shape=cs.t[0];
+  let x=x0,y=y0,a=-0.1,g='';
+  for(let i=0;i<n;i++){
+    const sh=(o.id==='1863'&&R()<0.4)?'coc':shape;
+    const len=sh==='coc'?w:(o.cl?((o.cl[0]+o.cl[1])/2)*5:w*2.2);
+    const ca=o.id==='1863'?a+(R()-0.5)*1.6:a;
+    x+=Math.cos(a)*len*0.55;y+=Math.sin(a)*len*0.55;
+    g+=cellShape(x,y,ca,len*0.95,w,sh,'#6c7a88','#3a4652');
+    x+=Math.cos(a)*len*0.55;y+=Math.sin(a)*len*0.55;a+=(R()-0.5)*0.7;if(y<35)a+=0.3;if(y>150)a-=0.3;
+  }
+  return g;
+}
+
+function drawOrg(o,opt={}){
+  const R=rng(o.id+(opt.seed||''));const id=o.id+(opt.seed||'')+Math.floor(R()*1e6);
+  let g='';const loc=spec(o.lo).t[0];const fo=spec(o.fo).t[0];
+  const defs=`<defs><radialGradient id="fl${id}"><stop offset="0" stop-color="#d8bb85"/><stop offset="1" stop-color="#c49f62" stop-opacity=".85"/></radialGradient></defs>`;
+  // flóculos
+  if(loc==='int'){g+=floc(190,92,95,R,id);}
+  else if(loc==='ext'){g+=floc(70,100,62,R,id);}
+  else {g+=floc(28,40,26,R,id)+floc(W-22,H-26,24,R,id);}
+  if(fo==='irr'){g+=chain(o,R,60,110,o.id==='str'?22:o.id==='1863'?16:9);if(o.id==='bac')g+=chain(o,R,90,60,6);}
+  else if(fo==='mic'){
+    const big=o.id==='hon';
+    const segs=big?[[[60,120],[200,95],[330,60]],[[200,95],[260,150]],[[130,108],[150,40]],[[270,80],[330,120]]]:[[[130,100],[190,90],[250,70]],[[190,90],[215,130]],[[160,95],[165,55]],[[225,80],[255,100]],[[165,70],[140,45]],[[300,40],[330,55],[345,40]],[[300,40],[300,22]]];
+    segs.forEach(s=>{g+=trichome(densify(s),o,R,{epi:0});});
+    if(big){for(let i=0;i<3;i++){const p=[[200,95],[130,108],[270,80]][i];g+=`<circle cx="${p[0]}" cy="${p[1]}" r="${Math.max(3.2,Math.min(26,5.5*5))/2}" fill="#55606c"/>`;}}
+    else{[[190,90],[160,95],[225,80],[165,70],[300,40]].forEach(p=>g+=`<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="#6c7a88"/>`);}
+  }
+  else{
+    let x0=loc==='ext'?95:loc==='int'?40:50,y0=loc==='int'?100:95,len=loc==='ext'?265:300;if((o.ot||[]).includes('gon'))len-=45;
+    if(o.id==='1701'){g+=trichome(pathFor('enr',R,120,92,150),o,R);g+=trichome(densify([[230,80],[300,55],[345,62]]),o,R,{epi:3});}
+    else{
+      const P=pathFor(fo,R,x0,y0,len);g+=trichome(P,o,R);
+      if((o.ot||[]).includes('hac')||o.id==='mic'){g+=trichome(pathFor(fo,R,x0+6,y0+(fo==='enr'?26:14),len-30),o,R,{noGon:1});if(o.id!=='mic')g+=trichome(pathFor(fo,R,x0+12,y0-12,len-50),o,R,{noGon:1});}
+      if(o.ra&&spec(o.ra).t[0]==='fal'){const L=arcLen(P);const [x,y,a]=at(P,L,L[L.length-1]*0.45);const b=a-0.55;const w=Math.max(3.2,((o.d[0]+o.d[1])/2)*5);const sx=x+Math.cos(a-Math.PI/2)*(w/2+3),sy=y+Math.sin(a-Math.PI/2)*(w/2+3);g+=trichome(densify([[sx,sy],[sx+Math.cos(b)*120,sy+Math.sin(b)*120]]),o,R,{noGon:1});}
+      if(o.id==='803'){g+=`<polygon points="250,150 262,142 270,152 258,160" fill="#fff" stroke="#7d8b98"/>`;g+=trichome(densify([[262,150],[340,150]]),o,R);g+=trichome(densify([[256,152],[200,165]]),o,R);}
+    }
+  }
+  const sz=opt.small?'':`width="100%"`;
+  return `<svg class="slide" viewBox="0 0 ${W} ${H}" ${sz} xmlns="http://www.w3.org/2000/svg">${defs}<rect width="${W}" height="${H}" fill="#e9eef3"/>${g}</svg>`;
+}
+
+/* mini chips de tinción (Gram / Neisser) */
+function stainSvg(type,val,granules){
+  let g='';const col=type==='g'?(val==='+'?'#6b2fa3':'#e0566f'):(val==='+'?'#2f3f9e':'#c9a24f');
+  if(val==='v'){g=`<rect x="4" y="9" width="36" height="8" rx="4" fill="#6b2fa3"/><rect x="40" y="9" width="36" height="8" rx="4" fill="#e0566f"/>`;}
+  else g=`<rect x="4" y="9" width="72" height="8" rx="4" fill="${col}"/>`;
+  if(granules)for(let i=0;i<7;i++)g+=`<circle cx="${10+i*10}" cy="13" r="2.2" fill="#14163a"/>`;
+  return `<svg viewBox="0 0 80 26" width="80" height="26"><rect width="80" height="26" rx="5" fill="${type==='g'?'#fbf3f6':'#fbf7ea'}"/>${g}</svg>`;
+}
+
+/* =====================================================================
+   FICHAS
+   ===================================================================== */
+function gramChip(o){const s=spec(o.g);const all=[...s.t,...s.p];if(s.t.length>1)return '<span class="chip" style="background:linear-gradient(90deg,var(--gpos) 50%,var(--gneg) 50%)">Gram var.</span>';return `<span class="chip ${s.t[0]==='+'?'gp':'gn'}">Gram ${s.t[0]==='+'?'+':'−'}${s.p.length?'<small>(±)</small>':''}</span>`;}
+function neisChip(o){const s=spec(o.nt),q=spec(o.ng);let h=`<span class="chip ${s.t[0]==='+'?'np':'nn'}">Neisser ${s.t[0]==='+'?'+':'−'}</span>`;if(q.t[0]==='+'||q.p.includes('+'))h+=`<span class="chip np" style="background:#1d2560">gránulos +${q.t[0]==='+'?'':' (a veces)'}</span>`;return h;}
+function sChip(o){const a=spec(o.si),b=spec(o.st);if(b.t[0]==='pos'||a.t[0]==='si'||a.t[0]==='sq')return `<span class="chip s">S ${a.t[0]==='sq'?'cuadrado':'+'}</span>`;return '';}
+function renderFichas(){
+  const q=$('#fq').value.toLowerCase(),fg=$('#fg').value,fc=$('#fc').value,fp=$('#fp').value;
+  $('#fichas').innerHTML=ORG.filter(o=>{
+    if(q&&!(o.n+' '+(o.a||'')+' '+o.nota).toLowerCase().includes(q))return false;
+    if(fg){const s=spec(o.g);if(!s.t.includes(fg))return false;}
+    if(fc&&!o.c.includes(fc))return false;if(fp&&!o.p.includes(fp))return false;return true;
+  }).map(o=>`<div class="card ficha" data-id="${o.id}">${drawOrg(o)}<h4>${o.n}${o.a?` <span class="mut" style="font-weight:400;font-size:12.5px">(${o.a})</span>`:''}</h4>
+   <div class="meta">${gramChip(o)}${neisChip(o)}${sChip(o)}</div>
+   <div class="dim">⌀ ${fmtR(o.d)} µm · L ${fmtR(o.l)} µm · ${specTxt('fo',o.fo).replace(/<[^>]+>/g,'')}</div>
+   <div class="meta" style="margin-top:6px">${o.c.map(c=>`<span class="chip cause">${CAUSES[c]}</span>`).join('')}</div></div>`).join('')||'<p class="mut">Sin resultados.</p>';
+}
+function fichaHTML(o,detail){
+  const rows=[['Gram','g'],['Neisser (tricoma)','nt'],['Neisser (gránulos)','ng'],['Gránulos de S (in situ)','si'],['Gránulos de S (test S)','st'],['Otras inclusiones','inc'],['Diámetro filamento (µm)','d'],['Longitud filamento (µm)','l'],['Forma del filamento','fo'],['Localización','lo'],['Septos visibles','se'],['Ramificaciones','ra'],['Constricciones','co'],['Vaina','va'],['Crecimiento epifítico','ep'],['Tamaño celular (µm)','cs'],['Forma de las células','cf'],['Motilidad','mo'],['Otras características','ot']];
+  const dmap=detail?Object.fromEntries(detail.map(x=>[x.k,x])):{};
+  const tr=rows.map(([lab,k])=>{let v;
+    if(k==='d'||k==='l')v=fmtR(o[k]);else if(k==='cs')v=o.cw?`${fmtR(o.cw)} × ${fmtR(o.cl)}`:'—';else if(k==='ot')v=(o.ot||[]).map(x=>LBL.ot[x]).join(', ')||'—';else v=specTxt(k,o[k]);
+    let m='';const dd=dmap[k];if(dd){m=dd.s>=0.99?'<span class="ok-c">✔ coincide</span>':dd.s>0.3?`<span class="part-c">≈ parcial</span>`:`<span class="bad-c">✘ no coincide (anotado: ${esc(dd.obs)})</span>`;}
+    return `<tr><th>${lab}</th><td>${v} ${m}</td></tr>`;}).join('');
+  return `<div class="grid" style="grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px">
+   <div>${drawOrg(o)}${drawOrg(o,{seed:'b'})}
+    <div class="row" style="margin-top:10px">${stainSvg('g',spec(o.g).t.length>1?'v':spec(o.g).t[0])}<span class="mut" style="font-size:12px">Gram</span>${stainSvg('n',spec(o.nt).t[0],spec(o.ng).t[0]==='+')}<span class="mut" style="font-size:12px">Neisser</span></div>
+    <h3>Descripción</h3><p style="margin:0">${o.nota}</p>
+    <h3>Diferenciar de</h3><p style="margin:0">${o.conf}</p>
+    <h3>Causas de proliferación</h3><div class="row">${o.c.length?o.c.map(c=>`<span class="chip">${CAUSES[c]}</span>`).join(''):'<span class="mut">Sin causa específica descrita</span>'}</div>
+    ${o.ivf?`<h3>IVF asociado</h3><p style="margin:0">${o.ivf}</p>`:''}
+    <h3>Problemas</h3><div class="row">${o.p.map(p=>`<span class="chip">${p}</span>`).join('')||'<span class="mut">Normalmente poco problemático</span>'}</div>
+   </div>
+   <div><h2 style="margin-top:0">${o.n}</h2>${o.a?`<p class="mut" style="margin:0 0 8px">${o.a}</p>`:''}<table class="t">${tr}</table></div></div>`;
+}
+function openFicha(id,detail){const o=OBYID[id];$('#mBody').innerHTML=fichaHTML(o,detail);$('#modal').classList.add('on');}
+
+/* =====================================================================
+   IDENTIFICACIÓN — motor de puntuación
+   ===================================================================== */
+const FIELDS=[
+ {k:'g',lab:'Gram',opts:['+','-','v']},
+ {k:'nt',lab:'Neisser (tricoma)',opts:['+','-']},
+ {k:'ng',lab:'Neisser (gránulos)',opts:['+','-']},
+ {k:'si',lab:'Gránulos de S (<i>in situ</i>)',opts:['si','sq','no']},
+ {k:'st',lab:'Gránulos de S (test S)',opts:['pos','neg']},
+ {k:'inc',lab:'Otras inclusiones celulares',opts:['phb','pig','sub','none']},
+ {k:'d',lab:'Diámetro del filamento (µm)',num:1},
+ {k:'l',lab:'Longitud del filamento (µm)',num:1},
+ {k:'fo',lab:'Forma del filamento',opts:['rec','cur','tor','irr','enr','mic']},
+ {k:'lo',lab:'Localización',opts:['int','ext','lib']},
+ {k:'se',lab:'Septos celulares visibles',opts:['si','no']},
+ {k:'ra',lab:'Ramificaciones',opts:['no','ver','fal']},
+ {k:'co',lab:'Constricciones (identaciones)',opts:['si','no']},
+ {k:'va',lab:'Vaina',opts:['si','no']},
+ {k:'ep',lab:'Crecimiento epifítico',opts:['aus','inc','abu']},
+ {k:'cs',lab:'Tamaño celular (anch × long, µm)',pair:1},
+ {k:'cf',lab:'Forma de las células',opts:['cua','rec','dis','ova','coc','ton','bac']},
+ {k:'mo',lab:'Móviles',opts:['no','des','fle']},
+ {k:'ot',lab:'Otras características',multi:1}
+];
+const WT={g:2,nt:2.5,ng:2,si:3,st:2.5,inc:1,d:3,l:1,fo:1.5,lo:1,se:1.5,ra:3.5,co:1.5,va:2,ep:1.2,cs:1.2,cf:1.5,mo:3.5};
+function numScore(v,r,tol=0.35){if(!r)return 0.5;const [a,b]=r;if(v>=a*0.97&&v<=b*1.03)return 1;const dd=v<a?(a-v)/a:(v-b)/b;return Math.max(0,1-dd/tol);}
+function fieldScore(o,k,v){
+  if(k==='d')return numScore(v,o.d,0.3);
+  if(k==='l')return numScore(v,o.l,0.6);
+  if(k==='cs'){const [w,l]=v;let s=0,n=0;if(w!=null){s+=numScore(w,o.cw||o.d,0.35);n++;}if(l!=null){s+=o.cl?numScore(l,o.cl,0.5):0.5;n++;}return n?s/n:0.5;}
+  const sp=spec(o[k]);if(!sp)return 0.5;
+  if(k==='g'&&v==='v'){const all=[...sp.t,...sp.p];return all.includes('+')&&all.includes('-')?(sp.t.length>1?1:0.8):0.25;}
+  if(k==='g'&&sp.t.length>1&&sp.t.includes(v))return 0.85; // organismo variable
+  if(k==='si'&&v==='si'&&(sp.t.includes('sq')||sp.p.includes('sq')))return 0.3;
+  if(k==='si'&&v==='sq'){return sp.t.includes('sq')?1:sp.p.includes('sq')?0.7:(sp.t.includes('si')||sp.p.includes('si'))?0.35:0;}
+  if(sp.t.includes(v))return 1;if(sp.p.includes(v))return 0.6;
+  if(k==='fo'){const near={rec:['cur'],cur:['rec','tor'],tor:['cur','enr'],enr:['tor']};if((near[v]||[]).some(x=>sp.t.includes(x)))return 0.35;}
+  if(k==='ep'){const ord=['aus','inc','abu'];if(sp.t.some(x=>Math.abs(ord.indexOf(x)-ord.indexOf(v))===1))return 0.35;}
+  return 0;
+}
+function score(obs){
+  const out=[];
+  for(const o of ORG){let got=0,max=0;const det=[];
+    for(const f of FIELDS){const v=obs[f.k];if(f.multi)continue;if(v==null||v===''||(Array.isArray(v)&&v[0]==null&&v[1]==null))continue;
+      const s=fieldScore(o,f.k,v);const w=WT[f.k];got+=s*w;max+=w;det.push({k:f.k,s,obs:Array.isArray(v)?v.filter(x=>x!=null).join(' × '):(LBL[f.k]?.[v]||v)});}
+    for(const x of (obs.ot||[])){if((o.ot||[]).includes(x)){got+=0.8;max+=0.8;}else max+=0.4;}
+    out.push({id:o.id,pct:max?got/max*100:0,det});}
+  return out.sort((a,b)=>b.pct-a.pct);
+}
+const NCOL=4;let STATE=newState();
+function newState(){return {cols:Array.from({length:NCOL},()=>({obs:{ot:[]},final:'',ab:''})),indice:null,floculo:null,fotos:[],editId:null};}
+function nFilled(obs){return FIELDS.filter(f=>!f.multi&&obs[f.k]!=null&&obs[f.k]!==''&&!(Array.isArray(obs[f.k])&&obs[f.k][0]==null&&obs[f.k][1]==null)).length;}
+function buildTable(){
+  let h=`<thead><tr><th style="text-align:left">Parámetro</th>${Array.from({length:NCOL},(_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr></thead><tbody>`;
+  for(const f of FIELDS){h+=`<tr><th>${f.lab}</th>`;
+    for(let c=0;c<NCOL;c++){
+      if(f.num)h+=`<td><input data-c="${c}" data-k="${f.k}" type="text" inputmode="decimal" placeholder="µm"></td>`;
+      else if(f.pair)h+=`<td><div class="pair"><input data-c="${c}" data-k="cs0" type="text" inputmode="decimal" placeholder="anch"><span>×</span><input data-c="${c}" data-k="cs1" type="text" inputmode="decimal" placeholder="long"></div></td>`;
+      else if(f.multi)h+=`<td><div class="ots">${Object.entries(LBL.ot).map(([k,v])=>`<label data-c="${c}" data-ot="${k}"><input type="checkbox">${v}</label>`).join('')}</div></td>`;
+      else h+=`<td><select data-c="${c}" data-k="${f.k}"><option value="">—</option>${f.opts.map(o=>`<option value="${o}">${LBL[f.k][o]}</option>`).join('')}</select></td>`;
+    }h+='</tr>';}
+  h+=`<tr><th style="background:#163252">FILAMENTOS:<div class="note" style="font-weight:400">Candidatos más probables</div></th>${Array.from({length:NCOL},(_,c)=>`<td style="vertical-align:top;background:#0f2238"><div class="res" id="res${c}"></div></td>`).join('')}</tr>`;
+  h+=`<tr><th>Identificación final</th>${Array.from({length:NCOL},(_,c)=>`<td><select data-c="${c}" data-k="final"><option value="">— (usar el 1º candidato)</option>${ORG.map(o=>`<option value="${o.id}">${o.n}</option>`).join('')}</select></td>`).join('')}</tr>`;
+  h+=`<tr><th>Abundancia (índice 0–5)</th>${Array.from({length:NCOL},(_,c)=>`<td><select data-c="${c}" data-k="ab"><option value="">—</option>${IDX_DESC.map((t,i)=>`<option value="${i}">${i} · ${t}</option>`).join('')}</select></td>`).join('')}</tr>`;
+  $('#idTable').innerHTML=h+'</tbody>';
+  $('#idTable').addEventListener('input',onInput);$('#idTable').addEventListener('change',onInput);
+  $('#idTable').addEventListener('click',e=>{const lb=e.target.closest('label[data-ot]');if(lb){e.preventDefault();const c=+lb.dataset.c,k=lb.dataset.ot;const a=STATE.cols[c].obs.ot;const i=a.indexOf(k);i>=0?a.splice(i,1):a.push(k);lb.classList.toggle('on',i<0);update(c);persistDraft();}
+    const cd=e.target.closest('.cand');if(cd){const c=+cd.dataset.c;const r=score(STATE.cols[c].obs).find(x=>x.id===cd.dataset.id);openFicha(cd.dataset.id,r.det);}});
+}
+function num(v){if(v==null||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?null:n;}
+function onInput(e){const el=e.target;if(!el.dataset||el.dataset.c==null)return;const c=+el.dataset.c,k=el.dataset.k;const col=STATE.cols[c];
+  if(k==='final')col.final=el.value;else if(k==='ab')col.ab=el.value;
+  else if(k==='cs0'||k==='cs1'){col.obs.cs=col.obs.cs||[null,null];col.obs.cs[k==='cs0'?0:1]=num(el.value);}
+  else if(k==='d'||k==='l')col.obs[k]=num(el.value);else col.obs[k]=el.value;
+  el.classList.toggle('set',!!el.value);update(c);persistDraft();}
+function confTag(p){return p>=85?['alta','#0f8f6f']:p>=70?['media','#b7791f']:['baja','#9b2c3c'];}
+function update(c){
+  const col=STATE.cols[c],box=$('#res'+c);const n=nFilled(col.obs);
+  if(n<3){box.innerHTML=`<span class="note">Introduce al menos 3 parámetros (${n}/3)</span>`;col.top=[];return;}
+  const r=score(col.obs).slice(0,5);col.top=r.map(x=>({id:x.id,pct:+x.pct.toFixed(1)}));
+  box.innerHTML=r.map((x,i)=>{const o=OBYID[x.id];const [t,cc]=confTag(x.pct);const col2=x.pct>=85?'#22d3a6':x.pct>=70?'#f5b041':'#f0627a';
+    return `<div class="cand ${i===0?'top':''}" data-c="${c}" data-id="${x.id}"><span>${i===0?'★ ':''}${o.n}</span><span class="pct" style="color:${col2}">${x.pct.toFixed(0)}%</span><div class="bar"><i style="width:${x.pct}%;background:${col2}"></i></div></div>`;}).join('')
+   +`<div class="note" style="margin-top:4px">Confianza: <span class="conf" style="background:${confTag(r[0].pct)[1]}">${confTag(r[0].pct)[0]}</span> · ${n} parámetros${r[1]&&r[0].pct-r[1].pct<5?' · <b style="color:var(--warn)">⚠ empate cercano: revisa la ficha</b>':''}</div>`;
+}
+function setInputs(){
+  $$('#idTable [data-c]').forEach(el=>{const c=+el.dataset.c,k=el.dataset.k;const col=STATE.cols[c];
+    if(el.dataset.ot){el.classList.toggle('on',col.obs.ot.includes(el.dataset.ot));return;}
+    let v='';if(k==='final')v=col.final;else if(k==='ab')v=col.ab;else if(k==='cs0')v=col.obs.cs?.[0]??'';else if(k==='cs1')v=col.obs.cs?.[1]??'';else v=col.obs[k]??'';
+    el.value=String(v).replace('.',el.tagName==='INPUT'?',':'.');el.classList.toggle('set',v!==''&&v!=null);});
+  for(let c=0;c<NCOL;c++)update(c);
+}
+/* ===================== REGISTROS M-BIO (compatibles con sgi-bio-fil) ===================== */
+const BIO_KEY='sgi-bio-fil',LS_DRAFT='sgi-filamentos-draft',FB_NODE='bio_filamentos';
+const IDX_DESC=['Ausentes','Muy escasas','Escasas','Moderadas','Abundantes','Muy abundantes'];
+const IDX_COL=['#1a9a5a','#3acc7a','#e8a020','#c07010','#e05050','#c03030'];
+const FLOCS=['compacto','irregular','abierto','pin-floc'];
+const OLD_GEN={'Microthrix parvicella':'mic','Type 0041':'041','Type 0675':'675','Sphaerotilus natans':'sph','Thiothrix sp.':'th1','Type 021N':'21N','Nostocoida limicola':'nl1','Beggiatoa sp.':'beg','Haliscomenobacter hydrossis':'hal','Type 1701':'1701'};
+function lsGet(k,d){try{return JSON.parse(localStorage.getItem(k))??d;}catch(e){return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+function loadRecs(){return lsGet(BIO_KEY,[]);}
+function sortRecs(a){return a.sort((x,y)=>((y.fecha||'')+(y.hora||'')).localeCompare((x.fecha||'')+(x.hora||''))||(y.id-x.id));}
+function saveRecs(a){sortRecs(a);if(lsSet(BIO_KEY,a))return true;
+  // sin espacio: conservar fotos solo de los 10 registros más recientes
+  const b=a.map((r,i)=>i<10?r:{...r,fotos:[]});if(lsSet(BIO_KEY,b)){msg('Memoria llena: se han quitado las fotos de los registros antiguos');return true;}
+  msg('⚠ No se pudo guardar: memoria del navegador llena');return false;}
+function fb(){try{const p=window.parent;if(p&&p!==window&&p._fb&&p._fb.db)return p._fb;}catch(e){}return null;}
+function fbPush(rec){const f=fb();if(!f)return;const {fotos,...r}=rec;r.nFotos=(fotos||[]).length;
+  f.set(f.ref(f.db,FB_NODE+'/'+rec.id),JSON.parse(JSON.stringify(r))).catch(e=>console.warn('FB bio',e));}
+function fbDel(id){const f=fb();if(!f)return;f.set(f.ref(f.db,FB_NODE+'/'+id),null).catch(()=>{});}
+async function fbSync(){const f=fb(),info=$('#syncInfo');
+  if(!f){info.textContent='Modo independiente: los registros se guardan en este navegador.';return;}
+  try{const snap=await f.get(f.ref(f.db,FB_NODE));const rem=snap.val()||{};const loc=loadRecs();const byId=Object.fromEntries(loc.map(r=>[String(r.id),r]));let n=0;
+    for(const [id,r] of Object.entries(rem)){const l=byId[id];if(!l){loc.push({...r,fotos:[]});n++;}else if((r.ts||0)>(l.ts||0)){Object.assign(l,{...r,fotos:l.fotos||[]});n++;}}
+    if(n){saveRecs(loc);notifyParent();}
+    info.textContent=`Sincronizado con Firebase · ${Object.keys(rem).length} registros compartidos entre equipos (las fotos se quedan en el dispositivo que las tomó).`;renderHist();
+  }catch(e){info.textContent='Sin conexión con Firebase: los registros se guardan en este dispositivo.';}}
+function notifyParent(){try{if(window.parent!==window)window.parent.postMessage({type:'sgi-bio-actualizado'},'*');}catch(e){}}
+function sessionName(){try{const s=JSON.parse(localStorage.getItem('ute-session'));return s?(s.name||s.username||''):'';}catch(e){return '';}}
+
+function persistDraft(){lsSet(LS_DRAFT,{st:STATE,h:hdr()});}
+const HF={fecha:'#hFecha',hora:'#hHora',planta:'#hPlanta',oper:'#hOper',ivf:'#hIVF',sst:'#hSST',edad:'#hEdad',fm:'#hFM',od:'#hOD',temp:'#hTemp',obs:'#hObs'};
+const HNUM=['ivf','sst','edad','fm','od','temp'];
+function hdr(){const o={};for(const [k,s] of Object.entries(HF))o[k]=HNUM.includes(k)?num($(s).value):$(s).value;return o;}
+function setHdr(h){if(!h)return;for(const [k,s] of Object.entries(HF)){if(h[k]!=null)$(s).value=h[k];else if(k!=='planta')$(s).value='';}}
+function nowHM(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+/* índice global + flóculo */
+function renderIdxFloc(){
+  $('#idxGrid').innerHTML=IDX_DESC.map((t,i)=>`<button type="button" data-idx="${i}" class="${STATE.indice===i?'sel':''}"><b>${i}</b>${t}<i style="background:${IDX_COL[i]};width:${i*20}%"></i></button>`).join('');
+  $('#flocGrid').innerHTML=FLOCS.map(f=>`<button type="button" data-floc="${f}" class="${STATE.floculo===f?'sel':''}">${f}</button>`).join('');
+  chkAlert();
+}
+function chkAlert(){const ivf=num($('#hIVF').value);const i=STATE.indice;let h='';
+  if(ivf>200)h+=`<div class="alert r">🚨 <b>IVF ${ivf} ml/g: bulking probable.</b> Activa el protocolo urgente.</div>`;else if(ivf>150)h+=`<div class="alert a">⚠️ IVF ${ivf} ml/g, por encima del umbral de 150. Vigila el decantador.</div>`;
+  if(i!=null&&i>=4)h+=`<div class="alert r">🚨 <b>Índice ${i}: acción urgente.</b> Valora la cloración selectiva y aumenta la frecuencia de análisis.</div>`;else if(i===3)h+=`<div class="alert a">⚠️ <b>Índice 3: filamentosas moderadas.</b> Revisa F/M, edad de fango y OD.</div>`;
+  const od=num($('#hOD').value);if(od!=null&&od<=0.3)h+=`<div class="alert a">⚠️ OD ≤ 0,3 mg/l favorece S. natans, H. hydrossis, M. parvicella, N. limicola y los tipos 1701 y 1863.</div>`;
+  $('#alertArea').innerHTML=h;}
+
+/* fotos */
+function compressImg(file){return new Promise(res=>{const rd=new FileReader();rd.onload=ev=>{const im=new Image();im.onload=()=>{const M=1280,k=Math.min(1,M/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.72));};im.onerror=()=>res(null);im.src=ev.target.result;};rd.readAsDataURL(file);});}
+function renderFotos(){$('#fotoGrid').innerHTML=STATE.fotos.map((f,i)=>`<div><img src="${f}"><button type="button" data-fdel="${i}">✕</button></div>`).join('');}
+
+/* construir registro */
+function filamentosArr(){return STATE.cols.map((c,i)=>{const id=c.final||(c.top&&c.top[0]?.id)||'';const top=(c.top||[]).find(x=>x.id===id);return {n:i+1,obs:c.obs,candidatos:c.top||[],identificacion:id,nombre:id?OBYID[id].n:'',confianza:top?top.pct:null,manual:!!c.final,abundancia:c.ab===''||c.ab==null?null:+c.ab,causas:id?OBYID[id].c.map(x=>CAUSES[x]):[]};}).filter(f=>nFilled(f.obs)>0||f.identificacion);}
+function buildRecord(){const h=hdr();const fil=filamentosArr();
+  let indice=STATE.indice;if(indice==null){const ab=fil.map(f=>f.abundancia).filter(x=>x!=null);if(ab.length)indice=Math.max(...ab);}
+  const dom=fil.slice().sort((a,b)=>(b.abundancia??-1)-(a.abundancia??-1))[0];
+  const tr=(v)=>v==='+'?'pos':v==='-'?'neg':'nd';
+  return {id:STATE.editId||Date.now(),v:2,ts:Date.now(),fecha:h.fecha,hora:h.hora,operador:h.oper||'—',punto:h.planta,ivf:h.ivf,sst:h.sst,edad:h.edad,fm:h.fm,od:h.od,temp:h.temp,
+    indice,floculo:STATE.floculo,generos:[...new Set(fil.map(f=>f.nombre).filter(Boolean))],gram:dom?tr(dom.obs.g):'nd',neisser:dom?tr(dom.obs.nt):'nd',obs:h.obs||'',fotos:STATE.fotos.slice(),filamentos:fil};}
+function guardar(){const r=buildRecord();
+  if(!r.fecha){msg('Introduce la fecha del análisis');return;}
+  if(r.indice==null){msg('Selecciona el índice de filamentosas (0–5) o la abundancia de algún filamento');$('#idxGrid').scrollIntoView({behavior:'smooth',block:'center'});return;}
+  const a=loadRecs();const i=a.findIndex(x=>x.id===r.id);if(i>=0)a[i]=r;else a.unshift(r);
+  if(!saveRecs(a))return;fbPush(r);STATE.editId=r.id;persistDraft();markEdit();renderHist();notifyParent();msg(i>=0?'Registro actualizado ✔':'Registro guardado ✔');}
+function markEdit(){$('#editTag').style.display=STATE.editId?'':'none';}
+function nuevo(force){const filled=STATE.cols.some(c=>nFilled(c.obs)>0)||STATE.indice!=null||STATE.fotos.length;
+  if(!force&&filled&&!STATE.editId&&!confirmClear())return;
+  const op=$('#hOper').value;STATE=newState();for(const s of Object.values(HF))if(s!=='#hPlanta')$(s).value='';$('#hOper').value=op||sessionName();$('#hFecha').value=todayISO();$('#hHora').value=nowHM();
+  setInputs();renderIdxFloc();renderFotos();markEdit();persistDraft();}
+function cargar(id){const r=loadRecs().find(x=>x.id===id);if(!r)return;STATE=newState();STATE.editId=r.id;STATE.indice=r.indice??null;STATE.floculo=r.floculo||null;STATE.fotos=(r.fotos||[]).slice();
+  if(r.filamentos&&r.filamentos.length){r.filamentos.forEach((f,i)=>{if(i<NCOL){STATE.cols[i].obs={ot:[],...f.obs};STATE.cols[i].final=f.manual?f.identificacion:'';STATE.cols[i].ab=f.abundancia??'';}});}
+  else (r.generos||[]).map(g=>OLD_GEN[g]).filter(Boolean).slice(0,NCOL).forEach((id,i)=>{STATE.cols[i].final=id;});
+  setHdr({fecha:r.fecha,hora:r.hora,planta:r.punto,oper:r.operador==='—'?'':r.operador,ivf:r.ivf,sst:r.sst,edad:r.edad,fm:r.fm,od:r.od,temp:r.temp,obs:r.obs});
+  setInputs();renderIdxFloc();renderFotos();markEdit();persistDraft();showTab('identificar');window.scrollTo({top:0,behavior:'smooth'});}
+function eliminar(id,btn){if(btn.dataset.arm!=='1'){btn.dataset.arm='1';btn.textContent='¿Seguro? Pulsa otra vez';setTimeout(()=>{btn.dataset.arm='';btn.textContent='🗑 Eliminar';},3000);return;}
+  const a=loadRecs().filter(r=>r.id!==id);saveRecs(a);fbDel(id);if(STATE.editId===id){STATE.editId=null;markEdit();}renderHist();notifyParent();}
+
+/* historial, tendencia, alertas */
+function recGenTags(r){if(r.filamentos&&r.filamentos.length)return r.filamentos.filter(f=>f.nombre).map(f=>`<span class="chip">${f.nombre}${f.abundancia!=null?` · ${f.abundancia}`:''}${f.confianza!=null&&!f.manual?` · ${Math.round(f.confianza)}%`:''}</span>`).join('');
+  return (r.generos||[]).map(g=>`<span class="chip"><i>${g}</i></span>`).join('');}
+function renderHist(){const R=loadRecs();
+  $('#hist').innerHTML=R.length?R.map(r=>`<div class="reg"><div class="h"><b>🔬 ${r.fecha||'—'}${r.hora?' · '+r.hora:''}</b>
+    ${r.indice!=null?`<span class="chip ib${r.indice}">Índice ${r.indice} · ${IDX_DESC[r.indice]}</span>`:''}${r.ivf?`<span class="chip">IVF ${r.ivf} ml/g</span>`:''}${r.punto?`<span class="mut" style="font-size:12.5px">${esc(r.punto)}</span>`:''}
+    <span class="row" style="margin-left:auto"><button class="btn" data-open="${r.id}">✏️ Abrir</button><button class="btn" data-pdf="${r.id}">📄 PDF</button><button class="btn dan" data-del="${r.id}">🗑 Eliminar</button></span></div>
+    <div class="st"><span>SST <b>${r.sst??'—'}</b></span><span>Edad <b>${r.edad??'—'}</b> d</span><span>F/M <b>${r.fm??'—'}</b></span><span>OD <b>${r.od??'—'}</b></span><span>Flóculo <b>${r.floculo||'—'}</b></span><span>Analista <b>${esc(r.operador||'—')}</b></span>${!r.v?'<span class="chip">registro antiguo</span>':''}</div>
+    <div class="row" style="gap:5px">${recGenTags(r)}</div>${r.obs?`<div class="note" style="margin-top:6px;font-style:italic">“${esc(r.obs)}”</div>`:''}
+    ${r.fotos&&r.fotos.length?`<div class="fotos" style="grid-template-columns:repeat(auto-fill,64px)">${r.fotos.map(f=>`<div><img src="${f}"></div>`).join('')}</div>`:(r.nFotos?`<div class="note">${r.nFotos} foto(s) en otro dispositivo</div>`:'')}</div>`).join('')
+   :'<span class="mut">Sin registros todavía. Guarda el primer análisis desde la pestaña Análisis.</span>';
+  renderTrend(R);renderAlerts(R);renderFreq(R);}
+function renderTrend(R){const data=R.filter(r=>r.indice!=null).slice(0,20).reverse();if(data.length<2){$('#trend').innerHTML='<span class="mut">Hacen falta al menos 2 registros para ver la tendencia.</span>';return;}
+  const W=520,H=170,pl=30,pr=34,pt=10,pb=24,iw=W-pl-pr,ih=H-pt-pb,n=data.length,xs=i=>pl+i/(n-1)*iw,yI=v=>pt+ih-v/5*ih;
+  const mx=Math.max(200,...data.map(r=>r.ivf||0)),yV=v=>pt+ih-v/mx*ih;
+  const ivfP=data.map((r,i)=>r.ivf?`${xs(i)},${yV(r.ivf)}`:null).filter(Boolean).join(' ');
+  let g=[0,1,2,3,4,5].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${yI(v)}" y2="${yI(v)}" stroke="#1f3a5e" stroke-width=".6"/><text x="${pl-5}" y="${yI(v)+3}" fill="#8ea6c4" font-size="9" text-anchor="end">${v}</text>`).join('');
+  g+=`<line x1="${pl}" x2="${W-pr}" y1="${yV(150)}" y2="${yV(150)}" stroke="#4a8ceb" stroke-dasharray="4 3" opacity=".6"/><text x="${W-pr+3}" y="${yV(150)+3}" fill="#4a8ceb" font-size="8.5">IVF 150</text>`;
+  g+=`<polyline points="${data.map((r,i)=>`${xs(i)},${yI(r.indice)}`).join(' ')}" fill="none" stroke="#e8a020" stroke-width="2"/>`;
+  if(ivfP)g+=`<polyline points="${ivfP}" fill="none" stroke="#4a8ceb" stroke-width="1.6" stroke-dasharray="5 3"/>`;
+  g+=data.map((r,i)=>`<circle cx="${xs(i)}" cy="${yI(r.indice)}" r="3.5" fill="${IDX_COL[r.indice]}" stroke="#0a1424" stroke-width="1.5"><title>${r.fecha}: índice ${r.indice}${r.ivf?' · IVF '+r.ivf:''}</title></circle>`).join('');
+  const step=Math.max(1,Math.ceil(n/6));g+=data.map((r,i)=>i%step===0||i===n-1?`<text x="${xs(i)}" y="${H-6}" fill="#8ea6c4" font-size="9" text-anchor="middle">${(r.fecha||'').slice(5)}</text>`:'').join('');
+  $('#trend').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg><div class="note"><span style="color:#e8a020">━</span> Índice filamentosas (0–5) &nbsp; <span style="color:#4a8ceb">╍</span> IVF (escala 0–${mx} ml/g)</div>`;}
+function renderAlerts(R){let a='';const u=R[0];
+  if(u){if(u.indice>=4)a+=`<div class="alert r">🚨 Índice ${u.indice} en el último análisis (${u.fecha}). Acción urgente.</div>`;
+    if(u.ivf>200)a+=`<div class="alert r">🚨 IVF ${u.ivf} ml/g: bulking filamentoso probable.</div>`;else if(u.ivf>150)a+=`<div class="alert a">⚠️ IVF ${u.ivf} ml/g, por encima del umbral.</div>`;
+    const c=[...new Set((u.filamentos||[]).flatMap(f=>f.causas||[]))];if(c.length)a+=`<div class="alert a">🔎 Causas probables según los filamentos identificados: <b>${c.join(', ')}</b>.</div>`;
+    if(R.length>=3){const h=new Date();h.setDate(h.getDate()-7);const l7=R.filter(r=>new Date(r.fecha)>=h&&r.indice!=null);if(l7.length>=3&&l7[0].indice>l7[l7.length-1].indice+1)a+=`<div class="alert a">⚠️ Tendencia creciente de filamentosas en los últimos 7 días.</div>`;}
+    const d=Math.round((new Date()-new Date(u.fecha))/864e5);if(d>=5)a+=`<div class="alert a">⚠️ El último análisis es de hace ${d} días. Se recomiendan 1 o 2 por semana.</div>`;}
+  $('#alerts').innerHTML=a||'<div class="alert g">✅ Sin alertas activas.</div>';}
+function renderFreq(R){const c={};R.forEach(r=>(r.generos||[]).forEach(g0=>{const g=OLD_GEN[g0]?OBYID[OLD_GEN[g0]].n:g0;c[g]=(c[g]||0)+1;}));const s=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  $('#freq').innerHTML=s.length?`<table class="t">${s.map(([g,n])=>`<tr><th style="width:55%"><i>${g}</i></th><td style="width:40px">${n}</td><td><div class="bar" style="height:6px;background:#1c3352;border-radius:4px"><i style="display:block;height:100%;border-radius:4px;background:var(--acc2);width:${Math.round(n/s[0][1]*100)}%"></i></div></td></tr>`).join('')}</table>`:'<span class="mut">Aún no hay filamentos registrados.</span>';}
+function exportCSV(){const R=loadRecs();if(!R.length){msg('Sin registros');return;}
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const h=['Fecha','Hora','Punto','Analista','Indice','IVF','SST','Edad_d','FM','OD','Temp','Floculo','Gram','Neisser','Filamentos','Abundancias','Causas','Obs'];
+  const rows=R.map(r=>[r.fecha,r.hora,r.punto,r.operador,r.indice,r.ivf,r.sst,r.edad,r.fm,r.od,r.temp,r.floculo,r.gram,r.neisser,(r.generos||[]).join('; '),(r.filamentos||[]).map(f=>f.abundancia??'').join('; '),[...new Set((r.filamentos||[]).flatMap(f=>f.causas||[]))].join('; '),r.obs].map(q).join(';'));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+[h.join(';'),...rows].join('\n')],{type:'text/csv'}));a.download=`sgi-bio-filamentosas-${todayISO()}.csv`;document.body.appendChild(a);a.click();a.remove();}
+
+/* informe PDF (ventana imprimible) */
+function informePDF(rec){if(!rec){msg('No hay registro');return;}
+  const ahora=new Date().toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'});
+  const bC=i=>i<=1?'#ccf0dc':i<=2?'#fff3cc':i<=3?'#ffe0b2':'#ffcccc',bT=i=>i<=1?'#005533':i<=2?'#7a5000':i<=3?'#7a2800':'#7a0000';
+  const fil=rec.filamentos||[];
+  const vS=(f,k)=>{const v=f.obs?.[k];if(v==null||v==='')return '—';if(k==='d'||k==='l')return String(v).replace('.',',');if(k==='cs')return (v[0]!=null||v[1]!=null)?`${v[0]??'–'} × ${v[1]??'–'}`:'—';return LBL[k]?.[v]||v;};
+  const filTab=fil.length?`<div class="section">Identificación de filamentosos</div><table><tr><th>Parámetro</th>${fil.map(f=>`<th>Filamento ${f.n}</th>`).join('')}</tr>
+    ${FIELDS.filter(F=>!F.multi).map(F=>`<tr><td>${F.lab}</td>${fil.map(f=>`<td>${vS(f,F.k)}</td>`).join('')}</tr>`).join('')}
+    <tr><td>Otras características</td>${fil.map(f=>`<td>${(f.obs?.ot||[]).map(x=>LBL.ot[x]).join(', ')||'—'}</td>`).join('')}</tr>
+    <tr style="background:#e8f5ee"><td><b>IDENTIFICACIÓN</b></td>${fil.map(f=>`<td><b><i>${f.nombre||'—'}</i></b>${f.confianza!=null&&!f.manual?`<br><small>coincidencia ${Math.round(f.confianza)}%</small>`:f.manual?'<br><small>asignada por el analista</small>':''}</td>`).join('')}</tr>
+    <tr><td>Abundancia (0–5)</td>${fil.map(f=>`<td>${f.abundancia??'—'}</td>`).join('')}</tr>
+    <tr><td>Causas asociadas</td>${fil.map(f=>`<td>${(f.causas||[]).join(', ')||'—'}</td>`).join('')}</tr></table>`:'';
+  const causas=[...new Set(fil.flatMap(f=>f.causas||[]))];
+  const fotos=rec.fotos&&rec.fotos.length?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${rec.fotos.map(f=>`<img src="${f}" style="width:100%;aspect-ratio:1;object-fit:cover;border:1px solid #d0dce8;border-radius:4px">`).join('')}</div>`:'<p style="color:#7a8fa8;font-style:italic">Sin fotografías adjuntas</p>';
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Informe Biología Filamentosas — ${rec.fecha}</title><style>
+  @page{margin:16mm 14mm}body{font-family:Arial,sans-serif;font-size:10.5px;color:#1a2540;margin:0}
+  .header{background:linear-gradient(135deg,#0d2b4e,#1a4a7a);color:#fff;padding:16px 22px;border-radius:0 0 8px 8px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .header h1{font-size:17px;margin:0 0 3px}.sub{font-size:9px;opacity:.65;letter-spacing:.06em}.meta{font-size:9px;opacity:.75;margin-top:6px;font-family:monospace}.amber{color:#e8a020;font-weight:700}
+  .section{margin:16px 0 6px;font-size:10px;color:#3a5070;text-transform:uppercase;letter-spacing:.8px;font-weight:700;border-bottom:1px solid #e0e8f0;padding-bottom:3px}
+  table{width:100%;border-collapse:collapse;margin:6px 0 10px}td,th{padding:3px 7px;border:1px solid #d0dce8;font-size:9.5px;text-align:left;vertical-align:top}th{background:#f0f4f8}
+  .badge{display:inline-block;padding:4px 12px;border-radius:16px;font-size:14px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .box{border-radius:6px;padding:7px 11px;margin:6px 0;border-left:3px solid;-webkit-print-color-adjust:exact;print-color-adjust:exact}.r{background:#fff0f0;border-color:#cc2200}.a{background:#fff8e0;border-color:#cc7700}.g{background:#f0fff6;border-color:#008855}
+  .ok{color:#008855;font-weight:700}.bad{color:#cc2200;font-weight:700}.warn{color:#cc7700;font-weight:700}
+  .footer{margin-top:20px;font-size:8.5px;color:#7a8fa8;border-top:1px solid #d0dce8;padding-top:8px;display:flex;justify-content:space-between}</style></head><body>
+  <div class="header"><h1>🔬 Informe Biología · Bacterias Filamentosas</h1><div class="sub">UTE VALLE DE GÜÍMAR · EDAR · ${esc(rec.punto||'REACTOR BIOLÓGICO')}</div>
+  <div class="meta">Fecha del análisis: <span class="amber">${rec.fecha}${rec.hora?' · '+rec.hora:''}</span> | Analista: <span class="amber">${esc(rec.operador||'—')}</span> | Impreso: ${ahora}</div></div>
+  <div class="section">Índice de filamentosas (escala Jenkins)</div>
+  <div style="display:flex;align-items:center;gap:16px">${rec.indice!=null?`<span class="badge" style="background:${bC(rec.indice)};color:${bT(rec.indice)}">${rec.indice} / 5 · ${IDX_DESC[rec.indice]}</span>`:''}
+  ${rec.indice>=4?'<div class="box r">🚨 Acción correctora urgente. Valorar cloración selectiva en recirculación.</div>':rec.indice===3?'<div class="box a">⚠️ Filamentosas moderadas. Se recomienda intervención operacional.</div>':'<div class="box g">✓ Nivel bajo o aceptable. Mantener vigilancia.</div>'}</div>
+  <div class="section">Parámetros operacionales</div><table><tr><th>Parámetro</th><th>Valor</th><th>Unidad</th></tr>
+  <tr><td>IVF</td><td class="${rec.ivf>200?'bad':rec.ivf>150?'warn':'ok'}">${rec.ivf??'—'}</td><td>ml/g</td></tr><tr><td>SST reactor</td><td>${rec.sst??'—'}</td><td>mg/l</td></tr><tr><td>Edad de fango</td><td>${rec.edad??'—'}</td><td>días</td></tr>
+  <tr><td>F/M</td><td>${rec.fm??'—'}</td><td>kgDBO/kgSS·d</td></tr><tr><td>OD reactor</td><td class="${rec.od!=null&&rec.od<1.5?'warn':'ok'}">${rec.od??'—'}</td><td>mg/l</td></tr><tr><td>Temperatura afluente</td><td>${rec.temp??'—'}</td><td>°C</td></tr><tr><td>Morfología del flóculo</td><td colspan="2">${rec.floculo||'—'}</td></tr></table>
+  ${rec.ivf>200?'<div class="box r">🚨 IVF superior a 200 ml/g: bulking filamentoso probable.</div>':rec.ivf>150?'<div class="box a">⚠️ IVF por encima de 150 ml/g. Vigilar la decantación.</div>':''}
+  ${filTab}${causas.length?`<div class="box a"><b>Causas probables de proliferación:</b> ${causas.join(', ')}.</div>`:''}
+  ${!fil.length&&rec.generos&&rec.generos.length?`<div class="section">Géneros identificados</div><p>${rec.generos.map(g=>`<i>${g}</i>`).join(', ')}</p>`:''}
+  ${rec.obs?`<div class="section">Observaciones</div><p style="font-style:italic">“${esc(rec.obs)}”</p>`:''}
+  <div class="section">Fotografías microscópicas</div>${fotos}
+  <div class="section">Referencia de actuación</div><table><tr><th>Índice</th><th>Descripción</th><th>Acción</th></tr><tr><td>0–1</td><td>Ausentes / muy escasas</td><td class="ok">Sin intervención</td></tr><tr><td>2</td><td>Escasas</td><td class="ok">Vigilar tendencia</td></tr><tr><td>3</td><td>Moderadas</td><td class="warn">Intervención operacional</td></tr><tr><td>4</td><td>Abundantes</td><td class="bad">Acción correctora urgente</td></tr><tr><td>5</td><td>Muy abundantes (bulking)</td><td class="bad">Cloración selectiva y revisión del proceso</td></tr></table>
+  <div class="footer"><span>SGI UTE Valle de Güímar · M-BIO Biología Filamentosas</span><span><strong>Héctor Hernández Hernández</strong></span></div></body></html>`;
+  const w=window.open('','_blank');if(!w){msg('El navegador ha bloqueado la ventana del informe: permite las ventanas emergentes para el SGI');return;}
+  w.document.write(html);w.document.close();setTimeout(()=>{try{w.print();}catch(e){}},500);}
+
+function showTab(t){$$('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));$$('section.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));}
+function initIdent(){
+  buildTable();
+  const d=lsGet(LS_DRAFT,null);if(d&&d.st&&d.st.cols){STATE={...newState(),...d.st};setHdr(d.h);}
+  if(!$('#hFecha').value)$('#hFecha').value=todayISO();if(!$('#hHora').value)$('#hHora').value=nowHM();if(!$('#hOper').value)$('#hOper').value=sessionName();
+  setInputs();renderIdxFloc();renderFotos();markEdit();renderHist();fbSync();
+  Object.values(HF).forEach(s=>$(s).addEventListener('change',()=>{persistDraft();chkAlert();}));$('#hIVF').addEventListener('input',chkAlert);
+  $('#idxGrid').onclick=e=>{const b=e.target.closest('[data-idx]');if(!b)return;const i=+b.dataset.idx;STATE.indice=STATE.indice===i?null:i;renderIdxFloc();persistDraft();};
+  $('#flocGrid').onclick=e=>{const b=e.target.closest('[data-floc]');if(!b)return;const f=b.dataset.floc;STATE.floculo=STATE.floculo===f?null:f;renderIdxFloc();persistDraft();};
+  $('#fotoIn').onchange=async e=>{for(const f of e.target.files){const x=await compressImg(f);if(x)STATE.fotos.push(x);}e.target.value='';renderFotos();persistDraft();};
+  $('#fotoGrid').onclick=e=>{const b=e.target.closest('[data-fdel]');if(b){STATE.fotos.splice(+b.dataset.fdel,1);renderFotos();persistDraft();}};
+  $('#bSave').onclick=guardar;
+  $('#bPdf').onclick=()=>{const r=buildRecord();informePDF(r);};
+  $('#bNew').onclick=()=>nuevo(false);
+  $('#bPrint').onclick=()=>{buildPrint();try{window.print();}catch(e){}};
+  $('#bCsv').onclick=exportCSV;
+  $('#hist').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.open)cargar(+b.dataset.open);else if(b.dataset.pdf)informePDF(loadRecs().find(r=>r.id===+b.dataset.pdf));else if(b.dataset.del)eliminar(+b.dataset.del,b);};
+  window.addEventListener('storage',e=>{if(e.key===BIO_KEY)renderHist();});
+}
+let clearArm=0;function confirmClear(){if(Date.now()-clearArm<3000)return true;clearArm=Date.now();msg('Hay datos sin guardar: pulsa otra vez para empezar un análisis nuevo');return false;}
+function msg(t){$('#saveMsg').textContent=t;setTimeout(()=>{if($('#saveMsg').textContent===t)$('#saveMsg').textContent='';},5000);}
+function buildPrint(){
+  const r=buildRecord();const cols=STATE.cols;
+  const val=(c,f)=>{const v=c.obs[f.k];if(f.multi)return (c.obs.ot||[]).map(x=>LBL.ot[x]).join(', ');if(f.pair)return v&&(v[0]!=null||v[1]!=null)?`${v[0]??'–'} × ${v[1]??'–'}`:'';if(f.num)return v??'';return v?LBL[f.k][v]:'';};
+  let rows=FIELDS.map(f=>`<tr><td class="l">${f.lab}</td>${cols.map(c=>`<td>${esc(String(val(c,f)))}</td>`).join('')}</tr>`).join('');
+  rows+=`<tr class="fil"><td class="l">FILAMENTOS:</td>${cols.map(c=>{const id=c.final||(c.top&&c.top[0]?.id);return `<td>${id?OBYID[id].n:''}${c.top&&c.top[0]&&!c.final?`<br><small>(${c.top[0].pct.toFixed(0)}%)</small>`:''}</td>`;}).join('')}</tr>`;
+  rows+=`<tr><td class="l">Abundancia (0–5)</td>${cols.map(c=>`<td>${c.ab}</td>`).join('')}</tr>`;
+  $('#printSheet').innerHTML=`<h1>Identificación de microorganismos filamentosos</h1><p>Fecha: <b>${r.fecha||''} ${r.hora||''}</b> · Punto: <b>${esc(r.punto)}</b> · Índice: <b>${r.indice??'—'}</b> · IVF: <b>${r.ivf??'—'}</b> ml/g · Analista: <b>${esc(r.operador)}</b></p><table><tr><th class="l"></th>${cols.map((_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr>${rows}</table><p style="font-size:9pt;margin-top:10px">Causas asociadas: ${[...new Set(r.filamentos.flatMap(f=>f.causas))].join(', ')||'—'}</p><p style="font-size:9pt">Firma: ______________________</p>`;
+}
+
+/* =====================================================================
+   CLAVE DICOTÓMICA
+   ===================================================================== */
+const KEY={
+ n1:{q:'¿Presenta ramificaciones?',o:[['Verdaderas','Continuidad citoplasmática entre ramas','nver'],['Falsas','La 1ª célula de la rama se adhiere al lateral de otro filamento. “Ramas de árbol”','=sph'],['No','','n2']]},
+ nver:{q:'¿Diámetro y longitud del filamento?',o:[['Grueso, 3–8 µm, muy largo','Septos, pared gruesa, orgánulos. Gram −','=hon'],['≈1 µm, corto (10–100 µm), micelial','Sin septos visibles. Gram +. Espumas marrones','=noc'],['1,0–1,4 µm, enrollado, intraflocular','Septos con constricciones, Neisser +. Ramificación muy rara','=nl2']]},
+ n2:{q:'¿Es móvil? (descarta corrientes por evaporación)',o:[['Sí, por deslizamiento','','nmov'],['Sí, por flexión','Corto (20–100 µm), ≈1 µm, una constricción central','=fle'],['No','','n3']]},
+ nmov:{q:'¿Grosor y contenido celular?',o:[['1–3 µm con gránulos de azufre esféricos','Células rectangulares, septos sin constricción','=beg'],['2–5 µm, tono verde-azulado, sin gránulos','Septos y constricciones. Células cuadradas o en tonel','=cya']]},
+ n3:{q:'¿Gránulos de azufre (in situ o tras el test S)?',o:[['Sí, esféricos','Amarillos y brillantes en contraste de fases','ns'],['Sí, cuadrados/rectangulares, siempre in situ','El test S no modifica su aspecto','=914'],['No','','n4']]},
+ ns:{q:'¿Presenta vaina?',o:[['Sí (difícil de ver)','Células rectangulares, septos sin constricción, rosetas y gonidios','nsv'],['No','La pared persiste tras la lisis con marcas de septos. Células en tonel. Base gruesa → ápice fino con gonidios','=21N']]},
+ nsv:{q:'¿Diámetro del tricoma?',o:[['1,4–2,5 µm','Células 1,4–2,5 × 3–5 µm','=th1'],['0,8–1,4 µm','Células 0,8–1,4 × 1–2 µm. Hasta 800 µm de largo','=th2']]},
+ n4:{q:'¿Es una cadena irregular de células (sin tricoma rígido)?',o:[['Sí','','nch'],['No, tricoma definido','','n5']]},
+ nch:{q:'¿Gram y forma de las células?',o:[['Gram +, cocos 0,7–0,8 µm','Gránulos Neisser −','=str'],['Gram −, cocos/cocobacilos 0,8–1,5 µm','Gránulos Neisser +. El eje celular cambia a lo largo de la cadena','=1863'],['Bacilos 0,8–1 × 2–4 µm, Gram ±','Gránulos Neisser −. Libre cerca del flóculo','=bac']]},
+ n5:{q:'Tinción de Neisser: ¿el tricoma se tiñe (azul-violeta)?',o:[['Sí, Neisser + en todo el tricoma','','nnp'],['No (amarillo-marrón)','','n6']]},
+ nnp:{q:'¿Gram y diámetro?',o:[['Gram −, corto (<100 µm), 0,8–1 µm, dentro del flóculo','Solo destaca con Neisser','=092'],['Gram +, 0,6–0,8 µm, septos difíciles','Células ovales si se ven. Sin PHB','=nl1'],['1,0–1,4 µm, septos con constricciones','Células ovales o discoidales. Gram variable','=nl2'],['1,6–2,0 µm, constricciones pronunciadas','Células esféricas, ovales o discoidales','=nl3']]},
+ n6:{q:'Tinción de Gram',o:[['Positivo o variable','','ngp'],['Negativo','','n7']]},
+ ngp:{q:'¿Forma y estructura?',o:[['Enrollado, sin septos, 0,6–0,8 µm','Abundantes gránulos Neisser + (marrón oscuro). Marañas con bucles','=mic'],['Recto, con vaina y epifitos, 1,2–1,6 µm','Células cuadradas o rectangulares, 100–500 µm','=041'],['Recto, con vaina y epifitos, 0,5–1,0 µm','Células cuadradas, 50–150 µm','=675']]},
+ n7:{q:'¿Presenta vaina?',o:[['Sí','','nv'],['No','','n8']]},
+ nv:{q:'¿Diámetro y septos?',o:[['Muy fino, 0,3–0,5 µm, sin septos','Recto o torcido, radiando del flóculo o en haces','=hal'],['0,7–1,0 µm, septos con constricciones','Células bacilares, enrollado en el flóculo, epifitos variables','=1701'],['0,6–0,8 µm, corto (20–150 µm), sin septos claros','Sale del flóculo','=1702'],['0,5–0,8 µm, largo (200–400 µm), en haces','Epifitos escasos y perpendiculares','=1851']]},
+ n8:{q:'¿Septos celulares visibles?',o:[['No','Fino 0,4–0,7 µm, curvado o enrollado, libre o en haces (si es Gram +, revisa Microthrix)','=581'],['Sí','','n8b']]},
+ n8b:{q:'¿Constricciones en los septos?',o:[['Sí','','n8c'],['No','','n8d']]},
+ n8c:{q:'¿Diámetro y forma celular?',o:[['0,3–0,5 µm, células 0,5–0,7 µm','Torcido o enrollado, libre, corto','=211'],['≈0,8 µm, células bacilares 2–4 µm','Aspecto de “cadena de células” en el borde del flóculo','=411']]},
+ n8d:{q:'¿Aspecto en contraste de fases?',o:[['Transparente, 0,8–1,4 µm, largo (100–500 µm)','Células 1,5–4 µm, sale del flóculo, madejas','=961'],['Transparente, 0,6–0,8 µm, corto (20–80 µm)','Células 1–2 µm','=1852'],['≈0,8 µm, gránulos oscuros en los septos','Libre, a veces unido a partículas refringentes','=803']]}
+};
+let kPath=['n1'];
+function renderKey(){
+  const cur=kPath[kPath.length-1];
+  $('#kCrumbs').innerHTML=kPath.map((n,i)=>`<span>${i+1}. ${KEY[n]?KEY[n].q.replace(/\?.*$/,'?').slice(0,40):''}</span>`).join('')+(kPath.length>1?` <button class="btn" id="kBack" style="padding:2px 10px">← Atrás</button> <button class="btn" id="kReset" style="padding:2px 10px">Reiniciar</button>`:'');
+  if(cur.startsWith('=')){const o=OBYID[cur.slice(1)];$('#kBody').innerHTML=`<div class="kq">Resultado probable: <span style="color:var(--acc2)">${o.n}</span></div>${drawOrg(o)}<div class="row" style="margin:10px 0">${gramChip(o)}${neisChip(o)}${sChip(o)}</div><p>${o.nota}</p><button class="btn pri" data-f="${o.id}">Ver ficha completa</button>`;}
+  else{const n=KEY[cur];$('#kBody').innerHTML=`<div class="kq">${n.q}</div><div class="kopts">${n.o.map(([t,s,go])=>`<button class="kopt" data-go="${go}"><div><b>${t}</b>${s?`<span class="mut" style="font-size:13px">${s}</span>`:''}</div><span class="arrow">${go.startsWith('=')?OBYID[go.slice(1)].n+' →':'→'}</span></button>`).join('')}</div>`;}
+  $('#kBack')&&($('#kBack').onclick=()=>{kPath.pop();renderKey();});$('#kReset')&&($('#kReset').onclick=()=>{kPath=['n1'];renderKey();});
+}
+function treeHTML(n){const k=KEY[n];return `<div class="q">${k.q}</div><ul>${k.o.map(([t,s,go])=>`<li><span class="o">${t} →</span> ${go.startsWith('=')?`<span class="leaf" data-f="${go.slice(1)}">${OBYID[go.slice(1)].n}</span>`:treeHTML(go)}</li>`).join('')}</ul>`;}
+
+/* =====================================================================
+   TINCIONES
+   ===================================================================== */
+const STAINS=[
+ {t:'1. Tinción de Gram',obj:'Separa los filamentos por la estructura de la pared celular: Gram + (violeta-azul) y Gram − (rojo-rosa).',
+  reag:[['Solución 1 · Cristal violeta','a) 2 g de cristal violeta + 20 ml de etanol 96%. b) 0,8 g de oxalato amónico + 80 ml de agua destilada. Guarda a y b por separado y mézclalas justo antes de usar.','#6b2fa3'],['Solución 2 · Lugol','0,5 g de yodo + 1 g de yoduro potásico + 150 ml de agua destilada','#8a5a1e'],['Solución 3 · Safranina','10 ml de safranina O al 2,5% en etanol 96% + 100 ml de agua destilada','#e0566f']],
+  steps:[['Extender 1–2 gotas de muestra en el porta y dejar secar al aire',0,'#c9b48a'],['Teñir con la solución 1 (cristal violeta)',60,'#6b2fa3'],['Lavar ligeramente con agua destilada',0,'#bfe6ff'],['Teñir con la solución 2 (lugol)',60,'#8a5a1e'],['Lavar bien con agua destilada',0,'#bfe6ff'],['Decolorar con etanol 96% sin pasarse',0,'#eeeeee'],['Teñir con la solución 3 (safranina)',60,'#e0566f'],['Lavar bien con agua destilada y dejar secar',0,'#bfe6ff'],['Observar a 1.000x en campo claro (inmersión)',0,'#ffffff']],
+  res:[['g','+','Gram + : azul-violeta'],['g','-','Gram − : rojo']],
+  tip:'El fallo más típico es decolorar de más con el alcohol y obtener falsos Gram −. Con filamentos de vaina gruesa (Thiothrix I) o cargados de azufre (Beggiatoa, 021N, 0914) puede salir un falso Gram +.'},
+ {t:'2. Tinción de Neisser',obj:'Detecta gránulos intracelulares de polifosfato (Neisser +) y filamentos que se tiñen enteros (tricoma Neisser +).',
+  reag:[['Solución 1 · Azul de metileno + cristal violeta','a) 0,1 g de azul de metileno + 5 ml de etanol 96% + 5 ml de ácido acético glacial + 100 ml de agua destilada. b) 3,3 ml de cristal violeta 1:10 en etanol 96% + 6,7 ml de etanol 96% + 100 ml de agua destilada. Mezcla 2 partes de a con 1 de b y prepárala cada mes.','#2f3f9e'],['Solución 2 · Bismarck Brown','33,3 ml de Bismarck Brown al 1% (1 g en 100 ml) enrasados a 100 ml con agua destilada','#b07a2c']],
+  steps:[['Extender 1–2 gotas de muestra y dejar secar al aire',0,'#c9b48a'],['Teñir con la solución 1',30,'#2f3f9e'],['Lavar 1 segundo con agua destilada',0,'#bfe6ff'],['Teñir con la solución 2 (Bismarck Brown)',60,'#b07a2c'],['Lavar bien con agua destilada y dejar secar',0,'#bfe6ff'],['Observar a 1.000x en campo claro',0,'#ffffff']],
+  res:[['n','+','Tricoma Neisser + : azul-violeta'],['n','-','Neisser − : amarillo-marrón'],['ng','+','Gránulos +: puntos azul oscuro sobre fondo marrón']],
+  tip:'Imprescindible para ver el Tipo 0092 dentro del flóculo y para separar Microthrix (gránulos +) de N. limicola I (tricoma +).'},
+ {t:'3. Test de azufre',obj:'Pone de manifiesto si el filamento acumula azufre: Thiothrix I/II, Beggiatoa y 021N. Es un indicador de septicidad o sulfuros.',
+  reag:[['Tiosulfato sódico al 1%','1 g de tiosulfato sódico en 100 ml de agua destilada','#f2e8a0']],
+  steps:[['Dejar sedimentar fango activo y poner 20 ml de sobrenadante en un Erlenmeyer de 100 ml',0,'#c9b48a'],['Añadir 1–2 ml de fango activo',0,'#c9b48a'],['Añadir 1 ml de tiosulfato sódico',0,'#f2e8a0'],['Mantener en agitación a temperatura ambiente durante 12 h',43200,'#eeeeee'],['Observar a 1.000x en contraste de fases',0,'#ffffff']],
+  res:[['s','+','Positivo: gránulos intracelulares amarillos y brillantes']],
+  tip:'Anota también los gránulos in situ, antes del test. El Tipo 0914 tiene gránulos cuadrados in situ que el test no modifica, así que cuenta como test negativo.'},
+ {t:'4. Tinción de vaina (cristal violeta)',obj:'Confirma si hay vaina verdadera y la distingue del halo del contraste de fases o de la pared residual del 021N.',
+  reag:[['Cristal violeta al 0,1%','0,1 g de cristal violeta en 100 ml de agua destilada','#6b2fa3']],
+  steps:[['Mezclar en el porta 1 gota de cristal violeta con 1 gota de fango activo',0,'#6b2fa3'],['Poner el cubre y observar a 1.000x en contraste de fases',0,'#ffffff']],
+  res:[['v','+','Células violeta oscuro y vaina rosa pálido']],
+  tip:'La vaina se ve mejor en los tramos donde faltan células. Si la “vaina” conserva las marcas de los septos, es pared celular (Tipo 021N).'}
+];
+function stainResSvg(kind,val){
+  if(kind==='g'||kind==='n')return stainSvg(kind==='g'?'g':'n',val,false).replace('width="80" height="26"','width="110" height="36"');
+  if(kind==='ng')return stainSvg('n','-',true).replace('width="80" height="26"','width="110" height="36"');
+  if(kind==='s')return `<svg viewBox="0 0 80 26" width="110" height="36"><rect width="80" height="26" rx="5" fill="#3b4652"/><rect x="4" y="9" width="72" height="8" rx="2" fill="#8794a1"/>${[10,24,37,52,66].map(x=>`<circle cx="${x}" cy="13" r="2.6" fill="#ffe14d"/><circle cx="${x-.7}" cy="12.3" r=".8" fill="#fff"/>`).join('')}</svg>`;
+  if(kind==='v')return `<svg viewBox="0 0 80 26" width="110" height="36"><rect width="80" height="26" rx="5" fill="#eef1f4"/><rect x="2" y="7" width="76" height="12" rx="6" fill="#f2bfd5"/>${[4,14,24,48,58,68].map(x=>`<rect x="${x}" y="9" width="9" height="8" rx="1.5" fill="#4a1b78"/>`).join('')}</svg>`;
+}
+function fmtT(s){if(s>=3600)return (s/3600)+' h';if(s>=60)return (s/60)+' min';return s+' s';}
+function renderStains(){
+  $('#stains').innerHTML=STAINS.map((s,i)=>`<div class="card"><h3 style="margin-top:0">${s.t}</h3><p class="mut" style="margin-top:0">${s.obj}</p>
+  <table class="t reag">${s.reag.map(r=>`<tr><th><span class="drop" style="background:${r[2]}"></span>${r[0]}</th><td>${r[1]}</td></tr>`).join('')}</table>
+  <h3>Procedimiento</h3><ol class="steps">${s.steps.map((st,j)=>`<li><span><span class="drop" style="background:${st[2]}"></span>${st[0]}</span>${st[1]?`<span class="tm" data-sec="${st[1]}">⏱ ${fmtT(st[1])}</span>`:'<span></span>'}</li>`).join('')}</ol>
+  <h3>Lectura del resultado</h3><div class="row">${s.res.map(r=>`<div style="text-align:center">${stainResSvg(r[0],r[1])}<div class="note">${r[2]}</div></div>`).join('')}</div>
+  <div class="callout" style="margin-top:12px">💡 ${s.tip}</div></div>`).join('');
+  $('#stains').onclick=e=>{const t=e.target.closest('.tm');if(!t)return;if(t._iv){clearInterval(t._iv);t._iv=null;t.classList.remove('run');t.textContent='⏱ '+fmtT(+t.dataset.sec);return;}
+    let left=+t.dataset.sec;t.classList.add('run');const tick=()=>{t.textContent=left>=3600?`⏳ ${Math.floor(left/3600)}h ${Math.floor(left%3600/60)}m`:`⏳ ${left}s`;if(left--<=0){clearInterval(t._iv);t._iv=null;t.textContent='✔ Listo';t.classList.remove('run');try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}}};tick();t._iv=setInterval(tick,1000);};
+}
+
+/* =====================================================================
+   MORFOLOGÍA (glosario visual)
+   ===================================================================== */
+function mk(o){return Object.assign({id:'x'+Math.random(),d:[1,1],l:[100,200],g:'-',nt:'-',ng:'-',si:'no',st:'neg',fo:'rec',lo:'lib',se:'si',ra:'no',co:'no',va:'no',ep:'aus',cf:'rec',cl:[2,2],mo:'no',ot:[]},o);}
+function tile(title,svg,txt){return `<div class="card"><b>${title}</b>${svg}${txt?`<div class="note" style="margin-top:6px">${txt}</div>`:''}</div>`;}
+function renderMorph(){
+  const S=(o)=>drawOrg(mk(o));
+  let h='<h3>Forma del filamento</h3><div class="grid g4">';
+  h+=tile('Recto',S({id:'mf1',fo:'rec'}),'Recto en la mayor parte de su longitud');
+  h+=tile('Ligeramente curvo',S({id:'mf2',fo:'cur'}),'Curvaturas de radio amplio');
+  h+=tile('Torcido',S({id:'mf3',fo:'tor'}),'Puntos de inflexión marcados que cambian la dirección');
+  h+=tile('Irregular',S({id:'mf4',fo:'irr',cf:'bac',cl:[2.2,2.2],d:[0.9,0.9]}),'Sucesión de células dispuestas al azar');
+  h+=tile('Enrollado',S({id:'mf5',fo:'enr',se:'no',d:[0.7,0.7]}),'Muy curvado, a menudo enrollado entre sí');
+  h+=tile('Micelial',S({id:'mf6',fo:'mic',se:'no',ra:'ver'}),'Ramificaciones verdaderas en disposición aleatoria');
+  h+='</div><h3>Forma de las células <span class="mut" style="font-weight:400;font-size:13px">(ampliado)</span></h3><div class="grid g4">';
+  [['cua','Cuadradas',[3,3],[3,3]],['rec','Rectangulares',[2.6,2.6],[5.5,5.5]],['dis','Discoidales',[3.2,3.2],[1.1,1.1]],['ova','Ovales',[2.6,2.6],[4,4]],['coc','Cocos (redondas)',[3,3],[3,3]],['ton','En tonel',[3,3],[4,4]],['bac','Bacilares',[2.4,2.4],[5.2,5.2]]].forEach(([k,t,d,cl],i)=>{h+=tile(t,S({id:'mc'+i,cf:k,d,cl,co:k==='cua'||k==='rec'?'no':'si'}));});
+  h+='</div><h3>Ramificaciones</h3><div class="grid g4">';
+  h+=tile('Verdadera',S({id:'mr1',fo:'mic',se:'no',ra:'ver'}),'Continuidad citoplasmática entre ramas (hongos, nocardioformes)');
+  h+=tile('Falsa',S({id:'mr2',fo:'rec',ra:'fal',va:'si',cf:'bac',d:[2,2],cl:[3.5,3.5],co:'si',lo:'ext'}),'La 1ª célula de la rama se adhiere al lateral del otro filamento (S. natans)');
+  h+='</div><h3>Localización respecto al flóculo</h3><div class="grid g4">';
+  h+=tile('Intraflocular',S({id:'ml1',lo:'int',fo:'tor'}));h+=tile('Se extiende desde el flóculo',S({id:'ml2',lo:'ext',fo:'rec'}));h+=tile('Libre',S({id:'ml3',lo:'lib',fo:'cur'}));
+  h+='</div><h3>Crecimiento epifítico</h3><div class="grid g4">';
+  h+=tile('Ausente',S({id:'me1',va:'si',ep:'aus',d:[2,2],cl:[4,4]}));h+=tile('Incidental',S({id:'me2',va:'si',ep:'inc',d:[2,2],cl:[4,4]}));h+=tile('Abundante',S({id:'me3',va:'si',ep:'abu',d:[2,2],cl:[4,4]}),'Un epifitismo abundante suele indicar que hay vaina');
+  h+='</div><h3>Septos, constricciones y vaina</h3><div class="grid g4">';
+  h+=tile('Septos sin constricción',S({id:'ms1',d:[2.6,2.6],cl:[5,5]}));h+=tile('Septos con constricción',S({id:'ms2',d:[2.6,2.6],cl:[5,5],co:'si',cf:'bac'}),'Una constricción implica siempre septos');
+  h+=tile('Sin septos visibles',S({id:'ms3',se:'no',d:[2.6,2.6]}));h+=tile('Vaina',S({id:'ms4',va:'si',d:[2.4,2.4],cl:[4.5,4.5]}),'Se ve mejor en los tramos sin células');
+  h+='</div><h3>Inclusiones y formaciones especiales</h3><div class="grid g4">';
+  h+=tile('Gránulos de S esféricos',S({id:'mi1',si:'si',d:[3,3],cl:[5.5,5.5]}),'Beggiatoa, Thiothrix I/II, 021N');
+  h+=tile('Gránulos de S cuadrados',S({id:'mi2',si:'sq',d:[3,3],cl:[3,3],cf:'cua'}),'Solo el Tipo 0914 (siempre in situ)');
+  h+=tile('Gonidios',S({id:'mi3',ot:['gon'],d:[2.6,2.6],cl:[4.5,4.5],lo:'ext'}),'Células ovales en el extremo. Indican crecimiento rápido');
+  h+=tile('Roseta',rosette(),'Filamentos unidos por la base que radian desde un punto (Thiothrix, 021N)');
+  h+='</div>';
+  $('#morph').innerHTML=h;
+}
+function rosette(){const o=mk({id:'ros',d:[2,2],cl:[3.5,3.5]});const R=rng('ros');let g='';for(let i=0;i<9;i++){const a=i/9*Math.PI*2;const cx=190,cy=90;g+=trichome(densify([[cx+Math.cos(a)*6,cy+Math.sin(a)*6],[cx+Math.cos(a)*85,cy+Math.sin(a)*70]]),o,R,{noGon:1});}return `<svg class="slide" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#e9eef3"/>${g}<circle cx="190" cy="90" r="6" fill="#a78550"/></svg>`;}
+
+/* =====================================================================
+   DIAGNÓSTICO
+   ===================================================================== */
+function renderDiag(){
+  $('#causeTable').innerHTML='<tr><th>Causa</th><td><b class="mut">Microorganismos filamentosos</b></td></tr>'+Object.entries(CAUSES).map(([k,v])=>`<tr><th>${v}</th><td>${ORG.filter(o=>o.c.includes(k)).map(o=>`<span class="chip" data-f="${o.id}" style="cursor:pointer;margin:2px">${o.n}${o.id==='nl2'&&k==='sep'?'*':''}</span>`).join('')}</td></tr>`).join('');
+  Object.entries(CAUSES).forEach(([k,v])=>$('#fc').insertAdjacentHTML('beforeend',`<option value="${k}">${v}</option>`));
+  const calc=()=>{const I=+$('#cI').value,N=+$('#cN').value,lado=+$('#cA').value/1000,Vml=+$('#cV').value/1000,dF=+$('#cD').value*1e-6;
+    if(!(I>=0&&N>0&&lado>0&&Vml>0&&dF>0)){$('#cOut').textContent='–';return;}
+    const Ni=I/N,A=lado*lado,Hh=Math.PI*dF*(2/Math.PI);const L=Ni*A/(Hh*Vml);$('#cOut').textContent=L.toLocaleString('es-ES',{maximumFractionDigits:0});
+    const [t,c]=L>600?['Muy alta (>600 m/ml): repite el recuento con dilución','#9b2c3c']:L>200?['Susceptible de bulking (>200 m/ml)','#b7791f']:L>50?['Moderada. Vigila espumas si dominan nocardioformes (≥50 m/ml)','#2b6cb0']:['Baja','#0f8f6f'];
+    $('#cDiag').innerHTML=`<div class="callout" style="border-color:${c};background:#0d2034;margin-top:8px">${t}</div>`;};
+  ['#cI','#cN','#cA','#cV','#cD'].forEach(s=>$(s).addEventListener('input',calc));calc();
+}
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;showTab(b.dataset.t);};
+document.addEventListener('click',e=>{const f=e.target.closest('[data-f]');if(f){openFicha(f.dataset.f);return;}const fi=e.target.closest('.ficha');if(fi)openFicha(fi.dataset.id);
+  const k=e.target.closest('.kopt');if(k){kPath.push(k.dataset.go);renderKey();}});
+$('#mx').onclick=()=>$('#modal').classList.remove('on');$('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('on');};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#modal').classList.remove('on');});
+['#fq','#fg','#fc','#fp'].forEach(s=>$(s).addEventListener('input',renderFichas));
+try{if(window.parent!==window)document.body.classList.add('embed');}catch(e){}
+renderDiag();renderFichas();renderKey();$('#kTree').innerHTML=treeHTML('n1');renderStains();renderMorph();initIdent();
+</script>
+</body>
+</html>
