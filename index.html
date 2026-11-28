@@ -841,7 +841,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, get, set, push, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, get, set, push, update, onValue, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const firebaseConfig = {
     apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
     authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
@@ -853,7 +853,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
   };
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-  window._fb = { db, ref, get, set, push, update, onValue };
+  window._fb = { db, ref, get, set, push, update, onValue, query, orderByChild, startAt };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <!-- Simulador Proceso EDARi dependencies -->
@@ -2378,13 +2378,62 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
             .gs-task-meta{font-family:var(--mono,monospace);font-size:8.5px;color:var(--muted,#5d7390);margin-top:3px;letter-spacing:.04em;display:flex;gap:9px;flex-wrap:wrap;}
             .gs-task-meta .gs-pri{color:var(--c,#f0b033);font-weight:700;text-transform:uppercase;}
           </style>
+          <style>
+            .gs-tabs{display:flex;gap:6px;flex-shrink:0;border-bottom:1px solid var(--border,#1f3252);}
+            .gs-tab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted,#5d7390);font-family:var(--mono,monospace);font-size:10.5px;font-weight:600;letter-spacing:.05em;padding:6px 10px 7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+            .gs-tab:hover{color:var(--light,#fff);}
+            .gs-tab.active{color:var(--accent,#3aafe8);border-bottom-color:var(--accent,#3aafe8);}
+            .gs-view{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;}
+            .acc-fil{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+            .acc-fil select{background:var(--card,#162236);color:var(--light,#fff);border:1px solid var(--border,#1f3252);border-radius:5px;padding:4px 7px;font-family:var(--mono,monospace);font-size:10px;}
+            .acc-fil label{font-family:var(--mono,monospace);font-size:9.5px;color:var(--text-d,#8ba0bd);display:inline-flex;align-items:center;gap:4px;cursor:pointer;}
+            .acc-res{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;}
+            .acc-chip{background:linear-gradient(135deg,var(--panel,#111c2f),var(--card,#162236));border:1px solid var(--border,#1f3252);border-radius:7px;padding:6px 10px;display:flex;flex-direction:column;gap:1px;min-width:120px;}
+            .acc-chip b{font-family:var(--cond,'Barlow Condensed');font-size:12.5px;color:var(--light,#fff);}
+            .acc-chip span{font-family:var(--mono,monospace);font-size:8.5px;color:var(--muted,#5d7390);letter-spacing:.04em;}
+            .acc-dia{font-family:var(--mono,monospace);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#5d7390);padding:6px 2px 2px;border-bottom:1px solid var(--border,#1f3252);}
+            .acc-row{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:6px 9px;border-left:3px solid var(--c,#3aafe8);background:rgba(255,255,255,.025);border-radius:3px;}
+            .acc-hora{font-family:var(--mono,monospace);font-size:11px;color:var(--light,#fff);}
+            .acc-quien{font-size:11.5px;color:var(--light,#fff);font-weight:600;line-height:1.25;}
+            .acc-quien small{display:block;font-weight:400;font-size:9.5px;color:var(--text-d,#8ba0bd);}
+            .acc-tipo{font-family:var(--mono,monospace);font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--c,#3aafe8);white-space:nowrap;}
+          </style>
           <div class="gs-container">
-            <div class="gs-h-row">
-              <div class="gs-h-tit">▸ Tareas asignadas por persona</div>
-              <div class="gs-h-cnt" id="gs-cnt">— pendientes</div>
+            <div class="gs-tabs" role="tablist">
+              <button class="gs-tab active" id="gs-tab-tareas" onclick="gsTab('tareas')"><i class="ti ti-checklist" aria-hidden="true"></i>Tareas</button>
+              <button class="gs-tab" id="gs-tab-accesos" onclick="gsTab('accesos')"><i class="ti ti-login" aria-hidden="true"></i>Registro de accesos</button>
             </div>
-            <div class="gs-list" id="gs-list">
-              <div class="gs-empty">Cargando tareas…</div>
+            <div class="gs-view" id="gs-view-tareas">
+              <div class="gs-h-row">
+                <div class="gs-h-tit">▸ Tareas asignadas por persona</div>
+                <div class="gs-h-cnt" id="gs-cnt">— pendientes</div>
+              </div>
+              <div class="gs-list" id="gs-list">
+                <div class="gs-empty">Cargando tareas…</div>
+              </div>
+            </div>
+            <div class="gs-view" id="gs-view-accesos" style="display:none">
+              <div class="gs-h-row">
+                <div class="gs-h-tit">▸ Quién ha entrado y cuándo</div>
+                <div class="acc-fil">
+                  <select id="acc-usuario" onchange="accRender()" aria-label="Usuario"><option value="">Todos los usuarios</option></select>
+                  <select id="acc-rango" onchange="accCargar()" aria-label="Periodo">
+                    <option value="1">Hoy</option>
+                    <option value="7" selected>Últimos 7 días</option>
+                    <option value="30">Últimos 30 días</option>
+                    <option value="90">Últimos 90 días</option>
+                    <option value="365">Último año</option>
+                  </select>
+                  <label><input type="checkbox" id="acc-fallidos" checked onchange="accRender()"> Intentos fallidos</label>
+                  <label><input type="checkbox" id="acc-aperturas" checked onchange="accRender()"> Aperturas</label>
+                  <button class="gs-copy" onclick="accExportar()"><i class="ti ti-file-spreadsheet" aria-hidden="true"></i>Excel</button>
+                  <button class="gs-copy" onclick="accCargar()" title="Actualizar"><i class="ti ti-refresh" aria-hidden="true"></i></button>
+                </div>
+              </div>
+              <div class="acc-res" id="acc-resumen"></div>
+              <div class="gs-list" id="acc-list">
+                <div class="gs-empty">Cargando accesos…</div>
+              </div>
             </div>
           </div>
         </div>
@@ -4743,6 +4792,7 @@ async function initAuth() {
   const session = getSession();
   if(session && session.username) {
     showPortal(session);
+    if(!_accPestanaYaRegistrada()){ registrarAcceso('apertura', session); _accMarcarPestana(); }
     waitForFirebase().then(seedDefaultAdmin).catch(()=>{});
     return;
   }
@@ -4797,16 +4847,20 @@ async function doLogin() {
     const snap = await window._fb.get(window._fb.ref(window._fb.db, 'usuarios/' + username));
     const user = snap.val();
     if(!user) {
+      registrarAcceso('fallido', { username, name: '(usuario no existe)' });
       showLoginError('Usuario no encontrado. Verifica el nombre de usuario.');
       return;
     }
     const h = await hashPass(pass);
     if(h !== user.hash) {
+      registrarAcceso('fallido', { username: user.username || username, name: user.name, role: user.role });
       showLoginError('Contraseña incorrecta. Inténtalo de nuevo.');
       return;
     }
     const session = { username: user.username, name: user.name, role: user.role, loginAt: Date.now() };
     setSession(session);
+    registrarAcceso('entrada', session);
+    _accMarcarPestana();
     showPortal(session);
   } catch(e) {
     if(e.message === 'Firebase timeout') {
@@ -4824,6 +4878,7 @@ window.doLogin = doLogin;
 
 function doLogout() {
   if(!confirm('¿Cerrar sesión?')) return;
+  registrarAcceso('salida', getSession());
   clearSession();
   showLogin();
 }
@@ -4835,6 +4890,159 @@ function showLoginError(msg) {
 function clearLoginError() {
   document.getElementById('login-error').classList.remove('show');
 }
+
+
+// ═══ Registro de accesos (Gestión Supervisor) ═══
+// Cada entrada se guarda en Firebase: accesos/{push_id} = {ts, tipo, usuario, nombre, rol, dispositivo}
+// tipo: 'entrada' (inicio de sesión) · 'apertura' (abre el portal con la sesión guardada)
+//       'salida' (cierra sesión) · 'fallido' (usuario o contraseña incorrectos)
+const ACC_TIPOS = {
+  entrada:  {txt:'Inicio de sesión', c:'#22c995'},
+  apertura: {txt:'Abre el portal',   c:'#3aafe8'},
+  salida:   {txt:'Cierre de sesión', c:'#8ba0bd'},
+  fallido:  {txt:'Intento fallido',  c:'#f05a5a'}
+};
+const _acc = { data: [] };
+function _accDispositivo(){
+  const ua = navigator.userAgent || '';
+  const so = /Android/i.test(ua)?'Android':/iPhone|iPad|iPod/i.test(ua)?'iOS':/Windows/i.test(ua)?'Windows':/Mac OS X/i.test(ua)?'Mac':/Linux/i.test(ua)?'Linux':'Otro';
+  const nav = /Edg\//.test(ua)?'Edge':/OPR\//.test(ua)?'Opera':/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'Otro';
+  let app = false;
+  try { app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; } catch(e){}
+  return nav + ' · ' + so + (app ? ' · app instalada' : '');
+}
+async function registrarAcceso(tipo, u){
+  try {
+    await waitForFirebase();
+    const f = window._fb;
+    await f.push(f.ref(f.db, 'accesos'), {
+      ts: Date.now(),
+      tipo,
+      usuario: (u && u.username) || '',
+      nombre:  (u && u.name) || '',
+      rol:     (u && u.role) || '',
+      dispositivo: _accDispositivo()
+    });
+  } catch(e){ console.warn('registrarAcceso:', e); }
+}
+window.registrarAcceso = registrarAcceso;
+// Una "apertura" por pestaña del navegador (no se repite al recargar en la misma pestaña)
+function _accMarcarPestana(){ try { sessionStorage.setItem('sgi-acc-pestana','1'); } catch(e){} }
+function _accPestanaYaRegistrada(){ try { return sessionStorage.getItem('sgi-acc-pestana')==='1'; } catch(e){ return false; } }
+
+function gsTab(id){
+  ['tareas','accesos'].forEach(t=>{
+    const v = document.getElementById('gs-view-'+t), b = document.getElementById('gs-tab-'+t);
+    if(v) v.style.display = (t===id) ? 'flex' : 'none';
+    if(b) b.classList.toggle('active', t===id);
+  });
+  if(id==='accesos') accCargar();
+}
+window.gsTab = gsTab;
+
+function _accEsSupervisor(){ const s = getSession(); return !!(s && s.role === 'supervisor'); }
+function _accEsc(t){ return String(t==null?'':t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function accCargar(){
+  const list = document.getElementById('acc-list');
+  if(!list) return;
+  if(!_accEsSupervisor()){
+    list.innerHTML = '<div class="gs-empty">🔒 El registro de accesos solo lo pueden ver los supervisores.</div>';
+    document.getElementById('acc-resumen').innerHTML = '';
+    return;
+  }
+  list.innerHTML = '<div class="gs-empty">Cargando accesos…</div>';
+  const dias = parseInt(document.getElementById('acc-rango').value, 10) || 7;
+  const hoy0 = new Date(); hoy0.setHours(0,0,0,0);
+  const desde = hoy0.getTime() - (dias-1)*86400000;
+  try {
+    await waitForFirebase();
+    const f = window._fb;
+    const q = f.query(f.ref(f.db, 'accesos'), f.orderByChild('ts'), f.startAt(desde));
+    const snap = await f.get(q);
+    const val = snap.val() || {};
+    _acc.data = Object.values(val).filter(a => a && a.ts >= desde).sort((a,b) => b.ts - a.ts);
+    // Rellenar el desplegable de usuarios conservando la selección
+    const sel = document.getElementById('acc-usuario');
+    const actual = sel.value;
+    const usuarios = [...new Set(_acc.data.map(a => a.usuario).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">Todos los usuarios</option>' + usuarios.map(u => `<option value="${_accEsc(u)}">${_accEsc(u)}</option>`).join('');
+    if(usuarios.includes(actual)) sel.value = actual;
+    accRender();
+  } catch(e){
+    console.error('accCargar:', e);
+    list.innerHTML = '<div class="gs-empty">No se pudo leer el registro de accesos.<br>' + _accEsc(e.message || e) + '</div>';
+  }
+}
+window.accCargar = accCargar;
+
+function _accFiltrados(){
+  const u = document.getElementById('acc-usuario').value;
+  const fal = document.getElementById('acc-fallidos').checked;
+  const ape = document.getElementById('acc-aperturas').checked;
+  return _acc.data.filter(a => (!u || a.usuario === u) && (fal || a.tipo !== 'fallido') && (ape || a.tipo !== 'apertura'));
+}
+
+function accRender(){
+  const list = document.getElementById('acc-list'), res = document.getElementById('acc-resumen');
+  if(!list) return;
+  const rows = _accFiltrados();
+  // Resumen: último acceso de cada persona en el periodo
+  const ult = {};
+  _acc.data.forEach(a => {
+    if(!a.usuario || a.tipo === 'fallido' || a.tipo === 'salida') return;
+    if(!ult[a.usuario]) ult[a.usuario] = { a, n: 0 };
+    ult[a.usuario].n++;
+  });
+  const fallidos = _acc.data.filter(a => a.tipo === 'fallido').length;
+  const fmtCorto = ts => new Date(ts).toLocaleString('es-ES', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+  res.innerHTML = Object.keys(ult).sort().map(u => `
+      <div class="acc-chip"><b>${_accEsc(ult[u].a.nombre || u)}</b><span>Último: ${fmtCorto(ult[u].a.ts)} · ${ult[u].n} acceso${ult[u].n===1?'':'s'}</span></div>`).join('')
+    + (fallidos ? `<div class="acc-chip" style="border-color:#f05a5a"><b style="color:#f05a5a">${fallidos} intento${fallidos===1?'':'s'} fallido${fallidos===1?'':'s'}</b><span>en el periodo</span></div>` : '');
+  if(!rows.length){
+    list.innerHTML = '<div class="gs-empty">No hay accesos registrados en este periodo.</div>';
+    return;
+  }
+  let html = '', diaPrev = '';
+  rows.forEach(a => {
+    const d = new Date(a.ts);
+    const dia = d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    if(dia !== diaPrev){ html += `<div class="acc-dia">${_accEsc(dia)}</div>`; diaPrev = dia; }
+    const t = ACC_TIPOS[a.tipo] || {txt: a.tipo, c:'#8ba0bd'};
+    const quien = a.nombre ? `${_accEsc(a.nombre)} <span style="font-weight:400;color:var(--muted,#5d7390)">(${_accEsc(a.usuario)})</span>` : _accEsc(a.usuario || '—');
+    html += `<div class="acc-row" style="--c:${t.c}">
+        <div class="acc-hora">${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="acc-quien">${quien}<small>${_accEsc(a.dispositivo || '')}${a.rol ? ' · ' + _accEsc(a.rol) : ''}</small></div>
+        <div class="acc-tipo">${_accEsc(t.txt)}</div>
+      </div>`;
+  });
+  list.innerHTML = html;
+}
+window.accRender = accRender;
+
+function accExportar(){
+  const rows = _accFiltrados();
+  if(!rows.length){ alert('No hay accesos que exportar con los filtros actuales.'); return; }
+  if(typeof XLSX === 'undefined'){ alert('No se ha podido cargar la librería de Excel.'); return; }
+  const datos = rows.map(a => {
+    const d = new Date(a.ts);
+    return {
+      'Fecha': d.toLocaleDateString('es-ES'),
+      'Hora': d.toLocaleTimeString('es-ES'),
+      'Usuario': a.usuario || '',
+      'Nombre': a.nombre || '',
+      'Rol': a.rol || '',
+      'Evento': (ACC_TIPOS[a.tipo] || {txt: a.tipo}).txt,
+      'Dispositivo': a.dispositivo || ''
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(datos);
+  ws['!cols'] = [{wch:12},{wch:10},{wch:14},{wch:24},{wch:12},{wch:18},{wch:30}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Accesos');
+  XLSX.writeFile(wb, 'registro-accesos-' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+window.accExportar = accExportar;
 
 // ── USER MANAGEMENT (supervisor only) ─────────────────────────
 function openUserManager() {
@@ -6491,6 +6699,8 @@ function sbNav(id) {
   if(id === 'gestion'){
     if(typeof tarIniciar==='function') tarIniciar();   // garantiza suscripción
     if(typeof gestionRenderTareas==='function') gestionRenderTareas();
+    const _va = document.getElementById('gs-view-accesos');
+    if(_va && _va.style.display !== 'none' && typeof accCargar==='function') accCargar();
   }
 }
 

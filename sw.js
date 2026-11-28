@@ -1,5 +1,5 @@
-// ── SGI UTE Valle de Güímar — Service Worker v1.0.0 ──────────────────────────
-const CACHE = 'sgi-v1';
+// ── SGI EDAR — Service Worker v1.0.0 ──────────────────────────
+const CACHE = 'sgi-v3';
 
 // Archivos a cachear para funcionamiento offline
 const PRECACHE = [
