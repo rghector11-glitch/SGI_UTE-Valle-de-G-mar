@@ -177,6 +177,22 @@ table.idf tbody th{font-size:11.5px;line-height:1.15}
 .obsrow .fotos{margin:0;display:flex;flex-wrap:wrap;gap:6px}.obsrow .fotos div{width:44px;height:44px}
 .seg{display:inline-flex;gap:2px;background:#0a1626;border:1px solid var(--line);border-radius:9px;padding:2px;margin:0 0 6px}
 .seg button{background:none;border:0;color:var(--mut);padding:4px 12px;border-radius:7px;font:inherit;font-weight:600;cursor:pointer;font-size:12.5px}
+/* ---- macroscopía ---- */
+.mawrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:900px){.mawrap{grid-template-columns:1fr}}
+.ma-h{background:linear-gradient(90deg,#1d4a80,#163a66);color:#fff;font-weight:700;letter-spacing:.04em;padding:6px 12px;border-radius:7px;font-size:13.5px;margin:0 0 6px}
+.ma-sub{font-size:12px;color:var(--mut);margin:0 0 6px}
+.ma-f{display:grid;grid-template-columns:minmax(150px,42%) 1fr;gap:4px 8px;align-items:center}
+.ma-f label{font-size:12px;color:var(--txt);font-weight:600}
+.ma-f label small{font-weight:400;color:var(--mut)}
+.ma-f input{width:100%;background:#0a1626;color:var(--txt);border:1px solid #2a4870;border-radius:6px;padding:3px 7px;font:inherit;font-size:12.5px;height:25px}
+.ma-f input:focus{border-color:var(--acc);outline:none}
+.ma-u{display:flex;gap:6px;align-items:center}.ma-u span{font-size:11.5px;color:var(--mut);white-space:nowrap}
+.ma-fotos{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.ma-fotos .fotos{margin:0;display:flex;flex-wrap:wrap;gap:6px}.ma-fotos .fotos div{width:64px;height:64px}
+.ma-fotos .drop-z{padding:6px 12px;font-size:12.5px;white-space:nowrap}
+.ma-calc{margin-top:6px;font-size:12px;color:var(--mut)}.ma-calc b{color:var(--txt)}
+.ma-prev{margin-top:8px;font-size:12px;color:var(--mut);border-top:1px dashed var(--line);padding-top:6px}
 .seg button.on{background:var(--panel2);color:var(--txt);box-shadow:inset 0 0 0 1px var(--acc)}
 .mfwrap{display:grid;grid-template-columns:minmax(0,3fr) minmax(280px,1fr);gap:8px;align-items:start}
 .mfcols{columns:4 230px;column-gap:10px}
@@ -246,7 +262,7 @@ body.embed header.top{display:none}
     </div>
     <div id="alertArea" style="margin-top:10px"></div>
   </div>
-  <div class="seg" id="subSeg"><button type="button" data-sub="fil" class="on">🧫 Filamentosos</button><button type="button" data-sub="mf">🦠 Protozoos y metazoos <span id="mfCount"></span></button></div>
+  <div class="seg" id="subSeg"><button type="button" data-sub="fil" class="on">🧫 Filamentosos</button><button type="button" data-sub="mf">🦠 Protozoos y metazoos <span id="mfCount"></span></button><button type="button" data-sub="macro">🧪 Macroscopía <span id="maCount"></span></button></div>
   <div id="subFil"><div class="card idwrap"><table class="idf" id="idTable"></table></div></div>
   <div id="subMf" style="display:none"><div class="mfwrap">
     <div class="card"><div class="mfcols" id="mfGrid"></div><div class="note" style="margin-top:4px">Abundancia: + escaso · ++ frecuente · +++ abundante · D dominante. Pulsa otra vez para quitarlo. Pasa el ratón por un nombre para ver las especies que incluye.</div></div>
@@ -255,6 +271,7 @@ body.embed header.top{display:none}
       <div class="note">Densidad: <b id="mfInd" style="color:var(--txt);font-size:15px">—</b> ind/ml</div>
       <h3>Diagnóstico de bioindicación</h3><div id="mfDiag"></div></div>
   </div></div>
+  <div id="subMacro" style="display:none"><div class="mawrap" id="maGrid"></div></div>
   <div class="card obsrow" style="margin-top:8px">
     <textarea id="hObs" rows="1" class="ta" placeholder="📝 Observaciones: aspecto del licor mezcla, olor, espumas, protozoos, incidencias…"></textarea>
     <label class="drop-z"><input type="file" id="fotoIn" accept="image/*" multiple hidden>📷 Adjuntar fotos</label>
@@ -734,7 +751,7 @@ function score(obs){
   return out.sort((a,b)=>b.pct-a.pct);
 }
 const NCOL=4;let STATE=newState();
-function newState(){return {cols:Array.from({length:NCOL},()=>({obs:{ot:[]},final:'',ab:''})),indice:null,floculo:null,fotos:[],editId:null,mf:{items:{},cont:{n:null,gotas:2}}};}
+function newState(){return {cols:Array.from({length:NCOL},()=>({obs:{ot:[]},final:'',ab:''})),indice:null,floculo:null,fotos:[],editId:null,mf:{items:{},cont:{n:null,gotas:2}},macro:{f:{},fotos:{lm:[],esp:[]}}};}
 function nFilled(obs){return FIELDS.filter(f=>!f.multi&&obs[f.k]!=null&&obs[f.k]!==''&&!(Array.isArray(obs[f.k])&&obs[f.k][0]==null&&obs[f.k][1]==null)).length;}
 function buildTable(){
   let h=`<thead><tr><th style="text-align:left">Parámetro</th>${Array.from({length:NCOL},(_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr></thead><tbody>`;
@@ -789,16 +806,18 @@ function loadRecs(){return lsGet(BIO_KEY,[]);}
 function sortRecs(a){return a.sort((x,y)=>((y.fecha||'')+(y.hora||'')).localeCompare((x.fecha||'')+(x.hora||''))||(y.id-x.id));}
 function saveRecs(a){sortRecs(a);if(lsSet(BIO_KEY,a))return true;
   // sin espacio: conservar fotos solo de los 10 registros más recientes
-  const b=a.map((r,i)=>i<10?r:{...r,fotos:[]});if(lsSet(BIO_KEY,b)){msg('Memoria llena: se han quitado las fotos de los registros antiguos');return true;}
+  const b=a.map((r,i)=>i<10?r:{...r,fotos:[],macro:r.macro?{...r.macro,fotos:{lm:[],esp:[]}}:r.macro});if(lsSet(BIO_KEY,b)){msg('Memoria llena: se han quitado las fotos de los registros antiguos');return true;}
   msg('⚠ No se pudo guardar: memoria del navegador llena');return false;}
 function fb(){try{const p=window.parent;if(p&&p!==window&&p._fb&&p._fb.db)return p._fb;}catch(e){}return null;}
 function fbPush(rec){const f=fb();if(!f)return;const {fotos,...r}=rec;r.nFotos=(fotos||[]).length;
+  if(r.macro){const mf=r.macro.fotos||{};r.macro={f:r.macro.f||{},nFotos:{lm:(mf.lm||[]).length,esp:(mf.esp||[]).length}};}
   f.set(f.ref(f.db,FB_NODE+'/'+rec.id),JSON.parse(JSON.stringify(r))).catch(e=>console.warn('FB bio',e));}
 function fbDel(id){const f=fb();if(!f)return;f.set(f.ref(f.db,FB_NODE+'/'+id),null).catch(()=>{});}
 async function fbSync(){const f=fb(),info=$('#syncInfo');
   if(!f){info.textContent='Modo independiente: los registros se guardan en este navegador.';return;}
   try{const snap=await f.get(f.ref(f.db,FB_NODE));const rem=snap.val()||{};const loc=loadRecs();const byId=Object.fromEntries(loc.map(r=>[String(r.id),r]));let n=0;
-    for(const [id,r] of Object.entries(rem)){const l=byId[id];if(!l){loc.push({...r,fotos:[]});n++;}else if((r.ts||0)>(l.ts||0)){Object.assign(l,{...r,fotos:l.fotos||[]});n++;}}
+    const maMerge=(r,l)=>r.macro?{...r.macro,fotos:(l&&l.macro&&l.macro.fotos)||{lm:[],esp:[]}}:(r.macro===undefined&&l?l.macro:null);
+    for(const [id,r] of Object.entries(rem)){const l=byId[id];if(!l){loc.push({...r,fotos:[],macro:maMerge(r,null)});n++;}else if((r.ts||0)>(l.ts||0)){Object.assign(l,{...r,fotos:l.fotos||[],macro:maMerge(r,l)});n++;}}
     if(n){saveRecs(loc);notifyParent();}
     info.textContent=`Sincronizado con Firebase · ${Object.keys(rem).length} registros compartidos entre equipos (las fotos se quedan en el dispositivo que las tomó).`;renderHist();
   }catch(e){info.textContent='Sin conexión con Firebase: los registros se guardan en este dispositivo.';}}
@@ -836,23 +855,24 @@ function buildRecord(){const h=hdr();const fil=filamentosArr();
   const dom=fil.slice().sort((a,b)=>(b.abundancia??-1)-(a.abundancia??-1))[0];
   const tr=(v)=>v==='+'?'pos':v==='-'?'neg':'nd';
   return {id:STATE.editId||Date.now(),v:2,ts:Date.now(),fecha:h.fecha,hora:h.hora,operador:h.oper||'—',punto:h.planta,ivf:h.ivf,sst:h.sst,edad:h.edad,fm:h.fm,od:h.od,temp:h.temp,
-    indice,floculo:STATE.floculo,generos:[...new Set(fil.map(f=>f.nombre).filter(Boolean))],gram:dom?tr(dom.obs.g):'nd',neisser:dom?tr(dom.obs.nt):'nd',obs:h.obs||'',fotos:STATE.fotos.slice(),filamentos:fil,microfauna:mfRecord(h)};}
+    indice,floculo:STATE.floculo,generos:[...new Set(fil.map(f=>f.nombre).filter(Boolean))],gram:dom?tr(dom.obs.g):'nd',neisser:dom?tr(dom.obs.nt):'nd',obs:h.obs||'',fotos:STATE.fotos.slice(),filamentos:fil,microfauna:mfRecord(h),macro:maRecord()};}
 function mfRecord(h){const mf=mfState();if(!Object.keys(mf.items).length&&mf.cont.n==null)return null;return {items:{...mf.items},cont:{...mf.cont},diag:mfDiag(mf,{fm:h.fm})};}
 function guardar(){const r=buildRecord();
   if(!r.fecha){msg('Introduce la fecha del análisis');return;}
-  if(r.indice==null){msg('Selecciona el índice de filamentosas (0–5) o la abundancia de algún filamento');$('#idxGrid').scrollIntoView({behavior:'smooth',block:'center'});return;}
+  if(r.indice==null&&!r.macro){msg('Selecciona el índice de filamentosas (0–5) o la abundancia de algún filamento');$('#idxGrid').scrollIntoView({behavior:'smooth',block:'center'});return;}
   const a=loadRecs();const i=a.findIndex(x=>x.id===r.id);if(i>=0)a[i]=r;else a.unshift(r);
   if(!saveRecs(a))return;fbPush(r);STATE.editId=r.id;persistDraft();markEdit();renderHist();notifyParent();msg(i>=0?'Registro actualizado ✔':'Registro guardado ✔');}
 function markEdit(){$('#editTag').style.display=STATE.editId?'':'none';}
-function nuevo(force){const filled=STATE.cols.some(c=>nFilled(c.obs)>0)||STATE.indice!=null||STATE.fotos.length||Object.keys(mfState().items).length;
+function nuevo(force){const filled=STATE.cols.some(c=>nFilled(c.obs)>0)||STATE.indice!=null||STATE.fotos.length||Object.keys(mfState().items).length||!!maRecord();
   if(!force&&filled&&!STATE.editId&&!confirmClear())return;
   const op=$('#hOper').value;STATE=newState();for(const s of Object.values(HF))if(s!=='#hPlanta')$(s).value='';$('#hOper').value=op||sessionName();$('#hFecha').value=todayISO();$('#hHora').value=nowHM();
-  setInputs();renderIdxFloc();renderFotos();renderMF();markEdit();persistDraft();}
+  setInputs();renderIdxFloc();renderFotos();renderMF();renderMacro();markEdit();persistDraft();}
 function cargar(id){const r=loadRecs().find(x=>x.id===id);if(!r)return;STATE=newState();STATE.editId=r.id;STATE.indice=r.indice??null;STATE.floculo=r.floculo||null;STATE.fotos=(r.fotos||[]).slice();STATE.mf=r.microfauna?{items:{...(r.microfauna.items||{})},cont:{n:null,gotas:2,...(r.microfauna.cont||{})}}:{items:{},cont:{n:null,gotas:2}};
+  STATE.macro=r.macro?{f:{...(r.macro.f||{})},fotos:{lm:((r.macro.fotos||{}).lm||[]).slice(),esp:((r.macro.fotos||{}).esp||[]).slice()}}:{f:{},fotos:{lm:[],esp:[]}};
   if(r.filamentos&&r.filamentos.length){r.filamentos.forEach((f,i)=>{if(i<NCOL){STATE.cols[i].obs={ot:[],...f.obs};STATE.cols[i].final=f.manual?f.identificacion:'';STATE.cols[i].ab=f.abundancia??'';}});}
   else (r.generos||[]).map(g=>OLD_GEN[g]).filter(Boolean).slice(0,NCOL).forEach((id,i)=>{STATE.cols[i].final=id;});
   setHdr({fecha:r.fecha,hora:r.hora,planta:r.punto,oper:r.operador==='—'?'':r.operador,ivf:r.ivf,sst:r.sst,edad:r.edad,fm:r.fm,od:r.od,temp:r.temp,obs:r.obs});
-  setInputs();renderIdxFloc();renderFotos();renderMF();markEdit();persistDraft();showTab('identificar');window.scrollTo({top:0,behavior:'smooth'});}
+  setInputs();renderIdxFloc();renderFotos();renderMF();renderMacro();markEdit();persistDraft();showTab('identificar');window.scrollTo({top:0,behavior:'smooth'});}
 function eliminar(id,btn){if(btn.dataset.arm!=='1'){btn.dataset.arm='1';btn.textContent='¿Seguro? Pulsa otra vez';setTimeout(()=>{btn.dataset.arm='';btn.textContent='🗑 Eliminar';},3000);return;}
   const a=loadRecs().filter(r=>r.id!==id);saveRecs(a);fbDel(id);if(STATE.editId===id){STATE.editId=null;markEdit();}renderHist();notifyParent();}
 
@@ -864,7 +884,7 @@ function renderHist(){const R=loadRecs();
     ${r.indice!=null?`<span class="chip ib${r.indice}">Índice ${r.indice} · ${IDX_DESC[r.indice]}</span>`:''}${r.ivf?`<span class="chip">IVF ${r.ivf} ml/g</span>`:''}${r.punto?`<span class="mut" style="font-size:12.5px">${esc(r.punto)}</span>`:''}
     <span class="row" style="margin-left:auto"><button class="btn" data-open="${r.id}">✏️ Abrir</button><button class="btn" data-pdf="${r.id}">📄 PDF</button><button class="btn dan" data-del="${r.id}">🗑 Eliminar</button></span></div>
     <div class="st"><span>SST <b>${r.sst??'—'}</b></span><span>Edad <b>${r.edad??'—'}</b> d</span><span>F/M <b>${r.fm??'—'}</b></span><span>OD <b>${r.od??'—'}</b></span><span>Flóculo <b>${r.floculo||'—'}</b></span><span>Analista <b>${esc(r.operador||'—')}</b></span>${!r.v?'<span class="chip">registro antiguo</span>':''}</div>
-    <div class="row" style="gap:5px">${recGenTags(r)}${mfResumen(r)}</div>${r.obs?`<div class="note" style="margin-top:6px;font-style:italic">“${esc(r.obs)}”</div>`:''}
+    <div class="row" style="gap:5px">${recGenTags(r)}${mfResumen(r)}${maResumen(r)}</div>${r.obs?`<div class="note" style="margin-top:6px;font-style:italic">“${esc(r.obs)}”</div>`:''}
     ${r.fotos&&r.fotos.length?`<div class="fotos" style="grid-template-columns:repeat(auto-fill,64px)">${r.fotos.map(f=>`<div><img src="${f}"></div>`).join('')}</div>`:(r.nFotos?`<div class="note">${r.nFotos} foto(s) en otro dispositivo</div>`:'')}</div>`).join('')
    :'<span class="mut">Sin registros todavía. Guarda el primer análisis desde la pestaña Análisis.</span>';
   renderTrend(R);renderAlerts(R);renderFreq(R);}
@@ -891,8 +911,8 @@ function renderFreq(R){const c={};R.forEach(r=>(r.generos||[]).forEach(g0=>{cons
   $('#freq').innerHTML=s.length?`<table class="t">${s.map(([g,n])=>`<tr><th style="width:55%"><i>${g}</i></th><td style="width:40px">${n}</td><td><div class="bar" style="height:6px;background:#1c3352;border-radius:4px"><i style="display:block;height:100%;border-radius:4px;background:var(--acc2);width:${Math.round(n/s[0][1]*100)}%"></i></div></td></tr>`).join('')}</table>`:'<span class="mut">Aún no hay filamentos registrados.</span>';}
 function exportCSV(){const R=loadRecs();if(!R.length){msg('Sin registros');return;}
   const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
-  const h=['Fecha','Hora','Punto','Analista','Indice','IVF','SST','Edad_d','FM','OD','Temp','Floculo','Gram','Neisser','Filamentos','Abundancias','Causas','Microfauna','Calidad_microfauna','Ciliados_ind_ml','Obs'];
-  const rows=R.map(r=>[r.fecha,r.hora,r.punto,r.operador,r.indice,r.ivf,r.sst,r.edad,r.fm,r.od,r.temp,r.floculo,r.gram,r.neisser,(r.generos||[]).join('; '),(r.filamentos||[]).map(f=>f.abundancia??'').join('; '),[...new Set((r.filamentos||[]).flatMap(f=>f.causas||[]))].join('; '),r.microfauna?Object.entries(r.microfauna.items||{}).map(([k,v])=>(MFBY[k]?MFBY[k].n:k)+' '+AB_LBL[v]).join('; '):'',r.microfauna&&r.microfauna.diag?r.microfauna.diag.cal:'',r.microfauna&&r.microfauna.diag?r.microfauna.diag.indml:'',r.obs].map(q).join(';'));
+  const h=['Fecha','Hora','Punto','Analista','Indice','IVF','SST','Edad_d','FM','OD','Temp','Floculo','Gram','Neisser','Filamentos','Abundancias','Causas','Microfauna','Calidad_microfauna','Ciliados_ind_ml','V5_ml','V30_ml','pH','Conductividad_uS_cm','Velocidad_sedimentacion','Espumas_reactores','Obs'];
+  const rows=R.map(r=>[r.fecha,r.hora,r.punto,r.operador,r.indice,r.ivf,r.sst,r.edad,r.fm,r.od,r.temp,r.floculo,r.gram,r.neisser,(r.generos||[]).join('; '),(r.filamentos||[]).map(f=>f.abundancia??'').join('; '),[...new Set((r.filamentos||[]).flatMap(f=>f.causas||[]))].join('; '),r.microfauna?Object.entries(r.microfauna.items||{}).map(([k,v])=>(MFBY[k]?MFBY[k].n:k)+' '+AB_LBL[v]).join('; '):'',r.microfauna&&r.microfauna.diag?r.microfauna.diag.cal:'',r.microfauna&&r.microfauna.diag?r.microfauna.diag.indml:'',...(()=>{const m=(r.macro&&r.macro.f)||{};return [m.v5,m.v30,m.ph,m.cond,m.vsed,m.espReac];})(),r.obs].map(q).join(';'));
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+[h.join(';'),...rows].join('\n')],{type:'text/csv'}));a.download=`sgi-bio-filamentosas-${todayISO()}.csv`;document.body.appendChild(a);a.click();a.remove();}
 
 /* informe PDF (ventana imprimible) */
@@ -921,13 +941,14 @@ function informePDF(rec){if(!rec){msg('No hay registro');return;}
   .footer{margin-top:20px;font-size:8.5px;color:#7a8fa8;border-top:1px solid #d0dce8;padding-top:8px;display:flex;justify-content:space-between}</style></head><body>
   <div class="header"><h1>🔬 Informe de biología del fango activo</h1><div class="sub">EDAR · ${esc(rec.punto||'REACTOR BIOLÓGICO')}</div>
   <div class="meta">Fecha del análisis: <span class="amber">${rec.fecha}${rec.hora?' · '+rec.hora:''}</span> | Analista: <span class="amber">${esc(rec.operador||'—')}</span> | Impreso: ${ahora}</div></div>
-  <div class="section">Índice de filamentosas (escala Jenkins)</div>
-  <div style="display:flex;align-items:center;gap:16px">${rec.indice!=null?`<span class="badge" style="background:${bC(rec.indice)};color:${bT(rec.indice)}">${rec.indice} / 5 · ${IDX_DESC[rec.indice]}</span>`:''}
+  ${rec.indice!=null?`<div class="section">Índice de filamentosas (escala Jenkins)</div>`:''}
+  <div style="display:${rec.indice!=null?'flex':'none'};align-items:center;gap:16px">${rec.indice!=null?`<span class="badge" style="background:${bC(rec.indice)};color:${bT(rec.indice)}">${rec.indice} / 5 · ${IDX_DESC[rec.indice]}</span>`:''}
   ${rec.indice>=4?'<div class="box r">🚨 Acción correctora urgente. Valorar cloración selectiva en recirculación.</div>':rec.indice===3?'<div class="box a">⚠️ Filamentosas moderadas. Se recomienda intervención operacional.</div>':'<div class="box g">✓ Nivel bajo o aceptable. Mantener vigilancia.</div>'}</div>
   <div class="section">Parámetros operacionales</div><table><tr><th>Parámetro</th><th>Valor</th><th>Unidad</th></tr>
   <tr><td>IVF</td><td class="${rec.ivf>200?'bad':rec.ivf>150?'warn':'ok'}">${rec.ivf??'—'}</td><td>ml/g</td></tr><tr><td>SST reactor</td><td>${rec.sst??'—'}</td><td>mg/l</td></tr><tr><td>Edad de fango</td><td>${rec.edad??'—'}</td><td>días</td></tr>
   <tr><td>F/M</td><td>${rec.fm??'—'}</td><td>kgDBO/kgSS·d</td></tr><tr><td>OD reactor</td><td class="${rec.od!=null&&rec.od<1.5?'warn':'ok'}">${rec.od??'—'}</td><td>mg/l</td></tr><tr><td>Temperatura afluente</td><td>${rec.temp??'—'}</td><td>°C</td></tr><tr><td>Morfología del flóculo</td><td colspan="2">${rec.floculo||'—'}</td></tr></table>
   ${rec.ivf>200?'<div class="box r">🚨 IVF superior a 200 ml/g: bulking filamentoso probable.</div>':rec.ivf>150?'<div class="box a">⚠️ IVF por encima de 150 ml/g. Vigilar la decantación.</div>':''}
+  ${maPdf(rec)}
   ${filTab}${causas.length?`<div class="box a"><b>Causas probables de proliferación:</b> ${causas.join(', ')}.</div>`:''}
   ${mfPdf(rec)}
   ${!fil.length&&rec.generos&&rec.generos.length?`<div class="section">Géneros identificados</div><p>${rec.generos.map(g=>`<i>${g}</i>`).join(', ')}</p>`:''}
@@ -1093,7 +1114,7 @@ function initMF(){
  $('#mfN').oninput=()=>{mfState().cont.n=num($('#mfN').value);renderMFDiag();persistDraft();};
  $('#mfG').oninput=()=>{mfState().cont.gotas=num($('#mfG').value);renderMFDiag();persistDraft();};
  $('#hFM').addEventListener('input',renderMFDiag);
- $('#subSeg').onclick=e=>{const b=e.target.closest('[data-sub]');if(!b)return;$$('#subSeg button').forEach(x=>x.classList.toggle('on',x===b));$('#subFil').style.display=b.dataset.sub==='fil'?'':'none';$('#subMf').style.display=b.dataset.sub==='mf'?'':'none';setTimeout(fitAnalisis,0);};
+ $('#subSeg').onclick=e=>{const b=e.target.closest('[data-sub]');if(!b)return;$$('#subSeg button').forEach(x=>x.classList.toggle('on',x===b));$('#subFil').style.display=b.dataset.sub==='fil'?'':'none';$('#subMf').style.display=b.dataset.sub==='mf'?'':'none';$('#subMacro').style.display=b.dataset.sub==='macro'?'':'none';setTimeout(fitAnalisis,0);};
  renderMF();
 }
 function mfResumen(r){const d=r.microfauna&&r.microfauna.diag;if(!d)return '';return `<span class="chip">🦠 ${d.n} taxones${d.cal?` · calidad ${d.cal.toLowerCase()}`:''}${d.indml!=null?` · ${d.indml.toLocaleString('es-ES')} cil/ml`:''}</span>`;}
@@ -1126,6 +1147,91 @@ function mfPdf(rec){const m=rec.microfauna;if(!m||!m.items||!Object.keys(m.items
  <table><tr><th style="width:25%">Grupo</th><th>Organismos observados (abundancia: + escaso, ++ frecuente, +++ abundante, D dominante)</th></tr>${rows}</table>
  ${d?d.msgs.map(([l,t])=>`<div class="box ${col[l]}">${t}</div>`).join(''):''}`;}
 
+
+/* =====================================================================
+   MACROSCOPÍA — descripción del licor mezcla (V30) y de las espumas
+   Cada campo acepta texto libre; las opciones son sugerencias rápidas.
+   ===================================================================== */
+const MA_SECS=[
+ {id:'lm',t:'1. Licor mezcla',sub:'Características de la V30:',fotoLbl:'📷 Foto de la probeta (V30)',fields:[
+  {k:'olor',l:'Olor',o:['Olor habitual','Olor a tierra húmeda','Olor séptico','Olor a sulfhídrico (huevos podridos)','Olor químico / disolvente']},
+  {k:'color',l:'Color',o:['Posee color marrón','Marrón claro','Marrón oscuro','Gris','Negro','Amarillento']},
+  {k:'grasas',l:'Presencia de grasas',o:['No se observan','Escasas','Abundantes']},
+  {k:'reflote',l:'Reflote',o:['No se observa','Ligero reflote de flóculos','Reflote abundante (posible desnitrificación)']},
+  {k:'clarif',l:'Clarificado',o:['Transparente','Con algunos flóculos en suspensión','Con numerosos flóculos en suspensión','Turbio']},
+  {k:'vsed',l:'Velocidad sedimentación',o:['Muy rápida','Rápida','Normal','Lenta','Muy lenta','No sedimenta']},
+  {k:'bioag',l:'Bioagregación',o:['Flóculos pequeños','Flóculos medianos','Flóculos grandes','Flóculos dispersos (pin-point)','Flóculos esponjosos']},
+  {k:'cond',l:'Conductividad',u:'µS/cm',num:1,step:'1'},
+  {k:'ph',l:'pH',num:1,step:'0.01'},
+  {k:'dil',l:'Dilución',o:['Sin diluir','1:2','1:3','1:4']},
+  {k:'v5',l:'V5',u:'ml',num:1,step:'1',eq:1},
+  {k:'v30',l:'V30',u:'ml',num:1,step:'1',eq:1}]},
+ {id:'esp',t:'2. Espumas en probeta/reactores',sub:'En el caso de presentar espumas definiremos los siguientes parámetros:',fotoLbl:'📷 Fotos de probeta y reactores',fields:[
+  {k:'espProb',l:'Presencia de espumas en probeta',o:['No se observan','Escasas','Abundantes']},
+  {k:'grasProb',l:'Presencia de grasas en probeta',o:['No presenta','Escasas','Abundantes']},
+  {k:'turb',l:'Turbidez',o:['Baja','Media','Alta','Media, causada por flóculos diminutos en suspensión']},
+  {k:'espReac',l:'Presencia de espumas en la superficie de los reactores biológicos',o:['No se observan espumas en la superficie de los reactores','Espuma blanca ligera','Espuma blanca abundante','Espuma marrón ligera','Espuma marrón espesa y estable','Espuma oscura / negra']}]}
+];
+const MA_FIELDS=MA_SECS.flatMap(S=>S.fields);
+function maState(){if(!STATE.macro)STATE.macro={f:{},fotos:{lm:[],esp:[]}};if(!STATE.macro.f)STATE.macro.f={};if(!STATE.macro.fotos)STATE.macro.fotos={lm:[],esp:[]};['lm','esp'].forEach(k=>{if(!STATE.macro.fotos[k])STATE.macro.fotos[k]=[];});return STATE.macro;}
+function maFmtNum(v){return v==null||v===''?'':String(v).replace('.',',');}
+function maVal(m,F){const v=m[F.k];if(v==null||v==='')return '';if(F.num){return F.eq?`${maFmtNum(v)} ml`:`${maFmtNum(v)}${F.u?' '+F.u:''}`;}return String(v);}
+function maRecord(){const m=maState();const f={};for(const F of MA_FIELDS){const v=m.f[F.k];if(v!=null&&v!=='')f[F.k]=v;}
+  const nf=m.fotos.lm.length+m.fotos.esp.length;if(!Object.keys(f).length&&!nf)return null;
+  return {f,fotos:{lm:m.fotos.lm.slice(),esp:m.fotos.esp.slice()}};}
+function maDilFactor(d){const x=String(d||'').match(/1\s*:\s*(\d+)/);return x?+x[1]:1;}
+function maIVF(){const m=maState().f;const v30=num(m.v30),sst=num($('#hSST').value);if(v30==null||!sst)return null;return Math.round(v30*maDilFactor(m.dil)*1000/sst);}
+function renderMacro(){const m=maState();
+  $('#maGrid').innerHTML=MA_SECS.map(S=>`<div class="card"><div class="ma-h">${S.t.toUpperCase()}</div><p class="ma-sub">${S.sub}</p>
+    <div class="ma-f">${S.fields.map(F=>{const v=m.f[F.k];const val=v==null?'':esc(String(v));
+      const inp=F.num?`<input type="number" step="${F.step||'any'}" data-ma="${F.k}" value="${val}">`:`<input data-ma="${F.k}" list="maDl_${F.k}" value="${val}" placeholder="Elige o escribe…"><datalist id="maDl_${F.k}">${F.o.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`;
+      return `<label for="">${F.l}</label><div class="ma-u">${inp}${F.u?`<span>${F.u}</span>`:''}</div>`;}).join('')}</div>
+    ${S.id==='lm'?'<div class="ma-calc" id="maCalc"></div>':''}
+    <div class="ma-fotos"><label class="drop-z"><input type="file" accept="image/*" multiple hidden data-mafoto="${S.id}">${S.fotoLbl}</label>
+      <div class="fotos">${m.fotos[S.id].map((x,i)=>`<div><img src="${x}"><button type="button" data-madel="${S.id}:${i}">✕</button></div>`).join('')}</div></div></div>`).join('')
+    +`<div class="card" style="grid-column:1/-1"><div class="ma-prev" style="border:0;margin:0;padding:0" id="maPrev"></div></div>`;
+  renderMacroCalc();}
+function renderMacroCalc(){const m=maState();const c=$('#maCalc');
+  if(c){const ivf=maIVF(),v5=num(m.f.v5),v30=num(m.f.v30);let h='';
+    if(ivf!=null)h+=`IVF calculado con la V30 y los SST de la cabecera (probeta de 1 l${maDilFactor(m.f.dil)>1?', dilución '+m.f.dil:''}): <b>${ivf} ml/g</b> <button type="button" class="btn" id="maUseIVF" style="padding:1px 8px;margin-left:4px">Usar como IVF</button>`;
+    else if(v30!=null)h+='Introduce los SST del reactor en la cabecera para calcular el IVF a partir de la V30.';
+    c.innerHTML=h;}
+  const p=$('#maPrev');if(p){const n=MA_FIELDS.filter(F=>m.f[F.k]!=null&&m.f[F.k]!=='').length,nf=m.fotos.lm.length+m.fotos.esp.length;
+    p.innerHTML=n||nf?`✔ ${n} de ${MA_FIELDS.length} características anotadas · ${nf} foto${nf===1?'':'s'}. Saldrá en el informe PDF como apartado «Descripción macroscópica».`:'Rellena lo que hayas observado: lo que dejes en blanco no sale en el informe. Cada campo admite texto libre; la lista son solo sugerencias.';}
+  const cnt=$('#maCount');if(cnt){const n=MA_FIELDS.filter(F=>m.f[F.k]!=null&&m.f[F.k]!=='').length;cnt.textContent=n?`(${n})`:'';}}
+function initMacro(){maState();renderMacro();
+  const g=$('#maGrid');
+  g.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.ma)return;const F=MA_FIELDS.find(x=>x.k===el.dataset.ma);const m=maState();
+    const v=F.num?num(el.value):el.value;if(v==null||v==='')delete m.f[F.k];else m.f[F.k]=v;renderMacroCalc();persistDraft();});
+  g.addEventListener('change',async e=>{const el=e.target;if(!el.dataset||!el.dataset.mafoto)return;const k=el.dataset.mafoto;const m=maState();
+    for(const fl of el.files){const x=await compressImg(fl);if(x)m.fotos[k].push(x);}el.value='';renderMacro();persistDraft();});
+  g.addEventListener('click',e=>{const d=e.target.closest('[data-madel]');if(d){const [k,i]=d.dataset.madel.split(':');maState().fotos[k].splice(+i,1);renderMacro();persistDraft();return;}
+    if(e.target.id==='maUseIVF'){const v=maIVF();if(v!=null){$('#hIVF').value=v;chkAlert();persistDraft();msg('IVF actualizado con la V30: '+v+' ml/g');}}});
+  $('#hSST').addEventListener('input',renderMacroCalc);}
+function maResumen(r){const m=r.macro&&r.macro.f;if(!m||!Object.keys(m).length)return '';const p=[];if(m.v30!=null)p.push('V30 '+maFmtNum(m.v30)+' ml');if(m.vsed)p.push(String(m.vsed).toLowerCase());if(m.espReac&&!/^no /i.test(m.espReac))p.push('espumas');return `<span class="chip">🧪 Macroscopía${p.length?' · '+esc(p.join(' · ')):''}</span>`;}
+function maPdf(rec){const M=rec.macro;if(!M)return '';const m=M.f||{},fo=M.fotos||{lm:[],esp:[]};
+  const has=F=>m[F.k]!=null&&m[F.k]!=='';
+  const lm=MA_SECS[0],es=MA_SECS[1];
+  // Cifras del ensayo en tarjetas; las observaciones cualitativas en tabla
+  const kpi=[['v30','V30','ml'],['v5','V5','ml'],['ph','pH',''],['cond','Conductividad','µS/cm']].filter(([k])=>m[k]!=null&&m[k]!=='');
+  const ivf=(m.v30!=null&&rec.sst)?Math.round(num(m.v30)*maDilFactor(m.dil)*1000/rec.sst):null;
+  const kp=kpi.length||ivf!=null?`<div class="mk">${kpi.map(([k,l,u])=>`<div><span>${l}</span><b>${maFmtNum(m[k])}</b><em>${u}</em></div>`).join('')}${ivf!=null?`<div><span>IVF (V30/SST)</span><b>${ivf}</b><em>ml/g</em></div>`:''}</div>`:'';
+  const rows=S=>S.fields.filter(F=>!F.num&&has(F)).map(F=>`<tr><td class="ml">${F.l}</td><td>${esc(String(m[F.k]))}</td></tr>`).join('');
+  let n=0;const fig=(src,cap)=>{n++;return `<figure class="mf"><img src="${src}"><figcaption>Foto ${n} · ${cap}</figcaption></figure>`;};
+  const r1=rows(lm),r2=rows(es),p1=fo.lm||[],p2=fo.esp||[];
+  if(!kp&&!r1&&!r2&&!p1.length&&!p2.length)return '';
+  const nRem=M.nFotos?(M.nFotos.lm||0)+(M.nFotos.esp||0):0;
+  return `<style>.mk{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}.mk div{flex:1;min-width:90px;border:1px solid #d0dce8;border-top:3px solid #2b7bb9;border-radius:4px;padding:5px 9px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mk span{display:block;font-size:9px;color:#5a6f8a;letter-spacing:.02em}.mk b{font-size:16px;color:#0d2b4e}.mk em{font-style:normal;font-size:9px;color:#5a6f8a;margin-left:3px}
+  .msub{font-size:10px;font-weight:700;color:#1a4a7a;margin:10px 0 4px}.ml{width:38%;color:#3a5070;background:#f7f9fc;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mrow{display:flex;gap:12px;align-items:flex-start}.mrow>table{flex:1;margin-top:0}
+  .mfs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0 10px;break-inside:avoid}
+  .mf{margin:0;break-inside:avoid}.mf img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:4px;border:1px solid #d0dce8;display:block}.mf figcaption{font-size:8.5px;color:#5a6f8a;margin-top:2px;text-align:center}</style>
+  <div class="section">Descripción macroscópica</div>${kp}
+  ${r1||p1.length?`<div class="msub">Licor mezcla · ensayo de decantación (V30)</div><div class="mrow">${r1?`<table>${r1}</table>`:''}${p1[0]?`<div style="width:22%">${fig(p1[0],'probeta V30')}</div>`:''}</div>${p1.length>1?`<div class="mfs">${p1.slice(1).map(x=>fig(x,'licor mezcla')).join('')}</div>`:''}`:''}
+  ${r2||p2.length?`<div class="msub">Espumas en probeta y reactores</div>${r2?`<table>${r2}</table>`:''}${p2.length?`<div class="mfs">${p2.map(x=>fig(x,'espumas / reactores')).join('')}</div>`:''}`:''}
+  ${nRem&&!p1.length&&!p2.length?`<p style="color:#7a8fa8;font-style:italic">${nRem} foto(s) macroscópicas guardadas en otro dispositivo</p>`:''}`;}
+
 /* autoajuste: reduce la vista de Análisis para que quepa sin scroll en pantallas de escritorio */
 function fitAnalisis(){const sec=$('#t-identificar');if(!sec)return;sec.style.zoom='';
   if(!sec.classList.contains('on')||innerWidth<1100)return;
@@ -1137,7 +1243,7 @@ function initIdent(){
   buildTable();
   const d=lsGet(LS_DRAFT,null);if(d&&d.st&&d.st.cols){STATE={...newState(),...d.st};setHdr(d.h);}
   if(!$('#hFecha').value)$('#hFecha').value=todayISO();if(!$('#hHora').value)$('#hHora').value=nowHM();if(!$('#hOper').value)$('#hOper').value=sessionName();
-  if(!STATE.mf)STATE.mf={items:{},cont:{n:null,gotas:2}};initMF();renderProtoGuide();setInputs();renderIdxFloc();renderFotos();markEdit();renderHist();fbSync();setTimeout(fitAnalisis,50);
+  if(!STATE.mf)STATE.mf={items:{},cont:{n:null,gotas:2}};initMF();initMacro();renderProtoGuide();setInputs();renderIdxFloc();renderFotos();markEdit();renderHist();fbSync();setTimeout(fitAnalisis,50);
   Object.values(HF).forEach(s=>$(s).addEventListener('change',()=>{persistDraft();chkAlert();}));$('#hIVF').addEventListener('input',chkAlert);
   $('#idxGrid').onclick=e=>{const b=e.target.closest('[data-idx]');if(!b)return;const i=+b.dataset.idx;STATE.indice=STATE.indice===i?null:i;renderIdxFloc();persistDraft();};
   $('#flocGrid').onclick=e=>{const b=e.target.closest('[data-floc]');if(!b)return;const f=b.dataset.floc;STATE.floculo=STATE.floculo===f?null:f;renderIdxFloc();persistDraft();};
@@ -1160,7 +1266,7 @@ function buildPrint(){
   let rows=FIELDS.map(f=>`<tr><td class="l">${f.lab}</td>${cols.map(c=>`<td>${esc(String(val(c,f)))}</td>`).join('')}</tr>`).join('');
   rows+=`<tr class="fil"><td class="l">FILAMENTOS:</td>${cols.map(c=>{const id=c.final||(c.top&&c.top[0]?.id);return `<td>${id?OBYID[id].n:''}${c.top&&c.top[0]&&!c.final?`<br><small>(${c.top[0].pct.toFixed(0)}%)</small>`:''}</td>`;}).join('')}</tr>`;
   rows+=`<tr><td class="l">Abundancia (0–5)</td>${cols.map(c=>`<td>${c.ab}</td>`).join('')}</tr>`;
-  $('#printSheet').innerHTML=`<h1>Identificación de microorganismos filamentosos</h1><p>Fecha: <b>${r.fecha||''} ${r.hora||''}</b> · Punto: <b>${esc(r.punto)}</b> · Índice: <b>${r.indice??'—'}</b> · IVF: <b>${r.ivf??'—'}</b> ml/g · Analista: <b>${esc(r.operador)}</b></p><table><tr><th class="l"></th>${cols.map((_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr>${rows}</table><p style="font-size:9pt;margin-top:10px">Causas asociadas: ${[...new Set(r.filamentos.flatMap(f=>f.causas))].join(', ')||'—'}</p>${(()=>{const m=r.microfauna;if(!m||!Object.keys(m.items||{}).length)return '';return `<p style="font-size:9.5pt;margin-top:8px"><b>Protozoos y metazoos:</b> ${Object.entries(m.items).map(([k,v])=>`${MFBY[k].n} ${AB_LBL[v]}`).join(' · ')}${m.diag&&m.diag.cal?` — calidad estimada: <b>${m.diag.cal}</b>`:''}${m.diag&&m.diag.indml!=null?` · ${m.diag.indml} ciliados/ml`:''}</p>`;})()}<p style="font-size:9pt">Firma: ______________________</p>`;
+  $('#printSheet').innerHTML=`<h1>Identificación de microorganismos filamentosos</h1><p>Fecha: <b>${r.fecha||''} ${r.hora||''}</b> · Punto: <b>${esc(r.punto)}</b> · Índice: <b>${r.indice??'—'}</b> · IVF: <b>${r.ivf??'—'}</b> ml/g · Analista: <b>${esc(r.operador)}</b></p><table><tr><th class="l"></th>${cols.map((_,i)=>`<th>Filamento ${i+1}</th>`).join('')}</tr>${rows}</table><p style="font-size:9pt;margin-top:10px">Causas asociadas: ${[...new Set(r.filamentos.flatMap(f=>f.causas))].join(', ')||'—'}</p>${(()=>{const m=r.microfauna;if(!m||!Object.keys(m.items||{}).length)return '';return `<p style="font-size:9.5pt;margin-top:8px"><b>Protozoos y metazoos:</b> ${Object.entries(m.items).map(([k,v])=>`${MFBY[k].n} ${AB_LBL[v]}`).join(' · ')}${m.diag&&m.diag.cal?` — calidad estimada: <b>${m.diag.cal}</b>`:''}${m.diag&&m.diag.indml!=null?` · ${m.diag.indml} ciliados/ml`:''}</p>`;})()}${(()=>{const m=r.macro&&r.macro.f;if(!m)return '';const t=MA_SECS.flatMap(S=>S.fields).filter(F=>maVal(m,F)).map(F=>`${F.l}: ${esc(maVal(m,F))}`);return t.length?`<p style="font-size:9.5pt;margin-top:8px"><b>Macroscopía:</b> ${t.join(' · ')}</p>`:'';})()}<p style="font-size:9pt">Firma: ______________________</p>`;
 }
 
 /* =====================================================================

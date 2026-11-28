@@ -11606,7 +11606,7 @@ if(typeof waitForFirebase==='function'){
         '<div style="font-family:\'Barlow Condensed\',sans-serif;font-weight:700;color:white;font-size:1rem;">🔬 M-BIO · Biología del fango: filamentosos y microfauna</div>';
       const frame = document.createElement('iframe');
       frame.id = 'bio-frame';
-      frame.src = BIO_SRC;
+      frame.src = BIO_SRC + '?v=' + Date.now(); // evita que se cargue una versión antigua guardada
       frame.style.cssText = 'flex:1;border:none;width:100%;background:#0a1424;';
       viewer.appendChild(bar); viewer.appendChild(frame);
       document.body.appendChild(viewer);
