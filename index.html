@@ -841,7 +841,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
 </style>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, get, set, push, update, onValue, query, orderByChild, startAt } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, get, set, push, update, onValue, query, orderByChild, orderByKey, startAt } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const firebaseConfig = {
     apiKey: "AIzaSyDSGGCNadkbplwoCr2zKa9QU3135vWW30E",
     authDomain: "sgi-ute-valle-de-guimar.firebaseapp.com",
@@ -853,7 +853,7 @@ textarea.bio-input{resize:vertical;min-height:50px;line-height:1.5;}
   };
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-  window._fb = { db, ref, get, set, push, update, onValue, query, orderByChild, startAt };
+  window._fb = { db, ref, get, set, push, update, onValue, query, orderByChild, orderByKey, startAt };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <!-- Simulador Proceso EDARi dependencies -->
@@ -4940,6 +4940,12 @@ function gsTab(id){
 }
 window.gsTab = gsTab;
 
+function _accClaveDesde(ts){
+  const C = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  let k = '';
+  for(let i = 0; i < 8; i++){ k = C.charAt(ts % 64) + k; ts = Math.floor(ts / 64); }
+  return k;
+}
 function _accEsSupervisor(){ const s = getSession(); return !!(s && s.role === 'supervisor'); }
 function _accEsc(t){ return String(t==null?'':t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -4958,8 +4964,15 @@ async function accCargar(){
   try {
     await waitForFirebase();
     const f = window._fb;
-    const q = f.query(f.ref(f.db, 'accesos'), f.orderByChild('ts'), f.startAt(desde));
-    const snap = await f.get(q);
+    // Las claves push de Firebase llevan la fecha codificada en sus 8 primeros caracteres:
+    // se filtra por clave, que no necesita índice (.indexOn) en las reglas.
+    let snap;
+    try {
+      snap = await f.get(f.query(f.ref(f.db, 'accesos'), f.orderByKey(), f.startAt(_accClaveDesde(desde - 86400000))));
+    } catch(e1) {
+      console.warn('accCargar: consulta por clave no disponible, se lee todo', e1);
+      snap = await f.get(f.ref(f.db, 'accesos'));
+    }
     const val = snap.val() || {};
     _acc.data = Object.values(val).filter(a => a && a.ts >= desde).sort((a,b) => b.ts - a.ts);
     // Rellenar el desplegable de usuarios conservando la selección

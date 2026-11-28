@@ -1,5 +1,5 @@
 // ── SGI EDAR — Service Worker v1.0.0 ──────────────────────────
-const CACHE = 'sgi-v3';
+const CACHE = 'sgi-v4';
 
 // Archivos a cachear para funcionamiento offline
 const PRECACHE = [
