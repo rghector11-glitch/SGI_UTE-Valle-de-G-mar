@@ -1,7 +1,7 @@
 {
-  "name": "SGI UTE Valle de Güímar",
-  "short_name": "SGI UTE",
-  "description": "Sistema de Gestión Interna — UTE Valle de Güímar",
+  "name": "SGI EDAR",
+  "short_name": "SGI EDAR",
+  "description": "Sistema de Gestión Interna — EDAR",
   "start_url": "/SGI_UTE-Valle-de-G-mar/index.html",
   "scope": "/SGI_UTE-Valle-de-G-mar/",
   "display": "standalone",

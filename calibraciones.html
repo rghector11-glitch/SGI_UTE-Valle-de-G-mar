@@ -12,7 +12,7 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTE Valle de Güímar — Calibraciones</title>
+<title>EDAR — Calibraciones</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -589,7 +589,7 @@ if(window.self !== window.top) {
       </svg>
     </div>
     <div class="splash-brand">
-      <h1>UTE Valle de Güímar</h1>
+      <h1>EDAR</h1>
       <p>Sistema de gestión de calibraciones</p>
       <p style="font-size:.72rem;color:rgba(255,255,255,.45);font-weight:300;margin-top:2px;letter-spacing:.04em;">H. Hernández</p>
     </div>
@@ -753,7 +753,7 @@ if(window.self !== window.top) {
   </div>
 
   <footer class="splash-footer">
-    © 2025 UTE Valle de Güímar · Sistema de gestión interna
+    © 2025 EDAR · Sistema de gestión interna
   </footer>
 </div>
 
@@ -777,7 +777,7 @@ if(window.self !== window.top) {
       </svg>
     </div>
     <div class="app-header-brand">
-      <div class="company">UTE Valle de Güímar</div>
+      <div class="company">EDAR</div>
       <div class="module">Calibraciones &amp; Verificaciones</div>
     </div>
     <div class="plant-pill" id="plant-pill">—</div>
@@ -1632,7 +1632,7 @@ function exportXLS(){
   // ════════════════════════════════════════
   const wsI = {};
   // Cabecera del informe (filas 1-3)
-  wsI['A1'] = {v:'UTE Valle de Güímar', s:{...S.title,fill:{fgColor:{rgb:'E8F2FA'}}}, t:'s'};
+  wsI['A1'] = {v:'EDAR', s:{...S.title,fill:{fgColor:{rgb:'E8F2FA'}}}, t:'s'};
   wsI['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
   wsI['A3'] = {v:'', t:'s'};
 
@@ -1677,7 +1677,7 @@ function exportXLS(){
   // HOJA 2 — REGISTROS
   // ════════════════════════════════════════
   const wsR = {};
-  wsR['A1'] = {v:'UTE Valle de Güímar — Registros de calibración y verificación', s:S.title, t:'s'};
+  wsR['A1'] = {v:'EDAR — Registros de calibración y verificación', s:S.title, t:'s'};
   wsR['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
   wsR['A3'] = {v:'', t:'s'};
 
@@ -1725,7 +1725,7 @@ function exportXLS(){
   // HOJA 3 — VENCIMIENTOS
   // ════════════════════════════════════════
   const wsV = {};
-  wsV['A1'] = {v:'UTE Valle de Güímar — Estado de vencimientos', s:S.title, t:'s'};
+  wsV['A1'] = {v:'EDAR — Estado de vencimientos', s:S.title, t:'s'};
   wsV['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
   wsV['A3'] = {v:'', t:'s'};
 
@@ -1767,7 +1767,7 @@ function exportXLS(){
   const nota = { font:{sz:10,italic:true,color:{rgb:'4A5568'}}, alignment:{horizontal:'left',vertical:'center',wrapText:true} };
   const lblStyle = { font:{bold:true,sz:10,color:{rgb:'003E6B'}}, alignment:{horizontal:'left',vertical:'center'} };
 
-  wsC['A1'] = {v:'UTE Valle de Güímar — Criterios de aceptación de desviación', s:{...S.title,fill:{fgColor:{rgb:'E8F2FA'}}}, t:'s'};
+  wsC['A1'] = {v:'EDAR — Criterios de aceptación de desviación', s:{...S.title,fill:{fgColor:{rgb:'E8F2FA'}}}, t:'s'};
   wsC['A2'] = {v:`Instalación: ${PLANTS[plant]}   ·   Generado: ${dateStr}`, s:S.subtitle, t:'s'};
   wsC['A3'] = {v:'', t:'s'};
 

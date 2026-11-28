@@ -919,7 +919,7 @@ function informePDF(rec){if(!rec){msg('No hay registro');return;}
   .box{border-radius:6px;padding:7px 11px;margin:6px 0;border-left:3px solid;-webkit-print-color-adjust:exact;print-color-adjust:exact}.r{background:#fff0f0;border-color:#cc2200}.a{background:#fff8e0;border-color:#cc7700}.g{background:#f0fff6;border-color:#008855}
   .ok{color:#008855;font-weight:700}.bad{color:#cc2200;font-weight:700}.warn{color:#cc7700;font-weight:700}
   .footer{margin-top:20px;font-size:8.5px;color:#7a8fa8;border-top:1px solid #d0dce8;padding-top:8px;display:flex;justify-content:space-between}</style></head><body>
-  <div class="header"><h1>🔬 Informe de biología del fango activo</h1><div class="sub">UTE VALLE DE GÜÍMAR · EDAR · ${esc(rec.punto||'REACTOR BIOLÓGICO')}</div>
+  <div class="header"><h1>🔬 Informe de biología del fango activo</h1><div class="sub">EDAR · ${esc(rec.punto||'REACTOR BIOLÓGICO')}</div>
   <div class="meta">Fecha del análisis: <span class="amber">${rec.fecha}${rec.hora?' · '+rec.hora:''}</span> | Analista: <span class="amber">${esc(rec.operador||'—')}</span> | Impreso: ${ahora}</div></div>
   <div class="section">Índice de filamentosas (escala Jenkins)</div>
   <div style="display:flex;align-items:center;gap:16px">${rec.indice!=null?`<span class="badge" style="background:${bC(rec.indice)};color:${bT(rec.indice)}">${rec.indice} / 5 · ${IDX_DESC[rec.indice]}</span>`:''}
@@ -934,7 +934,7 @@ function informePDF(rec){if(!rec){msg('No hay registro');return;}
   ${rec.obs?`<div class="section">Observaciones</div><p style="font-style:italic">“${esc(rec.obs)}”</p>`:''}
   <div class="section">Fotografías microscópicas</div>${fotos}
   <div class="section">Referencia de actuación</div><table><tr><th>Índice</th><th>Descripción</th><th>Acción</th></tr><tr><td>0–1</td><td>Ausentes / muy escasas</td><td class="ok">Sin intervención</td></tr><tr><td>2</td><td>Escasas</td><td class="ok">Vigilar tendencia</td></tr><tr><td>3</td><td>Moderadas</td><td class="warn">Intervención operacional</td></tr><tr><td>4</td><td>Abundantes</td><td class="bad">Acción correctora urgente</td></tr><tr><td>5</td><td>Muy abundantes (bulking)</td><td class="bad">Cloración selectiva y revisión del proceso</td></tr></table>
-  <div class="footer"><span>SGI UTE Valle de Güímar · M-BIO Biología · Filamentosos y microfauna</span><span><strong>Héctor Hernández Hernández</strong></span></div></body></html>`;
+  <div class="footer"><span>SGI EDAR · M-BIO Biología · Filamentosos y microfauna</span><span><strong>Héctor Hernández Hernández</strong></span></div></body></html>`;
   const w=window.open('','_blank');if(!w){msg('El navegador ha bloqueado la ventana del informe: permite las ventanas emergentes para el SGI');return;}
   w.document.write(html);w.document.close();setTimeout(()=>{try{w.print();}catch(e){}},500);}
 
